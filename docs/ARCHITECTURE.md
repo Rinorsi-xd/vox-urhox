@@ -14,8 +14,8 @@
 | 首页换车 | `app/HomeVehicleSwitch.lua`、`scene/CarLift.lua` | 应用调度一次待执行换车；表现层只计算原版升降曲线。Garage 保持同步事务，切场/建造前停稳，销毁时取消回调 |
 | 大厅反射过滤 | `render/ReflectionFilter.lua` | 大厅拥有三个按反射帧更新的 HDR 降采样目标，直接读同一反射图；独立两命令过滤流程，尺寸变化事务替换、退出显式释放 |
 | 大厅反射裁剪 | `assets/Shaders/BLGL/lib/PlanarClip.shaderinc`、`Equipment/Volume.shaderinc` | 镜像视图的世界平面片元裁剪；体积按实例局部射线区间裁剪。正常视图和阴影跳过，无逐帧材质遍历或额外渲染目标；边界见 `migration/PLANAR_REFLECTION.md` |
-| 车辆数据 | `scripts/build`、`parts/Defs.lua`、`Config.lua` | 蓝图、装配规则、档位与零件定义，独立于场景对象 |
-| 建造命令 | `build/BuildEditor.lua`、`Placement.lua`、`GridRay.lua`、`EditHistory.lua` | 源格/子格拾取、装配方向、选择/移动/涂装与 300 条事务历史，不依赖原生节点或输入 |
+| 车辆数据 | `scripts/construction`、`parts/Defs.lua`、`Config.lua` | 蓝图、装配规则、档位与零件定义，独立于场景对象 |
+| 建造命令 | `construction/BuildEditor.lua`、`Placement.lua`、`GridRay.lua`、`EditHistory.lua` | 源格/子格拾取、装配方向、选择/移动/涂装与 300 条事务历史，不依赖原生节点或输入 |
 | 建造适配 | `app/BuildSession.lua`、`controls/BuildInput.lua`、`render/BuildGhost.lua` | 当前大厅内组合交互与预览；增量更新同一 VehicleView；限定池/签名缓存；切场释放 |
 | 建造自由相机 | `controls/FreeFlight.lua`、`BuildCamera.lua` | 纯源坐标飞行计算与原生相机/鼠标捕获分开；复用大厅视口，不创建角色或第二份场景 |
 | 首页取景 | `controls/HomeStations.lua`、`OrbitCamera.lua` | 源车辆尺寸与四个栏目机位独立映射；650ms 原版镜头过渡、手动打断与房间边界；首页左键旋转和建造左键编辑分开 |

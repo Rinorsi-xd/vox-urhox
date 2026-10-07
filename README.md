@@ -39,7 +39,7 @@ B 零件库，G 材质，R 旋转，M 镜像，P 涂装，X 拆除，V 透视，
 ## 工程结构
 
 - `scripts/app/`：单一应用入口、大厅/建造/驾驶会话与生命周期。
-- `scripts/build/`、`drive/`、`combat/`：蓝图、车辆和战斗规则。
+- `scripts/construction/`、`drive/`、`combat/`：蓝图、车辆和战斗规则；避免 Maker 打包器保留的 `build` 目录名。
 - `scripts/controls/`、`render/`、`ui/`：输入/相机、场景表现、原版 PC 界面。
 - `assets/Scenes/`、`Parts/`、`Crater/`、`Shaders/`：编辑器可见场景及运行资源。
 - `tools/migration/`：源数据转换和验收工具；`docs/migration/evidence/` 为验收证据，不随游戏资源打包。

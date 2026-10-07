@@ -33,3 +33,5 @@
 业务模块已从 `scripts/build/` 改名为 `scripts/construction/`，保留资源 UUID，同步更新运行时与本地测试引用。未修改引擎打包器。正式发布前必须运行 Maker CLI `preview prepare`（只准备产物，不启动窗口），再用 `tools/migration/check-packaged-scripts.py <manifest路径>` 检查所有游戏脚本确实存在于产物且属于 `#blocking`。本次官方打包器生成的清单包含全部 188 个 Lua 脚本，其中 12 个 construction 模块齐全。
 
 改名后的原生触控/大厅/改装/试车往返回归 50/50 通过。额外尝试的 H5 源端构建规则对照未执行到原生测试：生成夹具时原 H5 `shared/build/rotor.js:179` 递归深度计算触发 `Maximum call stack size exceeded`；本次没有改动 H5 源目录，不能把此前的构建规则测试结果算作本次结果。
+
+远端随后成功进入场景加载，但 `.shaderinc` 不属于引擎默认 blocking 类型，尚未下载即被 SurfaceShader 编译器同步读取，导致材质加载失败。`boot` 组现显式覆盖 `Shaders/**`（包含 shaderinc），以及大厅首屏使用的字体、大厅纹理、环境立方体、UI 和 vignette 纹理。陨坑等地图仍在 default 组按需下载，不将全量资源加入预加载。

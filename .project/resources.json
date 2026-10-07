@@ -2,7 +2,14 @@
   "$schema": "../schemas/resources.schema.json",
   "preload_groups": ["boot"],
   "groups": {
-    "boot": ["Fonts/MiSans-Regular.ttf", "Fonts/MiSans-Bold.ttf", "Hangar/HangarEnv.hdr"],
+    "boot": [
+      "Fonts/**",
+      "Shaders/**",
+      "Hangar/**",
+      "Cube/**",
+      "UI/**",
+      "Editor/Textures/Engine/Vignetting.png"
+    ],
     "default": [
       "**"
     ]
