@@ -1,6 +1,6 @@
 {
   "$schema": "../schemas/project.schema.json",
-  "project_id": "p_5581a881_d",
+  "project_id": "m_01cf",
   "name": "VoxelCraft",
   "author": {
     "id": "local"
