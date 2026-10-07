@@ -9,7 +9,6 @@
 !/scripts/
 !/assets/
 !/docs/
-!/tools/
 /.maker-mcp/*
 !/.maker-mcp/.gitignore
 /.project/*

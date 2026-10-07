@@ -22,6 +22,6 @@
 
 ## 包与后续构建
 
-发布源使用 `scripts/` 与 `assets/`。SDK 参考目录、`.cli`、本机存档、测试截图和生成的大型源端夹具不进入 Git。保留既有 DX11 shader 缓存以支持 PC 包；移动端/Web shader 仍须由目标引擎编译。
+发布源使用 `scripts/` 与 `assets/`。SDK 参考目录、`.cli`、本机存档、测试截图和生成的大型源端夹具不进入 Git。Maker 远端拒绝 `tools/*`，工具目录仅保留本地，不进入发布仓库。保留既有 DX11 shader 缓存以支持 PC 包；移动端/Web shader 仍须由目标引擎编译。
 首次上传包含现有陨坑等地图资源，当前资源总量约 350 MiB，尚未验证弱网下的按需下载。基础移动适配不等于完成资源瘦身。
 通过 Maker MCP 的 `maker_build_current_directory` 统一提交、推送和构建；不要另行用 PR 或通用 push 代替该流程。
