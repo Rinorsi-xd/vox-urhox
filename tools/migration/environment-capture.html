@@ -1,0 +1,114 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>envcap</title>
+<script type="importmap">
+{ "imports": { "three": "../three/vendor/three/build/three.module.js", "three/addons/": "../three/vendor/three/addons/", "@shared/": "../shared/" } }
+</script>
+</head>
+<body>
+<pre id="log">loading…</pre>
+<script type="module">
+// 临时页面：按 H5 main.js 的 PMREM 捕获条件（不含车辆与尘埃、位置 (0, 2.2, 0)、near 0.1 far 100、只渲染第 0 层）
+// 把车库渲染成 HDR cubemap，再转成 UrhoX 坐标（X 取反）的等距柱状全景图，编码为 Radiance .hdr 上传。
+import * as THREE from 'three';
+import { Garage } from '../three/src/scene/garage.js';
+
+const log = ( s ) => { document.getElementById( 'log' ).textContent += '\n' + s; };
+try {
+
+	const renderer = new THREE.WebGLRenderer( { antialias: false } );
+	renderer.setSize( 256, 256 );
+	renderer.shadowMap.enabled = true;
+	renderer.shadowMap.type = THREE.VSMShadowMap;
+	renderer.toneMapping = THREE.ACESFilmicToneMapping;
+	renderer.outputColorSpace = THREE.SRGBColorSpace;
+	document.body.appendChild( renderer.domElement );
+
+	const scene = new THREE.Scene();
+	const garage = new Garage( scene );
+	garage.dust.visible = false;
+	scene.updateMatrixWorld( true );
+
+	const cubeRT = new THREE.WebGLCubeRenderTarget( 512, { type: THREE.HalfFloatType } );
+	const cc = new THREE.CubeCamera( 0.1, 100, cubeRT );
+	cc.position.set( 0, 2.2, 0 );
+	cc.updateMatrixWorld( true );
+	cc.update( renderer, scene );
+
+	const W = 1024, H = 512;
+	const panoRT = new THREE.WebGLRenderTarget( W, H, { type: THREE.FloatType, depthBuffer: false } );
+	const mat = new THREE.ShaderMaterial( {
+		uniforms: { env: { value: cubeRT.texture } },
+		vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4( position.xy, 0.0, 1.0 ); }',
+		fragmentShader: `
+			uniform samplerCube env; varying vec2 vUv;
+			void main() {
+				float phi = ( vUv.x - 0.5 ) * 6.283185307;
+				float theta = ( 1.0 - vUv.y ) * 3.141592654;
+				// UrhoX 方向 (sinθ sinφ, cosθ, sinθ cosφ)，three 方向 = X 取反
+				vec3 d = vec3( - sin( theta ) * sin( phi ), cos( theta ), sin( theta ) * cos( phi ) );
+				gl_FragColor = vec4( textureCube( env, d ).rgb, 1.0 );
+			}`,
+		depthTest: false, depthWrite: false,
+	} );
+	const quad = new THREE.Mesh( new THREE.PlaneGeometry( 2, 2 ), mat );
+	const qs = new THREE.Scene();
+	qs.add( quad );
+	const qc = new THREE.OrthographicCamera( - 1, 1, 1, - 1, 0, 1 );
+	renderer.setRenderTarget( panoRT );
+	renderer.render( qs, qc );
+	renderer.setRenderTarget( null );
+	const px = new Float32Array( W * H * 4 );
+	renderer.readRenderTargetPixels( panoRT, 0, 0, W, H, px );
+
+	// 统计（便于和 UrhoX 侧对照）
+	let max = 0, sum = [ 0, 0, 0 ];
+	for ( let i = 0; i < W * H; i ++ ) {
+
+		for ( let c = 0; c < 3; c ++ ) sum[ c ] += px[ i * 4 + c ];
+		max = Math.max( max, px[ i * 4 ], px[ i * 4 + 1 ], px[ i * 4 + 2 ] );
+
+	}
+	const sample = ( u, v ) => { const x = Math.floor( u * W ), y = Math.floor( ( 1 - v ) * H ); const i = ( y * W + x ) * 4; return [ px[ i ], px[ i + 1 ], px[ i + 2 ] ].map( ( a ) => a.toFixed( 3 ) ).join( ' ' ); };
+	log( `mean ${sum.map( ( s ) => ( s / ( W * H ) ).toFixed( 4 ) ).join( ' ' )} max ${max.toFixed( 2 )}` );
+	log( `zenith ${sample( 0.5, 0.01 )} | +Z horizon ${sample( 0.5, 0.5 )} | -Z horizon ${sample( 0.02, 0.5 )} | +X ${sample( 0.75, 0.5 )} | -X ${sample( 0.25, 0.5 )} | nadir ${sample( 0.5, 0.99 )} | up45 +Z ${sample( 0.5, 0.25 )}` );
+
+	// Radiance RGBE（扁平扫描线，自上而下）
+	const head = `#?RADIANCE\nFORMAT=32-bit_rle_rgbe\n\n-Y ${H} +X ${W}\n`;
+	const hb = new TextEncoder().encode( head );
+	const out = new Uint8Array( hb.length + W * H * 4 );
+	out.set( hb, 0 );
+	let o = hb.length;
+	for ( let y = 0; y < H; y ++ ) {
+
+		const row = H - 1 - y; // readPixels 第 0 行在底部
+		for ( let x = 0; x < W; x ++ ) {
+
+			const i = ( row * W + x ) * 4;
+			const r = Math.max( 0, px[ i ] ), g = Math.max( 0, px[ i + 1 ] ), b = Math.max( 0, px[ i + 2 ] );
+			const v = Math.max( r, g, b );
+			if ( v < 1e-32 ) { out[ o ++ ] = 0; out[ o ++ ] = 0; out[ o ++ ] = 0; out[ o ++ ] = 0; continue; }
+			const e = Math.ceil( Math.log2( v ) + 1e-9 );
+			const s = 256 / Math.pow( 2, e );
+			out[ o ++ ] = Math.min( 255, Math.floor( r * s ) );
+			out[ o ++ ] = Math.min( 255, Math.floor( g * s ) );
+			out[ o ++ ] = Math.min( 255, Math.floor( b * s ) );
+			out[ o ++ ] = e + 128;
+
+		}
+
+	}
+	const res = await fetch( '/upload?name=GarageEnv.hdr', { method: 'POST', body: out } );
+	log( 'upload: ' + await res.text() );
+	log( 'DONE' );
+
+} catch ( e ) {
+
+	log( 'ERROR ' + e.stack );
+
+}
+</script>
+</body>
+</html>

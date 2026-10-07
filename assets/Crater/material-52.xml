@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='utf-8'?>
+<material>
+  <surfaceshader name="Shaders/BLGL/Crater/Map-MAP_BAKE-MAP_PANEL-MAP_SOOT.shader" />
+  <parameter name="tint" value="0.107 0.1195 0.1413 1" />
+  <parameter name="roughness" type="Float" value="0.7" />
+  <parameter name="metalness" type="Float" value="0.35" />
+  <parameter name="alpha_cut" type="Float" value="0" />
+  <parameter name="emission" value="0 0 0" />
+  <parameter name="uTime" type="Float" value="10" />
+  <parameter name="uBakeFade" value="52 66" />
+  <parameter name="uHeightBox" value="-320.5 -320.5 641 641" />
+  <parameter name="uSandK" type="Float" value="0.03333333333333333" />
+  <parameter name="uCliffK" type="Float" value="0.17396421441356202" />
+  <parameter name="uBrick" value="0.2 0.01 0.1 0" />
+  <parameter name="uBrickWH" value="1 1 2" />
+  <parameter name="uColor2" value="0.0963 0.1076 0.13" />
+  <parameter name="uMortar" value="0.0642 0.0717 0.0848" />
+  <parameter name="uWear" value="0.35 0.6" />
+  <parameter name="uSoot" value="0.75 -12 10 0" />
+  <parameter name="uSootColor" value="0.012 0.011 0.01" />
+  <parameter name="uRockTint" value="1 1 1" />
+  <surfacetexture name="tBake" texture="Crater/texture-2.ktx" type="Texture2D" />
+  <surfacetexture name="tTerrA" texture="Crater/albedo.xml" type="Texture2DArray" />
+  <surfacetexture name="tTerrN" texture="Crater/nra.xml" type="Texture2DArray" />
+  <surfacetexture name="tHeight" texture="Crater/height.png" type="Texture2D" />
+  <surfacetexture name="craterDFG" texture="Crater/dfg.png" type="Texture2D" />
+  <depthbias constant="-1.1920928955078125e-07" slopescaled="-1" />
+  <renderorder value="128" />
+</material>

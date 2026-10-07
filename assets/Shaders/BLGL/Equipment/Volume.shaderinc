@@ -1,0 +1,40 @@
+// Unit Box.mdl bounds; all model/camera values are captured per instance in VS.
+// Clip-space depth goes to near only for this transparent draw. Opaque depth
+// below clips the integral, so a rear box face cannot hide the visible volume.
+#include "../lib/PlanarClip.shaderinc"
+uniform sampler2D scene_depth : hint_depth_texture;
+uniform sampler2D flow_map : filter_linear_mipmap, repeat_enable;
+uniform float clock = 0.0;
+varying vec3 volume_local;
+varying vec3 camera_local;
+varying vec4 settings;
+varying vec4 volume_clip_plane;
+void vertex() {
+    volume_local=VERTEX;
+    camera_local=(inverse(MODEL_MATRIX)*vec4(CAMERA_POSITION_WORLD,1.0)).xyz;
+    settings=INSTANCE_CUSTOM;
+    // Transform the world clipping plane per instance; clipping a proxy face
+    // would incorrectly remove visible portions of a volume crossing the floor.
+    volume_clip_plane=transpose(MODEL_MATRIX)*planar_clip_plane;
+    Z_CLIP_SCALE=0.0;
+}
+vec2 volume_interval(vec3 ro,vec3 rd,float clip_distance,vec4 local_clip_plane,bool clip_reflection) {
+    vec3 safe=sign(rd)*max(abs(rd),vec3(0.000001));
+    safe+=vec3(equal(safe,vec3(0.0)))*0.000001;
+    vec3 a=(vec3(-0.5)-ro)/safe,b=(vec3(0.5)-ro)/safe;
+    vec3 lo=min(a,b),hi=max(a,b);
+    float enter=max(0.0,max(lo.x,max(lo.y,lo.z))),leave=min(hi.x,min(hi.y,hi.z));
+    leave=min(leave,clip_distance);
+    if (clip_reflection) {
+        float distance=dot(vec4(ro,1.0),local_clip_plane);
+        float slope=dot(rd,local_clip_plane.xyz);
+        if (abs(slope)<0.000001) {
+            if (distance<0.0) return vec2(1.0,0.0);
+        } else {
+            float crossing=-distance/slope;
+            if (slope>0.0) enter=max(enter,crossing);
+            else leave=min(leave,crossing);
+        }
+    }
+    return vec2(enter,leave);
+}

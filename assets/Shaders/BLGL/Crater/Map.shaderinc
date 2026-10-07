@@ -1,0 +1,191 @@
+float clamp01(float v){return clamp(v,0.0,1.0);}
+#include "Fog.shaderinc"
+#include "DirectLight.shaderinc"
+
+
+uniform float uTime=0.0;
+uniform vec2 uBakeFade=vec2(52.0,66.0);
+uniform sampler2D tHeight;
+uniform vec4 uHeightBox=vec4(-320.0,-320.0,640.0,640.0);
+uniform sampler2DArray tTerrA;
+uniform sampler2DArray tTerrN;
+uniform float uSandK=0.03333333333333333;
+uniform float uCliffK=0.17396421441356202;
+uniform sampler2D tBake : filter_linear, repeat_disable;
+uniform vec4 uBrick;      // 缩放、缝宽、缝的柔和度、错缝
+uniform vec3 uBrickWH;    // 砖宽、行高、错缝频率
+uniform vec3 uColor2;
+uniform vec3 uMortar;
+uniform vec2 uWear;       // 磨损强度、凹凸强度
+uniform vec4 uSoot;       // 烟熏强度、随高度变淡的范围（y0 → y1）
+uniform vec3 uSootColor;
+uniform vec3 uRockTint;
+
+
+
+
+
+#ifdef MAP_VBAKE
+
+#endif
+
+float mH31( vec3 p ) { p = fract( p * 0.3183099 + 0.1 ); p *= 17.0; return fract( p.x * p.y * p.z * ( p.x + p.y + p.z ) ); }
+float mVN( vec3 x ) {
+	vec3 i = floor( x ), f = fract( x ); f = f * f * ( 3.0 - 2.0 * f );
+	return mix( mix( mix( mH31( i ), mH31( i + vec3( 1, 0, 0 ) ), f.x ), mix( mH31( i + vec3( 0, 1, 0 ) ), mH31( i + vec3( 1, 1, 0 ) ), f.x ), f.y ),
+		mix( mix( mH31( i + vec3( 0, 0, 1 ) ), mH31( i + vec3( 1, 0, 1 ) ), f.x ), mix( mH31( i + vec3( 0, 1, 1 ) ), mH31( i + vec3( 1, 1, 1 ) ), f.x ), f.y ), f.z );
+}
+// 分形噪声：oct 是层数（可以是小数，最后一层按比例淡入；按像素大小算，太细的层不加，远处不闪）
+float mFbm( vec3 p, float oct, float rough ) {
+	float a = 0.5, s = 0.0, n = 0.0;
+	for ( int i = 0; i < 8; i ++ ) {
+		float w = clamp( oct - float( i ), 0.0, 1.0 );
+		if ( w <= 0.0 ) break;
+		s += a * w * mVN( p ); n += a * w;
+		p = p * 2.03 + vec3( 17.1, 3.7, 9.3 ); a *= rough;
+	}
+	return s / max( n, 1e-4 );
+}
+float mOct( vec3 p, float maxOct ) {
+	float fw = max( length( dFdx( p ) ), length( dFdy( p ) ) );
+	return clamp( log2( 0.5 / max( fw, 1e-5 ) ) + 1.0, 1.0, maxOct );
+}
+
+float mTint( float r, float b ) { return fract( sin( r * 127.1 + b * 311.7 ) * 43758.5453 ); }
+vec3 mDecodeN( vec4 q ) { vec2 xy = q.rg * 2.0 - 1.0; xy.y = - xy.y; return vec3( xy, sqrt( clamp01( 1.0 - dot( xy, xy ) ) ) ); }
+vec3 mGrade( vec3 c, float sat, vec3 gradeTint ) { float l = dot( c, vec3( 0.2126, 0.7152, 0.0722 ) ); return mix( vec3( l ), c, sat ) * gradeTint; }
+// 屏幕空间凹凸（和 three 的 bumpmap 同一个算法）
+vec3 mPerturb( vec3 surf_pos, vec3 surf_norm, vec2 dHdxy, float faceDirection ) {
+	vec3 vSigmaX = normalize( dFdx( surf_pos.xyz ) ), vSigmaY = normalize( dFdy( surf_pos.xyz ) ), vN = surf_norm;
+	vec3 R1 = cross( vSigmaY, vN ), R2 = cross( vN, vSigmaX );
+	float fDet = dot( vSigmaX, R1 ) * faceDirection;
+	vec3 vGrad = sign( fDet ) * ( dHdxy.x * R1 + dHdxy.y * R2 );
+	return normalize( abs( fDet ) * surf_norm - vGrad );
+}
+
+uniform vec4 tint=vec4(1.0);uniform float roughness=0.6;uniform float metalness=0.0;uniform vec3 emission=vec3(0.0);
+varying vec3 sourceObject;
+void vertex(){sourceObject=VERTEX*vec3(-1.0,1.0,1.0);}
+void fragment(){
+vec3 sourceCamera=CAMERA_POSITION_WORLD*vec3(-1.0,1.0,1.0);
+vec3 vMWorld=VERTEX*vec3(-1.0,1.0,1.0);vec3 vMWN=NORMAL*vec3(-1.0,1.0,1.0);vec3 vMObj=sourceObject;
+vec2 vMUv=UV;vec2 vMUv1=UV2;vec2 vMBake=COLOR.rg;
+
+vec3 mCol = tint.rgb;
+vec3 mWN = normalize( vMWN );
+float mRoughK = 1.0, mMetalK = 1.0, mHeight = 0.0;
+vec3 mNrmW = vec3( 0.0 ); float mNrmK = 0.0; // 岩石三向投影算出来的世界法线
+float mCamD = length( vMWorld - sourceCamera );
+#ifdef MAP_PANEL
+{
+	// Blender 砖块纹理：p = uv × 缩放；每行按错缝频率挪半块；缝是到砖边最近的距离 < 缝宽
+	vec2 p = vMUv * uBrick.x;
+	float bw = uBrickWH.x, rh = uBrickWH.y;
+	float row = floor( p.y / rh );
+	float off = mod( row, uBrickWH.z ) != 0.0 ? 0.0 : bw * uBrick.w;
+	float bn = floor( ( p.x + off ) / bw );
+	float bx = p.x + off - bw * bn, by = p.y - rh * row;
+	float md = min( min( bx, by ), min( bw - bx, rh - by ) );
+	float m = uBrick.y;
+	float aa = fwidth( md ) * 0.8;
+	float w = max( aa, m * uBrick.z );
+	float mortar = 1.0 - smoothstep( m - w, m + w, md );
+	mortar *= min( 1.0, m / max( aa, 1e-5 ) ); // 缝比像素还细：按覆盖率淡掉
+	float brickTint = mTint( row, bn );
+	mCol = mix( mix( mCol, uColor2, brickTint ), uMortar, mortar );
+	mHeight = - mortar;
+	// 磨损：物体坐标 × 6 的彩色噪声乘上去（和 Blender 的 Noise × Multiply 一样）
+	vec3 q = vMObj * 6.0;
+	float oc = mOct( q, 4.0 );
+	float wf = mFbm( q, oc, 0.5 );
+	vec3 wn = vec3( wf, wf * 0.96 + 0.02, wf * 0.92 + 0.04 ); // 一张噪声带一点色偏（原来是三张彩色噪声，省掉三分之二的开销）
+	wn = 0.5 + ( wn - 0.5 ) * 2.2;
+	mCol *= mix( vec3( 1.0 ), wn, uWear.x );
+}
+#endif
+#ifdef MAP_SOOT
+{
+	vec3 q = vMWorld * 0.08;
+	float n = mFbm( q, mOct( q, 4.0 ), 0.6 );
+	n = 0.5 + ( n - 0.5 ) * 1.6;
+	float s = smoothstep( 0.45, 0.7, n ) * mix( 0.9, 0.15, clamp( ( vMWorld.y - uSoot.y ) / max( uSoot.z - uSoot.y, 0.1 ), 0.0, 1.0 ) ) * uSoot.x;
+	mCol = mix( mCol, uSootColor, s );
+	mRoughK = mix( mRoughK, 1.4, s );
+}
+#endif
+#ifdef MAP_ROCK
+{
+	// 三向投影地面的岩壁贴图（第 5 层）+ 坐标扭曲，和山体岩壁一模一样；按 Blender 里两种岩色调一下
+	vec3 bw3 = pow( abs( mWN ), vec3( 4.0 ) ); bw3 /= dot( bw3, vec3( 1.0 ) );
+	vec3 sg = sign( mWN );
+	vec3 wp = vMWorld + vec3( mVN( vMWorld.zyx * 0.09 ) - 0.5, mVN( vMWorld.xzy * 0.09 + 3.7 ) - 0.5, mVN( vMWorld * 0.09 - 2.9 ) - 0.5 ) * 2.5;
+	vec2 uX = wp.zy * uCliffK * vec2( sg.x, 1.0 ), uY = wp.xz * uCliffK * vec2( sg.y, 1.0 ), uZ = wp.xy * uCliffK * vec2( - sg.z, 1.0 );
+	vec4 aK = texture( tTerrA, vec3( uX, 5.0 ) ) * bw3.x + texture( tTerrA, vec3( uY, 5.0 ) ) * bw3.y + texture( tTerrA, vec3( uZ, 5.0 ) ) * bw3.z;
+	vec4 qX = texture( tTerrN, vec3( uX, 5.0 ) ), qY = texture( tTerrN, vec3( uY, 5.0 ) ), qZ = texture( tTerrN, vec3( uZ, 5.0 ) );
+	vec3 tX = mDecodeN( qX ), tY = mDecodeN( qY ), tZ = mDecodeN( qZ );
+	tX.x *= sg.x; tY.x *= sg.y; tZ.x *= - sg.z;
+	tX = vec3( tX.xy + mWN.zy, abs( tX.z ) * mWN.x );
+	tY = vec3( tY.xy + mWN.xz, abs( tY.z ) * mWN.y );
+	tZ = vec3( tZ.xy + mWN.xy, abs( tZ.z ) * mWN.z );
+	mNrmW = normalize( tX.zyx * bw3.x + tY.xzy * bw3.y + tZ.xyz * bw3.z ); mNrmK = 1.0;
+	vec4 qK = qX * bw3.x + qY * bw3.y + qZ * bw3.z;
+	float band = mVN( vec3( 0.0, vMWorld.y * 0.55, 0.0 ) + vMWorld * vec3( 0.03, 0.0, 0.03 ) );
+	mCol = mGrade( aK.rgb, 0.62, vec3( 0.97, 0.9, 0.83 ) ) * mix( vec3( 1.0 ), uRockTint, 0.16 ) * ( 0.88 + 0.24 * band );
+	mRoughK = qK.b / max( roughness, 0.05 );
+}
+#endif
+// 积沙：离地面 1 米多以内、朝上或侧面的地方盖一层地面的沙；朝上的面落一层浮尘
+#ifndef MAP_NOSAND
+{
+	vec2 hu = ( vMWorld.xz - uHeightBox.xy ) / uHeightBox.zw;
+	vec2 packedH=texture(tHeight,hu).rg;float gh=(packedH.r*65280.0+packedH.g*255.0)/65535.0*256.0-64.0;
+	float inBox = step( 0.0, hu.x ) * step( hu.x, 1.0 ) * step( 0.0, hu.y ) * step( hu.y, 1.0 );
+	float above = mix( 99.0, vMWorld.y - gh, inBox );
+	vec3 q = vMWorld * vec3( 0.45, 0.9, 0.45 );
+	float sn = mFbm( q, mOct( q, 3.0 ), 0.55 );
+	float horiz = smoothstep( 0.8, 0.97, mWN.y );
+	// 墙脚、斜面：贴地 0.3 ~ 2 米以内盖沙（高度按噪声起伏）
+	float sand = ( 1.0 - smoothstep( 0.0, 0.3 + 1.7 * sn, above ) ) * smoothstep( - 0.6, 0.2, mWN.y ) * ( 1.0 - horiz );
+	// 和地面一样高的地坪：风吹进来的一片片沙堆（不是满地铺）
+	vec3 q2 = vMWorld * vec3( 0.11, 0.0, 0.11 );
+	float drift = mFbm( q2 + sn * 0.6, mOct( q2, 3.0 ), 0.5 );
+	sand = max( sand, ( 1.0 - smoothstep( 0.2, 0.9, above ) ) * horiz * smoothstep( 0.58, 0.8, drift ) * 0.6 );
+	// 朝上的面：一层很淡的浮尘，大片、边缘软
+	vec3 q3 = vMWorld * 0.23 + 5.0;
+	float dn = mFbm( q3, mOct( q3, 3.0 ), 0.5 );
+	float dust = horiz * smoothstep( 0.45, 0.78, dn ) * 0.22;
+	float s = clamp( max( sand, dust ), 0.0, 1.0 );
+	#ifdef MAP_ROCK
+		s = max( s, smoothstep( 0.62, 0.9, mWN.y + ( dn - 0.5 ) * 0.4 ) * 0.85 );
+	#endif
+	if ( s > 0.002 ) {
+		vec3 sc = mGrade( texture( tTerrA, vec3( vMWorld.xz * uSandK, 0.0 ) ).rgb, 0.95, vec3( 1.1, 1.02, 0.9 ) );
+		mCol = mix( mCol, sc, s );
+		mRoughK = mix( mRoughK, 1.0 / max( roughness, 0.05 ), s );
+		mMetalK *= 1.0 - s;
+		mHeight *= 1.0 - s;
+	}
+}
+#endif
+
+
+vec3 craterNormal=mWN;
+#ifdef MAP_ROCK
+craterNormal=mNrmW;
+#endif
+#ifdef MAP_PANEL
+vec2 dH=vec2(dFdx(mHeight),dFdy(mHeight))*uWear.y*0.06*(1.0-smoothstep(25.0,80.0,mCamD));
+craterNormal=mPerturb(vMWorld,craterNormal,dH,FRONT_FACING?1.0:-1.0);
+#endif
+vec2 bake=vec2(1.0);
+#ifdef MAP_BAKE
+bake=texture(tBake,vMUv1).rg;
+#endif
+#ifdef MAP_VBAKE
+bake=vMBake;
+#endif
+ALBEDO=mCol;craterDirectShade=mix(1.0,bake.g,smoothstep(uBakeFade.x,uBakeFade.y,mCamD))*mix(1.0,bake.r,0.3);
+AO=mix(1.0,bake.r,0.9);ROUGHNESS=craterRoughness(clamp(roughness*mRoughK,0.04,1.0),(VIEW_MATRIX*vec4(NORMAL,0.0)).xyz);METALLIC=metalness*mMetalK;
+NORMAL=normalize(craterNormal*vec3(-1.0,1.0,1.0));craterCompensation=craterEnergy(ALBEDO,METALLIC,ROUGHNESS,NORMAL,normalize(CAMERA_POSITION_WORLD-VERTEX));
+EMISSION=emission;FOG=craterFog(vMWorld,sourceCamera);
+}

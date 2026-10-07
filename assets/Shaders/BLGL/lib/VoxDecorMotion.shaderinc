@@ -1,0 +1,9 @@
+// Source materials.js rotates in Three.js local space. Export mirrors X,
+// so the equivalent native rotation uses the opposite sine signs.
+uniform float animation_time = -1.0;
+float vox_decor_time() { return animation_time < 0.0 ? TIME : animation_time; }
+vec3 vox_decor_spin(vec3 p, float angle) {
+    float c = cos(angle);
+    float s = sin(angle);
+    return vec3(c * p.x + s * p.z, p.y, c * p.z - s * p.x);
+}

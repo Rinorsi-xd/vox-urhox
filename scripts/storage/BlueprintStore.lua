@@ -1,0 +1,80 @@
+-- Native client storage, isolated by engine project/user. Two alternating
+-- generations preserve the previous good write if an app exits during saving.
+-- WASM memory files are session-only; cloud persistence is a separate adapter.
+local M={};M.__index=M
+local Code=require 'storage.BlueprintCode'
+local function Read(path)
+    if not fileSystem:FileExists(path) then return nil end
+    local file=File(path,FILE_READ);if not file:IsOpen() then file:Dispose();return nil end
+    if file.size>4*1024*1024 then file:Dispose();return nil end
+    local text=file:ReadString();file:Dispose()
+    local ok,data=pcall(cjson.decode,text)
+    return ok and type(data)=='table' and data or nil
+end
+function M.New(namespace)
+    assert(not namespace or namespace:match('^[%w_%-]+$'),'Invalid storage namespace')
+    return setmetatable({prefix=(namespace or 'vox-garage')..'-',pending=nil,delay=0},M)
+end
+function M:Read(key,validator)
+    local a,b=Read(self.prefix..key..'-a.json'),Read(self.prefix..key..'-b.json')
+    local valid=function(v)
+        local ok,result=pcall(validator or Code.Validate,v and v.data)
+        return v and v.v==1 and type(v.generation)=='number' and v.generation%1==0 and v.generation>0 and (v.deleted==true or ok and result)
+    end
+    if not valid(a) then a=nil end;if not valid(b) then b=nil end
+    local best=a and b and (a.generation>b.generation and a or b) or a or b
+    return best and not best.deleted and best.data or nil,best and best.generation or 0,best and best.time or nil,best and best.capture or nil
+end
+function M:Write(key,data,validator,deleted,savedTime,capture)
+    local _,generation=self:Read(key,validator);generation=generation+1
+    local path=self.prefix..key..(generation%2==1 and '-a.json' or '-b.json')
+    local text=cjson.encode({v=1,generation=generation,data=data,deleted=deleted or nil,time=savedTime,capture=capture})
+    local file=File(path,FILE_WRITE)
+    if not file:IsOpen() then file:Dispose();return false,'无法打开存档' end
+    file:WriteString(text);file:Flush();file:Dispose()
+    local check=Read(path)
+    if not check or check.generation~=generation then return false,'存档校验失败，保留上一版' end
+    return true
+end
+function M:LoadBuildSettings() return self:Read('build-settings',require('build.Inventory').ValidSettings) end
+function M:SaveBuildSettings(settings) return self:Write('build-settings',settings,require('build.Inventory').ValidSettings) end
+function M:Queue(bp) self.pending=bp;self.delay=.5 end
+function M:Flush()
+    if not self.pending then return true end
+    local ok,err=self:Write('draft',self.pending:ToTable())
+    if ok then self.pending=nil end
+    return ok,err
+end
+function M:Update(dt)
+    if not self.pending then return end
+    self.delay=self.delay-dt
+    if self.delay<=0 then local ok,err=self:Flush();if not ok then print('[BlueprintStore] '..err);self.delay=5 end end
+end
+function M:SaveSlot(slot,bp)
+    if slot%1~=0 or slot<1 or slot>20 then return false,'车位超出范围' end
+    -- Keep library metadata in the same recoverable generation, outside the
+    -- exchange blueprint. Source slots use Date.now() (milliseconds).
+    local _,previous=self:LoadSlot(slot)
+    local ok,err=self:Write('slot'..slot,bp:ToTable(),nil,nil,os.time()*1000,self.captureContext and self.captureContext() or nil)
+    if ok and previous>1 then require('storage.PreviewCache').Retire(self,slot,previous-1) end
+    return ok,err
+end
+function M:LoadSlot(slot)
+    if slot%1~=0 or slot<1 or slot>20 then return nil end
+    return self:Read('slot'..slot)
+end
+function M:DeleteSlot(slot)
+    if slot%1~=0 or slot<1 or slot>20 then return false,'车位超出范围' end
+    local _,generation=self:LoadSlot(slot)
+    local ok,err=self:Write('slot'..slot,nil,nil,true);if not ok then return false,err end
+    local previews=require('storage.PreviewCache')
+    previews.Retire(self,slot,generation);if generation>1 then previews.Retire(self,slot,generation-1) end
+    -- Retire both backup generations so later corruption cannot resurrect it.
+    return self:Write('slot'..slot,nil,nil,true)
+end
+local function GarageState(data)
+    return type(data)=='table' and data.v==1 and (data.active==false or type(data.active)=='number' and data.active%1==0 and data.active>=1 and data.active<=20)
+end
+function M:LoadGarageState() return self:Read('garage-state',GarageState) end
+function M:SaveGarageState(active) return self:Write('garage-state',{v=1,active=active or false},GarageState) end
+return M

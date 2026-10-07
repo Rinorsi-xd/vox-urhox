@@ -1,0 +1,25 @@
+# Runtime and authored content only; local SDKs, captures and saves stay local.
+/*
+!/.gitignore
+!/.gitattributes
+!/README.md
+!/AGENTS.md
+!/.project/
+!/.maker-mcp/
+!/scripts/
+!/assets/
+!/docs/
+!/tools/
+/.maker-mcp/*
+!/.maker-mcp/.gitignore
+/.project/*
+!/.project/project.json
+!/.project/settings.json
+!/.project/engine.json
+/docs/migration/evidence/
+/tools/migration/crater-source/
+/tools/migration/source-wheel-size.json
+/tools/migration/source-*-fixtures.json
+**/__pycache__/
+**/*.pyc
+**/*.meta

@@ -1,0 +1,1023 @@
+{
+  "card": {
+    "h": 864,
+    "w": 1240,
+    "x": 340,
+    "y": 108
+  },
+  "cols": {
+    "h": 715,
+    "w": 1184,
+    "x": 368,
+    "y": 202
+  },
+  "foot": {
+    "h": 15,
+    "w": 1184,
+    "x": 368,
+    "y": 933
+  },
+  "groups": [
+    {
+      "rows": [
+        {
+          "body": {
+            "h": 16,
+            "w": 217.59375,
+            "x": 368,
+            "y": 260
+          },
+          "key": "E / Enter",
+          "keyBox": {
+            "h": 19,
+            "w": 53.640625,
+            "x": 368,
+            "y": 237
+          },
+          "row": {
+            "h": 39,
+            "w": 217.59375,
+            "x": 368,
+            "y": 237
+          },
+          "style": "12px / 17px VoxNum, VoxTitle, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+          "text": "编辑当前战车"
+        },
+        {
+          "body": {
+            "h": 16,
+            "w": 217.59375,
+            "x": 368,
+            "y": 310
+          },
+          "key": "T",
+          "keyBox": {
+            "h": 19,
+            "w": 18,
+            "x": 368,
+            "y": 287
+          },
+          "row": {
+            "h": 39,
+            "w": 217.59375,
+            "x": 368,
+            "y": 287
+          },
+          "style": "12px / 17px VoxNum, VoxTitle, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+          "text": "试车"
+        },
+        {
+          "body": {
+            "h": 16,
+            "w": 217.59375,
+            "x": 368,
+            "y": 360
+          },
+          "key": "F",
+          "keyBox": {
+            "h": 19,
+            "w": 18,
+            "x": 368,
+            "y": 337
+          },
+          "row": {
+            "h": 39,
+            "w": 217.59375,
+            "x": 368,
+            "y": 337
+          },
+          "style": "12px / 17px VoxNum, VoxTitle, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+          "text": "出战（战斗页上按 Enter 进入试车场）"
+        },
+        {
+          "body": {
+            "h": 16,
+            "w": 217.59375,
+            "x": 368,
+            "y": 410
+          },
+          "key": "Esc",
+          "keyBox": {
+            "h": 19,
+            "w": 28.40625,
+            "x": 368,
+            "y": 387
+          },
+          "row": {
+            "h": 39,
+            "w": 217.59375,
+            "x": 368,
+            "y": 387
+          },
+          "style": "12px / 17px VoxNum, VoxTitle, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+          "text": "暂停菜单：操作说明、画面设置"
+        },
+        {
+          "body": {
+            "h": 16,
+            "w": 217.59375,
+            "x": 368,
+            "y": 460
+          },
+          "key": "左键 / 右键拖动",
+          "keyBox": {
+            "h": 19,
+            "w": 83.59375,
+            "x": 368,
+            "y": 437
+          },
+          "row": {
+            "h": 39,
+            "w": 217.59375,
+            "x": 368,
+            "y": 437
+          },
+          "style": "12px / 17px VoxNum, VoxTitle, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+          "text": "转视角"
+        },
+        {
+          "body": {
+            "h": 16,
+            "w": 217.59375,
+            "x": 368,
+            "y": 510
+          },
+          "key": "滚轮",
+          "keyBox": {
+            "h": 19,
+            "w": 32.203125,
+            "x": 368,
+            "y": 487
+          },
+          "row": {
+            "h": 39,
+            "w": 217.59375,
+            "x": 368,
+            "y": 487
+          },
+          "style": "12px / 17px VoxNum, VoxTitle, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+          "text": "缩放（在车位卡片上是左右翻）"
+        }
+      ],
+      "title": {
+        "h": 23,
+        "w": 217.59375,
+        "x": 368,
+        "y": 202
+      }
+    },
+    {
+      "rows": [
+        {
+          "body": {
+            "h": 16,
+            "w": 217.59375,
+            "x": 609.59375,
+            "y": 260
+          },
+          "key": "左键",
+          "keyBox": {
+            "h": 19,
+            "w": 32.203125,
+            "x": 609.59375,
+            "y": 237
+          },
+          "row": {
+            "h": 39,
+            "w": 217.59375,
+            "x": 609.59375,
+            "y": 237
+          },
+          "style": "12px / 17px VoxNum, VoxTitle, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+          "text": "放置（删除工具下为删除）"
+        },
+        {
+          "body": {
+            "h": 32,
+            "w": 217.59375,
+            "x": 609.59375,
+            "y": 310
+          },
+          "key": "按住左键",
+          "keyBox": {
+            "h": 19,
+            "w": 52.40625,
+            "x": 609.59375,
+            "y": 287
+          },
+          "row": {
+            "h": 55,
+            "w": 217.59375,
+            "x": 609.59375,
+            "y": 287
+          },
+          "style": "12px / 17px VoxNum, VoxTitle, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+          "text": "连续放置 / 涂装 / 删除（按住超过 0.3 秒开始）"
+        },
+        {
+          "body": {
+            "h": 16,
+            "w": 217.59375,
+            "x": 609.59375,
+            "y": 376
+          },
+          "key": "右键",
+          "keyBox": {
+            "h": 19,
+            "w": 32.203125,
+            "x": 609.59375,
+            "y": 353
+          },
+          "row": {
+            "h": 39,
+            "w": 217.59375,
+            "x": 609.59375,
+            "y": 353
+          },
+          "style": "12px / 17px VoxNum, VoxTitle, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+          "text": "删除零件"
+        },
+        {
+          "body": {
+            "h": 16,
+            "w": 217.59375,
+            "x": 609.59375,
+            "y": 426
+          },
+          "key": "R / Shift+R",
+          "keyBox": {
+            "h": 19,
+            "w": 62.828125,
+            "x": 609.59375,
+            "y": 403
+          },
+          "row": {
+            "h": 39,
+            "w": 217.59375,
+            "x": 609.59375,
+            "y": 403
+          },
+          "style": "12px / 17px VoxNum, VoxTitle, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+          "text": "绕指向的安装面正转 / 反转 90°"
+        },
+        {
+          "body": {
+            "h": 32,
+            "w": 217.59375,
+            "x": 609.59375,
+            "y": 476
+          },
+          "key": "Alt+R",
+          "keyBox": {
+            "h": 19,
+            "w": 36.53125,
+            "x": 609.59375,
+            "y": 453
+          },
+          "row": {
+            "h": 55,
+            "w": 217.59375,
+            "x": 609.59375,
+            "y": 453
+          },
+          "style": "12px / 17px VoxNum, VoxTitle, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+          "text": "结构块翻转安装面，组合 R 可选全部空间朝向"
+        },
+        {
+          "body": {
+            "h": 32,
+            "w": 217.59375,
+            "x": 609.59375,
+            "y": 542
+          },
+          "key": "中键",
+          "keyBox": {
+            "h": 19,
+            "w": 32.203125,
+            "x": 609.59375,
+            "y": 519
+          },
+          "row": {
+            "h": 55,
+            "w": 217.59375,
+            "x": 609.59375,
+            "y": 519
+          },
+          "style": "12px / 17px VoxNum, VoxTitle, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+          "text": "复制类型、材质、朝向、外壳色和饰色，并进入放置"
+        },
+        {
+          "body": {
+            "h": 16,
+            "w": 217.59375,
+            "x": 609.59375,
+            "y": 608
+          },
+          "key": "滚轮 / 1–0",
+          "keyBox": {
+            "h": 19,
+            "w": 57.703125,
+            "x": 609.59375,
+            "y": 585
+          },
+          "row": {
+            "h": 39,
+            "w": 217.59375,
+            "x": 609.59375,
+            "y": 585
+          },
+          "style": "12px / 17px VoxNum, VoxTitle, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+          "text": "切换快捷栏零件"
+        },
+        {
+          "body": {
+            "h": 32,
+            "w": 217.59375,
+            "x": 609.59375,
+            "y": 658
+          },
+          "key": "B",
+          "keyBox": {
+            "h": 19,
+            "w": 18,
+            "x": 609.59375,
+            "y": 635
+          },
+          "row": {
+            "h": 55,
+            "w": 217.59375,
+            "x": 609.59375,
+            "y": 635
+          },
+          "style": "12px / 17px VoxNum, VoxTitle, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+          "text": "零件库（背包页）：指着零件按 1–0 放进快捷栏"
+        },
+        {
+          "body": {
+            "h": 16,
+            "w": 217.59375,
+            "x": 609.59375,
+            "y": 724
+          },
+          "key": "G",
+          "keyBox": {
+            "h": 19,
+            "w": 18,
+            "x": 609.59375,
+            "y": 701
+          },
+          "row": {
+            "h": 39,
+            "w": 217.59375,
+            "x": 609.59375,
+            "y": 701
+          },
+          "style": "12px / 17px VoxNum, VoxTitle, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+          "text": "方块换材质：轻 / 重 / 玻璃 / 霓虹"
+        },
+        {
+          "body": {
+            "h": 16,
+            "w": 217.59375,
+            "x": 609.59375,
+            "y": 774
+          },
+          "key": "M",
+          "keyBox": {
+            "h": 19,
+            "w": 18.875,
+            "x": 609.59375,
+            "y": 751
+          },
+          "row": {
+            "h": 39,
+            "w": 217.59375,
+            "x": 609.59375,
+            "y": 751
+          },
+          "style": "12px / 17px VoxNum, VoxTitle, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+          "text": "左右镜像建造"
+        },
+        {
+          "body": {
+            "h": 16,
+            "w": 217.59375,
+            "x": 609.59375,
+            "y": 824
+          },
+          "key": "V",
+          "keyBox": {
+            "h": 19,
+            "w": 18.203125,
+            "x": 609.59375,
+            "y": 801
+          },
+          "row": {
+            "h": 39,
+            "w": 217.59375,
+            "x": 609.59375,
+            "y": 801
+          },
+          "style": "12px / 17px VoxNum, VoxTitle, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+          "text": "透视内部结构"
+        },
+        {
+          "body": {
+            "h": 32,
+            "w": 217.59375,
+            "x": 609.59375,
+            "y": 874
+          },
+          "key": "斜块 / 半块 / 薄板",
+          "keyBox": {
+            "h": 19,
+            "w": 94.59375,
+            "x": 609.59375,
+            "y": 851
+          },
+          "row": {
+            "h": 55,
+            "w": 217.59375,
+            "x": 609.59375,
+            "y": 851
+          },
+          "style": "12px / 17px VoxNum, VoxTitle, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+          "text": "可以和轮胎挤在同一格（实体不重叠就行），给轮子做包边"
+        }
+      ],
+      "title": {
+        "h": 23,
+        "w": 217.59375,
+        "x": 609.59375,
+        "y": 202
+      }
+    },
+    {
+      "rows": [
+        {
+          "body": {
+            "h": 16,
+            "w": 217.609375,
+            "x": 851.1875,
+            "y": 260
+          },
+          "key": "X",
+          "keyBox": {
+            "h": 19,
+            "w": 18.046875,
+            "x": 851.1875,
+            "y": 237
+          },
+          "row": {
+            "h": 39,
+            "w": 217.609375,
+            "x": 851.1875,
+            "y": 237
+          },
+          "style": "12px / 17px VoxNum, VoxTitle, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+          "text": "删除工具"
+        },
+        {
+          "body": {
+            "h": 32,
+            "w": 217.609375,
+            "x": 851.1875,
+            "y": 310
+          },
+          "key": "P",
+          "keyBox": {
+            "h": 19,
+            "w": 18,
+            "x": 851.1875,
+            "y": 287
+          },
+          "row": {
+            "h": 55,
+            "w": 217.609375,
+            "x": 851.1875,
+            "y": 287
+          },
+          "style": "12px / 17px VoxNum, VoxTitle, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+          "text": "切换涂装模式；滚轮切换外壳 / 饰色，1–0 返回放置"
+        },
+        {
+          "body": {
+            "h": 16,
+            "w": 217.609375,
+            "x": 851.1875,
+            "y": 376
+          },
+          "key": "C",
+          "keyBox": {
+            "h": 19,
+            "w": 18,
+            "x": 851.1875,
+            "y": 353
+          },
+          "row": {
+            "h": 39,
+            "w": 217.609375,
+            "x": 851.1875,
+            "y": 353
+          },
+          "style": "12px / 17px VoxNum, VoxTitle, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+          "text": "吸取对准零件的颜色"
+        },
+        {
+          "body": {
+            "h": 16,
+            "w": 217.609375,
+            "x": 851.1875,
+            "y": 426
+          },
+          "key": "Shift+左键",
+          "keyBox": {
+            "h": 19,
+            "w": 60.078125,
+            "x": 851.1875,
+            "y": 403
+          },
+          "row": {
+            "h": 39,
+            "w": 217.609375,
+            "x": 851.1875,
+            "y": 403
+          },
+          "style": "12px / 17px VoxNum, VoxTitle, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+          "text": "点选（环绕视角可框选）"
+        },
+        {
+          "body": {
+            "h": 16,
+            "w": 217.609375,
+            "x": 851.1875,
+            "y": 476
+          },
+          "key": "Ctrl+A",
+          "keyBox": {
+            "h": 19,
+            "w": 40.71875,
+            "x": 851.1875,
+            "y": 453
+          },
+          "row": {
+            "h": 39,
+            "w": 217.609375,
+            "x": 851.1875,
+            "y": 453
+          },
+          "style": "12px / 17px VoxNum, VoxTitle, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+          "text": "全选"
+        },
+        {
+          "body": {
+            "h": 16,
+            "w": 217.609375,
+            "x": 851.1875,
+            "y": 526
+          },
+          "key": "方向键 / PgUp / PgDn",
+          "keyBox": {
+            "h": 19,
+            "w": 110.921875,
+            "x": 851.1875,
+            "y": 503
+          },
+          "row": {
+            "h": 39,
+            "w": 217.609375,
+            "x": 851.1875,
+            "y": 503
+          },
+          "style": "12px / 17px VoxNum, VoxTitle, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+          "text": "移动所选零件"
+        },
+        {
+          "body": {
+            "h": 16,
+            "w": 217.609375,
+            "x": 851.1875,
+            "y": 576
+          },
+          "key": "PgUp / PgDn（没选零件）",
+          "keyBox": {
+            "h": 19,
+            "w": 130.234375,
+            "x": 851.1875,
+            "y": 553
+          },
+          "row": {
+            "h": 39,
+            "w": 217.609375,
+            "x": 851.1875,
+            "y": 553
+          },
+          "style": "12px / 17px VoxNum, VoxTitle, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+          "text": "整车抬高 / 放低一格，好改车底"
+        },
+        {
+          "body": {
+            "h": 16,
+            "w": 217.609375,
+            "x": 851.1875,
+            "y": 626
+          },
+          "key": "Delete",
+          "keyBox": {
+            "h": 19,
+            "w": 41.5625,
+            "x": 851.1875,
+            "y": 603
+          },
+          "row": {
+            "h": 39,
+            "w": 217.609375,
+            "x": 851.1875,
+            "y": 603
+          },
+          "style": "12px / 17px VoxNum, VoxTitle, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+          "text": "删除所选零件"
+        },
+        {
+          "body": {
+            "h": 16,
+            "w": 217.609375,
+            "x": 851.1875,
+            "y": 676
+          },
+          "key": "Ctrl+C / Ctrl+V",
+          "keyBox": {
+            "h": 19,
+            "w": 80.28125,
+            "x": 851.1875,
+            "y": 653
+          },
+          "row": {
+            "h": 39,
+            "w": 217.609375,
+            "x": 851.1875,
+            "y": 653
+          },
+          "style": "12px / 17px VoxNum, VoxTitle, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+          "text": "复制 / 粘贴"
+        }
+      ],
+      "title": {
+        "h": 23,
+        "w": 217.609375,
+        "x": 851.1875,
+        "y": 202
+      }
+    },
+    {
+      "rows": [
+        {
+          "body": {
+            "h": 19,
+            "w": 217.59375,
+            "x": 1092.796875,
+            "y": 260
+          },
+          "key": "Tab",
+          "keyBox": {
+            "h": 19,
+            "w": 28.53125,
+            "x": 1092.796875,
+            "y": 237
+          },
+          "row": {
+            "h": 42,
+            "w": 217.59375,
+            "x": 1092.796875,
+            "y": 237
+          },
+          "style": "12px / 17px VoxNum, VoxTitle, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+          "text": "第一人称 ⇄ 环绕视角"
+        },
+        {
+          "body": {
+            "h": 16,
+            "w": 217.59375,
+            "x": 1092.796875,
+            "y": 313
+          },
+          "key": "WASD",
+          "keyBox": {
+            "h": 19,
+            "w": 37.125,
+            "x": 1092.796875,
+            "y": 290
+          },
+          "row": {
+            "h": 39,
+            "w": 217.59375,
+            "x": 1092.796875,
+            "y": 290
+          },
+          "style": "12px / 17px VoxNum, VoxTitle, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+          "text": "第一人称飞行"
+        },
+        {
+          "body": {
+            "h": 16,
+            "w": 217.59375,
+            "x": 1092.796875,
+            "y": 363
+          },
+          "key": "空格 / E  ·  Shift / Q",
+          "keyBox": {
+            "h": 19,
+            "w": 96.6875,
+            "x": 1092.796875,
+            "y": 340
+          },
+          "row": {
+            "h": 39,
+            "w": 217.59375,
+            "x": 1092.796875,
+            "y": 340
+          },
+          "style": "12px / 17px VoxNum, VoxTitle, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+          "text": "上升 · 下降"
+        },
+        {
+          "body": {
+            "h": 16,
+            "w": 217.59375,
+            "x": 1092.796875,
+            "y": 413
+          },
+          "key": "Z",
+          "keyBox": {
+            "h": 19,
+            "w": 18,
+            "x": 1092.796875,
+            "y": 390
+          },
+          "row": {
+            "h": 39,
+            "w": 217.59375,
+            "x": 1092.796875,
+            "y": 390
+          },
+          "style": "12px / 17px VoxNum, VoxTitle, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+          "text": "加速飞行（Ctrl+Z 仍为撤销）"
+        },
+        {
+          "body": {
+            "h": 16,
+            "w": 217.59375,
+            "x": 1092.796875,
+            "y": 463
+          },
+          "key": "右键拖动 / 空格+左键拖动",
+          "keyBox": {
+            "h": 19,
+            "w": 129.59375,
+            "x": 1092.796875,
+            "y": 440
+          },
+          "row": {
+            "h": 39,
+            "w": 217.59375,
+            "x": 1092.796875,
+            "y": 440
+          },
+          "style": "12px / 17px VoxNum, VoxTitle, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+          "text": "环绕：旋转视角"
+        },
+        {
+          "body": {
+            "h": 16,
+            "w": 217.59375,
+            "x": 1092.796875,
+            "y": 513
+          },
+          "key": "中键拖动 / Shift+空格+左键拖动",
+          "keyBox": {
+            "h": 19,
+            "w": 157.46875,
+            "x": 1092.796875,
+            "y": 490
+          },
+          "row": {
+            "h": 39,
+            "w": 217.59375,
+            "x": 1092.796875,
+            "y": 490
+          },
+          "style": "12px / 17px VoxNum, VoxTitle, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+          "text": "环绕：平移"
+        },
+        {
+          "body": {
+            "h": 16,
+            "w": 217.59375,
+            "x": 1092.796875,
+            "y": 563
+          },
+          "key": "Shift+滚轮",
+          "keyBox": {
+            "h": 19,
+            "w": 60.078125,
+            "x": 1092.796875,
+            "y": 540
+          },
+          "row": {
+            "h": 39,
+            "w": 217.59375,
+            "x": 1092.796875,
+            "y": 540
+          },
+          "style": "12px / 17px VoxNum, VoxTitle, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+          "text": "环绕：缩放"
+        },
+        {
+          "body": {
+            "h": 16,
+            "w": 217.59375,
+            "x": 1092.796875,
+            "y": 613
+          },
+          "key": "F",
+          "keyBox": {
+            "h": 19,
+            "w": 18,
+            "x": 1092.796875,
+            "y": 590
+          },
+          "row": {
+            "h": 39,
+            "w": 217.59375,
+            "x": 1092.796875,
+            "y": 590
+          },
+          "style": "12px / 17px VoxNum, VoxTitle, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+          "text": "对准车辆"
+        }
+      ],
+      "title": {
+        "h": 23,
+        "w": 217.59375,
+        "x": 1092.796875,
+        "y": 202
+      }
+    },
+    {
+      "rows": [
+        {
+          "body": {
+            "h": 16,
+            "w": 217.609375,
+            "x": 1334.390625,
+            "y": 260
+          },
+          "key": "T",
+          "keyBox": {
+            "h": 19,
+            "w": 18,
+            "x": 1334.390625,
+            "y": 237
+          },
+          "row": {
+            "h": 39,
+            "w": 217.609375,
+            "x": 1334.390625,
+            "y": 237
+          },
+          "style": "12px / 17px VoxNum, VoxTitle, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+          "text": "一键试车（再按 T 返回）"
+        },
+        {
+          "body": {
+            "h": 16,
+            "w": 217.609375,
+            "x": 1334.390625,
+            "y": 310
+          },
+          "key": "Ctrl+Z / Ctrl+Y",
+          "keyBox": {
+            "h": 19,
+            "w": 79.515625,
+            "x": 1334.390625,
+            "y": 287
+          },
+          "row": {
+            "h": 39,
+            "w": 217.609375,
+            "x": 1334.390625,
+            "y": 287
+          },
+          "style": "12px / 17px VoxNum, VoxTitle, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+          "text": "撤销 / 重做"
+        },
+        {
+          "body": {
+            "h": 16,
+            "w": 217.609375,
+            "x": 1334.390625,
+            "y": 360
+          },
+          "key": "Ctrl+S",
+          "keyBox": {
+            "h": 19,
+            "w": 40.28125,
+            "x": 1334.390625,
+            "y": 337
+          },
+          "row": {
+            "h": 39,
+            "w": 217.609375,
+            "x": 1334.390625,
+            "y": 337
+          },
+          "style": "12px / 17px VoxNum, VoxTitle, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+          "text": "保存到车位"
+        },
+        {
+          "body": {
+            "h": 32,
+            "w": 217.609375,
+            "x": 1334.390625,
+            "y": 410
+          },
+          "key": "Esc",
+          "keyBox": {
+            "h": 19,
+            "w": 28.40625,
+            "x": 1334.390625,
+            "y": 387
+          },
+          "row": {
+            "h": 55,
+            "w": 217.609375,
+            "x": 1334.390625,
+            "y": 387
+          },
+          "style": "12px / 17px VoxNum, VoxTitle, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+          "text": "取消粘贴 / 清空选择，没东西可取消时打开暂停菜单"
+        },
+        {
+          "body": {
+            "h": 16,
+            "w": 217.609375,
+            "x": 1334.390625,
+            "y": 476
+          },
+          "key": "← 机库",
+          "keyBox": {
+            "h": 19,
+            "w": 45.140625,
+            "x": 1334.390625,
+            "y": 453
+          },
+          "row": {
+            "h": 39,
+            "w": 217.609375,
+            "x": 1334.390625,
+            "y": 453
+          },
+          "style": "12px / 17px VoxNum, VoxTitle, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+          "text": "回主页（有车位的车自动保存）"
+        },
+        {
+          "body": {
+            "h": 16,
+            "w": 217.609375,
+            "x": 1334.390625,
+            "y": 526
+          },
+          "key": "H / F1",
+          "keyBox": {
+            "h": 19,
+            "w": 38.296875,
+            "x": 1334.390625,
+            "y": 503
+          },
+          "row": {
+            "h": 39,
+            "w": 217.609375,
+            "x": 1334.390625,
+            "y": 503
+          },
+          "style": "12px / 17px VoxNum, VoxTitle, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", sans-serif",
+          "text": "显示本帮助"
+        }
+      ],
+      "title": {
+        "h": 23,
+        "w": 217.609375,
+        "x": 1334.390625,
+        "y": 202
+      }
+    }
+  ],
+  "viewport": {
+    "h": 1080,
+    "w": 1920
+  },
+  "source_hashes": {
+    "ui/ui.js": "ef28e045c48bdb1ad491e4d10474da5434c08a2f4353aea49d85e128f151f877",
+    "css/style.css": "4e7229d42967bddddaa95912d0e6d59e55f8fa13ae73356df6d3f2941f8c038f"
+  }
+}

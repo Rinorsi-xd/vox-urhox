@@ -1,0 +1,32 @@
+-- Single runtime entry. Scene authoring lives in assets/Scenes/OrbitalHangar.xml.
+local App=require "app.HangarApp"
+---@type HangarApp|nil
+local app=nil
+function Start()
+    _G.VOX_APP_BOOTSTRAP=true
+    app=App.New()
+    app:Start()
+    SubscribeToEvent("Update","HandleUpdate")
+    SubscribeToEvent("PostUpdate","HandlePostUpdate")
+    SubscribeToEvent("FileChanged","HandleFileChanged")
+end
+function Stop()
+    UnsubscribeFromEvent("Update")
+    UnsubscribeFromEvent("PostUpdate")
+    UnsubscribeFromEvent("FileChanged")
+    if app then app:Stop();app=nil end
+    _G.VOX_APP_BOOTSTRAP=nil
+end
+function HandlePostUpdate(eventType,eventData)
+    if app then app:PostUpdate(eventData:GetFloat("TimeStep")) end
+end
+---@param eventType string
+---@param eventData UpdateEventData
+function HandleUpdate(eventType,eventData)
+    if app then app:Update(eventData:GetFloat("TimeStep")) end
+end
+---@param eventType string
+---@param eventData FileChangedEventData
+function HandleFileChanged(eventType,eventData)
+    if app and app.development then app.hotReload:Changed(eventData:GetString("ResourceName")) end
+end

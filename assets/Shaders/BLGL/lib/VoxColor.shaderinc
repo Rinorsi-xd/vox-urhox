@@ -1,0 +1,7 @@
+// 颜色空间：本项目的颜色参数一律由 Lua 传线性值（Config.HexLinear），颜色贴图（sRGB 存储）在采样后手动解码。
+// 不使用 source_color 提示——不同版本的运行时对它的处理不一致（有的解码、有的不解码），手动解码结果确定。
+vec3 vox_srgb(vec3 c) {
+    vec3 lo = c / 12.92;
+    vec3 hi = pow((c + 0.055) / 1.055, vec3(2.4));
+    return mix(lo, hi, step(vec3(0.04045), c));
+}

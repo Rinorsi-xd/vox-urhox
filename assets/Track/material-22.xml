@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<material>
+	<surfaceshader name="Shaders/BLGL/Track/Mark.shader" />
+	<parameter name="tint" value="0.838799 0.806952 0.730461 0.6" />
+	<parameter name="roughness_value" type="Double" value="0.75" />
+	<parameter name="metallic_value" type="Double" value="0" />
+	<parameter name="emission_strength" type="Double" value="0" />
+	<parameter name="normal_strength" type="Double" value="0" />
+	<cull value="ccw" />
+	<backsideLighting enable="false" />
+	<shadowcull value="ccw" />
+	<fill value="solid" />
+	<depthbias constant="-7e-05" slopescaled="-1" />
+	<alphatocoverage enable="false" />
+	<lineantialias enable="false" />
+	<renderorder value="135" />
+	<occlusion enable="true" />
+	<uvTiling value="1 1" />
+	<uvOffset value="0 0" />
+	<uvSpeed value="0 0" />
+	<texRotation value="0" />
+</material>

@@ -1,0 +1,31 @@
+<!doctype html><meta charset="utf-8"><title>原版大厅画布对照</title>
+<link rel="stylesheet" href="/source/shared/css/style.css">
+<style>body{overflow:auto;background:#16191d}main{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:12px}canvas{width:100%;height:auto}canvas#stats{position:static;max-height:none;padding:0;overflow:visible}nav{padding:10px}h2{font:16px sans-serif;color:white}</style>
+<nav><button id="race">原版赛车</button><button id="renamed">车位07</button><button id="edited">添加断连方块</button><button id="tank">坦克</button><button id="empty">空蓝图</button><button id="export">保存四张原版画布</button><output id="status"></output></nav>
+<main></main>
+<script type="module">
+import {Blueprint} from '/source/shared/build/blueprint.js';
+import {buildRaceCar,buildTank} from '/source/shared/build/prefab.js';
+import {TIERS} from '/source/shared/config.js';
+import {drawStatsPanel,drawBlueprintPanel} from '/source/shared/scene/holoPanels.js';
+import {drawBayDecal,drawWallMark} from '/source/shared/scene/hangarTextures.js';
+await Promise.all([document.fonts.load('700 100px VoxNum'),document.fonts.load('700 100px VoxTitle')]);
+const surfaces=[['stats',1024,640,drawStatsPanel],['blueprint',1024,640,drawBlueprintPanel],['mark',2048,1126,drawWallMark],['bay',2048,1024,drawBayDecal]];
+for(const s of surfaces){const box=document.createElement('section');const title=document.createElement('h2');title.textContent=s[0];const c=document.createElement('canvas');c.width=s[1];c.height=s[2];c.id=s[0];box.append(title,c);document.querySelector('main').append(box);}
+let state='race';
+function show(mode){
+ state=mode;const bp=mode==='empty'?new Blueprint():mode==='tank'?buildTank(new Blueprint()):buildRaceCar(new Blueprint());
+ if(mode==='renamed'||mode==='edited')bp.name='动态展示验证';
+ if(mode==='edited')bp.add({type:'cube',pos:[25,5,0],color:0x33ff44});
+ const tier=TIERS[mode==='race'?2:4],slot=mode==='race'?null:6;
+ const info={bp,name:bp.name,tier,slot,no:slot===null?'--':'07',diag:bp.diagnose(tier)};
+ for(const [id,w,h,draw] of surfaces)draw(document.getElementById(id),info);
+ document.querySelector('#status').textContent=mode+' · '+info.diag.stats.count+' 个零件';
+}
+for(const mode of ['race','renamed','edited','tank','empty'])document.getElementById(mode).onclick=()=>show(mode);
+document.querySelector('#export').onclick=async()=>{
+ for(const [id] of surfaces){const response=await fetch('/panel-evidence/'+state+'/'+id,{method:'POST',body:document.getElementById(id).toDataURL('image/png')});if(!response.ok)throw Error('Save failed '+id);}
+ document.querySelector('#status').textContent=state+' 四张原版画布已保存';
+};
+show('renamed');
+</script>

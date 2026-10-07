@@ -1,0 +1,35 @@
+uniform sampler2D albedo_map : source_color, filter_linear_mipmap, repeat_enable;
+uniform sampler2D normal_map : hint_normal, filter_linear_mipmap, repeat_enable;
+uniform sampler2D rough_map : filter_linear_mipmap, repeat_enable;
+uniform vec4 tint = vec4(1.0);
+uniform vec2 albedo_repeat = vec2(1.0);
+uniform vec2 detail_repeat = vec2(1.0);
+uniform float roughness_value = 0.8;
+uniform float metallic_value = 0.0;
+uniform float normal_strength = 0.0;
+uniform float emission_strength = 0.0;
+#ifdef TRACK_TARGET
+varying float hit_flash;
+void vertex() { hit_flash=INSTANCE_CUSTOM.x; }
+#endif
+void fragment() {
+    vec3 base = texture(albedo_map, UV * albedo_repeat).rgb * tint.rgb;
+    ALBEDO = base;
+    ROUGHNESS = roughness_value * texture(rough_map, UV * detail_repeat).g;
+    METALLIC = metallic_value;
+    EMISSION = base * emission_strength;
+#ifdef TRACK_TARGET
+    EMISSION += vec3(1.0,0.0423,0.0144)*hit_flash*1.6;
+#endif
+    vec2 uv = UV * detail_repeat;
+    vec3 a = dFdx(VERTEX), b = dFdy(VERTEX), n = normalize(NORMAL);
+    vec2 ta = dFdx(uv), tb = dFdy(uv);
+    vec3 bp = cross(b, n), ap = cross(n, a);
+    vec3 t = bp * ta.x + ap * tb.x, bi = bp * ta.y + ap * tb.y;
+    float inv = inversesqrt(max(max(dot(t,t), dot(bi,bi)), 0.000001));
+    vec3 detail = texture(normal_map, uv).rgb * 2.0 - 1.0;
+    NORMAL = normalize(n * detail.z + (t * detail.x - bi * detail.y) * inv * normal_strength);
+#ifdef TRACK_ALPHA
+    ALPHA = tint.a;
+#endif
+}

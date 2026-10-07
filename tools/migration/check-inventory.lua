@@ -1,0 +1,58 @@
+local app,session,panel
+local function Shot(name)
+    local image=Image:new();V.assert(graphics:TakeScreenShot(image) and image:SavePNG('docs/migration/evidence/'..name..'.png'),'rendered '..name);image:Dispose()
+end
+V.atFrame(55,function()
+    app=VOX_HANGAR.app;app:EnterBuild();session=app.build
+    session.inventory=require('build.Inventory').New();app.inventory=session.inventory
+    session:SelectHotbar(1);panel=session:OpenInventory()
+    V.assert(panel~=nil and not session.controls.pointer and #session.ghost.pool==0,'inventory cancels editing and releases ghost models')
+    V.assert(not session:Act(),'inventory blocks world commands')
+    panel.model.category='movement';panel:Fill();panel:Detail('leg5')
+end)
+V.atFrame(75,function()
+    Shot('inventory-movement')
+    V.assert(#panel.results>10,'movement category populated')
+    local pool=panel.list:GetPoolStats()
+    V.assert(pool.total<=math.ceil(panel.list:GetLayout().h/141)+2,'catalog virtualizes visible rows plus two spares')
+    local UI=require 'urhox-libs/UI';local Events=require 'urhox-libs/UI/Core/PointerEvent'
+    local function Click(widget,button)
+        local r=widget:GetAbsoluteLayout();local s=UI.GetScale();local data={x=(r.x+r.w/2)*s,y=(r.y+r.h/2)*s,pointerType='mouse',pointerId=91,button=button or MOUSEB_LEFT}
+        UI.HandlePointerEvent(Events.new('PointerDown',data));UI.HandlePointerEvent(Events.new('PointerUp',data))
+    end
+    local cell=panel.list.pool_.inUse[1].cells[1];Click(cell.root)
+    V.assert(session.inventory:Current()==cell.type,'native pointer hit test selects thumbnail card')
+    Click(panel.hotbar.slots[1].widget,MOUSEB_RIGHT)
+    V.assert(session.inventory.hotbar[1]==false,'native right-click clears hotbar without reselecting')
+    local Gesture=require 'urhox-libs/UI/Core/GestureEvent';local target=panel.hotbar.slots[2].widget:GetAbsoluteLayout();local scale=UI.GetScale()
+    UI.HandleGestureEvent(Gesture.new('PanStart',{target=cell.root,pointerType='mouse',x=300,y=300}))
+    UI.HandleGestureEvent(Gesture.new('PanEnd',{target=cell.root,pointerType='mouse',x=(target.x+target.w/2)*scale,y=(target.y+target.h/2)*scale}))
+    V.assert(session.inventory.hotbar[2]==cell.type and not cell.root.state.isDragging,'native pan routing drops thumbnail into target slot')
+    session:AssignHotbar(1,'cube')
+    local current=session.editor.bp:Size()
+    session.controls:Down({x=600,y=400});V.assert(not session.controls.pointer and session.editor.bp:Size()==current,'overlay intercepts pointer before world input')
+    panel.hoverType='leg5';panel:Digit(8)
+    V.assert(session.inventory.hotbar[8]=='leg5' and session.editor.type=='leg5','hover digit assigns actual build selection')
+    session:ClearHotbar(8);V.assert(session.editor.emptySlot and not session.editor.preview,'cleared active slot cannot build previous part')
+    session:AssignHotbar(8,'cube');V.assert(session.inventory.hotbar[1]==false and session.inventory.hotbar[8]=='cube','duplicate hotbar part swaps source slot')
+    panel.model.query='玻璃';panel.search:SetValue('玻璃');panel:Fill();panel:Detail('glassSlope')
+    V.assert(#panel.results>1,'search ignores active movement category')
+end)
+V.atFrame(95,function()
+    Shot('inventory-search');panel:Trim(false)
+    local cached=0;for _,p in ipairs(require('urhox-libs/UI/Core/ImageCache').GetCachedPaths()) do if p:sub(1,9)=='UI/Parts/' then cached=cached+1 end end
+    V.assert(cached<=80,'thumbnail cache stays below full catalog')
+    local row=panel.list.pool_.inUse[1];local cell=row.cells[1];local selected=cell.type
+    local UI=require 'urhox-libs/UI';local Gesture=require 'urhox-libs/UI/Core/GestureEvent'
+    UI.SetFocus(panel.search)
+    UI.HandleGestureEvent(Gesture.new('DoubleTap',{target=cell.root,pointerType='mouse',x=300,y=300}))
+    V.assert(not session.inventoryPanel and session.inventory:Current()==selected,'native double tap selects part and closes overlay')
+    V.assert(not row.node and not cell.root.node,'closing destroys detached pooled rows and their Yoga nodes')
+    V.assert(UI.GetFocus()==nil,'closed search cannot retain keyboard focus on destroyed widgets')
+    session:AssignHotbar(10,'leg5')
+    local stored=app.store:LoadBuildSettings();V.assert(stored.hotbar[10]=='leg5' and stored.active==10,'custom hotbar persists with slot selection')
+    app:ExitBuild();V.assert(not app.build,'inventory and thumbnails disposed on leaving build')
+    app:EnterBuild();session=app.build;V.assert(session.inventory.hotbar[10]=='leg5','hotbar retained across scene UI rebuild')
+    session:SelectHotbar(1);session:PickHotbar('cube')
+end)
+V.atFrame(115,function() Shot('build-hud');session:OpenInventory();app:ExitBuild();V.assert(not session.inventoryPanel,'scene exit closes open inventory');V.finish() end)

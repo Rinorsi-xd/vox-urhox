@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='utf-8'?>
+<texture>
+  <layer name="Crater/albedo-0.png" />
+  <layer name="Crater/albedo-1.png" />
+  <layer name="Crater/albedo-2.png" />
+  <layer name="Crater/albedo-3.png" />
+  <layer name="Crater/albedo-4.png" />
+  <layer name="Crater/albedo-5.png" />
+  <address coord="u" mode="wrap" />
+  <address coord="v" mode="wrap" />
+  <filter mode="anisotropic" />
+</texture>

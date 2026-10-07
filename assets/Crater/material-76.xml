@@ -1,0 +1,11 @@
+<?xml version='1.0' encoding='utf-8'?>
+<material>
+  <surfaceshader name="Shaders/BLGL/Crater/Fx.shader" />
+  <parameter name="tint" value="0.8675231613857803 0.22052438762426535 0.036696229726618505 1" />
+  <parameter name="roughness" type="Float" value="1" />
+  <parameter name="metalness" type="Float" value="0" />
+  <parameter name="alpha_cut" type="Float" value="0" />
+  <parameter name="emission" value="0 0 0" />
+  <depthbias constant="-2.384185791015625e-07" slopescaled="-2" />
+  <renderorder value="132" />
+</material>

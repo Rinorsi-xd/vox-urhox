@@ -1,0 +1,315 @@
+{
+  "drag": {
+    "x0": -8,
+    "x1": 8,
+    "start": 0,
+    "finish": 100
+  },
+  "cases": [
+    {
+      "time": 0,
+      "pos": [
+        0,
+        1,
+        -1
+      ],
+      "speed": 2,
+      "prevZ": -2,
+      "state": "idle",
+      "t0": 0,
+      "last": null,
+      "timer": null
+    },
+    {
+      "time": 1,
+      "pos": [
+        0,
+        1,
+        0
+      ],
+      "speed": 4,
+      "prevZ": -1,
+      "state": "running",
+      "t0": 1,
+      "last": null,
+      "timer": 0
+    },
+    {
+      "time": 2,
+      "pos": [
+        0,
+        1,
+        50
+      ],
+      "speed": 8,
+      "prevZ": 49,
+      "state": "running",
+      "t0": 1,
+      "last": null,
+      "timer": 1
+    },
+    {
+      "time": 3,
+      "pos": [
+        0,
+        1,
+        100
+      ],
+      "speed": 10,
+      "prevZ": 99,
+      "state": "idle",
+      "t0": 1,
+      "last": {
+        "time": 2,
+        "speed": 10
+      },
+      "timer": null
+    },
+    {
+      "time": 4,
+      "pos": [
+        0,
+        1,
+        0
+      ],
+      "speed": -3,
+      "prevZ": -1,
+      "state": "idle",
+      "t0": 1,
+      "last": {
+        "time": 2,
+        "speed": 10
+      },
+      "timer": null
+    },
+    {
+      "time": 5,
+      "pos": [
+        0,
+        1,
+        0
+      ],
+      "speed": 0,
+      "prevZ": -1,
+      "state": "idle",
+      "t0": 1,
+      "last": {
+        "time": 2,
+        "speed": 10
+      },
+      "timer": null
+    },
+    {
+      "time": 6,
+      "pos": [
+        10,
+        1,
+        0
+      ],
+      "speed": 5,
+      "prevZ": -1,
+      "state": "idle",
+      "t0": 1,
+      "last": {
+        "time": 2,
+        "speed": 10
+      },
+      "timer": null
+    },
+    {
+      "time": 7,
+      "pos": [
+        0,
+        1,
+        0
+      ],
+      "speed": 5,
+      "prevZ": -1,
+      "state": "running",
+      "t0": 7,
+      "last": {
+        "time": 2,
+        "speed": 10
+      },
+      "timer": 0
+    },
+    {
+      "time": 8,
+      "pos": [
+        10,
+        1,
+        50
+      ],
+      "speed": 8,
+      "prevZ": 49,
+      "state": "idle",
+      "t0": 7,
+      "last": {
+        "time": 2,
+        "speed": 10
+      },
+      "timer": null
+    },
+    {
+      "time": 9,
+      "pos": [
+        0,
+        1,
+        0
+      ],
+      "speed": 5,
+      "prevZ": -1,
+      "state": "running",
+      "t0": 9,
+      "last": {
+        "time": 2,
+        "speed": 10
+      },
+      "timer": 0
+    },
+    {
+      "time": 10,
+      "pos": [
+        0,
+        1,
+        -2
+      ],
+      "speed": -5,
+      "prevZ": 0,
+      "state": "idle",
+      "t0": 9,
+      "last": {
+        "time": 2,
+        "speed": 10
+      },
+      "timer": null
+    },
+    {
+      "time": 11,
+      "pos": [
+        -9.9,
+        1,
+        0
+      ],
+      "speed": 5,
+      "prevZ": -1,
+      "state": "running",
+      "t0": 11,
+      "last": {
+        "time": 2,
+        "speed": 10
+      },
+      "timer": 0
+    },
+    {
+      "time": 12,
+      "pos": [
+        -9.9,
+        1,
+        100
+      ],
+      "speed": 15,
+      "prevZ": 99,
+      "state": "idle",
+      "t0": 11,
+      "last": {
+        "time": 1,
+        "speed": 15
+      },
+      "timer": null
+    },
+    {
+      "time": 13,
+      "pos": [
+        -10,
+        1,
+        0
+      ],
+      "speed": 5,
+      "prevZ": -1,
+      "state": "idle",
+      "t0": 11,
+      "last": {
+        "time": 1,
+        "speed": 15
+      },
+      "timer": null
+    },
+    {
+      "time": 14,
+      "pos": [
+        0,
+        1,
+        1
+      ],
+      "speed": 8,
+      "prevZ": -1,
+      "state": "running",
+      "t0": 14,
+      "last": {
+        "time": 1,
+        "speed": 15
+      },
+      "timer": 0
+    },
+    {
+      "time": 17,
+      "pos": [
+        0,
+        1,
+        101
+      ],
+      "speed": 20,
+      "prevZ": 99,
+      "state": "idle",
+      "t0": 14,
+      "last": {
+        "time": 3,
+        "speed": 20
+      },
+      "timer": null
+    }
+  ],
+  "damage": [
+    {
+      "time": 0,
+      "amount": 20,
+      "dps": 6.666666666666667
+    },
+    {
+      "time": 0,
+      "amount": 30,
+      "dps": 16.666666666666668
+    },
+    {
+      "time": 1,
+      "amount": 90,
+      "dps": 46.666666666666664
+    },
+    {
+      "time": 3,
+      "amount": 60,
+      "dps": 66.66666666666667
+    },
+    {
+      "time": 3.001,
+      "amount": 0,
+      "dps": 50
+    },
+    {
+      "time": 4,
+      "amount": 15,
+      "dps": 55
+    },
+    {
+      "time": 7,
+      "amount": 0,
+      "dps": 5
+    },
+    {
+      "time": 7.01,
+      "amount": 0,
+      "dps": 0
+    }
+  ]
+}

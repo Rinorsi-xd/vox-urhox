@@ -1,0 +1,82 @@
+{
+  "viewport": {
+    "w": 1920,
+    "h": 1080
+  },
+  "card": {
+    "x": 570,
+    "y": 357.375,
+    "w": 780,
+    "h": 365.25
+  },
+  "hint": {
+    "x": 598,
+    "y": 463.875,
+    "w": 479.5,
+    "h": 29.25
+  },
+  "textarea": {
+    "x": 598,
+    "y": 505.625,
+    "w": 724,
+    "h": 130
+  },
+  "actions": {
+    "x": 598,
+    "y": 658.625,
+    "w": 724,
+    "h": 40
+  },
+  "runs": [
+    {
+      "text": "粘贴以 ",
+      "font": "12.5px / 21.25px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+      "size": 12.5,
+      "lineHeight": "21.25px",
+      "box": {
+        "x": 632,
+        "y": 469.875,
+        "w": 37.5,
+        "h": 16
+      },
+      "advance": 37.5,
+      "ascent": 13,
+      "descent": 3
+    },
+    {
+      "text": "FKZC1:",
+      "font": "12.5px / 21.25px monospace",
+      "size": 12.5,
+      "lineHeight": "21.25px",
+      "box": {
+        "x": 676.5,
+        "y": 471.875,
+        "w": 42,
+        "h": 13
+      },
+      "advance": 42,
+      "ascent": 11,
+      "descent": 2
+    },
+    {
+      "text": " 开头的蓝图码。当前车辆会被替换，需要的话先保存到蓝图库。",
+      "font": "12.5px / 21.25px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+      "size": 12.5,
+      "lineHeight": "21.25px",
+      "box": {
+        "x": 725.5,
+        "y": 469.875,
+        "w": 350,
+        "h": 16
+      },
+      "advance": 350,
+      "ascent": 13,
+      "descent": 3
+    }
+  ],
+  "source_hashes": {
+    "ui/ui.js": "ef28e045c48bdb1ad491e4d10474da5434c08a2f4353aea49d85e128f151f877",
+    "css/style.css": "4e7229d42967bddddaa95912d0e6d59e55f8fa13ae73356df6d3f2941f8c038f",
+    "config.js": "aecc29f5ab54440d42818ef53f41eb7b99455cbd35190a91c68a004da58cf241"
+  }
+}

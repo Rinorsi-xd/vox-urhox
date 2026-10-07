@@ -1,0 +1,21 @@
+// Three.js r186 derivative tangent frame (normalmap_pars_fragment), adapted
+// for mirrored world coordinates and either backend's screen-Y direction.
+// Original props have no tangent stream. See docs/migration/THREE_LICENSE.txt.
+uniform sampler2D normal_map;
+uniform vec2 normal_scale=vec2(1.0);
+vec3 craterScatterNormal(vec3 positionValue,vec3 normalValue,vec2 uvValue,float faceValue) {
+    vec3 n=normalize(normalValue);
+    vec3 q0=dFdx(positionValue),q1=dFdy(positionValue);
+    vec2 st0=dFdx(uvValue),st1=dFdy(uvValue);
+    vec3 q1perp=cross(q1,n),q0perp=cross(n,q0);
+    vec3 t=q1perp*st0.x+q0perp*st1.x;
+    vec3 b=q1perp*st0.y+q0perp*st1.y;
+    float det=max(dot(t,t),dot(b,b));
+    if(det<1e-20)return n*faceValue;
+    // Restore the authored +U/+V axes before applying DoubleSide's face sign.
+    float orientation=dot(q0,q1perp)<0.0?-1.0:1.0;
+    float frameScale=orientation*inversesqrt(det);
+    vec3 mapNormal=texture(normal_map,uvValue).xyz*2.0-1.0;
+    mapNormal.xy*=normal_scale;
+    return normalize((t*mapNormal.x+b*mapNormal.y)*frameScale+n*mapNormal.z)*faceValue;
+}

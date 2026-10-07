@@ -1,0 +1,652 @@
+{
+  "viewport": [
+    1440,
+    900
+  ],
+  "samples": [
+    {
+      "key": "workshop-1",
+      "text": "预制赛车：前轮转向、后轮动力，四个轮子带包边；引擎盖上一把狙击枪、后肩两挺加特林，T3 精英档。",
+      "width": 285.328125,
+      "height": 62.390625,
+      "box": {
+        "x": 244,
+        "y": 365,
+        "width": 285.328125,
+        "height": 62.390625,
+        "top": 365,
+        "right": 529.328125,
+        "bottom": 427.390625,
+        "left": 244
+      },
+      "size": 13,
+      "lineHeight": "20.8px",
+      "font": "\"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+      "color": "rgb(154, 160, 170)",
+      "lines": [
+        {
+          "top": 2,
+          "text": "预制赛车：前轮转向、后轮动力，四个轮子带包"
+        },
+        {
+          "top": 22.796875,
+          "text": "边；引擎盖上一把狙击枪、后肩两挺加特林，T3"
+        },
+        {
+          "top": 43.59375,
+          "text": "精英档。"
+        }
+      ],
+      "runs": [
+        {
+          "text": "预制赛车：前轮转向、后轮动力，四个轮子带包边；引擎盖上一把狙击枪、后肩两挺加特林，T3 精英档。",
+          "font": "\"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "size": 13,
+          "lineHeight": "20.8px",
+          "width": 603.92236328125,
+          "ascent": 13,
+          "descent": 3
+        }
+      ]
+    },
+    {
+      "key": "workshop-2",
+      "text": "预制履带重坦：两条 T5 履带整条露在外面，楔形车头、切角白色炮塔、一门 T5 狙击炮；原地调头快、不容易翻，T5 传奇档。",
+      "width": 285.328125,
+      "height": 62.390625,
+      "box": {
+        "x": 577.328125,
+        "y": 365,
+        "width": 285.328125,
+        "height": 62.390625,
+        "top": 365,
+        "right": 862.65625,
+        "bottom": 427.390625,
+        "left": 577.328125
+      },
+      "size": 13,
+      "lineHeight": "20.8px",
+      "font": "\"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+      "color": "rgb(154, 160, 170)",
+      "lines": [
+        {
+          "top": 2,
+          "text": "预制履带重坦：两条 T5 履带整条露在外面，楔形"
+        },
+        {
+          "top": 22.796875,
+          "text": "车头、切角白色炮塔、一门 T5 狙击炮；原地调头"
+        },
+        {
+          "top": 43.59375,
+          "text": "快、不容易翻，T5 传奇档。"
+        }
+      ],
+      "runs": [
+        {
+          "text": "预制履带重坦：两条 T5 履带整条露在外面，楔形车头、切角白色炮塔、一门 T5 狙击炮；原地调头快、不容易翻，T5 传奇档。",
+          "font": "\"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "size": 13,
+          "lineHeight": "20.8px",
+          "width": 727.46044921875,
+          "ascent": 13,
+          "descent": 3
+        }
+      ]
+    },
+    {
+      "key": "workshop-3",
+      "text": "只有一个核心驾驶舱，从零开始搭。",
+      "width": 285.34375,
+      "height": 42,
+      "box": {
+        "x": 910.65625,
+        "y": 365,
+        "width": 285.34375,
+        "height": 42,
+        "top": 365,
+        "right": 1196,
+        "bottom": 407,
+        "left": 910.65625
+      },
+      "size": 13,
+      "lineHeight": "20.8px",
+      "font": "\"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+      "color": "rgb(154, 160, 170)",
+      "lines": [
+        {
+          "top": 2,
+          "text": "只有一个核心驾驶舱，从零开始搭。"
+        }
+      ],
+      "runs": [
+        {
+          "text": "只有一个核心驾驶舱，从零开始搭。",
+          "font": "\"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "size": 13,
+          "lineHeight": "20.8px",
+          "width": 208,
+          "ascent": 13,
+          "descent": 3
+        }
+      ]
+    },
+    {
+      "key": "workshop-4",
+      "text": "粘贴别人分享的 FKZC1: 蓝图码，放进一个新车位。",
+      "width": 285.328125,
+      "height": 42.59375,
+      "box": {
+        "x": 244,
+        "y": 618.390625,
+        "width": 285.328125,
+        "height": 42.59375,
+        "top": 618.390625,
+        "right": 529.328125,
+        "bottom": 660.984375,
+        "left": 244
+      },
+      "size": 13,
+      "lineHeight": "20.8px",
+      "font": "\"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+      "color": "rgb(154, 160, 170)",
+      "lines": [
+        {
+          "top": 2,
+          "text": "粘贴别人分享的 FKZC1: 蓝图码，放进一个新车"
+        },
+        {
+          "top": 23.796875,
+          "text": "位。"
+        }
+      ],
+      "runs": [
+        {
+          "text": "粘贴别人分享的 ",
+          "font": "\"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "size": 13,
+          "lineHeight": "20.8px",
+          "width": 94.8466796875,
+          "ascent": 13,
+          "descent": 3
+        },
+        {
+          "text": "FKZC1:",
+          "font": "monospace",
+          "size": 13,
+          "lineHeight": "20.8px",
+          "width": 42,
+          "ascent": 11,
+          "descent": 2
+        },
+        {
+          "text": " 蓝图码，放进一个新车位。",
+          "font": "\"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "size": 13,
+          "lineHeight": "20.8px",
+          "width": 159.8466796875,
+          "ascent": 13,
+          "descent": 3
+        }
+      ]
+    },
+    {
+      "key": "workshop-5",
+      "text": "生成当前这辆车的蓝图码，复制给朋友。",
+      "width": 285.328125,
+      "height": 42,
+      "box": {
+        "x": 577.328125,
+        "y": 618.390625,
+        "width": 285.328125,
+        "height": 42,
+        "top": 618.390625,
+        "right": 862.65625,
+        "bottom": 660.390625,
+        "left": 577.328125
+      },
+      "size": 13,
+      "lineHeight": "20.8px",
+      "font": "\"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+      "color": "rgb(154, 160, 170)",
+      "lines": [
+        {
+          "top": 2,
+          "text": "生成当前这辆车的蓝图码，复制给朋友。"
+        }
+      ],
+      "runs": [
+        {
+          "text": "生成当前这辆车的蓝图码，复制给朋友。",
+          "font": "\"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "size": 13,
+          "lineHeight": "20.8px",
+          "width": 234,
+          "ascent": 13,
+          "descent": 3
+        }
+      ]
+    },
+    {
+      "key": "workshop-6",
+      "text": "浏览、评分、下载其他玩家的战车（需要联网服务，以后开放）。",
+      "width": 285.34375,
+      "height": 42,
+      "box": {
+        "x": 910.65625,
+        "y": 618.390625,
+        "width": 285.34375,
+        "height": 42,
+        "top": 618.390625,
+        "right": 1196,
+        "bottom": 660.390625,
+        "left": 910.65625
+      },
+      "size": 13,
+      "lineHeight": "20.8px",
+      "font": "\"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+      "color": "rgb(154, 160, 170)",
+      "lines": [
+        {
+          "top": 2,
+          "text": "浏览、评分、下载其他玩家的战车（需要联网服"
+        },
+        {
+          "top": 22.796875,
+          "text": "务，以后开放）。"
+        }
+      ],
+      "runs": [
+        {
+          "text": "浏览、评分、下载其他玩家的战车（需要联网服务，以后开放）。",
+          "font": "\"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "size": 13,
+          "lineHeight": "20.8px",
+          "width": 377,
+          "ascent": 13,
+          "descent": 3
+        }
+      ]
+    },
+    {
+      "key": "mode-test",
+      "text": "自由驾驶、100 米加速道、坡道、靶场和三辆能逐块打坏的靶车。熟悉操控和武器。",
+      "width": 360,
+      "height": 41.59375,
+      "box": {
+        "x": 150,
+        "y": 272,
+        "width": 360,
+        "height": 41.59375,
+        "top": 272,
+        "right": 510,
+        "bottom": 313.59375,
+        "left": 150
+      },
+      "size": 13,
+      "lineHeight": "20.8px",
+      "font": "\"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+      "color": "rgb(154, 160, 170)",
+      "lines": [
+        {
+          "top": 2,
+          "text": "自由驾驶、100 米加速道、坡道、靶场和三辆能逐块打坏的靶"
+        },
+        {
+          "top": 22.796875,
+          "text": "车。熟悉操控和武器。"
+        }
+      ],
+      "runs": [
+        {
+          "text": "自由驾驶、100 米加速道、坡道、靶场和三辆能逐块打坏的靶车。熟悉操控和武器。",
+          "font": "\"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "size": 13,
+          "lineHeight": "20.8px",
+          "width": 481.71728515625,
+          "ascent": 13,
+          "descent": 3
+        }
+      ]
+    },
+    {
+      "key": "mode-crater",
+      "text": "600 米的大地图：巨型坠毁战舰（舱内大厅能开进去，顶层甲板通西高地）、东洼地、斜插进地里的舰首、两座要塞。开着自己的车随便转，N 键传送到各个区域。",
+      "width": 374,
+      "height": 62.390625,
+      "box": {
+        "x": 136,
+        "y": 496.09375,
+        "width": 374,
+        "height": 62.390625,
+        "top": 496.09375,
+        "right": 510,
+        "bottom": 558.484375,
+        "left": 136
+      },
+      "size": 13,
+      "lineHeight": "20.8px",
+      "font": "\"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+      "color": "rgb(154, 160, 170)",
+      "lines": [
+        {
+          "top": 2,
+          "text": "600 米的大地图：巨型坠毁战舰（舱内大厅能开进去，顶层甲板"
+        },
+        {
+          "top": 22.796875,
+          "text": "通西高地）、东洼地、斜插进地里的舰首、两座要塞。开着自己"
+        },
+        {
+          "top": 43.59375,
+          "text": "的车随便转，N 键传送到各个区域。"
+        }
+      ],
+      "runs": [
+        {
+          "text": "600 米的大地图：巨型坠毁战舰（舱内大厅能开进去，顶层甲板通西高地）、东洼地、斜插进地里的舰首、两座要塞。开着自己的车随便转，N 键传送到各个区域。",
+          "font": "\"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "size": 13,
+          "lineHeight": "20.8px",
+          "width": 938.1328125,
+          "ascent": 13,
+          "descent": 3
+        }
+      ]
+    },
+    {
+      "key": "mode-ai",
+      "text": "和 AI 战车交火（靶车会还击、会开车之后开放）",
+      "width": 134.65625,
+      "height": 38.375,
+      "box": {
+        "x": 42,
+        "y": 683.484375,
+        "width": 134.65625,
+        "height": 38.375,
+        "top": 683.484375,
+        "right": 176.65625,
+        "bottom": 721.859375,
+        "left": 42
+      },
+      "size": 12,
+      "lineHeight": "19.2px",
+      "font": "\"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+      "color": "rgb(154, 160, 170)",
+      "lines": [
+        {
+          "top": 2,
+          "text": "和 AI 战车交火（靶车会"
+        },
+        {
+          "top": 21.1875,
+          "text": "还击、会开车之后开放）"
+        }
+      ],
+      "runs": [
+        {
+          "text": "和 AI 战车交火（靶车会还击、会开车之后开放）",
+          "font": "\"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "size": 12,
+          "lineHeight": "19.2px",
+          "width": 259.072265625,
+          "ascent": 12,
+          "descent": 3
+        }
+      ]
+    },
+    {
+      "key": "mode-tower",
+      "text": "两队抢三个能量站（标准对战地图）",
+      "width": 134.671875,
+      "height": 38.375,
+      "box": {
+        "x": 212.65625,
+        "y": 683.484375,
+        "width": 134.671875,
+        "height": 38.375,
+        "top": 683.484375,
+        "right": 347.328125,
+        "bottom": 721.859375,
+        "left": 212.65625
+      },
+      "size": 12,
+      "lineHeight": "19.2px",
+      "font": "\"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+      "color": "rgb(154, 160, 170)",
+      "lines": [
+        {
+          "top": 2,
+          "text": "两队抢三个能量站（标准"
+        },
+        {
+          "top": 21.1875,
+          "text": "对战地图）"
+        }
+      ],
+      "runs": [
+        {
+          "text": "两队抢三个能量站（标准对战地图）",
+          "font": "\"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "size": 12,
+          "lineHeight": "19.2px",
+          "width": 192,
+          "ascent": 12,
+          "descent": 3
+        }
+      ]
+    },
+    {
+      "key": "mode-custom",
+      "text": "自己定规则，档位不限，大型机器人也能上场",
+      "width": 134.671875,
+      "height": 38.375,
+      "box": {
+        "x": 383.328125,
+        "y": 683.484375,
+        "width": 134.671875,
+        "height": 38.375,
+        "top": 683.484375,
+        "right": 518,
+        "bottom": 721.859375,
+        "left": 383.328125
+      },
+      "size": 12,
+      "lineHeight": "19.2px",
+      "font": "\"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+      "color": "rgb(154, 160, 170)",
+      "lines": [
+        {
+          "top": 2,
+          "text": "自己定规则，档位不限，"
+        },
+        {
+          "top": 21.1875,
+          "text": "大型机器人也能上场"
+        }
+      ],
+      "runs": [
+        {
+          "text": "自己定规则，档位不限，大型机器人也能上场",
+          "font": "\"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "size": 12,
+          "lineHeight": "19.2px",
+          "width": 240,
+          "ascent": 12,
+          "descent": 3
+        }
+      ]
+    },
+    {
+      "key": "shop",
+      "text": "以后这里卖零件、涂装和装饰件。原型阶段所有零件都已开放，直接去编辑页用就行。",
+      "width": 968,
+      "height": 22.09375,
+      "box": {
+        "x": 236,
+        "y": 435,
+        "width": 968,
+        "height": 22.09375,
+        "top": 435,
+        "right": 1204,
+        "bottom": 457.09375,
+        "left": 236
+      },
+      "size": 13,
+      "lineHeight": "22.1px",
+      "font": "\"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+      "color": "rgb(154, 160, 170)",
+      "lines": [
+        {
+          "top": 3,
+          "text": "以后这里卖零件、涂装和装饰件。原型阶段所有零件都已开放，直接去编辑页用就行。"
+        }
+      ],
+      "runs": [
+        {
+          "text": "以后这里卖零件、涂装和装饰件。原型阶段所有零件都已开放，直接去编辑页用就行。",
+          "font": "\"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "size": 13,
+          "lineHeight": "22.1px",
+          "width": 494,
+          "ascent": 13,
+          "descent": 3
+        }
+      ]
+    },
+    {
+      "key": "palette",
+      "text": "选择颜色进入涂装；不会改变新放零件的配色",
+      "width": 272,
+      "height": 15,
+      "box": {
+        "x": 12,
+        "y": 12,
+        "width": 272,
+        "height": 15,
+        "top": 12,
+        "right": 284,
+        "bottom": 27,
+        "left": 12
+      },
+      "size": 12,
+      "lineHeight": "normal",
+      "font": "\"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+      "color": "rgb(154, 160, 170)",
+      "lines": [
+        {
+          "top": 0,
+          "text": "选择颜色进入涂装；不会改变新放零件的配色"
+        }
+      ],
+      "runs": [
+        {
+          "text": "选择颜色进入涂装；不会改变新放零件的配色",
+          "font": "\"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "size": 12,
+          "lineHeight": "normal",
+          "width": 240,
+          "ascent": 12,
+          "descent": 3
+        }
+      ]
+    },
+    {
+      "key": "warning",
+      "text": "车辆状态良好，可以出战",
+      "width": 143,
+      "height": 19.5,
+      "box": {
+        "x": 41,
+        "y": 2,
+        "width": 143,
+        "height": 19.5,
+        "top": 2,
+        "right": 184,
+        "bottom": 21.5,
+        "left": 41
+      },
+      "size": 13,
+      "lineHeight": "19.5px",
+      "font": "\"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+      "color": "rgb(244, 245, 247)",
+      "lines": [
+        {
+          "top": 1,
+          "text": "车辆状态良好，可以出战"
+        }
+      ],
+      "runs": [
+        {
+          "text": "车辆状态良好，可以出战",
+          "font": "\"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "size": 13,
+          "lineHeight": "19.5px",
+          "width": 143,
+          "ascent": 13,
+          "descent": 3
+        }
+      ]
+    }
+  ],
+  "mono": [
+    {
+      "font": "13px monospace",
+      "width": 42,
+      "ascent": 11,
+      "descent": 2
+    },
+    {
+      "font": "13px \"Consolas\"",
+      "width": 42.884765625,
+      "ascent": 12,
+      "descent": 3
+    },
+    {
+      "font": "13px \"Courier New\"",
+      "width": 46.8076171875,
+      "ascent": 11,
+      "descent": 4
+    },
+    {
+      "font": "13px \"Courier\"",
+      "width": 46.8076171875,
+      "ascent": 11,
+      "descent": 4
+    },
+    {
+      "font": "13px \"Lucida Console\"",
+      "width": 46.998046875,
+      "ascent": 10,
+      "descent": 3
+    },
+    {
+      "font": "13px \"Cascadia Mono\"",
+      "width": 42.20941162109375,
+      "ascent": 15,
+      "descent": 4
+    },
+    {
+      "font": "13px \"Fixedsys\"",
+      "width": 42.20941162109375,
+      "ascent": 15,
+      "descent": 4
+    },
+    {
+      "font": "13px \"Terminal\"",
+      "width": 42.20941162109375,
+      "ascent": 15,
+      "descent": 4
+    },
+    {
+      "font": "13px \"SimSun\"",
+      "width": 42,
+      "ascent": 11,
+      "descent": 2
+    }
+  ],
+  "source_hashes": {
+    "css\\style.css": "4e7229d42967bddddaa95912d0e6d59e55f8fa13ae73356df6d3f2941f8c038f",
+    "ui\\home.js": "ee96fae0455fc16489993cff3214b516497e6329147d628bd4339bf8383ae5e0"
+  }
+}
