@@ -15,10 +15,10 @@
 !/.project/project.json
 !/.project/settings.json
 !/.project/engine.json
+!/.project/resources.json
 /docs/migration/evidence/
 /tools/migration/crater-source/
 /tools/migration/source-wheel-size.json
 /tools/migration/source-*-fixtures.json
 **/__pycache__/
 **/*.pyc
-**/*.meta
