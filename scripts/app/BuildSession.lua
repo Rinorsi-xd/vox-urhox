@@ -11,7 +11,7 @@ function M.New(app)
     self.controls=Controls.New(self);self.ghost=Ghost.New(app.scene);self.camera.autoSpin=false
     self.inspection=require('app.BuildInspection').New(self)
     self.buildCamera=require('controls.BuildCamera').New(self)
-    app.inventory=app.inventory or require('build.Inventory').New(app.store:LoadBuildSettings())
+    app.inventory=app.inventory or require('construction.Inventory').New(app.store:LoadBuildSettings())
     self.inventory=app.inventory
     self:ApplyHotbar()
     self.car.root.position=Vector3.ZERO

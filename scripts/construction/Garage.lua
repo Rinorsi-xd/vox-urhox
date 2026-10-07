@@ -1,7 +1,7 @@
 -- Vehicle bay semantics from shared/build/editor.js, with explicit failure
 -- results. UI owns confirmations; storage writes must succeed before switching.
-local Blueprint=require 'build.Blueprint'
-local Prefab=require 'build.Prefab'
+local Blueprint=require 'construction.Blueprint'
+local Prefab=require 'construction.Prefab'
 local Code=require 'storage.BlueprintCode'
 local M={};M.__index=M
 local builders={raceCar=Prefab.BuildRaceCar,tank=Prefab.BuildTank,empty=Prefab.BuildEmpty}

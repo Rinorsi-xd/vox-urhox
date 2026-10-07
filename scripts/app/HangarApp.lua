@@ -1,8 +1,8 @@
 -- Application lifecycle follows scaffold-3d-scene; scene content is authored data.
 local UI=require "urhox-libs/UI"
 local Config=require "Config"
-local Blueprint=require "build.Blueprint"
-local Prefab=require "build.Prefab"
+local Blueprint=require "construction.Blueprint"
+local Prefab=require "construction.Prefab"
 local VehicleView=require "render.VehicleView"
 local Hangar=require "scene.Hangar"
 local OrbitCamera=require "controls.OrbitCamera"
@@ -81,11 +81,11 @@ function App:init()
             if ok then self.blueprint=bp else print('[HangarApp] Invalid draft; keeping starter vehicle') end
         end
     end
-    self.editor=require('build.BuildEditor').New(self.blueprint,function(ops)
+    self.editor=require('construction.BuildEditor').New(self.blueprint,function(ops)
         if self.car then self.car:ApplyEdits(ops,self.blueprint) end
         if self.bays then self.bays:Changed() else self.store:Queue(self.blueprint) end
     end)
-    self.bays=require('build.Garage').New(self.blueprint,self.store,function(data) return self:LoadBlueprint(data) end,not self.isValidation and not self.explicitBlueprint)
+    self.bays=require('construction.Garage').New(self.blueprint,self.store,function(data) return self:LoadBlueprint(data) end,not self.isValidation and not self.explicitBlueprint)
 end
 function App:EnterBuild()
     if not self.ownsScene or self.mode=='trial' or self.loader.state=='loading' then return false end

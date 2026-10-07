@@ -3,7 +3,7 @@
 -- Rays through a slope's empty half continue behind it. An interior sub-face
 -- offers the same cell first, then its adjacent cell as a placement fallback.
 local CELL=require('Config').CELL
-local Key=require('build.Blueprint').Key
+local Key=require('construction.Blueprint').Key
 local M={}
 local function Copy(a) return {a[1],a[2],a[3]} end
 local function March(o,d,t,cell,sub)

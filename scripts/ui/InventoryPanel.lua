@@ -4,7 +4,7 @@ local UI=require 'urhox-libs/UI'
 local Theme=require 'ui.VoxTheme'
 local D=require 'ui.SourceDraw'
 local Defs=require 'parts.Defs'
-local Model=require 'build.Inventory'
+local Model=require 'construction.Inventory'
 local Art=require 'ui.InventoryChrome'
 local M={};M.__index=M
 function M.Open(session,restore)

@@ -77,7 +77,7 @@ function M.Compute(bp,tier)
             end
         end
     end
-    require('build.BuildClearance').Diagnostics(bp,parts,Push)
+    require('construction.BuildClearance').Diagnostics(bp,parts,Push)
     for _,w in ipairs(bp:WeakLinks(adj,conn.coreId)) do Push('warn','有一处单点连接挂着 '..w.count..' 个零件，容易整块被打掉',{w.a,w.b}) end
     return {list=list,stats=st,conn=conn,outside=outside}
 end

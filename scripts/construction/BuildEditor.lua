@@ -1,8 +1,8 @@
 -- Engine-independent editor commands. Input, previews and persistence are adapters.
-local Blueprint=require 'build.Blueprint'
-local Placement=require 'build.Placement'
-local History=require 'build.EditHistory'
-local Ray=require 'build.GridRay'
+local Blueprint=require 'construction.Blueprint'
+local Placement=require 'construction.Placement'
+local History=require 'construction.EditHistory'
+local Ray=require 'construction.GridRay'
 local Rot=require 'core.Rotations'
 local Defs=require('parts.Defs').PARTS
 local Config=require 'Config'

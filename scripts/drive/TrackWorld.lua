@@ -83,7 +83,7 @@ function M:SetUnits(bp)
     for _,unit in ipairs(self.units) do unit:Dispose() end
     self.units={};self.debris:Clear()
     local source=bp:ToTable()
-    local prefab=require("build.Prefab").BuildRaceCar(require("build.Blueprint").New()):ToTable()
+    local prefab=require("construction.Prefab").BuildRaceCar(require("construction.Blueprint").New()):ToTable()
     for _,spot in ipairs(self.layout.unitSpots) do
         self.units[#self.units+1]=CarUnit.New(self,spot.who=="self" and source or prefab,{name=spot.name,spawn=spot})
     end

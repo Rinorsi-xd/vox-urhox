@@ -59,7 +59,7 @@ function M:Start(request)
     aspect=math.max(.5,math.min(4,aspect))
     local width=math.ceil(math.max(320,200*aspect)*1.35)
     local height=math.ceil(width/aspect)
-    local bp=require('build.Blueprint').New():Load(data)
+    local bp=require('construction.Blueprint').New():Load(data)
     local view=require('render.VehicleView').New(self.scene,'SavedVehicle')
     self.job={request=request,view=view,frame=self.frame}
     view:Rebuild(bp)

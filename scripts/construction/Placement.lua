@@ -1,7 +1,7 @@
 -- Source editor mounting, sampled rotation and x=0 mirror rules. Grid units.
 local Rot=require 'core.Rotations'
 local Defs=require('parts.Defs').PARTS
-local Blueprint=require 'build.Blueprint'
+local Blueprint=require 'construction.Blueprint'
 local Mounts=require 'parts.Mounts'
 local M={}
 function M.Rotation(type,normal,forward,spin,sampled)

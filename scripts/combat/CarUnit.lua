@@ -1,6 +1,6 @@
 -- shared/combat/carUnit.js rules. Scene construction is injected by TrackWorld;
 -- simulation and source fixtures share damage, connectivity and rebuild decisions.
-local BP=require "build.Blueprint"
+local BP=require "construction.Blueprint"
 local Defs=require("parts.Defs").PARTS
 local Spec=require "drive.VehicleSpec"
 local V=require "core.Math3"

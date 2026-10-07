@@ -6,7 +6,7 @@ local Defs = require "parts.Defs"
 local Rot = require "core.Rotations"
 local Solid = require "parts.Solid"
 local Mounts = require "parts.Mounts"
-local Clearance = require "build.BuildClearance"
+local Clearance = require "construction.BuildClearance"
 
 local PARTS = Defs.PARTS
 
@@ -414,7 +414,7 @@ end
 
 ---@return BlueprintStats
 function Blueprint:Stats()
-    return require("build.BlueprintStats").Compute(self)
+    return require("construction.BlueprintStats").Compute(self)
 end
 
 -- ── 校验与警告（策划案 4.4）────────────────────
@@ -426,7 +426,7 @@ end
 
 ---@return { list: DiagnoseItem[], stats: BlueprintStats, conn: table, outside: table<integer, boolean> }
 function Blueprint:Diagnose(tier)
-    return require("build.BlueprintDiagnostics").Compute(self,tier)
+    return require("construction.BlueprintDiagnostics").Compute(self,tier)
 end
 
 -- ── 序列化 ────────────────────────────────────
@@ -441,7 +441,7 @@ end
 
 ---@return Blueprint
 function Blueprint:Load(data)
-    return require("build.BlueprintMigration").Load(self,data)
+    return require("construction.BlueprintMigration").Load(self,data)
 end
 
 return Blueprint

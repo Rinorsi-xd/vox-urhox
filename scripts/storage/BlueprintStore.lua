@@ -36,8 +36,8 @@ function M:Write(key,data,validator,deleted,savedTime,capture)
     if not check or check.generation~=generation then return false,'存档校验失败，保留上一版' end
     return true
 end
-function M:LoadBuildSettings() return self:Read('build-settings',require('build.Inventory').ValidSettings) end
-function M:SaveBuildSettings(settings) return self:Write('build-settings',settings,require('build.Inventory').ValidSettings) end
+function M:LoadBuildSettings() return self:Read('build-settings',require('construction.Inventory').ValidSettings) end
+function M:SaveBuildSettings(settings) return self:Write('build-settings',settings,require('construction.Inventory').ValidSettings) end
 function M:Queue(bp) self.pending=bp;self.delay=.5 end
 function M:Flush()
     if not self.pending then return true end

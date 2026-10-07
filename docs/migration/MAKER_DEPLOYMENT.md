@@ -25,3 +25,11 @@
 发布源使用 `scripts/` 与 `assets/`。SDK 参考目录、`.cli`、本机存档、测试截图和生成的大型源端夹具不进入 Git。Maker 远端拒绝 `tools/*`，工具目录仅保留本地，不进入发布仓库。保留既有 DX11 shader 缓存以支持 PC 包；移动端/Web shader 仍须由目标引擎编译。
 首次上传包含现有陨坑等地图资源，当前资源总量约 350 MiB，尚未验证弱网下的按需下载。基础移动适配不等于完成资源瘦身。
 通过 Maker MCP 的 `maker_build_current_directory` 统一提交、推送和构建；不要另行用 PR 或通用 push 代替该流程。
+
+## 2026-10-07 发布包缺失模块修复
+
+远端 20:18 的启动日志报 `Module not found: build.Blueprint`。Maker 构建器 `ScanLocalResourcesStep.DEFAULT_IGNORE_DIRS` 包含 `build` 和 `Build`，递归扫描时跳过这些目录；本地散文件验证不会触发该规则。
+
+业务模块已从 `scripts/build/` 改名为 `scripts/construction/`，保留资源 UUID，同步更新运行时与本地测试引用。未修改引擎打包器。正式发布前必须运行 Maker CLI `preview prepare`（只准备产物，不启动窗口），再用 `tools/migration/check-packaged-scripts.py <manifest路径>` 检查所有游戏脚本确实存在于产物且属于 `#blocking`。本次官方打包器生成的清单包含全部 188 个 Lua 脚本，其中 12 个 construction 模块齐全。
+
+改名后的原生触控/大厅/改装/试车往返回归 50/50 通过。额外尝试的 H5 源端构建规则对照未执行到原生测试：生成夹具时原 H5 `shared/build/rotor.js:179` 递归深度计算触发 `Maximum call stack size exceeded`；本次没有改动 H5 源目录，不能把此前的构建规则测试结果算作本次结果。
