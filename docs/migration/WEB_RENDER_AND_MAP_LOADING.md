@@ -1,5 +1,13 @@
 # Web 渲染与地图首次加载修复（2026-10-07）
 
+## 点击无法恢复驾驶：异步 Pointer Lock
+
+Web 点击后 `input.mouseMode=MM_RELATIVE` 的浏览器确认在后续帧到达。旧 `DrivePointer` 立即设置 `captured=true`，下一帧仍读到旧的 `MM_ABSOLUTE`，因此执行 Release；稍后浏览器已经锁定，游戏仍为暂停状态。实际点击日志记录了这组相反的状态，并非按钮未收到点击。
+
+修复：Web 使用独立 pending 状态，等 `MM_RELATIVE` 和 `mouseLocked` 同时确认再启用驾驶；等待期间输入保持中立，拒绝/超时后允许重新点击，失焦/退出清理待处理状态。原生和触控保留原有入口；恢复点击仍需松开后才能射击。
+
+23:37 本地官方 Web 1.32.34 + prepare `manifest-f2ef1808` 通过 Chrome 硬件 WebGL 实际鼠标/键盘测试：试车场与陨坑各 9 项断言，包括一次点击锁定、遮罩消失、进入点击不射击、移动鼠标转镜头、按 W 驾驶、Esc 暂停/点击恢复、浏览器解除锁定暂停、T 返回并释放光标。共 18 项通过，无 Lua/资源/shader 错误。测试只自动选择地图和读取状态，不覆盖驾驶控制器；证据在 `evidence/web-pointer-*`。远端预览更新情况以构建返回和实际远端日志为准。
+
 ## 21:57 远端复发：CPU 图片被远端重新压缩
 
 `ed7f4d4` 的本地 prepare 包通过 Web 测试，但远端进入陨坑仍报 KTX unsupported，随后在 `CraterDust.lua:16` 读取地面遮蔽图时断言失败。先前的本地 Web 验证不等同于远端纹理烘焙产物验收。
