@@ -202,7 +202,7 @@ function App:EnterTrial(mapId)
         if loadingToast then loadingToast.age=loadingToast.hold+.4 end
         self.pendingMap=nil;self.mapLoadingToast=nil
     end
-    local options={resources=map.resources and require('core.ResourceData').Read(map.resources) or {map.scene},cancel=ClearLoading,
+    local options={resources=map.resources and require('core.ResourceData').Read(map.resources) or {map.scene},webWarmup=map.webWarmup,cancel=ClearLoading,
         cleanup=function() if preparedWorld then preparedWorld:Dispose();preparedWorld=nil end end}
     if map.prepareWorld then options.prepare=function(scene,checkpoint)
         preparedWorld=require(map.world).New(scene,true)
@@ -356,7 +356,7 @@ function App:Update(dt)
     end
     self.loader:Update(dt)
     if self.pendingMap and self.mapLoadingToast then
-        local phase=({download='准备资源',scene='载入场景',prepare='准备碰撞',environment='准备光照'})[self.loader.phase] or '加载'
+        local phase=({download='准备资源',resources='准备纹理',scene='载入场景',prepare='准备碰撞',environment='准备光照'})[self.loader.phase] or '加载'
         local text=self.pendingMap.name..' · '..phase..' '..math.floor(self.loader.progress*100)..'% · Esc 取消'
         local toast=self.mapLoadingToast
         if toast.text~=text then toast.text=text;toast.layoutWidth=nil end

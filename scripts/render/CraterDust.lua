@@ -13,7 +13,10 @@ function M.New(root,owner)
     self.g,self.material=Batch(root,'WindMotes','Mote');self.streak,self.streakMaterial=Batch(root,'GroundWind','Streak')
     self.streakMaterial:SetShaderParameter('uWind',Variant(Vector2(wx,wz)))
     self.streakMaterial:SetShaderParameter('uColor',Variant(Vector3(.4969,.3968,.2747)))
-    self.ground=assert(cache:GetResource('Image','Crater/texture-0.png'))
+    -- CPU sampling needs decoded pixels. Keep this PNG payload outside the
+    -- publisher's GPU texture cooker: ASTC KTX cannot be read by Image.
+    self.ground=assert(cache:GetResource('Image','Crater/texture-0.bin'),'Missing CPU-readable crater ground mask')
+    assert(not self.ground.compressed,'Crater ground mask must retain CPU-readable PNG pixels')
     -- Static seed positions and full-precision random value in NORMAL.x. All six
     -- vertices of a particle share the seed; the shader supplies its billboard.
     local g=self.g;g.dynamic=false;g:BeginGeometry(0,TRIANGLE_LIST)

@@ -11,7 +11,7 @@
   <parameter name="uBakeFade" value="52 66" />
   <surfacetexture name="tAlb" texture="Crater/albedo.xml" type="Texture2DArray" />
   <surfacetexture name="tNra" texture="Crater/nra.xml" type="Texture2DArray" />
-  <surfacetexture name="tGround" texture="Crater/texture-0.png" type="Texture2D" />
+  <surfacetexture name="tGround" texture="Crater/texture-0.bin" type="Texture2D" />
   <surfacetexture name="craterDFG" texture="Crater/dfg.png" type="Texture2D" />
   <renderorder value="128" />
 </material>

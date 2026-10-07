@@ -1,6 +1,7 @@
 -- A candidate scene loads off-screen. The active scene survives load/validation failure.
 ---@class SceneLoader
 local function Now() return os.clock()*1000 end
+local Platform=require('urhox-libs.Platform.PlatformUtils')
 local Loader={}
 Loader.__index=Loader
 function Loader.New(prepare)
@@ -19,6 +20,7 @@ function Loader:init()
     self.phase='idle';self.job=nil;self.options=nil
     self.gate=require('app.ResourceGate').New()
     self.prepareFrames=0;self.maxPrepareMs=0;self.prepareBudgetMs=3
+    self.warmIndex=1;self.warmWait=0;self.warmPath='';self.sceneProgressStart=.35
 end
 function Loader:Cancel()
     self.generation=self.generation+1
@@ -29,6 +31,7 @@ function Loader:Cancel()
     if self.pending then self.pending:StopAsyncLoading(); self.pending:Dispose(); self.pending=nil end
     if self.sourceFile then self.sourceFile:Dispose();self.sourceFile=nil end
     self.state="idle";self.phase='idle';self.onReady=nil;self.onError=nil
+    self.warmIndex=1;self.warmWait=0;self.warmPath='';self.sceneProgressStart=.35
     if options and options.cancel then options.cancel() end
 end
 function Loader:Load(path,onReady,onError,options)
@@ -41,6 +44,10 @@ function Loader:Load(path,onReady,onError,options)
     self.gate:Start(options and options.resources or {path},function(ok,message)
         if self.generation~=token then return end
         if not ok then self:Fail(message);return end
+        if Platform.IsWebPlatform() and options and options.webWarmup and #options.webWarmup>0 then
+            self.phase='resources';self.elapsed=0;self.warmPath=path;self.sceneProgressStart=.45
+            return
+        end
         self.phase='scene';self.elapsed=0
         self:ReadScene(path,token)
     end)
@@ -58,7 +65,7 @@ function Loader:ReadScene(path,token)
         -- WASM cannot wait for background resource completion. Load the scene
         -- in slices, resolving its already-downloaded resources on the main
         -- thread to avoid incomplete materials and overlapping image decodes.
-        local mode=require('urhox-libs.Platform.PlatformUtils').IsWebPlatform() and LOAD_SCENE or LOAD_SCENE_AND_RESOURCES
+        local mode=Platform.IsWebPlatform() and LOAD_SCENE or LOAD_SCENE_AND_RESOURCES
         local ok=self.pending:LoadAsyncXML(file,mode)
         self.sourceFile=file
         if not ok then self:Fail("Cannot parse scene: "..path) end
@@ -77,6 +84,23 @@ function Loader:Update(dt)
     if self.phase=='download' then
         self.progress=self.gate.total>0 and .35*self.gate.completed/self.gate.total or 0;return
     end
+    if self.phase=='resources' then
+        -- An array decodes all six full-resolution layers and queues GPU uploads.
+        -- Let the renderer retire those staging buffers before the next array
+        -- or scene material loads. WASM has a fixed heap; GC cannot free uploads.
+        if self.warmWait>0 then self.warmWait=self.warmWait-1;return end
+        local resources=self.options.webWarmup
+        local item=resources[self.warmIndex]
+        if not item then
+            self.phase='scene';self.elapsed=0
+            self:ReadScene(self.warmPath,self.generation);return
+        end
+        local ok,resource=pcall(cache.GetResource,cache,item.type,item.name)
+        if not ok or not resource then self:Fail('Cannot prepare texture: '..item.name);return end
+        self.warmIndex=self.warmIndex+1;self.warmWait=3
+        self.progress=.35+.1*(self.warmIndex-1)/#resources
+        return
+    end
     if not self.pending then return end
     if self.phase=='environment' then self:Commit();return end
     if self.job then
@@ -89,7 +113,7 @@ function Loader:Update(dt)
         if coroutine.status(self.job)~='dead' then return end
         self.job=nil;self:Commit();return
     end
-    self.progress=.35+self.pending.asyncProgress*.4
+    self.progress=self.sceneProgressStart+self.pending.asyncProgress*(.75-self.sceneProgressStart)
     if self.pending.asyncLoading then return end
     if self.sourceFile then self.sourceFile:Dispose();self.sourceFile=nil end
     if self.options and self.options.prepare then
