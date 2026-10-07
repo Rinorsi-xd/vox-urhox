@@ -5,6 +5,7 @@
     "boot": [
       "Fonts/**",
       "Shaders/**",
+      "Rendering/**",
       "Hangar/**",
       "Cube/**",
       "UI/**",

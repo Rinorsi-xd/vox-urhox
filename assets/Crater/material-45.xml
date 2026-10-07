@@ -19,7 +19,7 @@
   <parameter name="uSoot" value="0.6 -12 6 0" />
   <parameter name="uSootColor" value="0.012 0.011 0.01" />
   <parameter name="uRockTint" value="1 1 1" />
-  <surfacetexture name="tBake" texture="Crater/texture-2.ktx" type="Texture2D" />
+  <surfacetexture name="tBake" texture="Crater/texture-2.png" type="Texture2D" />
   <surfacetexture name="tTerrA" texture="Crater/albedo.xml" type="Texture2DArray" />
   <surfacetexture name="tTerrN" texture="Crater/nra.xml" type="Texture2DArray" />
   <surfacetexture name="tHeight" texture="Crater/height.png" type="Texture2D" />

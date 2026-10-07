@@ -160,7 +160,7 @@ if ( uMode > 0.5 ) {
 }
 
 ALBEDO=tCol;ROUGHNESS=craterRoughness(clamp(tRough,0.35,1.0),(VIEW_MATRIX*vec4(NORMAL,0.0)).xyz);NORMAL=normalize(tWN*vec3(-1.0,1.0,1.0));AO=mix(1.0,tAO,0.85);
-vec2 gu=(vTWPos.xz+uGroundHalf)/(2.0*uGroundHalf);vec2 gb=texture(tGround,gu).rg;gb=mix(vec2(1.0),gb,step(abs(vTWPos.x),uGroundHalf-0.5)*step(abs(vTWPos.z),uGroundHalf-0.5));AO*=mix(1.0,gb.r,0.9);craterDirectShade=mix(1.0,gb.g,smoothstep(uBakeFade.x,uBakeFade.y,tCam))*mix(1.0,gb.r,0.4);
-craterCompensation=craterEnergy(ALBEDO,0.0,ROUGHNESS,NORMAL,normalize(CAMERA_POSITION_WORLD-VERTEX));
+vec2 gu=(vTWPos.xz+uGroundHalf)/(2.0*uGroundHalf);vec2 gb=texture(tGround,gu).rg;gb=mix(vec2(1.0),gb,step(abs(vTWPos.x),uGroundHalf-0.5)*step(abs(vTWPos.z),uGroundHalf-0.5));AO*=mix(1.0,gb.r,0.9);BACKLIGHT=vec3(mix(1.0,gb.g,smoothstep(uBakeFade.x,uBakeFade.y,tCam))*mix(1.0,gb.r,0.4));
+
 FOG=craterFog(vTWPos,sourceCamera);
 }

@@ -2,8 +2,7 @@
 // Source attribution and license: docs/migration/THREE_LICENSE.txt.
 // Keep baked direct visibility separate from ALBEDO and indirect AO.
 uniform sampler2D craterDFG : filter_linear, repeat_disable;
-varying float craterDirectShade;
-varying vec3 craterCompensation;
+// BACKLIGHT carries direct visibility from fragment() into light().
 
 float craterRoughness(float authoredRoughness, vec3 viewNormal) {
     vec3 deriv=max(abs(dFdx(viewNormal)),abs(dFdy(viewNormal)));
@@ -12,8 +11,8 @@ float craterRoughness(float authoredRoughness, vec3 viewNormal) {
 vec3 craterEnergy(vec3 albedoValue,float metalValue,float roughValue,vec3 normalValue,vec3 viewValue) {
     // Two 16-bit linear values packed in RG/BA. Decode after linear sampling;
     // decoding is linear too, preserving the source LUT's bilinear filter.
-    vec4 packed=texture(craterDFG,vec2(roughValue,clamp(dot(normalValue,viewValue),0.0,1.0)));
-    vec2 fab=vec2(dot(packed.rg,vec2(256.0,1.0)),dot(packed.ba,vec2(256.0,1.0)))/257.0;
+    vec4 dfgSample=texture(craterDFG,vec2(roughValue,clamp(dot(normalValue,viewValue),0.0,1.0)));
+    vec2 fab=vec2(dot(dfgSample.rg,vec2(256.0,1.0)),dot(dfgSample.ba,vec2(256.0,1.0)))/257.0;
     return vec3(1.0)+mix(vec3(0.04),albedoValue,metalValue)*(1.0/max(fab.x+fab.y,1e-6)-1.0);
 }
 vec3 craterFresnel(vec3 f0,float vh) {
@@ -33,8 +32,8 @@ void light() {
     float visibility=0.5/max(gv+gl,1e-6);
     float denom=nh*nh*(a2-1.0)+1.0;
     float distribution=0.3183098861837907*a2/(denom*denom);
-    vec3 irradiance=LIGHT_COLOR*ATTENUATION*nl*craterDirectShade;
+    vec3 irradiance=LIGHT_COLOR*ATTENUATION*nl*BACKLIGHT.r;
     vec3 f=craterFresnel(mix(vec3(0.04),ALBEDO,METALLIC),vh);
-    SPECULAR_LIGHT+=irradiance*f*(visibility*distribution)*craterCompensation;
+    SPECULAR_LIGHT+=irradiance*f*(visibility*distribution)*craterEnergy(ALBEDO,METALLIC,ROUGHNESS,NORMAL,VIEW);
     DIFFUSE_LIGHT+=irradiance*ALBEDO*(1.0-METALLIC)*0.3183098861837907*(vec3(1.0)-craterFresnel(vec3(0.04),vh));
 }

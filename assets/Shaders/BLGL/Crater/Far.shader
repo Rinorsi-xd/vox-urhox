@@ -159,7 +159,7 @@ if ( uMode > 0.5 ) {
 }
 
 ALBEDO=tCol;ROUGHNESS=craterRoughness(clamp(tRough,0.35,1.0),(VIEW_MATRIX*vec4(NORMAL,0.0)).xyz);NORMAL=normalize(tWN*vec3(-1.0,1.0,1.0));AO=mix(1.0,tAO,0.85);
-craterDirectShade=vSun;
-craterCompensation=craterEnergy(ALBEDO,0.0,ROUGHNESS,NORMAL,normalize(CAMERA_POSITION_WORLD-VERTEX));
+BACKLIGHT=vec3(vSun);
+
 FOG=craterFog(vTWPos,sourceCamera);
 }

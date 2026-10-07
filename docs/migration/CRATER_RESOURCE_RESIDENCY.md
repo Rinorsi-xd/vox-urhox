@@ -1,5 +1,7 @@
 # 地图环境生命周期与烘焙图驻留（2026-10-06）
 
+> 2026-10-07 Web 修正：下文 RG8 KTX 是历史原生验证结果，已不再用于发布。Maker Web 1.32.34 解码报 Unsupported texture format；运行素材改为 RGB PNG，R/G 字节与原 KTX 完全一致，保持单 mip。显存节省数值不再适用于当前发布版。Web SceneLoader 使用 LOAD_SCENE 分帧建立节点、主线程顺序载入已下载资源，避免后台重复解码的内存峰值。
+
 ## 天空释放
 
 旧行为：离开坠舰陨坑，Scene、模型和纹理数组已释放，`Crater/Sky.hdr` 仍在 ResourceCache。独立验证确认持有者是全局环境烘焙缓存：调用其 ClearCache 后普通 `ReleaseAllResources(false)` 即可释放旧天空。

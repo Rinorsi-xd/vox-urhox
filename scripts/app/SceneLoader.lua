@@ -55,7 +55,11 @@ function Loader:ReadScene(path,token)
         self.pending=Scene()
         if self.prepare then self.prepare(self.pending) end
         self.pending.asyncLoadingMs=3
-        local ok=self.pending:LoadAsyncXML(file,LOAD_SCENE_AND_RESOURCES)
+        -- WASM cannot wait for background resource completion. Load the scene
+        -- in slices, resolving its already-downloaded resources on the main
+        -- thread to avoid incomplete materials and overlapping image decodes.
+        local mode=require('urhox-libs.Platform.PlatformUtils').IsWebPlatform() and LOAD_SCENE or LOAD_SCENE_AND_RESOURCES
+        local ok=self.pending:LoadAsyncXML(file,mode)
         self.sourceFile=file
         if not ok then self:Fail("Cannot parse scene: "..path) end
     end)

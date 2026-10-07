@@ -3,6 +3,7 @@ local App=require "app.HangarApp"
 ---@type HangarApp|nil
 local app=nil
 function Start()
+    require('render.RectLightLookup').Ensure()
     _G.VOX_APP_BOOTSTRAP=true
     app=App.New()
     app:Start()

@@ -184,8 +184,8 @@ bake=texture(tBake,vMUv1).rg;
 #ifdef MAP_VBAKE
 bake=vMBake;
 #endif
-ALBEDO=mCol;craterDirectShade=mix(1.0,bake.g,smoothstep(uBakeFade.x,uBakeFade.y,mCamD))*mix(1.0,bake.r,0.3);
+ALBEDO=mCol;BACKLIGHT=vec3(mix(1.0,bake.g,smoothstep(uBakeFade.x,uBakeFade.y,mCamD))*mix(1.0,bake.r,0.3));
 AO=mix(1.0,bake.r,0.9);ROUGHNESS=craterRoughness(clamp(roughness*mRoughK,0.04,1.0),(VIEW_MATRIX*vec4(NORMAL,0.0)).xyz);METALLIC=metalness*mMetalK;
-NORMAL=normalize(craterNormal*vec3(-1.0,1.0,1.0));craterCompensation=craterEnergy(ALBEDO,METALLIC,ROUGHNESS,NORMAL,normalize(CAMERA_POSITION_WORLD-VERTEX));
+NORMAL=normalize(craterNormal*vec3(-1.0,1.0,1.0));
 EMISSION=emission;FOG=craterFog(vMWorld,sourceCamera);
 }
