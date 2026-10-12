@@ -1,5 +1,7 @@
 local presets=require("parts.Defs").DATA.presets
 local M={}
+M.keys={raceCar='buildRaceCar',empty='buildEmpty',megaMech='buildMegaMech',scorpion='buildScorpion',
+    hawk='buildHawk',feather='buildFeather',vanguard='buildVanguard',tianyuan='buildDrillTank',fuyuan='buildFuyuanTank',gruntTianyuan='buildGruntOne',gruntFuyuan='buildFuyuanGrunt'}
 local function Build(bp,key)
     local data=assert(presets[key])
     bp:Clear();bp.name=data.name
@@ -7,6 +9,6 @@ local function Build(bp,key)
     return bp
 end
 function M.BuildRaceCar(bp) return Build(bp,"buildRaceCar") end
-function M.BuildTank(bp) return Build(bp,"buildTank") end
 function M.BuildEmpty(bp) return Build(bp,"buildEmpty") end
+function M.Create(bp,id) return Build(bp,assert(M.keys[id],'Unknown prefab: '..tostring(id))) end
 return M

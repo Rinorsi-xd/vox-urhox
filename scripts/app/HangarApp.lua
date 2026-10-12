@@ -93,6 +93,7 @@ function App:EnterBuild()
     if self.vehicleSwitch then self.vehicleSwitch:Finish() end
     if self.build then return true end -- A pending empty preset already entered.
     if self.gallery then self:ToggleGallery() end
+    self.graphicsSettings:SetSceneVisible(true)
     Hud.Dispose()
     self.buildWanted=true
     local minY=math.huge
@@ -109,7 +110,7 @@ function App:ExitBuild()
     self.buildXray=false
     self.buildWanted=false
     if self.bays.active and self.bays.unsaved then local ok,err=self.bays:Save();if not ok then self.homeMessage=err end end
-    self.homeTab='hangar'
+    self.homeTab=self.lobby=='salvage' and 'salvage' or 'hangar'
     Hud.Create(self)
     Hud.Refresh(self.blueprint,Config.TIERS[self.tier]);self:GroundDisplay();self:HomeView('hangar')
 end
@@ -223,6 +224,7 @@ function App:EnterTrial(mapId)
         if self.gallery then self.gallery:Dispose();self.gallery=nil end
         if self.vehicleSwitch then self.vehicleSwitch:Dispose();self.vehicleSwitch=nil end
         if self.car then self.car:Dispose();self.car=nil end
+        if self.warehouse then self.warehouse:Dispose();self.warehouse=nil end
         if self.hangar then self.hangar:Dispose();self.hangar=nil end
         self.camera=nil;self.galleryOn=false;self.scene=scene;self.trial=candidate;self.mode="trial"
         _G.VOX_HANGAR=nil;_G.VOX_TRIAL={session=candidate,app=self}
@@ -237,7 +239,21 @@ function App:EnterTrial(mapId)
     end,options)
     return true
 end
+function App:PreviewMap(id)
+    if not self.ownsScene or self.loader.state=='loading' or self.mapPreview then return false end
+    local map=assert(require('app.DriveMaps')[id],'Unknown map preview')
+    local toast=self.toasts:Push('正在加载'..map.name..'…','info',90000)
+    self.pendingMap=map;self.mapLoadingToast=toast
+    local function Clear() toast.age=toast.hold+.4;self.pendingMap=nil;self.mapLoadingToast=nil end
+    self.loader:Load(map.scene,function(scene)
+        local home=Hud.GetState();home.CancelInput();home.root:SetVisible(false)
+        self.mapPreview=require('app.MapPreview').New(self,scene,map);Clear()
+    end,function(message) Clear();self.toasts:Push(map.name..'加载失败','bad');print('[MapPreview] '..message) end,
+        {resources=require('core.ResourceData').Read(map.resources),webWarmup=map.webWarmup,cancel=Clear})
+    return true
+end
 function App:Install(scene)
+    if self.warehouse then self.warehouse:Dispose();self.warehouse=nil end
     -- Construct and validate the candidate before releasing the active scene.
     local h=Hangar.Bind(scene)
     if self.motionModule then h.motion=self.motionModule end
@@ -267,8 +283,8 @@ function App:Install(scene)
     if self.gallery then self.gallery:Dispose() end
     self.scene,self.hangar,self.camera,self.car=scene,h,camera,car
     self.vehicleSwitch=require('app.HomeVehicleSwitch').New(self,car.root)
-    if self.ownsScene then renderer:SetViewport(0,Viewport:new(scene,camera.camera)) end
     self.graphicsSettings:Apply(scene)
+    if self.ownsScene then self.graphicsSettings:Show(scene,camera.camera) end
     self.gallery=nil;self.galleryOn=false
     -- Editor owns the Game render target and viewport rectangle in PIE.
     -- Standalone owns viewport 0; embedded playback only moves the scene camera.
@@ -314,6 +330,10 @@ function App:View(v)
     c.cur={target=c.target,dist=v.dist,yaw=v.yaw,pitch=v.pitch};c:Apply()
 end
 function App:HomeView(tab)
+    if self.lobby=='salvage' then
+        local home=Hud.GetState();local sv=home and home.salvage
+        tab=sv and ({loadout=sv.stash and 'svLoadout' or 'svLoadoutC',ops='svOps',market='svMarket',garage='svGarage',workshop='svGarage'})[sv.tab] or 'svLoadoutC'
+    end
     local pose=require('controls.HomeStations').Get(self.blueprint:Stats(),tab,self.camera.maxDist)
     if pose then self.camera:FlyTo(pose,.65) end
 end
@@ -336,6 +356,7 @@ function App:DeferAssetRelease(release)
 end
 function App:Update(dt)
     if self.stopped then return end
+    require('app.ResourceGate').UpdatePending(dt)
     require('render.RenderTargetLifetime').Update()
     if self.pendingAssetRelease and self.loader.state~='loading' and cache:GetNumBackgroundLoadResources()==0 then
         self.assetReleaseFrames=self.assetReleaseFrames-1
@@ -364,6 +385,11 @@ function App:Update(dt)
     self.store:Update(dt)
     self.previews:Update(dt)
     self.graphicsSettings:Update(dt)
+    if self.mode~='trial' and self.scene and self.hangar then
+        if self.lobby=='salvage' then
+            self.warehouse=self.warehouse or require('scene.Warehouse').New(self);self.warehouse:Update()
+        elseif self.warehouse then self.warehouse:Dispose();self.warehouse=nil end
+    end
     if self.reloadQueued and self.loader.state~="loading" then
         self.reloadQueued=false
         self:Reload()
@@ -372,13 +398,15 @@ function App:Update(dt)
     if input:GetKeyPress(KEY_F5) then self:Reload() end
     if not self.scene then return end
     if self.trial then self.trial:Update(dt);return end
+    if self.mapPreview then self.mapPreview:Update(dt);return end
     if self.vehicleSwitch then self.vehicleSwitch:Update(dt) end
     local focus=UI.GetFocus();local typing=focus and focus.OnTextInput~=nil
     local homeBlocked=Hud.IsBlocked()
-    if self.startTrial or not typing and not homeBlocked and not (self.build and (self.build.dialog or self.build.inventoryPanel)) and input:GetKeyPress(KEY_T) then
+    local homePage=Hud.GetState();local storyOpen=homePage and homePage.tab=='story'
+    if self.startTrial or not storyOpen and not typing and not homeBlocked and not (self.build and (self.build.dialog or self.build.inventoryPanel)) and input:GetKeyPress(KEY_T) then
         self.startTrial=false;self:EnterTrial(self.startMap);self.startMap=nil
     end
-    if not self.build and not homeBlocked and not typing and input:GetKeyPress(KEY_E) then self:EnterBuild() end
+    if not storyOpen and not self.build and not homeBlocked and not typing and input:GetKeyPress(KEY_E) then self:EnterBuild() end
     if self.build then
         self.build:Update(dt)
         self.hangar:Update(self.camera.node,self.camera.camera,dt)
@@ -388,6 +416,11 @@ function App:Update(dt)
     end
     Hud.Update(dt)
     if self.build then return end
+    local page=Hud.GetState()
+    local opaque=page and (page.tab=='story' or page.tab=='salvage' and page.salvage and page.salvage.tab=='ops'
+        or page.tab=='workshop' and page.page and page.page.view=='feature')
+    self.graphicsSettings:SetSceneVisible(not opaque)
+    if opaque then return end
     if homeBlocked or Hud.IsBlocked() or typing then
         self.hangar:Update(self.camera.node,self.camera.camera,dt)
         self.car:UpdateIdle(math.min(dt,.1),self.hangar.time)
@@ -405,12 +438,13 @@ function App:Update(dt)
         self.gallery:Update()
     end
     for i,key in ipairs({KEY_1,KEY_2,KEY_3,KEY_4,KEY_5}) do
-        if input:GetKeyPress(key) then self.tier=i;self.hangar:SetTier(i);Hud.Refresh(self.blueprint,Config.TIERS[i]) end
+        if self.lobby~='salvage' and input:GetKeyPress(key) then self.tier=i;self.hangar:SetTier(i);Hud.Refresh(self.blueprint,Config.TIERS[i]) end
     end
     self.camera:Update(dt,UI.IsPointerOverUI(),true)
-    self.camera.node.position=Hangar.ClampCamera(self.camera.node.position)
+    if not (self.warehouse and self.warehouse.ready) then self.camera.node.position=Hangar.ClampCamera(self.camera.node.position) end
     self.hangar:Update(self.camera.node,self.camera.camera,dt)
-    local display=self.gallery and self.gallery.view or self.car
+    local home=Hud.GetState()
+    local display=home and home.workshopPreview and home.workshopPreview.view or self.gallery and self.gallery.view or self.car
     if display then
         display:UpdateIdle(math.min(dt,.1),self.hangar.time)
         display:UpdateWeaponEffects(dt,{camera=self.camera.node,time=self.hangar.time,fov=self.camera.camera.fov})
@@ -429,6 +463,7 @@ end
 function App:Stop()
     if self.stopped then return end
     self.stopped=true
+    if self.warehouse then self.warehouse:Dispose();self.warehouse=nil end
     self.pendingAssetRelease=nil
     print("[HangarApp] Stop ownsScene="..tostring(self.ownsScene))
     self.loader:Cancel()
@@ -440,6 +475,7 @@ function App:Stop()
     self.store:Flush()
     self.graphicsSettings:Dispose()
     if self.trial then self.trial:Dispose();self.trial=nil end
+    if self.mapPreview then self.mapPreview:Dispose();self.mapPreview=nil end
     if self.gallery then self.gallery:Dispose();self.gallery=nil end
     if self.car then self.car:Dispose();self.car=nil end
     if self.hangar then self.hangar:Dispose() end

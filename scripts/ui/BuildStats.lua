@@ -7,7 +7,8 @@ local Config=require 'Config'
 local Stats=Panel:Extend('VoxBuildStats')
 local BAD={255,59,48,255};local WARN={255,194,26,255}
 local WHITE={255,255,255,255}
-local function Level(w) return w and (w.level=='error' and BAD or w.level=='warn' and WARN or D.orange) or D.green end
+local OK={61,220,132,255}
+local function Level(w) return w and (w.level=='error' and BAD or w.level=='warn' and WARN or D.orange) or OK end
 function Stats:Render(vg)
     D.Begin(vg);local r=self:GetAbsoluteLayout();local x,y,w=r.x,r.y,r.w
     local data=self.diag;if not data then return end;local st=data.stats;local tier=Config.TIERS[self.session.app.tier]
@@ -21,7 +22,7 @@ function Stats:Render(vg)
     D.Text(vg,'T'..tier.id,24,19,19,nil,nil,NVG_ALIGN_CENTER);nvgRestore(vg)
     D.Text(vg,tier.name,x+58,y+4,22)
     local status=ok and '可出战' or errors>0 and errors..' 个问题' or '超出限制'
-    D.Rect(vg,x+58,y+31,D.Width(vg,status,14)+16,20,ok and D.green or BAD);D.Text(vg,status,x+66,y+32,14,ok and {8,19,12,255} or D.white)
+    D.Rect(vg,x+58,y+31,D.Width(vg,status,14)+16,20,ok and OK or BAD);D.Text(vg,status,x+66,y+32,14,ok and {8,19,12,255} or D.white)
     local cy=y+111
     local function Bar(icon,label,value,max,unit,major)
         D.Icon(vg,icon,x,cy+(major and 4 or 1),major and 20 or 17,major and D.orange or D.muted)

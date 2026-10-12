@@ -11,7 +11,7 @@ local M={};M.__index=M
 local function Copy(v) return {table.unpack(v)} end
 function M.New(bp,onChange)
     local self=setmetatable({bp=bp,bounds=Config.TierBounds(),type='cube',tool='build',paintChannel='shell',color=Config.PALETTE[1].hex,
-        mirror=true,spin=0,forward={0,0,1},selection={},clipboard={},pasteSpin=0,pasting=false,dirty=true},M)
+        autoColor=false,mirror=true,spin=0,forward={0,0,1},selection={},clipboard={},pasteSpin=0,pasting=false,dirty=true},M)
     self.history=History.New(bp,function(ops,revision)
         self.dirty=true;self.preview=nil
         for id in pairs(self.selection) do if not bp.parts[id] then self.selection[id]=nil end end
@@ -77,13 +77,14 @@ function M:Place()
     if not pv.res.ok or not res.ok then return false,pv.res.ok and res.reason or pv.res.reason end
     local finish=self.sampledFinish and self.sampledFinish.type==pv.type and self.sampledFinish or Defs[pv.type]
     local first={id=self.bp.nextId,type=pv.type,pos=Copy(pv.pos),rot=pv.rot,color=finish.color,shellColor=finish.shellColor}
+    if not self.autoColor then first[Finish.Field(first,self.paintChannel) or 'color']=self.color end
     -- The mirror is checked after the first addition, as in source. Probe within
     -- the synchronous command, then remove it before committing the single delta.
     local ops={{op='add',data=first}}
     if pv.mirror then
         local nextId=self.bp.nextId;self.bp:Add(first)
         local m=pv.mirror;local valid=self.bp:Check(pv.type,m.pos,m.rot,self.bounds)
-        if valid.ok then ops[#ops+1]={op='add',data={id=self.bp.nextId,type=pv.type,pos=Copy(m.pos),rot=m.rot,color=finish.color,shellColor=finish.shellColor}} end
+        if valid.ok then ops[#ops+1]={op='add',data={id=self.bp.nextId,type=pv.type,pos=Copy(m.pos),rot=m.rot,color=first.color,shellColor=first.shellColor}} end
         self.bp:Remove(first.id);self.bp.nextId=nextId
     end
     return self.history:Commit(ops)
@@ -101,7 +102,8 @@ function M:Paint()
     if self.tool~='paint' then return false end
     local ops={};for _,p in ipairs(self:Targets(self.hit)) do
         local field=Finish.Field(p,self.paintChannel)
-        if field and (p[field] or (field=='shellColor' and 0xcbd1d7 or Defs[p.type].color))~=self.color then ops[#ops+1]={op='color',id=p.id,channel=field,from=p[field],to=self.color} end
+        local target=self.autoColor and (field=='shellColor' and 0xcbd1d7 or Defs[p.type].color) or self.color
+        if field and (p[field] or (field=='shellColor' and 0xcbd1d7 or Defs[p.type].color))~=target then ops[#ops+1]={op='color',id=p.id,channel=field,from=p[field],to=target} end
     end
     return self.history:Commit(ops)
 end
@@ -112,7 +114,7 @@ end
 function M:Eyedrop(hit)
     local p=hit and self.bp.parts[hit.partId];if not p then return false end
     local field=Finish.Field(p,self.paintChannel);if not field then return false end
-    self.color=p[field] or (field=='shellColor' and 0xcbd1d7 or Defs[p.type].color);return true
+    self.color=p[field] or (field=='shellColor' and 0xcbd1d7 or Defs[p.type].color);self.autoColor=false;return true
 end
 function M:ToggleSelect(id)
     if self.bp.parts[id] then self.selection[id]=not self.selection[id] or nil end

@@ -6,6 +6,7 @@ local function Ease(x,back)
     if x<=0 then return 0 elseif x>=1 then return 1 end
     local x1,x2,y1= .16,.3,1
     if back=='ease' then x1,x2,y1=.25,.25,.1
+    elseif back=='css-ease-out' then x1,x2,y1=0,.58,0
     elseif back then x1,x2,y1=.34,.64,1.56 end
     local lo,hi=0,1
     for _=1,16 do

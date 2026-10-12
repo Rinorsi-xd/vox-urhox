@@ -3,8 +3,8 @@ local Exposure=require 'render.FixedExposure'
 local CraterTonemap=require 'render.CraterTonemap'
 local M={};M.__index=M
 local ranges={bloom={0,.8},mist={0,.2},exposure={.6,1.4},vignette={0,.6},grain={0,.06}}
-local supported={bloom=true,exposure=true,vignette=true}
-function M.Defaults() return {v=2,quality='high',bloom=.18,mist=.04,exposure=1.1,vignette=.3,grain=0,ao=true} end
+local supported={bloom=true,exposure=true,vignette=true,quality=true}
+function M.Defaults() return {v=2,quality=require('render.Quality').current.name=='mobile' and 'medium' or 'high',bloom=.18,mist=.04,exposure=1.1,vignette=.3,grain=0,ao=true} end
 function M.Valid(data)
     if type(data)~='table' or data.v~=2 or type(data.ao)~='boolean' then return false end
     if data.quality~='high' and data.quality~='medium' and data.quality~='low' then return false end
@@ -30,6 +30,7 @@ function M:Apply(scene)
     if not self.app.ownsScene or not scene then return end
     local zone=scene:GetComponent('Zone',true);if not zone then return end
     local d=self.data
+    if not scene:GetVar('VoxPreview'):GetBool() then require('render.Quality').Apply(d.quality) end
     if self.post and self.post.scene~=scene then self.post:Dispose();self.post=nil end
     if self.post then self.post:Set(d);return end
     zone:SetAttribute('Bloom Enable',Variant(true)) -- Keep tonemap even at zero bloom.
@@ -44,12 +45,24 @@ function M:Apply(scene)
     else Exposure.Apply(zone,d.exposure) end
 end
 function M:Show(scene,camera)
+    self.suspendedViewport=nil
     if CraterTonemap.Available(scene) then
         if self.post then self.post:Dispose();self.post=nil end
         local post=require('render.CraterPostProcess').New(scene,camera,self.data,{fixedResolution=self.app.isValidation})
         if self.tonemap then self.tonemap:Dispose();self.tonemap=nil end
         self.post=post;post.graph:Queue();renderer:SetViewport(0,post.graph.output)
-    else renderer:SetViewport(0,Viewport:new(scene,camera)) end
+    else
+        if self.post then self.post:Dispose();self.post=nil end
+        renderer:SetViewport(0,Viewport:new(scene,camera))
+    end
+end
+function M:SetSceneVisible(visible)
+    if not self.app.ownsScene then return end
+    if visible and self.suspendedViewport then
+        renderer:SetViewport(0,self.suspendedViewport);self.suspendedViewport=nil
+    elseif not visible and not self.suspendedViewport then
+        self.suspendedViewport=renderer:GetViewport(0);renderer:SetViewport(0,nil)
+    end
 end
 function M:Set(key,value)
     if not self:Supports(key) then return false end
@@ -73,6 +86,7 @@ function M:Update(dt)
 end
 function M:PostUpdate() if self.post then self.post:PostUpdate() end end
 function M:Dispose()
+    self.suspendedViewport=nil
     self:Flush()
     if self.post then self.post:Dispose();self.post=nil end
     if self.tonemap then self.tonemap:Dispose();self.tonemap=nil end

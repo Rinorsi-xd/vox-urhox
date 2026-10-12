@@ -4,7 +4,6 @@ local Blueprint=require 'construction.Blueprint'
 local Prefab=require 'construction.Prefab'
 local Code=require 'storage.BlueprintCode'
 local M={};M.__index=M
-local builders={raceCar=Prefab.BuildRaceCar,tank=Prefab.BuildTank,empty=Prefab.BuildEmpty}
 local function Same(a,b)
     if type(a)~=type(b) then return false end
     if type(a)~='table' then return a==b end
@@ -94,7 +93,7 @@ function M:CreateVehicle(kind,name,discard)
     if type(kind)=='table' then
         local ok,data=pcall(Code.Validate,kind);if not ok then return false,'无效蓝图' end
         candidate:Load(data)
-    elseif builders[kind] then builders[kind](candidate) else return false,'未知预制车' end
+    elseif Prefab.keys[kind] then Prefab.Create(candidate,kind) else return false,'未知预制车' end
     if name then candidate.name=name end
     local ok,err,reason=self:KeepCurrent(discard);if not ok then return false,err,reason end
     local slot=self:FirstEmpty();if not slot then return false,'20 个车位都满了，先删除一个车位','full' end

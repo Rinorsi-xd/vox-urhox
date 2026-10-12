@@ -12,6 +12,9 @@ end
 function M.Dispose()
     if not state then return end
     require('ui.DialogHost').Dispose(state);state.CancelInput();state.previews:Dispose()
+    require('ui.Workshop').Leave(state)
+    require('ui.StoryPage').Leave(state)
+    require('ui.SalvagePage').Leave(state)
     if UI.GetRoot()==state.root then UI.SetRoot(nil) end
     if state.root.node then state.root:Destroy() end
     Theme.TrimThumbnails({});state=false
@@ -42,6 +45,9 @@ function M.Create(app)
     end
     s.SetNew=function(open) s.newOpen=open;s.menu:SetOpen(open);s.scrim:SetVisible(open) end
     s.SetTab=function(tab)
+        if s.tab=='story' and tab~='story' then require('ui.StoryPage').Leave(s) end
+        if (s.tab=='workshop' or s.tab=='salvage') and tab~=s.tab then require('ui.Workshop').Leave(s) end
+        if s.tab=='salvage' and tab~='salvage' then require('ui.SalvagePage').Leave(s) end
         s.SetNew(false);s.tab=tab;app.homeTab=tab;s.revision=-1
         if app.gallery then app:ToggleGallery() end
         app:HomeView(tab)
@@ -66,6 +72,11 @@ function M.Create(app)
         end
         return Begin(false) -- Accepted request, not a synchronous storage result.
     end
+    s.SetLobby=function(mode)
+        s.Run(function() return require('app.SalvageLobby').Switch(app,mode) end,function()
+            s.bayRevision=nil;s.SetTab(mode=='salvage' and 'salvage' or 'hangar')
+        end)
+    end
     s.CreateVehicle=function(id)
         s.SetNew(false)
         s.Run(function(discard) return app.bays:CreateVehicle(id,nil,discard) end,function()
@@ -78,18 +89,21 @@ function M.Create(app)
     for _,tab in ipairs({{'hangar','机库'},{'workshop','创意工坊'},{'shop','商店'}}) do AddButton(s.nav,tab[1],tab[2],tab[1],'tab',function() s.SetTab(tab[1]) end) end
     AddButton(s.nav,'help','','help','icon',function() Dialogs.Help(s) end)
     AddButton(s.nav,'settings','','gear','icon',function() require('ui.PauseMenu').Open(s) end)
-    local Info=require('controls.TouchMode').Enabled() and UI.ScrollView or UI.Panel
+    local Info=UI.ScrollView
     s.info=Info{position='absolute',overflow='hidden',scrollX=false,scrollY=true,bounces=false};s.stats=s.info;s.root:AddChild(s.info)
-    s.page=require('ui.HomePages').Create(s);s.root:AddChild(s.page)
+    s.loadout=UI.ScrollView{position='absolute',overflow='hidden',scrollX=false,scrollY=true,bounces=false};s.root:AddChild(s.loadout)
+    s.navHeight=64
+    s.page=require('ui.HomePages').Create(s);s.root:InsertChild(s.page,1)
     s.cta=UI.Panel{position='absolute',pointerEvents='box-none'}
     AddButton(s.cta,'edit','改装','wrench','cta-left',function() app:EnterBuild() end,{subtitle='进编辑页搭车',key='E'})
     AddButton(s.cta,'trial','试车','wheel','cta-right',function() app:EnterTrial() end,{subtitle='直接开去试车场',key='T'})
     AddButton(s.cta,'battle','出战','battle','cta-main',function() if s.tab=='battle' then app:EnterTrial(app.selectedMap) else s.SetTab('battle') end end,{key='F'})
-    s.actions=UI.Panel{position='absolute',flexDirection='row',gap=6}
+    s.actions=UI.Panel{position='absolute',flexDirection='row',gap=6,padding=8,backgroundColor='#112337',borderWidth=1,borderColor='#6286a5'}
     AddButton(s.actions,'copy','复制','copy','action',function() s.Run(function(d) return app.bays:Copy(d) end) end,{width=80,height=38})
     AddButton(s.actions,'export','分享','share','action',function() Dialogs.Code(s,false) end,{width=80,height=38})
     AddButton(s.actions,'delete','删除','trash','action',function() Dialogs.Delete(s) end,{width=82,height=38})
     s.root:AddChild(s.actions)
+    AddButton(s.root,'manage','车辆管理','gear','manage',function() s.manageOpen=not s.manageOpen;Layout.Visibility(s) end)
     s.bayStrip=UI.Panel{flexDirection='row',gap=10,height=138}
     s.bayScroll=UI.ScrollView{position='absolute',scrollX=true,scrollY=false,showScrollbar=false,children={s.bayStrip}}
     s.root:AddChild(s.bayScroll);s.previews=require('ui.BayPreviews').New(s.bayScroll,app.previews)
@@ -98,6 +112,10 @@ function M.Create(app)
     s.rightArrow=AddButton(s.root,nil,'','back','arrow',function() Scroll(1) end,{rightArrow=true})
     AddButton(s.root,'new','新战车','plus','new',function() s.SetNew(not s.newOpen) end)
     s.root:AddChild(s.cta)
+    s.modeStrip=UI.Panel{position='absolute',pointerEvents='box-none'}
+    AddButton(s.modeStrip,'arena','竞技对战','battle','mode',function() end,{selected=true,subtitle='3v3 / 4v4 匹配'})
+    AddButton(s.modeStrip,'salvage','打捞行动','hook','mode',function() s.SetLobby('salvage') end,{subtitle='搜打撤 · 独立仓库',salvage=true})
+    s.root:AddChild(s.modeStrip)
     s.message=app.toasts
     if app.homeMessage then s.message:Push(app.homeMessage,'bad');app.homeMessage=nil end
     s.scrim=UI.Panel{position='absolute',width='100%',height='100%',visible=false,onPointerDown=function() s.SetNew(false) end};s.root:AddChild(s.scrim)
@@ -108,22 +126,23 @@ local function Rebuild(s)
     local app=s.app;local slots=app.bays:Slots();local used=0
     for _,d in ipairs(slots) do if d then used=used+1 end end;s.usedCount=used
     s.buttons.copy:SetDisabled(used==20);s.buttons.new:SetDisabled(used==20);s.buttons.delete:SetDisabled(not app.bays.active)
-    Clear(s.info);require('ui.HomeStats').Fill(s.info,app)
+    Clear(s.info);Clear(s.loadout);require('ui.HomeStats').Fill(s.info,app,s)
     for _,id in ipairs({'hangar','workshop','shop'}) do s.buttons[id].props.selected=s.tab==id end
     s.buttons.battle:SetText(s.tab=='battle' and '开始战斗' or '出战');s.buttons.battle.props.key=s.tab=='battle' and 'Enter' or 'F'
-    s.buttons.battle.props.subtitle=require('app.DriveMaps')[app.selectedMap or 'trial'].name..' · '..Config.TIERS[app.tier].name
-    s.root:RemoveChild(s.page);s.page:Destroy();s.page=require('ui.HomePages').Create(s);s.root:InsertChild(s.page,4)
+    local mode=require('core.ResourceData').Read('UI/Outgame.json').modes[s.modeChoice or 'elimination']
+    s.buttons.battle.props.subtitle=mode and (mode.name..' · '..mode.size..'v'..mode.size) or '单人 · 不计战绩'
+    s.root:RemoveChild(s.page);s.page:Destroy();s.page=require('ui.HomePages').Create(s);s.root:InsertChild(s.page,1)
     if s.bayRevision~=app.bays.revision then
         s.previews:Clear();Clear(s.bayStrip);s.cards={}
         local function Card(slot,data)
             local draft=not slot;local active=slot==app.bays.active
-            local card=s.Track(UI.Panel{width=212,height=126,flexShrink=0,overflow='hidden',backgroundColor='#111316',onClick=function() if slot and slot~=app.bays.active then s.Run(function(d) return app.bays:Open(slot,d) end) end end})
-            if not draft then local picture=s.previews:Add(data);picture:SetStyle({position='absolute',left=0,top=0,width=212,height=126});card:AddChild(picture) end
+            local card=s.Track(UI.Panel{width=184,height=90,flexShrink=0,overflow='hidden',backgroundColor='#122638',onClick=function() if slot and slot~=app.bays.active then s.Run(function(d) return app.bays:Open(slot,d) end) end end})
+            if not draft then local picture=s.previews:Add(data);picture:SetStyle({position='absolute',left=0,top=0,width=184,height=90});card:AddChild(picture) end
             local overlay=require('ui.HomeBay'){position='absolute',width='100%',height='100%',pointerEvents='none'}
             local budget=0;local defs=require('parts.Defs').PARTS;for _,p in ipairs(data.parts) do budget=budget+(defs[p[1]] and defs[p[1]].budget or 0) end
-            overlay.data={draft=draft,slot=slot,active=active,name=data.name,budget=budget,parts=#data.parts};card:AddChild(overlay)
+            overlay.data={draft=draft,slot=slot,active=active,name=data.name,budget=budget,parts=#data.parts};overlay.card=card;card:AddChild(overlay)
             if draft then
-                local save=s.Track(Button{text='保存到车位',icon='save',sourceKind='save',position='absolute',right=18,top=8,width=98,height=28,onClick=function() Dialogs.Save(s) end})
+                local save=s.Track(Button{text='保存到车位',icon='save',sourceKind='save',position='absolute',right=10,top=8,width=110.5,height=28,onClick=function() Dialogs.Save(s) end})
                 card:AddChild(save);s.buttons.save=save
             end
             s.bayStrip:AddChild(card);s.cards[#s.cards+1]=card
@@ -135,19 +154,27 @@ local function Rebuild(s)
     Layout.Apply(s,s.width,s.height,s.safe);s.revision=app.bays.revision;s.tier=app.tier
 end
 function M.Update(dt)
-    if not state then return end;local s=state;local w,h=UI.GetViewportSize();local safe=UI.GetSafeAreaInsets()
+    if not state then return end;require('controls.TouchMode').Update('home');local s=state;local w,h=UI.GetViewportSize();local safe=UI.GetSafeAreaInsets()
     require('ui.DialogHost').Update(s,dt)
-    if w~=s.width or h~=s.height then s.CancelInput();Layout.Apply(s,w,h,safe);s.revision=-1 end
+    if w~=s.width or h~=s.height then s.CancelInput();Layout.Apply(s,w,h,safe);s.app:HomeView(s.tab);s.revision=-1 end
     if s.revision~=s.app.bays.revision or s.tier~=s.app.tier then Rebuild(s) end
     s.previews:Update(dt)
+    if s.salvagePreviews then s.salvagePreviews:Update(dt) end
+    if s.tab=='workshop' then require('ui.Workshop').Update(s,dt) end
+    if s.tab=='story' then require('ui.StoryPage').Update(s,dt) end
+    if s.workshopPreview then s.workshopPreview:Update(dt) end
     if s.dialogTick then s.dialogTick(dt) end
     if not input.focus or input.minimized then s.CancelInput();return end
     local focus=UI.GetFocus();local typing=focus and focus.OnTextInput~=nil
     if s.dialog then if input:GetKeyPress(KEY_ESCAPE) then Dialogs.Close(s) end
+    elseif not typing and s.tab=='story' then require('ui.StoryPage').Key(s)
+    elseif not typing and s.tab=='salvage' then require('ui.SalvagePage').Key(s)
+    elseif not typing and s.tab=='workshop' and require('ui.Workshop').Key(s) then
+        -- Workshop consumes its source keys before global garage shortcuts.
     elseif not typing then
         if input:GetKeyPress(KEY_ESCAPE) then if s.newOpen then s.SetNew(false) elseif s.tab~='hangar' then s.SetTab('hangar') else require('ui.PauseMenu').Open(s) end
         elseif input:GetKeyPress(KEY_F) then s.SetTab('battle')
-        elseif input:GetKeyPress(KEY_RETURN) then if s.tab=='battle' then s.app:EnterTrial(s.app.selectedMap) else s.app:EnterBuild() end
+        elseif input:GetKeyPress(KEY_RETURN) then if s.tab=='battle' then require('ui.HomeBattle').Start(s) else s.app:EnterBuild() end
         elseif input:GetKeyPress(KEY_H) or input:GetKeyPress(KEY_F1) then Dialogs.Help(s) end
     end
 end

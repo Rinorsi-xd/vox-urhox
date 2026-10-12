@@ -15,6 +15,7 @@ function M.New(app)
     self.inventory=app.inventory
     self:ApplyHotbar()
     self.car.root.position=Vector3.ZERO
+    if self.buildCamera.touch then self.buildCamera:Focus() end
     self.car:SetXray(app.buildXray==true)
     self.hud=Hud.Create(self);self:Refresh();return self
 end
@@ -31,7 +32,7 @@ function M:Notify(text,kind)
     self.message=text or ''
     self.app.toasts:Push(self.message,kind)
 end
-function M:SelectHotbar(slot) self.inventory:Select(slot);self:ApplyHotbar();self:SaveSettings() end
+function M:SelectHotbar(slot) self.selecting=false;self.inventory:Select(slot);self:ApplyHotbar();self:SaveSettings() end
 function M:AssignHotbar(slot,type) self.inventory:Assign(slot,type);self:ApplyHotbar();self:SaveSettings() end
 function M:PickHotbar(type) self.inventory:Pick(type);self:ApplyHotbar();self:SaveSettings() end
 function M:ClearHotbar(slot) self.inventory:Clear(slot);self:ApplyHotbar();self:SaveSettings() end
@@ -86,7 +87,7 @@ function M:Refresh()
     if not self.editor.emptySlot and self.editor.type~=self.inventory:Current() then self.inventory:Pick(self.editor.type);self:SaveSettings() end
     if self.inventoryPanel or self.dialog then self.controls:Cancel() end
     if self.controls.inside then self:Trace(self.controls.x,self.controls.y) end
-    self.ghost:Refresh(self.editor,self.controls.inside)
+    self.ghost:Refresh(self.editor,self.controls.inside and not self.selecting)
     self.hud.Refresh();self.editor.dirty=false
 end
 function M:BoxSelect(rect)
@@ -133,12 +134,14 @@ function M:Keys()
     else
         for i,k in ipairs({KEY_1,KEY_2,KEY_3,KEY_4,KEY_5,KEY_6,KEY_7,KEY_8,KEY_9,KEY_0}) do if Press(k) then self:SelectHotbar(i) end end
         if Press(KEY_TAB) then self.hud.SetColor(false);self.buildCamera:Toggle();self:Refresh();return end
-        if Press(KEY_F) then self.buildCamera:Focus() end
+        if Press(KEY_F) then self:Notify('连块功能尚未迁移','bad') end
+        if Press(KEY_L) then self.buildCamera:Focus() end
         if Press(KEY_V) then self:ToggleXray() end
         if Press(KEY_R) then if input:GetKeyDown(KEY_ALT) then e:Tilt(shift and -1 or 1) else e:Rotate(shift and -1 or 1) end end
         if Press(KEY_M) then e.mirror=not e.mirror end
         if Press(KEY_P) then self.controls:Cancel();e:SetTool(e.tool=='paint' and 'build' or 'paint') end
         if Press(KEY_X) then self.controls:Cancel();e:SetTool(e.tool=='erase' and 'build' or 'erase') end
+        if Press(KEY_Q) then self.controls:Cancel();self.selecting=not self.selecting;e:SetTool('build') end
         if Press(KEY_C) and e:Eyedrop(e.hit) then self.controls:Cancel();e:SetTool('paint') end
         if Press(KEY_B) then self:OpenInventory();return end
         if Press(KEY_H) or Press(KEY_F1) then require('ui.GarageDialogs').Help(self);return end
@@ -155,6 +158,7 @@ function M:Keys()
 end
 function M:Update(dt)
     if self.disposed then return end
+    require('controls.TouchMode').Update('build')
     require('ui.DialogHost').Update(self,dt)
     local width,height=UI.GetViewportSize();local safe=UI.GetSafeAreaInsets();local old=self.hud.safe
     if width~=self.hud.width or height~=self.hud.height or safe.left~=old.left or safe.right~=old.right or safe.top~=old.top or safe.bottom~=old.bottom then
@@ -176,10 +180,12 @@ function M:Update(dt)
         self:Refresh()
         return -- Do not reuse presses/deltas sampled before the resize.
     end
+    local hadDialog=self.dialog~=nil
     if self.dialog then self.controls:Cancel();if self.dialogTick then self.dialogTick(dt) end
     elseif self.inventoryPanel then self.controls:Cancel();self.inventoryPanel:Update(dt)
     elseif self.hud.colorOpen then self.controls:Cancel() else self.controls:Update(dt) end
-    if input.focus and not input.minimized then self:Keys() end
+    -- A dialog closing on H consumes the press before normal build shortcuts.
+    if input.focus and not input.minimized and (not hadDialog or self.dialog) then self:Keys() end
     local focus=UI.GetFocus();self.buildCamera:Update(dt,self.dialog or self.inventoryPanel or self.hud.colorOpen or focus and focus.OnTextInput~=nil)
     -- Picking and ghost geometry are capped at 30 Hz; shaders animate on GPU.
     self.refreshTime=self.refreshTime+dt

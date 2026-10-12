@@ -1,4 +1,6 @@
 -- Single runtime entry. Scene authoring lives in assets/Scenes/OrbitalHangar.xml.
+-- Some Web bootstraps precede the translated UI library's engine initialization.
+if not rawget(_G,'_tr') then require('urhox-libs/Engine/i18n') end
 local App=require "app.HangarApp"
 ---@type HangarApp|nil
 local app=nil

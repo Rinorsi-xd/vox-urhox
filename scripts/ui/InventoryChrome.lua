@@ -1,21 +1,35 @@
--- Measured from shared/css/style.css .inv-* at the PC viewport.
+-- Frozen new-ui-inventory.css, including final new-ui-controls.css overrides.
 local UI=require 'urhox-libs/UI'
 local Panel=require 'urhox-libs/UI/Widgets/Panel'
 local BaseButton=require 'urhox-libs/UI/Widgets/Button'
 local D=require 'ui.SourceDraw'
-local Key=require('ui.BuildButton').Key
+local Relief=require 'ui.SourceRelief'
 local Theme=require 'ui.VoxTheme'
 local Defs=require 'parts.Defs'
-local M={icons={all='workshop',structure='cube',frame='truss',movement='wheel',weapon='crosshair',['function']='bolt',decor='decor'}}
+local M={icons={all='workshop',structure='cube',frame='truss',movement='wheel',weapon='crosshair',['function']='bolt',shield='shield',decor='decor'}}
 M.Modal=require('ui.OwnedModal'):Extend('VoxInventoryModal')
 function M.Modal:RenderModalContent(vg)
     if not self.isOpen_ then return end;D.Begin(vg)
-    local sw,sh=UI.GetViewportSize();local w,h=math.min(1500,sw*.94),math.min(900,sh*.9)
+    local sw,sh=UI.GetViewportSize();local compact=sh<=600 and sw>sh
+    local w,h=math.min(1580,sw*.94),math.min(960,sh*.92)
+    if compact then w=sw-24;h=sh-12 end
     local x,y=(sw-w)/2,(sh-h)/2;local alpha=self.animProgress_;y=y+14*(1-alpha)^3
     nvgSave(vg);nvgGlobalAlpha(vg,alpha)
-    nvgSave(vg);nvgTranslate(vg,sw/2,sh*.45);nvgScale(vg,sw/sh,1)
-    nvgBeginPath(vg);nvgRect(vg,-sh/2,-sh*.45,sh,sh)
-    nvgFillPaint(vg,nvgRadialGradient(vg,0,0,0,sh*.6,nvgRGBA(14,15,18,209),nvgRGBA(6,7,9,245)));nvgFill(vg);nvgRestore(vg)
+    -- CSS linear-gradient(110deg, start, middle 63%, end).
+    local dx,dy=math.sin(math.rad(110)),-math.cos(math.rad(110))
+    local length=sw*dx+sh*dy;local sx,sy=(sw-dx*length)/2,(sh-dy*length)/2
+    local mx,my=sx+dx*length*.63,sy+dy*length*.63
+    local reach=math.max(sw,sh)*2
+    local function Band(a,b,x0,y0,x1,y1,c0,c1)
+        local ax,ay=sx+dx*length*a,sy+dy*length*a
+        local bx,by=sx+dx*length*b,sy+dy*length*b
+        D.Path(vg,{ax-dy*reach,ay+dx*reach,bx-dy*reach,by+dx*reach,bx+dy*reach,by-dx*reach,ax+dy*reach,ay-dx*reach})
+        nvgFillPaint(vg,nvgLinearGradient(vg,x0,y0,x1,y1,D.Color(c0),D.Color(c1)));nvgFill(vg)
+    end
+    nvgSave(vg);nvgIntersectScissor(vg,0,0,sw,sh)
+    Band(-1,.63,sx,sy,mx,my,{6,17,32,219},{7,23,42,179})
+    Band(.63,2,mx,my,sx+dx*length,sy+dy*length,{7,23,42,179},{7,22,38,214})
+    nvgRestore(vg)
     self.modalLayout_={x=x,y=y,w=w,h=h};self.closeButtonLayout_=nil
     local content=self.contentContainer_;YGNodeCalculateLayout(content.node,w,h,YGDirectionLTR)
     content.renderOffsetX_=x;content.renderOffsetY_=y;content.renderWidth_=w;content.renderHeight_=h
@@ -24,75 +38,116 @@ end
 M.Button=BaseButton:Extend('VoxInventoryButton')
 function M.Button:Render(vg)
     D.Begin(vg);local r=self:GetAbsoluteLayout();local p=self.props;local x,y,w,h=r.x,r.y,r.w,r.h
-    local on=p.selected;local color=(on or self.state.hovered) and D.white or D.muted
+    local on=p.selected;local color=on and D.white or self.state.hovered and D.orange or D.muted
     if p.kind=='category' then
-        D.Icon(vg,p.icon,x+20,y+17,20,on and D.orange or color)
-        D.Text(vg,p.text,x+48,y+16,19,color,nil,nil,1);D.Text(vg,p.count,x+w-20,y+20,15,D.dim,nil,NVG_ALIGN_RIGHT,1)
-        if on then D.Rect(vg,x+12,y+h-2,w-24,3,D.orange) end
+        local size=p.compact and 14 or 18;local pad=p.compact and 12 or 17
+        D.Icon(vg,p.icon,x+pad,y+(h-18)/2,18,on and D.orange or color)
+        D.Text(vg,p.text,x+pad+25,y+(h-size*1.2)/2,size,color,nil,nil,p.compact and 0 or .4)
+        if on then
+            D.Text(vg,p.count,x+w-pad,y+(h-13.2)/2,11,D.orange,'vox-body',NVG_ALIGN_RIGHT)
+            D.Rect(vg,x+16,y+h-3,w-32,3,D.orange)
+        end
     elseif p.kind=='material' then
-        D.Panel(vg,x,y,w,h,0);if self.state.hovered then D.Rect(vg,x,y,w,h,{255,255,255,18}) end
-        local c=p.material;local a,b={230,233,238,255},{167,173,182,255}
-        if c=='heavy' then a,b={141,147,156,255},{85,91,100,255} elseif c=='glass' then a,b={159,220,255,217},{159,220,255,64} elseif c=='neon' then a,b=D.blue,D.blue end
-        nvgBeginPath(vg);nvgRect(vg,x+8,y+8,18,18);nvgFillPaint(vg,nvgLinearGradient(vg,x+8,y+8,x+26,y+26,D.Color(a),D.Color(b)));nvgFill(vg)
-        if c=='heavy' or c=='glass' then nvgBeginPath(vg);nvgRect(vg,x+9.5,y+9.5,15,15);nvgStrokeWidth(vg,c=='heavy' and 3 or 1);nvgStrokeColor(vg,D.Color(c=='heavy' and {34,37,42,255} or {255,255,255,128}));nvgStroke(vg) end
-        D.Text(vg,p.text,x+34,y+7,17,color);D.Text(vg,'预算 '..p.budget,x+w-14,y+10,12,D.dim,'vox-body',NVG_ALIGN_RIGHT)
-        if on then D.Rect(vg,x,y+h-3,w,3,D.orange) end
+        Relief.Draw(vg,x,y,w,h,false,true,{x,y,x+w-7,y,x+w,y+7,x+w,y+h,x,y+h},false)
+        local a,b={230,233,238,255},{167,173,182,255};local c=p.material
+        if c=='heavy' then a,b={141,147,156,255},{85,91,100,255} elseif c=='glass' then a,b={159,220,255,217},{159,220,255,64} elseif c=='neon' then a,b=D.orange,D.orange end
+        nvgBeginPath(vg);nvgRect(vg,x+10,y+(h-11)/2,11,11);nvgFillPaint(vg,nvgLinearGradient(vg,x+10,y+(h-11)/2,x+21,y+(h+11)/2,D.Color(a),D.Color(b)));nvgFill(vg)
+        if c=='heavy' then D.Rect(vg,x+12,y+(h-7)/2,7,7,{34,37,42,255}) end
+        D.Text(vg,p.text,x+28,y+(h-15.6)/2,13,color,'vox-body')
+        if on then D.Rect(vg,x,y+h-2,w,2,D.orange) end
+    elseif p.kind=='more' or p.kind=='instructions' then
+        if p.kind=='more' then D.Rect(vg,x,y,w,1,{65,100,134,255});D.Rect(vg,x,y+h-1,w,1,{65,100,134,255}) end
+        local fs=p.kind=='more' and 12 or 10
+        D.Text(vg,p.text,x,y+(h-fs*1.2)/2,fs,D.orange,'vox-body')
+        if p.count then D.Text(vg,p.count..' 项',x+w-24,y+(h-12)/2,10,D.muted,'vox-body',NVG_ALIGN_RIGHT) end
+        nvgSave(vg);nvgTranslate(vg,x+w-8,y+h/2);if on then nvgRotate(vg,math.pi) end;D.Icon(vg,'chev',-6,-6,12,D.orange);nvgRestore(vg)
     else
-        D.Panel(vg,x,y,w,h,0);D.Icon(vg,'close',x+12,y+12,18,D.muted);D.Text(vg,'关闭',x+38,y+10,18)
-        Key(vg,'B',x+w-32,y+12,12)
+        Relief.Draw(vg,x,y,w,h,false,true,{x,y,x+w-14,y,x+w,y+14,x+w,y+h,x,y+h},false)
+        D.Icon(vg,'close',x+12,y+(h-18)/2,18,D.orange);D.Text(vg,'关闭',x+38,y+(h-19.2)/2,16)
+        D.Text(vg,'B',x+w-26,y+(h-14.4)/2,12,{188,215,235,255},'vox-body')
     end
 end
 M.Card=Panel:Extend('VoxInventoryCard')
 function M.Card:Render(vg)
     local p=self.props;local def=Defs.PARTS[p.partType];if not def then return end
     D.Begin(vg);local r=self:GetAbsoluteLayout();local x,y,w,h=r.x,r.y,r.w,r.h
-    local inv=self.inventory
-    ---@type integer?
-    local slot
+    local inv=self.inventory;local slot=false
     for i,t in ipairs(inv.hotbar) do if t==def.id then slot=i;break end end
-    if self.state.hovered then y=y-4 end
-    D.Path(vg,{x,y,x+w-14,y,x+w,y+14,x+w,y+h,x,y+h});nvgSave(vg)
-    nvgIntersectScissor(vg,x,y,w,h*.7);D.Gradient(vg,x,y,w,h*.7,{44,48,55,255},{29,32,37,255});nvgRestore(vg)
-    D.Path(vg,{x,y+h*.7,x+w,y+h*.7,x+w,y+h,x,y+h});D.Gradient(vg,x,y+h*.7,w,h*.3,{29,32,37,255},{24,26,30,255})
-    D.Rect(vg,x,y,w-14,1,{255,255,255,23});D.Rect(vg,x,y+h-3,w,3,{0,0,0,102})
-    if slot==inv.active then D.Path(vg,{x+1,y+1,x+w-14,y+1,x+w-1,y+14,x+w-1,y+h-1,x+1,y+h-1});nvgStrokeWidth(vg,2);nvgStrokeColor(vg,D.Color(D.orange));nvgStroke(vg) end
-    local size=self.state.hovered and 88.56 or 82
-    self:RenderBackgroundImage(vg,Theme.Thumbnail(def.id),{x=x+(w-size)/2,y=y+6-(size-82)/2,w=size,h=size},'contain',nil)
-    if slot then D.Rect(vg,x,y,24,22,D.orange);D.Text(vg,slot%10,x+12,y+2,16,D.ink,nil,NVG_ALIGN_CENTER) end
-    nvgSave(vg);nvgIntersectScissor(vg,x+6,y+99,w-12,21);D.Text(vg,def.name,x+w/2,y+100,16,nil,nil,NVG_ALIGN_CENTER);nvgRestore(vg)
-    local cost=def.budget>0 and tostring(def.budget) or '免费';local cw=D.Width(vg,cost,14)+16
-    D.Icon(vg,'chip',x+(w-cw)/2,y+117,13,D.orange);D.Text(vg,cost,x+(w-cw)/2+16,y+115,14,D.muted)
+    local hovered=self.state.hovered;local current=slot==inv.active
+    if hovered then x=x-2;y=y-4 end
+    local points={x,y,x+w-15,y,x+w,y+15,x+w,y+h,x,y+h}
+    D.Path(vg,points);nvgFillColor(vg,D.Color((hovered or current) and {41,70,95,255} or {32,58,84,255}));nvgFill(vg)
+    Relief.Halftone(vg,x,y,w,h,false,165,points)
+    if current then D.Rect(vg,x,y+h-3,w,3,D.orange) end
+    local size=p.compact and 60 or 94;local imageY=y+(p.compact and 7 or 12)
+    if hovered then size=size*1.06;imageY=imageY-2 end
+    self:RenderBackgroundImage(vg,Theme.Thumbnail(def.id),{x=x+(w-size)/2,y=imageY,w=size,h=size},'contain',nil)
+    if slot then D.Rect(vg,x+w-21,y+h-37,21,20,D.orange);D.Text(vg,slot%10,x+w-10.5,y+h-35,13,D.ink,'vox-body',NVG_ALIGN_CENTER) end
+    local fs=p.compact and 12 or 16;local name=def.name
+    while D.Width(vg,name,fs)>w-20 and utf8.len(name)>1 do name=name:sub(1,utf8.offset(name,-1)-1) end
+    if name~=def.name then
+        while D.Width(vg,name..'…',fs)>w-20 and utf8.len(name)>1 do name=name:sub(1,utf8.offset(name,-1)-1) end
+        name=name..'…'
+    end
+    D.Text(vg,name,x+w/2,y+h-(p.compact and 22 or 31),fs,nil,nil,NVG_ALIGN_CENTER)
+    if hovered then
+        nvgBeginPath(vg);nvgRect(vg,x-3,y-3,w+6,h+6);nvgStrokeWidth(vg,2);nvgStrokeColor(vg,D.Color(D.orange));nvgStroke(vg)
+        local cost='预算 '..(def.budget>0 and tostring(def.budget) or '免费');local cw=D.Width(vg,cost,10,'vox-body')+26
+        D.Rect(vg,x+8,y+8,cw,19,{219,238,255,255});D.Icon(vg,'chip',x+14,y+11,12,{36,91,145,255})
+        D.Text(vg,cost,x+29,y+11,10,{24,60,92,255},'vox-body')
+    end
 end
 function M.Title(owner)
-    local p=Panel{position='absolute',left=0,top=0,width=450,height=64,pointerEvents='none'}
+    local p=Panel{position='absolute',left=0,top=0,width=450,height=owner.narrow and 48 or 76,pointerEvents='none'}
     function p:Render(vg)
-        D.Begin(vg);local r=self:GetAbsoluteLayout();D.Icon(vg,'workshop',r.x,r.y+16,32,D.orange)
-        D.Text(vg,'零件库',r.x+44,r.y+10,40,nil,nil,nil,1);D.Text(vg,owner.countText or '',r.x+161,r.y+23,17,D.muted)
+        D.Begin(vg);local r=self:GetAbsoluteLayout();local compact=owner.narrow;local tx=r.x+(compact and 34 or 42)
+        D.Icon(vg,'workshop',r.x,r.y+(compact and 13 or 23),compact and 22 or 30,D.orange)
+        D.Text(vg,'机库 · 装配终端',tx,r.y+(compact and 3 or 12.5),compact and 9 or 10,D.muted,'vox-body',nil,2)
+        local fs=compact and 24 or 36;D.Text(vg,'零件库',tx,r.y+(compact and 16 or 27.5),fs,nil,nil,nil,2)
+        if not compact then D.Text(vg,owner.countText or '',tx+D.Width(vg,'零件库',fs,nil,2)+20,r.y+37,12,D.muted,'vox-body') end
     end;return p
 end
-function M.MaterialHeader()
-    local p=Panel{position='absolute',left=2,top=16,right=14,height=38,pointerEvents='box-none'}
+function M.MaterialHeader(compact)
+    local p=Panel{pointerEvents='box-none'}
     function p:Render(vg)
-        D.Begin(vg);local r=self:GetAbsoluteLayout();D.Text(vg,'方块材质',r.x+2,r.y+8,16,D.muted,nil,nil,1)
-        local text='切换材质 · 每种材质 23 种形状';local tw=D.Width(vg,text,12,'vox-body');local x=r.x+r.w-tw-28
-        -- Source itself drops no controls on PC. The hint is allowed to clip in a narrow PC window.
-        if x>r.x+545 then Key(vg,'G',x,r.y+8,12);D.Text(vg,text,x+25,r.y+9,12,D.dim,'vox-body') end
+        D.Begin(vg);local r=self:GetAbsoluteLayout();D.Text(vg,'方块材质',r.x,r.y+(compact and 15 or 9),12,D.muted,'vox-body')
+        if r.w>470 then D.Text(vg,'G  换材质',r.x+r.w,r.y+9,10,D.muted,'vox-body',NVG_ALIGN_RIGHT) end
     end;return p
 end
 function M.Footer()
-    local p=Panel{position='absolute',left=0,bottom=0,width='100%',height=124,pointerEvents='box-none'}
+    local p=Panel{position='absolute',left=0,bottom=0,width='100%',height=135,pointerEvents='box-none'}
     function p:Render(vg)
-        D.Begin(vg);local r=self:GetAbsoluteLayout();D.Rect(vg,r.x,r.y,r.w,1,{255,255,255,26})
-        if require('controls.TouchMode').Enabled() then
-            D.Text(vg,'先选下方格子，再点零件装入 · 上下滑动浏览 · 点右上角关闭返回改装',r.x+r.w/2,r.y+101,13,D.muted,'vox-body',NVG_ALIGN_CENTER)
-            return
+        D.Begin(vg);local r=self:GetAbsoluteLayout();D.Rect(vg,r.x,r.y,r.w,1,{54,86,117,255})
+    end
+    local line=Panel{position='absolute',left='50%',marginLeft=-121.15625,bottom=3,width=242.3125,height=28,zIndex=3,pointerEvents='box-none'}
+    function line:Render(vg)
+        D.Begin(vg);local r=self:GetAbsoluteLayout()
+        D.Text(vg,'选择零件放入快捷栏 · 拖动分配位置',r.x+r.w-84,r.y+8,10,D.muted,'vox-body',NVG_ALIGN_RIGHT)
+    end
+    line:AddChild(M.Button{kind='instructions',text='操作说明',width=58,height=28,position='absolute',right=0,top=0,onClick=function(b)
+        b.props.selected=not b.props.selected;p.tip:SetVisible(b.props.selected)
+    end})
+    local tips={
+        {{'左键 / Enter',true},{' 放进选中的格子'}},
+        {{'指着或聚焦零件按 '},{'1–0',true},{' 放进对应格子'}},
+        {{'拖动',true},{' 到格子'}},
+        {{'双击',true},{' 放入并关闭'}},
+        {{'格子上 '},{'右键 / Delete',true},{' 清空'}},
+        {{'G',true},{' 换材质 · '},{'Q',true},{' 选块后 '},{'F',true},{' 连块 / 拆开'}},
+    }
+    -- Frozen Chromium measurement: six 16.390625px rows, 12px gaps, 20px padding.
+    p.tip=Panel{position='absolute',right=0,bottom=35,width=430,height=198.34375,visible=false,pointerEvents='none'}
+    function p.tip:Render(vg)
+        D.Begin(vg);local r=self:GetAbsoluteLayout();D.Rect(vg,r.x,r.y,r.w,r.h,{17,43,69,255})
+        for i,row in ipairs(tips) do
+            local x,y=r.x+20,r.y+20+(i-1)*28.390625
+            for _,span in ipairs(row) do
+                local key=span[2];local fs=key and 11 or 12
+                D.Text(vg,span[1],x+(key and 5 or 0),y+(key and 1 or 0),fs,key and D.orange or D.white,'vox-body')
+                x=x+D.Width(vg,span[1],fs,'vox-body')+(key and 10 or 0)
+            end
         end
-        local runs={{'左键',' 放进选中的格子'},{nil,'指着零件按 ', '1–0',' 放进对应格子'},{'拖动',' 到格子'},{'双击',' 放入并关闭'},{nil,'格子上 ','右键',' 清空'}}
-        local widths={};local total=0
-        for i,t in ipairs(runs) do local ww=D.Width(vg,t[2],12,'vox-body');if t[1] then ww=ww+D.Width(vg,t[1],12)+8 end;if t[3] then ww=ww+D.Width(vg,t[3],12)+8+D.Width(vg,t[4],12,'vox-body') end;widths[i]=ww;total=total+ww end
-        local x=r.x+(r.w-total-80)/2;local y=r.y+101
-        for i,t in ipairs(runs) do local tx=x;if t[1] then tx=tx+Key(vg,t[1],tx,y,12) end;D.Text(vg,t[2],tx,y+1,12,D.muted,'vox-body');tx=tx+D.Width(vg,t[2],12,'vox-body');if t[3] then tx=tx+Key(vg,t[3],tx,y,12);D.Text(vg,t[4],tx,y+1,12,D.muted,'vox-body') end;x=x+widths[i]+20 end
-    end;return p
+    end
+    line:AddChild(p.tip);p:AddChild(line);return p
 end
 return M
-

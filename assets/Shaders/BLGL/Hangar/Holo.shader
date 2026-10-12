@@ -23,7 +23,9 @@ uniform float uAlpha = 1.15;
 				float band = 1.0 + 0.35 * exp( - pow( abs( ( fract( uv.y * 0.6 - hangar_time * 0.12 ) - 0.5 ) * 12.0 ), 2.0 ) );
 				float edge = smoothstep( 0.0, 0.015, uv.x ) * smoothstep( 0.0, 0.015, 1.0 - uv.x ) * smoothstep( 0.0, 0.02, uv.y ) * smoothstep( 0.0, 0.02, 1.0 - uv.y );
 				// 背面只留一层淡光，不显示（左右反过来的）文字
-				if ( ! FRONT_FACING ) c = vec3( 0.01, 0.03, 0.05 );
+                // Authored +Z plane normal identifies the readable side on both
+                // DX and Web rasterizers, including reflected cameras.
+                if ( dot(NORMAL, CAMERA_POSITION_WORLD - VERTEX) <= 0.0 ) c = vec3( 0.01, 0.03, 0.05 );
 				ALBEDO = c * scan * band * edge * uAlpha;
  ALPHA = 0.0;
 			}

@@ -1,19 +1,22 @@
 -- Source CSS/SVG primitives. UI or SourceLayer owns each context's frame/DPR.
 -- These helpers never begin frames or create per-frame fonts.
-local M={white={244,245,247,255},muted={154,160,170,255},dim={100,106,116,255},orange={255,106,19,255},blue={46,168,255,255},green={61,220,132,255},ink={26,13,5,255}}
+local M={white={237,246,255,255},muted={145,172,200,255},dim={83,123,156,255},orange={122,216,255,255},blue={40,121,235,255},green={142,227,208,255},ink={8,15,28,255}}
 local contexts=setmetatable({},{__mode='k'})
 local Typography=require 'ui.SourceTextLayout'
 local icons=require('core.ResourceData').Read('UI/SourceIcons.json')
 function M.Begin(vg)
     if contexts[vg] then return end
-    local title=nvgCreateFont(vg,'vox-title','Fonts/SmileySans-Oblique.ttf')
+    local title=nvgCreateFont(vg,'vox-title','Fonts/VoxIndustrial-Bold.ttf')
     local display=nvgCreateFont(vg,'vox-display','Fonts/BarlowCondensed-BoldItalic.ttf')
     local tabular=nvgCreateFont(vg,'vox-tabular','Fonts/VoxDisplayTabular-BoldItalic.ttf')
+    local story=nvgCreateFont(vg,'vox-story','Fonts/SmileySans-Oblique.ttf')
     local fonts=require('ui.SourceFonts').Resolve()
     local body=nvgCreateFont(vg,'vox-body',fonts.body)
     local code=nvgCreateFont(vg,'vox-code',fonts.code)
-    assert(title>=0 and display>=0 and tabular>=0 and body>=0 and code>=0,'Source UI fonts failed to load')
+    assert(title>=0 and display>=0 and tabular>=0 and story>=0 and body>=0 and code>=0,'Source UI fonts failed to load')
+    nvgAddFallbackFontId(vg,story,body)
     nvgAddFallbackFontId(vg,code,body)
+    nvgAddFallbackFontId(vg,title,body)
     nvgAddFallbackFontId(vg,display,title);nvgAddFallbackFontId(vg,display,body)
     nvgAddFallbackFontId(vg,tabular,title);nvgAddFallbackFontId(vg,tabular,body)
     contexts[vg]={codeAdvance=fonts.codeAdvance,bodyMetrics=fonts.bodyMetrics}
@@ -30,7 +33,7 @@ function M.Gradient(vg,x,y,w,h,a,b,horizontal)
 end
 function M.Panel(vg,x,y,w,h,cut,top,bottom)
     M.Path(vg,{x,y,x+w-cut,y,x+w,y+cut,x+w,y+h,x,y+h})
-    M.Gradient(vg,x,y,w,h,top or {42,46,53,255},bottom or {27,29,34,255})
+    M.Gradient(vg,x,y,w,h,top or {33,59,85,255},bottom or {18,38,59,255})
     M.Rect(vg,x,y,w-cut,1,{255,255,255,22});M.Rect(vg,x,y+h-3,w,3,{0,0,0,100})
 end
 -- Native fallback selection differs between bundled runtimes. Select the exact
@@ -95,6 +98,7 @@ local function CodeText(vg,text,size,spacing,x,y,font)
     return width
 end
 function M.Width(vg,text,size,font,spacing)
+    font=font or 'vox-title';spacing=spacing or 0
     InlineFont(vg,font)
     text=tostring(text or '');nvgFontSize(vg,size);nvgTextLetterSpacing(vg,spacing or 0)
     local layout=Typography.Get(text,font)
@@ -124,7 +128,12 @@ function M.FontMetrics(vg,size,font)
     nvgSave(vg);nvgFontFace(vg,font or 'vox-display');nvgFontSize(vg,size)
     local a,d=nvgTextMetrics(vg);nvgRestore(vg);return a,-d
 end
-function M.Text(vg,text,x,y,size,color,font,align,spacing,atBaseline)
+function M.Text(vg,text,x,y,size,color,font,align,spacing,atBaseline,lineHeight)
+    font=font or 'vox-title';spacing=spacing or 0
+    if lineHeight and not atBaseline then
+        local ascent,descent=M.FontMetrics(vg,size,font)
+        y=y+(lineHeight-ascent-descent)/2
+    end
     text=tostring(text or '');local width=M.Width(vg,text,size,font,spacing)
     if align==NVG_ALIGN_RIGHT then x=x-width elseif align==NVG_ALIGN_CENTER then x=x-width/2 end
     -- Native tracking preserves kerning and includes the CSS trailing spacing.
@@ -139,6 +148,14 @@ function M.Text(vg,text,x,y,size,color,font,align,spacing,atBaseline)
     nvgTextLetterSpacing(vg,0);nvgTextAlign(vg,NVG_ALIGN_LEFT+NVG_ALIGN_TOP)
 end
 function M.Icon(vg,name,x,y,size,color,lineWidth)
+    if name=='hook' then
+        -- Original home.js HOOK path, including its three-quarter 4px arc.
+        nvgSave(vg);nvgTranslate(vg,x,y);nvgScale(vg,size/24,size/24);nvgBeginPath(vg)
+        nvgMoveTo(vg,12,2);nvgLineTo(vg,12,11);nvgMoveTo(vg,7,11);nvgLineTo(vg,17,11)
+        nvgMoveTo(vg,12,11);nvgLineTo(vg,12,15)
+        nvgBezierTo(vg,12,17.209139,10.209139,19,8,19);nvgBezierTo(vg,5.790861,19,4,17.209139,4,15);nvgBezierTo(vg,4,12.790861,5.790861,11,8,11)
+        nvgStrokeWidth(vg,lineWidth or 2);nvgStrokeColor(vg,M.Color(color or M.white));nvgStroke(vg);nvgRestore(vg);return
+    end
     local path=icons[name];if not path then return end
     nvgSave(vg);nvgTranslate(vg,x,y);nvgScale(vg,size/24,size/24);nvgBeginPath(vg)
     for _,cmd in ipairs(path) do
@@ -158,5 +175,8 @@ function M.Meter(vg,x,y,w,h,value,cap,segments)
 end
 function M.Number(n)
     local a=tostring(math.floor(n+.5));local out=a:reverse():gsub('(%d%d%d)','%1,'):reverse();return (out:gsub('^,',''))
+end
+function M.Line(vg,x1,y1,x2,y2,color,width)
+    nvgBeginPath(vg);nvgMoveTo(vg,x1,y1);nvgLineTo(vg,x2,y2);nvgStrokeWidth(vg,width or 1);nvgStrokeColor(vg,M.Color(color));nvgStroke(vg)
 end
 return M

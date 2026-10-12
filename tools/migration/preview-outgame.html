@@ -1,0 +1,16 @@
+<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>html,body{margin:0;overflow:hidden;background:#111}canvas{display:block;width:100vw;height:100vh;touch-action:none;outline:none}</style><canvas id="canvas" width="1280" height="720" tabindex="0"></canvas>
+<script>
+(async()=>{
+ if(new URLSearchParams(location.search).get('cached')==='1'){
+  const prefix='https://tapcode-sce.spark.xd.com/';
+  const local=url=>String(url).startsWith(prefix)?new URL('/cached-engine-source/'+String(url).slice(prefix.length),location.href).href:url;
+  const fetchRemote=window.fetch.bind(window);
+  window.fetch=(resource,init)=>fetchRemote(resource instanceof Request?new Request(local(resource.url),resource):local(resource),init);
+  const openRemote=XMLHttpRequest.prototype.open;
+  XMLHttpRequest.prototype.open=function(method,url,...args){return openRemote.call(this,method,local(url),...args)};
+ }
+ const engine=await fetch('UrhoXRuntime.data').then(r=>r.arrayBuffer());
+ window.Module={canvas:document.querySelector('canvas'),getPreloadedPackage:()=>engine,print:console.log,printErr:console.error};
+ const script=document.createElement('script');script.src='UrhoXRuntime.js';document.body.append(script);
+})();
+</script>

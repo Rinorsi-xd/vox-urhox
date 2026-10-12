@@ -9,6 +9,12 @@
       "Hangar/**",
       "Cube/**",
       "UI/**",
+      "!UI/Parts/**",
+      "!UI/Prefabs/**",
+      "!UI/Modes/**",
+      "!UI/Salvage/**",
+      "!UI/Faces/**",
+      "Parts/Dependencies.json",
       "Editor/Textures/Engine/Vignetting.png"
     ],
     "default": [

@@ -1895,7 +1895,7 @@
 			<attribute name="Scale" value="1200.00 1200.00 1200.00" />
 			<attribute name="Variables" />
 			<component type="StaticModel" id="138">
-				<attribute name="Model" value="Model;Models/Sphere.mdl" />
+				<attribute name="Model" value="Model;Track/SkySphere.mdl" />
 				<attribute name="Material" value="Material;Track/sky.xml" />
 			</component>
 		</node>

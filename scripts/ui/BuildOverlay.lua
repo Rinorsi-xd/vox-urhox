@@ -21,13 +21,7 @@ function Overlay:Render(vg)
         Fade(vg,0,h-210,w,210,{9,10,12,0},{9,10,12,224});return
     end
     if s.inventoryPanel then return end
-    if s.buildCamera.touch then
-        local action=e.tool=='erase' and '点按车辆删除零件' or e.tool=='paint' and '点按车辆涂装' or '点按安装位置放置零件'
-        for i,text in ipairs({action,'拖动画面旋转视角','下方按钮旋转、翻转与缩放','点按零件库更换部件'}) do
-            D.Text(vg,text,w-20,78+(i-1)*28,15,D.white,nil,NVG_ALIGN_RIGHT)
-        end
-        return
-    end
+    if s.buildCamera.touch then return end
     local hints={};local function Hint(text,key,mouse,extra,bold) hints[#hints+1]={text=text,key=key,mouse=mouse,extra=extra,bold=bold} end
     local rot=tostring(((e.pasting and e.pasteSpin or e.spin)%4)*90)..'°'
     if e.pasting then Hint('放下粘贴',nil,'L');Hint('旋转 '..rot,'R');Hint('取消','Esc')
@@ -40,7 +34,7 @@ function Overlay:Render(vg)
         Hint('拾取',nil,'M');Hint('零件库','B')
     end
     local fly=s.buildCamera
-    if fly.mode=='fp' then Hint('平移','WASD');Hint('上升','空格');Hint('下降','Shift/Q');Hint('快飞','Z')
+    if fly.mode=='fp' then Hint('平移','WASD');Hint('上升','空格');Hint('下降','Shift');Hint('快飞','Z');Hint('回到车旁','L')
     else Hint('拖动转视角',nil,'R');Hint('缩放','Shift','W') end
     local selected=#e:Selected();if selected>0 then Hint('移动所选 '..selected..' 个','方向键') end;Hint('全部操作','H')
     local cy=76

@@ -74,7 +74,7 @@ function M:Read()
     local ctrl=Down(KEY_CTRL);local shift=Down(KEY_SHIFT)
     local edit=input:GetMouseButtonDown(MOUSEB_LEFT) or Down(KEY_R) or ctrl
     return {dx=input.mouseMoveX,dy=input.mouseMoveY,forward=Axis(Down(KEY_W),Down(KEY_S)),right=Axis(Down(KEY_D),Down(KEY_A)),
-        up=Axis(Down(KEY_SPACE) or Down(KEY_E),Down(KEY_Q) or shift and not edit),fast=Down(KEY_Z) and not ctrl}
+        up=Axis(Down(KEY_SPACE) or Down(KEY_E),shift and not edit),fast=Down(KEY_Z) and not ctrl}
 end
 function M:Update(dt,blocked)
     if self.mode=='orbit' then self.session.camera:Update(dt,true);return end

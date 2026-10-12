@@ -14,4 +14,15 @@ function M.Select()
     return M.profiles[name]
 end
 M.current={};for k,v in pairs(M.Select()) do M.current[k]=v end
+function M.Apply(level)
+    local base=M.Select();for k,v in pairs(base) do M.current[k]=v end
+    if level=='low' then
+        M.current.reflectionScale=.2;M.current.reflectionMax=256;M.current.reflectionHz=6;M.current.shadowMapSize=512
+        M.current.weaponFxRigs=6;M.current.weaponMotes=96;M.current.weaponArcsPerRig=4
+    elseif level=='medium' then
+        M.current.reflectionScale=.25;M.current.reflectionMax=384;M.current.reflectionHz=10;M.current.shadowMapSize=1024
+        M.current.weaponFxRigs=12;M.current.weaponMotes=192;M.current.weaponArcsPerRig=8
+    end
+    renderer.shadowMapSize=M.current.shadowMapSize
+end
 return M

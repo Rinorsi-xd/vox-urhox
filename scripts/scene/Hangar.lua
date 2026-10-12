@@ -79,6 +79,7 @@ function Hangar:Dispose()
     self.materials={}
 end
 function Hangar:Update(camNode,cam,dt)
+    if not self.root.enabled then self.time=self.time+(dt or 1/60);return end
     if self.panels then self.panels:Update() end
     dt=dt or 1/60
     self.time=self.time+dt

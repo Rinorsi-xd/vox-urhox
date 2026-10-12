@@ -54,7 +54,7 @@ function Loader:Load(path,onReady,onError,options)
 end
 function Loader:ReadScene(path,token)
     -- Open through ResourceCache so packaged resources and remote manifests work too.
-    cache:GetResourceAsync("XMLFile",path,function(resource)
+    local function ready(resource)
         if self.generation~=token then return end
         if not resource then self:Fail("Scene resource unavailable: "..path);return end
         local file=cache:GetFile(path)
@@ -69,7 +69,13 @@ function Loader:ReadScene(path,token)
         local ok=self.pending:LoadAsyncXML(file,mode)
         self.sourceFile=file
         if not ok then self:Fail("Cannot parse scene: "..path) end
-    end)
+    end
+    if cache.GetResourceAsync then cache:GetResourceAsync("XMLFile",path,ready)
+    else
+        -- Older WASM builds lack the async binding. XML is render-blocking and
+        -- ResourceGate has already completed its download before ReadScene.
+        ready(cache:GetResource("XMLFile",path))
+    end
 end
 function Loader:Fail(message)
     local failed=self.onError

@@ -39,7 +39,9 @@ end
 function M.Build(node,data,part,vis)
     local s=data.segments
     vis.data=data;vis.rig={};vis.shellSlots={};vis.materialSlots={}
-    if data.weapon and data.weapon~=cjson.null then WeaponPresentation.Create(vis,part.type) end
+    if data.weapon and data.weapon~=cjson.null and (part.type:match('^mg%d+$') or part.type:match('^laser%d+$') or part.type:match('^sniper%d+$')) then
+        WeaponPresentation.Create(vis,part.type)
+    end
     vis.emissionModels={}
     if s and s~=cjson.null then
         vis.emissionSlot=(s.thruster or s.hover) and 'glowBlue' or s.leg and 'legJumpGlow' or nil
@@ -47,7 +49,7 @@ function M.Build(node,data,part,vis)
     end
     local r=vis.rig
     local function Add(n,d) Attach(n,d,part,vis) end
-    if not s or s==cjson.null then Add(node,data.whole);return end
+    if not s or s==cjson.null or s.mech or s.wing then Add(node,data.whole);return end
     if s.wheel then
         Add(node,s.mount);r.steer=Group(node,"Steer")
         if s.knuckle then Add(Group(r.steer,"Knuckle",data.wheel.kingpin),s.knuckle) end
@@ -78,7 +80,7 @@ function M.Build(node,data,part,vis)
         end
     else
         Add(node,s.base);r.head=Group(node,"Head");vis.head=r.head;Add(r.head,s.head)
-        if s.spin then r.spin=Group(r.head,"BarrelSpin",data.weapon.spin);Add(r.spin,s.spin) end
+        if s.spin and data.weapon and data.weapon~=cjson.null then r.spin=Group(r.head,"BarrelSpin",data.weapon.spin);Add(r.spin,s.spin) end
         r.parts={}
         for _,p in ipairs(s.parts or {}) do
             local n=Group(r.head,p.name,p.origin);Add(n,p.model)

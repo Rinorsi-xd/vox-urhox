@@ -76,7 +76,7 @@ function M:FirstPerson(dt)
     local function Act() if kind=='right' then e:Remove() else self.session:Act() end end
     if not self.pointer or self.pointer.kind~=kind then
         self.pointer={kind=kind,held=0,nextRepeat=.3}
-        if left and input:GetKeyDown(KEY_SHIFT) then if e.hit then e:ToggleSelect(e.hit.partId) end;self.pointer.select=true else Act() end
+        if left and (input:GetKeyDown(KEY_SHIFT) or self.session.selecting) then if e.hit then e:ToggleSelect(e.hit.partId) end;self.pointer.select=true else Act() end
     else
         local p=self.pointer;p.held=p.held+dt
         if not p.select and p.held>=p.nextRepeat then p.nextRepeat=p.held+.1;Act() end

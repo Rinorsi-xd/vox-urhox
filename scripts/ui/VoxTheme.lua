@@ -1,5 +1,5 @@
 -- Source CSS tokens and thumbnail ownership. Painting belongs to Source widgets.
-local M={bg='#15171b',panel='#1b1d22',tile='#2a2e35',edge='#353a42',text='#f4f5f7',muted='#9aa0aa',brand='#ff6a13',energy='#2ea8ff'}
+local M={bg='#080f1c',panel='#12263b',tile='#213b55',edge='#3d5872',text='#edf6ff',muted='#91acc8',brand='#7ad8ff',energy='#2879eb'}
 function M.Thumbnail(type) return type and ('UI/Parts/'..(type=='thruster' and 'thrusterUp2' or type)..'.png') or '' end
 -- UI caches image handles globally. Trim only this feature's namespace, keeping
 -- currently bound rows, detail and hotbar. Never evict another screen's images.
