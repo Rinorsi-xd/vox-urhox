@@ -18,6 +18,7 @@ import { loadWingModels } from '@shared/parts/wingModels.js';
 import { loadPlateModels } from '@shared/parts/plateModels.js';
 import { loadScorpionModels } from '@shared/parts/scorpionModels.js';
 import { loadRotorModels } from '@shared/parts/rotorModels.js';
+import { loadDecorVehicleModels } from '@shared/parts/decorVehicleModels.js';
 import { loadHoverTexture } from '/source/three/src/parts/hoverFx.js';
 import { loadThrusterTexture } from '/source/three/src/parts/thrusterFx.js';
 import { loadEquipmentSurface } from '/source/three/src/parts/equipmentSurface.js';
@@ -33,6 +34,7 @@ button.onclick=async()=>{
       loadHoverModels(assets('hovers')),loadLegModels(assets('legs')),
       loadMechModels(assets('mechlegs')),loadWingModels(assets('wings')),loadPlateModels(assets('plates')),
       loadScorpionModels(assets('scorpion')),loadRotorModels(assets('rotor')),
+      loadDecorVehicleModels(new URL('/source/shared/assets/',location.href).href),
       loadHoverTexture(),loadThrusterTexture(),loadEquipmentSurface()]);
     status.textContent='正在调用原版 112×112 透明渲染器';
     await new Promise(requestAnimationFrame);

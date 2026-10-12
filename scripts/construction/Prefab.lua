@@ -1,7 +1,8 @@
 local presets=require("parts.Defs").DATA.presets
 local M={}
 M.keys={raceCar='buildRaceCar',empty='buildEmpty',megaMech='buildMegaMech',scorpion='buildScorpion',
-    hawk='buildHawk',feather='buildFeather',vanguard='buildVanguard',tianyuan='buildDrillTank',fuyuan='buildFuyuanTank',gruntTianyuan='buildGruntOne',gruntFuyuan='buildFuyuanGrunt'}
+    hawk='buildHawk',feather='buildFeather',vanguard='buildVanguard',tianyuan='buildDrillTank',fuyuan='buildFuyuanTank',gruntTianyuan='buildGruntOne',gruntFuyuan='buildFuyuanGrunt',
+    fox='buildFox',trooper='buildTrooper',miniAssault='buildMiniAssault',miniScout='buildMiniScout',miniHeavy='buildMiniHeavy'}
 local function Build(bp,key)
     local data=assert(presets[key])
     bp:Clear();bp.name=data.name

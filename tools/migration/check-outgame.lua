@@ -28,6 +28,24 @@ V.atFrame(85,function()
     V.assert(paragraph.measurements==measurements,'Equal color values reuse the measured paragraph')
     Shot('workshop')
     local s=Hud.GetState();local ws=s.workshop;local carousel=require 'ui.WorkshopCarousel'
+    local delayed={workshop={selected='scorpion',elapsed=3}}
+    carousel.Ensure(delayed.workshop)
+    local backend={requests={},cancelled={}}
+    function backend:Exists() return false end
+    function backend:DownloadResources(paths,done)
+        self.requests[#self.requests+1]={path=paths[1],done=done};return #self.requests
+    end
+    function backend:CancelDownloadGroup(group) self.cancelled[group]=true end
+    delayed.workshop.imageGate=require('app.ResourceGate').New(backend)
+    carousel.Select(delayed,'fox');carousel.Step(delayed,.3)
+    V.assert(delayed.workshop.selected=='scorpion' and delayed.workshop.pending=='fox','Cold download preserves matching caption and outgoing picture')
+    V.assert(delayed.workshop.slides.scorpion.alpha.value==1 and delayed.workshop.slides.fox.alpha.value==0,'Crossfade waits for original image download')
+    carousel.Select(delayed,'trooper');backend.requests[1].done(true,0)
+    V.assert(backend.cancelled[1] and delayed.workshop.selected=='scorpion','Rapid selection cancels old image observer and ignores its late callback')
+    backend.requests[2].done(true,0);carousel.Step(delayed,.3)
+    V.assert(delayed.workshop.selected=='trooper' and delayed.workshop.slides.trooper.alpha.value>0,'Ready image commits selection and starts source transition')
+    carousel.Select(delayed,'fox');carousel.Leave(delayed.workshop);backend.requests[3].done(true,0)
+    V.assert(delayed.workshop.slides==nil and delayed.workshop.pending==nil,'Leaving ignores a pending image completion')
     carousel.Select(s,'hawk');carousel.Step(s,.3)
     local outgoing=ws.slides.scorpion.alpha.value;local incoming=ws.slides.hawk.alpha.value
     V.assert(outgoing>0 and outgoing<1 and incoming>0 and incoming<1,'Changing recommendation crossfades both source slides')

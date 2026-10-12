@@ -7,7 +7,13 @@ local function Dump(app)
     local data={width=w,height=h,physical={graphics:GetWidth(),graphics:GetHeight()},dpr=graphics:GetDPR(),
         touch=require('controls.TouchMode').Enabled(),tab=home and home.tab or '',build=app.build~=nil,
         inventory=app.build and app.build.inventoryPanel~=nil or false,dialog=app.build and app.build.dialog~=nil or false,blueprint=app.blueprint.name,parts=app.blueprint:Size(),
-        workshop=home and home.workshop,widgets={},quality=require('render.Quality').current.name}
+        widgets={},quality=require('render.Quality').current.name}
+    if home and home.workshop then
+        local ws=home.workshop;data.workshop={}
+        for _,key in ipairs({'selected','pending','view','group','sort','elapsed','hold','from','slides','imagesReady'}) do
+            data.workshop[key]=ws[key]
+        end
+    end
     data.modeChoice=home and home.modeChoice;data.storyLevel=home and home.storyLevel
     data.salvage=home and home.salvage;data.lobby=app.lobby or 'arena';data.mapPreview=app.mapPreview~=nil
     data.previewMap=app.mapPreview and app.mapPreview.map.id;data.sceneVisible=renderer:GetViewport(0)~=nil
@@ -58,5 +64,6 @@ function HandleUpdate(et,ed)
     local story=home and home.storyHolo
     key=key..':'..tostring(story and story.ready)..':'..tostring(story and story.gate.state)
     key=key..':'..tostring(app.warehouse and app.warehouse.ready)..':'..tostring(app.build and app.build.dialog~=nil)
+    key=key..':'..tostring(home and home.workshop and home.workshop.selected)..':'..tostring(home and home.workshop and home.workshop.pending)
     if frames%30==0 and key~=previous or input:GetKeyPress(KEY_F8) then previous=key;Dump(app) end
 end

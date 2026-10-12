@@ -139,7 +139,7 @@ function Page:Render(vg)
 end
 function M.Leave(s)
     Paint.TrimImages({})
-    if s.workshop then s.workshop.slides=nil end
+    Carousel.Leave(s.workshop)
     if s.workshopPreview then s.workshopPreview:Dispose();s.workshopPreview=nil end
     if s.workshop and s.workshop.view=='detail' then s.workshop.view='browse' end
 end
@@ -160,7 +160,7 @@ function M.Key(s)
         if back then s.WorkshopChange('feature') else return false end
     elseif enter then s.WorkshopChange('detail',ws.selected,'feature')
     elseif step~=0 then
-        local index=1;for i,id in ipairs(featured) do if id==ws.selected then index=i end end
+        local index=1;for i,id in ipairs(featured) do if id==Carousel.Target(ws) then index=i end end
         Carousel.Select(s,featured[(index-1+step)%#featured+1])
     else return false end
     return true
@@ -168,7 +168,7 @@ end
 function M.Update(s,dt)
     local ws=s.workshop;if not ws or ws.view~='feature' then return end
     Carousel.Step(s,dt)
-    if not ws.hold then ws.elapsed=(ws.elapsed or 0)+dt end
+    if not ws.hold and not ws.pending and Carousel.Ready(ws,ws.selected) then ws.elapsed=(ws.elapsed or 0)+dt end
     if ws.elapsed>=7 then
         local i=1;for n,id in ipairs(featured) do if id==ws.selected then i=n end end
         Carousel.Select(s,featured[i%#featured+1])
@@ -179,6 +179,7 @@ function M.Create(s)
     local ws=s.workshop;local w,h=s.width,s.height;local pad=Clamp(w*.03,24,64)
     local keep={}
     if ws.view=='feature' then
+        Carousel.Mount(s)
         Carousel.Keep(ws,keep)
         for _,id in ipairs(featured) do keep['UI/Prefabs/Filtered/dot-'..id..'.jpg']=true end
         for i=1,5 do keep['UI/Prefabs/Filtered/card-'..Data.prefabs[i].id..'.jpg']=true end

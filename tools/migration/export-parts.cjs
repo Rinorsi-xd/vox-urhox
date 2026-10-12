@@ -93,10 +93,20 @@ function save(name,v){fs.writeFileSync(path.join(out,name),JSON.stringify(v));}
  for(const [kind,folder,file] of [['Rotor','rotor','rotor.glb'],['Plate','plates','plates.glb'],['Scorpion','scorpion','scorpion.glb']]){
   const module=await load('shared/parts/'+kind.toLowerCase()+'Models.js');module['register'+kind+'GLB'](glb(folder,file));
  }
+ if(fs.existsSync(path.join(source,'shared/parts/decorVehicleModels.js'))){
+  const {DECOR_VEHICLES}=await load('shared/parts/decorVehicles.js');
+  const {registerDecorGLB}=await load('shared/parts/decorVehicleModels.js');
+  for(const [id,info] of Object.entries(DECOR_VEHICLES)){
+   if(Object.keys(info.data).length)registerDecorGLB(id,glb('',info.file));
+  }
+ }
  const presets={};
  const planes=await load('shared/build/planePrefab.js'),vanguard=await load('shared/build/vanguard.js');
  const builders={...p,...planes,...vanguard};
- for(const name of ['buildRaceCar','buildEmpty','buildMegaMech','buildScorpion','buildHawk','buildFeather','buildVanguard','buildDrillTank','buildFuyuanTank','buildGruntOne','buildFuyuanGrunt']){
+ if(p.buildMini)for(const id of ['miniAssault','miniScout','miniHeavy']){
+  builders['build'+id[0].toUpperCase()+id.slice(1)]=bp=>p.buildMini(bp,id);
+ }
+ for(const name of ['buildRaceCar','buildEmpty','buildMegaMech','buildScorpion','buildHawk','buildFeather','buildVanguard','buildDrillTank','buildFuyuanTank','buildGruntOne','buildFuyuanGrunt','buildFox','buildTrooper','buildMiniAssault','buildMiniScout','buildMiniHeavy'].filter(name=>builders[name])){
   const bp=builders[name](new Blueprint());presets[name]={name:bp.name,parts:[...bp.parts.values()].map(({type,pos,rot,color,shellColor,scale,g})=>({type,pos,rot,color,...(shellColor!=null?{shellColor}:{}),...(scale?{scale}:{}),...(g?{g}:{})}))};
  }
  const {MATS}=await load('three/src/parts/materials.js');

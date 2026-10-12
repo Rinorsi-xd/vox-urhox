@@ -27,6 +27,12 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   for(const test of cases.filter(test=>!process.env.VOX_QA_CASE||process.env.VOX_QA_CASE.split(',').includes(test.name))){
    const page=await browser.newPage({viewport:{width:test.width,height:test.height},deviceScaleFactor:test.dpr,...(test.touch?{hasTouch:true,isMobile:true}:{})});
    const context=page.context(),messages=[],errors=[],states=[],mediaResponses=new Set();let current;
+   if(process.env.VOX_QA_COLD_CAROUSEL==='1'){
+    const manifest=JSON.parse(fs.readFileSync(prepared.manifest_path,'utf8'));
+    const file=manifest.files.find(f=>f.fs_path==='UI/Prefabs/hawk.jpg');
+    assert.ok(file,'Cold image check uses the original hawk artwork');
+    await page.route('**/'+file.uuid+'-'+file.hash+file.ext,async route=>{await sleep(1500);await route.continue();});
+   }
    page.on('response',response=>{
     const file=new URL(response.url()).pathname.split('/').pop();const source=mediaByFile.get(file);
     if(source&&response.ok())mediaResponses.add(source);
@@ -75,23 +81,32 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
    if(checkStreaming)assert.ok(mediaResponses.has('UI/Prefabs/scorpion.jpg'),'Featured artwork must download when opening workshop');
    if(process.env.VOX_QA_CAROUSEL==='1'){
     await click('隼');await dump();
+    if(process.env.VOX_QA_COLD_CAROUSEL==='1'){
+     assert.equal(current.workshop.pending,'hawk');
+     assert.equal(current.workshop.selected,'scorpion','Delayed original image preserves the old matching caption');
+     assert.equal(current.workshop.slides.scorpion.alpha.value,1);
+     assert.equal(current.workshop.slides.hawk.alpha.value,0,'Placeholder cannot start the source crossfade');
+     await page.screenshot({path:path.join(out,'outgame-web-'+test.name+'-carousel-cold.png')});
+    }
+    await wait(s=>s.workshop?.selected==='hawk'&&s.workshop?.imagesReady?.hawk,'original incoming picture ready');
+    await dump();
     const fading=current.workshop.slides;
     assert.ok(fading.scorpion.alpha.value>0&&fading.scorpion.alpha.value<1&&fading.hawk.alpha.value>0&&fading.hawk.alpha.value<1,'Source recommendation crossfade remains visible after UI rebuild');
     await page.screenshot({path:path.join(out,'outgame-web-'+test.name+'-carousel-fade.png')});
-    await click('赤焰 GT');await sleep(1100);await dump();
+    await click('赤焰 GT');await wait(s=>s.workshop?.selected==='raceCar','racer image ready');await sleep(1100);await dump();
     assert.equal(current.workshop.selected,'raceCar');
     assert.equal(current.workshop.slides.scorpion.alpha.value,0);
     assert.equal(current.workshop.slides.hawk.alpha.value,0);
     assert.equal(current.workshop.slides.raceCar.alpha.value,1);
     await shot('carousel-settled');
-    await click('蝎型战车');await sleep(1000);await dump();
+    await click('蝎型战车');await wait(s=>s.workshop?.selected==='scorpion','scorpion image ready');await sleep(1000);await dump();
     assert.equal(current.workshop.slides.scorpion.alpha.value,1);
    }
    if(test.touch)await click('查看详情');else await key('Enter');
    await wait(s=>s.workshop?.view==='detail'&&s.preview?.complete,'cold 3D preview');await shot('detail');
    assert.equal(current.sceneVisible,true,'Detail restores the authored hall');
    if(!test.touch){
-    await key('ArrowRight');await wait(s=>s.workshop?.selected==='raceCar'&&s.preview?.complete,'source right arrow');
+    await key('ArrowRight');await wait(s=>s.workshop?.selected==='fox'&&s.preview?.complete,'source right arrow');
     await key('ArrowLeft');await wait(s=>s.workshop?.selected==='scorpion'&&s.preview?.complete,'source left arrow');
     await key('Backspace');await wait(s=>s.workshop?.view==='feature','source detail backspace');
     await key('Enter');await wait(s=>s.workshop?.view==='detail'&&s.preview?.complete,'source Enter reopens preview');
@@ -188,7 +203,12 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
     await click('创意工坊');await wait(s=>s.tab==='workshop','workshop key acceptance');
     if(current.workshop.view==='browse'){await click('返回');await wait(s=>s.workshop?.view==='feature','feature entry');}
     await key('Enter');await wait(s=>s.workshop?.view==='detail'&&s.preview?.complete,'detail for add');
-    await key('ArrowRight');await wait(s=>s.workshop?.selected==='raceCar'&&s.preview?.complete,'select racer for add');
+    const prefabs=JSON.parse(fs.readFileSync(path.join(root,'assets/UI/Workshop.json'),'utf8')).prefabs;
+    for(let i=0;i<prefabs.length&&current.workshop.selected!=='raceCar';i++){
+     const index=prefabs.findIndex(p=>p.id===current.workshop.selected),next=prefabs[(index+1)%prefabs.length].id;
+     await key('ArrowRight');await wait(s=>s.workshop?.selected===next&&s.preview?.complete,'source next vehicle '+next);
+    }
+    assert.equal(current.workshop.selected,'raceCar');
     await key('Enter');await wait(s=>s.tab==='hangar'&&s.blueprint==='赤焰 GT','source Enter adds selected vehicle');
     assert.equal(current.build,false,'Workshop Enter adds a garage slot without entering the builder');
     await click('创意工坊');await wait(s=>s.tab==='workshop'&&s.workshop?.view==='browse','Leaving detail restores browse on reentry');
