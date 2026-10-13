@@ -10,7 +10,7 @@ local M={};M.__index=M
 function M.Open(session,restore)
     if session.inventoryPanel then return session.inventoryPanel end
     session.buildCamera:Release()
-    local self=setmetatable({session=session,model=session.inventory,hoverType=false,shown=false,closed=false,trimTime=0},M)
+    local self=setmetatable({session=session,model=session.inventory,hoverType=false,shown=false,closed=false,trimTime=0,motionClock=0,listEpoch=0},M)
     session.inventoryPanel=self;session.controls:Cancel();session.editor.preview=nil;session.ghost:Refresh(session.editor,false)
     local current=Defs.PARTS[self.model:Current()];if not restore and current and current.mat then self.model.material=current.mat end
     local sw,sh=UI.GetViewportSize();self.narrow=sh<=600 and sw>sh
@@ -27,6 +27,7 @@ function M.Open(session,restore)
     local modal=Art.Modal{title='',headerHeight=0,contentPadding=0,showCloseButton=false,closeOnEscape=false,
         onClose=function(w)
             self.closed=true;session.inventoryPanel=nil
+            if self.backdrop then self.backdrop:Dispose();self.backdrop=nil end
             w:Destroy();self:Trim(true);session:Refresh()
         end}
     self.modal=modal
@@ -47,7 +48,7 @@ function M.Open(session,restore)
     end
     self.center=UI.Panel{position='absolute',left=0,top=centerTop,width='100%',height=centerHeight,flexDirection='row',gap=self.narrow and 12 or 28};self.body:AddChild(self.center)
     self.list=require('ui.InventoryList'){width=self.gridWidth,height=self.centerHeight,viewportHeight=self.centerHeight,itemHeight=self.itemHeight,itemGap=self.itemGap,poolBuffer=1,bounces=false,data={},
-        createItem=function() return self:CreateRow() end,bindItem=function(widget,row) self:BindRow(widget,row) end}
+        createItem=function() return self:CreateRow() end,bindItem=function(widget,row,index) self:BindRow(widget,row,index) end}
     self.center:AddChild(self.list)
     local materialContent=Art.MaterialHeader(self.narrow);materialContent:SetStyle({position='relative',left=0,top=0,width=math.max(320,self.rowWidth),height=self.narrow and 49 or 38,flexShrink=0})
     self.materialBar=UI.ScrollView{position='absolute',left=3,top=self.narrow and 8 or 18,width=self.rowWidth,height=self.narrow and 49 or 38,scrollX=true,scrollY=false,showScrollbar=false,bounces=false,children={materialContent}}
@@ -71,7 +72,11 @@ function M.Open(session,restore)
     self.footer:SetHeight(footerHeight)
     self.footer:AddChild(UI.ScrollView{position='absolute',left=math.max(0,(width-self.hotbar.root.props.width)/2),top=self.narrow and 5 or 17,width=math.min(width,self.hotbar.root.props.width),height=self.narrow and 64 or 79,scrollX=true,scrollY=false,showScrollbar=false,bounces=false,paddingTop=5,children={self.hotbar.root}})
     self:Fill();self:Detail(restore and restore.shown or self.model:Current());self.restoreScroll=restore;self.pendingAnchor=restore and restore.anchor
-    modal:Open();session:Refresh();return self
+    modal:Open();session:Refresh()
+    self.backdrop=require('render.SceneBackdrop').New()
+    if self.backdrop then self.backdrop:Update() end
+    self.initialFocus=not require('controls.TouchMode').Enabled()
+    return self
 end
 function M:CreateRow()
     local cells={};local root=UI.Panel{width=self.rowWidth,height=self.itemHeight,flexDirection='row',gap=self.itemGap}
@@ -79,7 +84,7 @@ function M:CreateRow()
         local cell={type=false}
         cell.root=Art.Card{height=self.itemHeight,compact=self.narrow,flexGrow=1,flexBasis=0,
             onClick=function(_,event) if cell.type and not cell.suppressClick and (not event or event:IsPrimaryButton()) then self.session:PickHotbar(cell.type);self:Detail(cell.type);self.hotbar.Refresh() end end,
-            onPointerDown=function() cell.suppressClick=false end,
+            onPointerDown=function() cell.suppressClick=false;self.keyboardFocus=nil end,
             onPointerCancel=function(_,w) w.state.isDragging=false;self.dragType=nil end,
             onDoubleTap=function() if cell.type then self.session:PickHotbar(cell.type);self:Close() end end,
             onPointerEnter=function() self.hoverType=cell.type;if cell.type then self:Detail(cell.type) end end,
@@ -89,7 +94,7 @@ function M:CreateRow()
                 if slot and self.dragType then self.session:AssignHotbar(slot,self.dragType);self.hotbar.Refresh() end
                 w.state.isDragging=false;self.dragType=nil
             end}
-        cell.root.inventory=self.model
+        cell.root.inventory=self.model;cell.root.inventoryOwner=self
         cell.root.OnPanStart=function(w,event)
             cell.suppressClick=true;if event.pointerType~='mouse' or not cell.type then return false end
             self.dragType=cell.type;w.state.isDragging=true;return true
@@ -98,14 +103,16 @@ function M:CreateRow()
     end
     root.cells=cells;return root
 end
-function M:BindRow(widget,row)
+function M:BindRow(widget,row,index)
     for i,cell in ipairs(widget.cells) do
         local d=row[i];cell.type=d and d.id or false;cell.root.props.partType=cell.type
+        if UI.GetFocus()==cell.root then UI.ClearFocus();self.keyboardFocus=nil end
+        require('ui.InventoryCardMotion').Bind(cell.root,((index or 1)-1)*self.columns+i,self.motionClock-self.listEpoch)
         cell.root:SetStyle({visibility=d and 'visible' or 'hidden'})
     end
 end
 function M:Fill()
-    self.hoverType=false;self.pendingAnchor=nil
+    self.hoverType=false;self.pendingAnchor=nil;self.listEpoch=self.motionClock
     local list=self.model:List();self.results=list;local query=self.model.query:match('%S')~=nil
     self.countText=query and ('搜到 '..#list..' 个') or (#list..' 个零件');self.empty:SetVisible(#list==0)
     local materialVisible=not query and (self.model.category=='all' or self.model.category=='structure')
@@ -132,14 +139,20 @@ function M:Detail(id)
     if not Defs.PARTS[id] or self.shown==id then return end;self.shown=id;self.detail:SetPart(id);self.detailScroll:ScrollToTop()
 end
 function M:Digit(i)
-    if self.hoverType then self.session:AssignHotbar(i,self.hoverType) else self.session:SelectHotbar(i) end;self.hotbar.Refresh()
+    local focus=UI.GetFocus();local id=focus and focus.inventoryOwner==self and focus.props.partType or self.hoverType
+    if id then self.session:AssignHotbar(i,id) else self.session:SelectHotbar(i) end;self.hotbar.Refresh()
 end
 function M:Keys()
     local typing=UI.GetFocus()==self.search
     if input:GetKeyPress(KEY_ESCAPE) then
         if typing and self.model.query~='' then self.model.query='';self.search:SetValue('');self:Fill() else self:Close() end;return
     end
+    local keys=require('ui.InventoryKeys')
+    if input:GetKeyPress(KEY_TAB) then keys.Tab(self,input:GetKeyDown(KEY_SHIFT));return end
     if typing then return end
+    for _,key in ipairs({KEY_RETURN,KEY_SPACE,KEY_DELETE,KEY_BACKSPACE}) do
+        if input:GetKeyPress(key) and keys.Activate(self,key) then return end
+    end
     if input:GetKeyPress(KEY_B) then self:Close();return end
     if input:GetKeyPress(KEY_G) then self.model:CycleMaterial();self:Fill() end
     for i,k in ipairs({KEY_1,KEY_2,KEY_3,KEY_4,KEY_5,KEY_6,KEY_7,KEY_8,KEY_9,KEY_0}) do if input:GetKeyPress(k) then self:Digit(i) end end
@@ -154,6 +167,14 @@ function M:Trim(closing)
     Theme.TrimThumbnails(keep)
 end
 function M:Update(dt)
+    self.motionClock=self.motionClock+math.max(0,dt)
+    if self.backdrop then self.backdrop:Update() end
+    if self.initialFocus and self.modal.modalLayout_ then
+        self.initialFocus=false
+        local keys=require('ui.InventoryKeys');local current=self.model:Current();local focused=false
+        for index,def in ipairs(self.results) do if def.id==current then focused=keys.Focus(self,{part=current,index=index});break end end
+        if not focused then keys.Focus(self,{widget=self.closeButton}) end
+    end
     if self.restoreScroll and self.modal.modalLayout_ then
         local state=self.restoreScroll;self.restoreScroll=nil
         self.detailScroll:SetScrollDirect(0,math.min(state.detailY or 0,math.max(0,self.detail.props.height+18-self.centerHeight)))

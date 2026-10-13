@@ -16,7 +16,7 @@ local function Lines(vg,text,width,size,font)
     lines[#lines+1]=line;return lines
 end
 function Detail:SetPart(id)
-    self.partType=id;local d=Defs.PARTS[id];if not d then return end
+    self.partType=id;self.imageEntry=0;local d=Defs.PARTS[id];if not d then return end
     self.rows={{'chip','预算',d.budget==0 and '免费' or d.budget..' 点','budget',d.budget},
         {'weight','质量',d.mass..' kg','mass',d.mass},{'shield','耐久',tostring(d.hp),'hp',d.hp}}
     local function Row(icon,label,text) self.rows[#self.rows+1]={icon,label,text} end
@@ -35,13 +35,16 @@ function Detail:SetPart(id)
     Row('build','占用',#d.cells..' 格');Row('lock','解锁',d.unlock..'（原型已全部开放）')
     self.layoutKey=nil
 end
+function Detail:Update(dt) self.imageEntry=math.min(.24,(self.imageEntry or 0)+math.max(0,dt)) end
 function Detail:Render(vg)
     D.Begin(vg);local r=self:GetAbsoluteLayout();local d=Defs.PARTS[self.partType];if not d then return end
     local x,y,w=r.x,r.y,r.w
     local compact=self.props.compact
     local imageSize=compact and 76 or math.min(200,self.props.viewportHeight*.23)
     local imageHeight=compact and 76 or math.min(250,math.max(160,self.props.viewportHeight*.22))
-    self:RenderBackgroundImage(vg,Theme.Thumbnail(d.id),{x=x+(w-imageSize)/2,y=y+(imageHeight-imageSize)/2,w=imageSize,h=imageSize},'contain',nil)
+    local entry=require('ui.SourceButtonMotion').Ease((self.imageEntry or .24)/.24,'css-ease-out')
+    nvgSave(vg);nvgGlobalAlpha(vg,entry);nvgTranslate(vg,7*(1-entry),0)
+    self:RenderBackgroundImage(vg,Theme.Thumbnail(d.id),{x=x+(w-imageSize)/2,y=y+(imageHeight-imageSize)/2,w=imageSize,h=imageSize},'contain',nil);nvgRestore(vg)
     local tagY=y+imageHeight+8
     D.Icon(vg,Icons[d.cat] or 'cube',x,tagY,16,D.orange);D.Text(vg,category[d.cat] or '',x+24,tagY,12,D.orange,'vox-body')
     if not compact then for i,t in ipairs(self.inventory.hotbar) do if t==d.id then D.Text(vg,'快捷栏第 '..(i%10)..' 格',x+w,tagY+2,10,D.muted,'vox-body',NVG_ALIGN_RIGHT);break end end end

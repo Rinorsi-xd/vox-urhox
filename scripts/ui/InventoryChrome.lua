@@ -68,20 +68,29 @@ function M.Button:Render(vg)
     end
 end
 M.Card=Panel:Extend('VoxInventoryCard')
+function M.Card:Update(dt) require('ui.InventoryCardMotion').Update(self,dt) end
+function M.Card:OnMouseEnter() self:SetState({hovered=true}) end
+function M.Card:OnMouseLeave() self:SetState({hovered=false,pressed=false}) end
+function M.Card:OnMouseDown(_,_,button) if button==MOUSEB_LEFT then self:SetState({pressed=true}) end end
+function M.Card:OnMouseUp() self:SetState({pressed=false}) end
 function M.Card:Render(vg)
     local p=self.props;local def=Defs.PARTS[p.partType];if not def then return end
     D.Begin(vg);local r=self:GetAbsoluteLayout();local x,y,w,h=r.x,r.y,r.w,r.h
     local inv=self.inventory;local slot=false
     for i,t in ipairs(inv.hotbar) do if t==def.id then slot=i;break end end
-    local hovered=self.state.hovered;local current=slot==inv.active
-    if hovered then x=x-2;y=y-4 end
+    local focused=self.inventoryOwner and self.inventoryOwner.keyboardFocus==self and UI.GetFocus()==self
+    local current=slot==inv.active;local motion=self.inventoryMotion
+    local hover=motion and motion.hover.value or 0;local image=motion and motion.image.value or 0
     local points={x,y,x+w-15,y,x+w,y+15,x+w,y+h,x,y+h}
-    D.Path(vg,points);nvgFillColor(vg,D.Color((hovered or current) and {41,70,95,255} or {32,58,84,255}));nvgFill(vg)
+    local face=current and 1 or hover
+    D.Path(vg,points);nvgFillColor(vg,nvgRGBA(32+9*face,58+12*face,84+11*face,255));nvgFill(vg)
     Relief.Halftone(vg,x,y,w,h,false,165,points)
     if current then D.Rect(vg,x,y+h-3,w,3,D.orange) end
     local size=p.compact and 60 or 94;local imageY=y+(p.compact and 7 or 12)
-    if hovered then size=size*1.06;imageY=imageY-2 end
+    nvgSave(vg);local ix,iy=x+w/2,imageY+size/2
+    nvgTranslate(vg,ix,iy-2*image);nvgRotate(vg,math.rad(-3)*image);nvgScale(vg,1+.06*image,1+.06*image);nvgTranslate(vg,-ix,-iy)
     self:RenderBackgroundImage(vg,Theme.Thumbnail(def.id),{x=x+(w-size)/2,y=imageY,w=size,h=size},'contain',nil)
+    nvgRestore(vg)
     if slot then D.Rect(vg,x+w-21,y+h-37,21,20,D.orange);D.Text(vg,slot%10,x+w-10.5,y+h-35,13,D.ink,'vox-body',NVG_ALIGN_CENTER) end
     local fs=p.compact and 12 or 16;local name=def.name
     while D.Width(vg,name,fs)>w-20 and utf8.len(name)>1 do name=name:sub(1,utf8.offset(name,-1)-1) end
@@ -90,11 +99,15 @@ function M.Card:Render(vg)
         name=name..'…'
     end
     D.Text(vg,name,x+w/2,y+h-(p.compact and 22 or 31),fs,nil,nil,NVG_ALIGN_CENTER)
-    if hovered then
+    if focused then
         nvgBeginPath(vg);nvgRect(vg,x-3,y-3,w+6,h+6);nvgStrokeWidth(vg,2);nvgStrokeColor(vg,D.Color(D.orange));nvgStroke(vg)
-        local cost='预算 '..(def.budget>0 and tostring(def.budget) or '免费');local cw=D.Width(vg,cost,10,'vox-body')+26
+    end
+    local budget=motion and motion.budget.value or 0
+    if budget>0 then
+        nvgSave(vg);nvgGlobalAlpha(vg,budget);nvgTranslate(vg,0,-5*(1-budget))
+        local cost=def.budget>0 and ('预算 '..def.budget) or '免费';local cw=D.Width(vg,cost,10,'vox-body')+26
         D.Rect(vg,x+8,y+8,cw,19,{219,238,255,255});D.Icon(vg,'chip',x+14,y+11,12,{36,91,145,255})
-        D.Text(vg,cost,x+29,y+11,10,{24,60,92,255},'vox-body')
+        D.Text(vg,cost,x+29,y+11,10,{24,60,92,255},'vox-body');nvgRestore(vg)
     end
 end
 function M.Title(owner)

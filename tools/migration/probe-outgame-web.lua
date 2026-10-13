@@ -92,6 +92,11 @@ local function Dump(app)
     local f=c.node.rotation*Vector3.FORWARD;data.camera.forward={f.x,f.y,f.z}
     if app.build then
         local b=app.build
+        local backdrop=b.inventoryPanel and b.inventoryPanel.backdrop
+        if backdrop and backdrop.graph then
+            data.backdrop={passes=backdrop.graph.passCount,width=backdrop.graph.width,height=backdrop.graph.height,
+                bytes=backdrop.graph.colorBytes,logical={backdrop.lw,backdrop.lh},active=renderer:GetViewport(0)==backdrop.graph.output}
+        end
         data.buildInput={mode=b.buildCamera.mode,captured=b.buildCamera.captured,slot=b.inventory.active,
             tool=b.editor.tool,channel=b.editor.paintChannel,color=b.editor.color,autoColor=b.editor.autoColor}
         local preview=b.editor.preview
@@ -249,6 +254,7 @@ local function Dump(app)
                     card=motion and {hovered=widget.state.hovered or false,lift=motion.lift.value,image=motion.image.value,reveal=motion.reveal.value,opacity=motion.opacity.value},
                     heroTitleSize=widget.heroTitleSize,
                     sourceMotion=widget.sourceMotion,hovered=widget.state.hovered,pressed=widget.state.pressed,
+                    inventoryMotion=widget.inventoryMotion,focused=UI.GetFocus()==widget,
                     tabContent=widget.GetTabContent and widget:GetTabContent(UI.GetNVGContext()),
                     shelfContent=widget.GetShelfContent and widget:GetShelfContent(UI.GetNVGContext())}
             end
@@ -264,6 +270,13 @@ local function Dump(app)
     end
     local inventory=app.build and app.build.inventoryPanel
     if inventory then
+        local focus=UI.GetFocus()
+        local fp=focus and focus.props or {}
+        data.inventoryState={current=inventory.model:Current(),active=inventory.model.active,hotbar=inventory.model.hotbar,
+            shown=inventory.shown,query=inventory.model.query,scroll=inventory.list.scrollOffset_,pool=inventory.list:GetPoolStats(),
+            last=inventory.results[#inventory.results] and inventory.results[#inventory.results].id,
+            focus=focus and {part=fp.partType,kind=fp.kind,slot=fp.inventoryStyle and fp.index,
+                search=focus==inventory.search,close=focus==inventory.closeButton} or false}
         Walk(inventory.body,true)
         local close=inventory.closeButton
         local r=close:GetAbsoluteLayoutForHitTest()

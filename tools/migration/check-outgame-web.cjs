@@ -43,7 +43,11 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
    page.on('requestfailed',r=>errors.push('NETWORK '+r.url()+' '+r.failure()?.errorText));
    async function wait(predicate,label,timeout=240000){const start=Date.now();let nextDump=start+1000;while(!current||!predicate(current)){if(Date.now()-start>timeout){await page.screenshot({path:path.join(out,'outgame-web-'+test.name+'-failure.png')});fs.writeFileSync(path.join(out,'outgame-web-'+test.name+'-failure.json'),JSON.stringify({label,current,errors},null,2));throw Error(test.name+' timeout '+label+' '+JSON.stringify(current));}if(Date.now()>nextDump){nextDump=Date.now()+1000;await page.keyboard.down('F8');await sleep(60);await page.keyboard.up('F8');}await sleep(100);}return current;}
    async function dump(){const count=states.length;await page.keyboard.down('F8');await sleep(100);await page.keyboard.up('F8');await wait(()=>states.length>count,'UI bounds',10000);return current;}
-   async function key(name){await page.keyboard.down(name);await sleep(100);await page.keyboard.up(name);await sleep(100);await dump();}
+   async function key(name){
+    const keys=name.split('+');for(const key of keys)await page.keyboard.down(key);
+    await sleep(100);for(const key of keys.reverse())await page.keyboard.up(key);
+    await sleep(100);await dump();
+   }
    async function click(text,icon){
     for(let attempt=0;attempt<10;attempt++){
      const state=await dump();assert.ok(Array.isArray(state.widgets),'Active page must contain a live widget tree');const widget=state.widgets.find(w=>(icon?w.icon===icon:w.text===text)&&!w.disabled);
@@ -165,9 +169,51 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
     await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await cdp.detach();
    }else await key('b');
    await wait(s=>s.inventory,'inventory');await shot('inventory');
+   assert.ok(current.backdrop?.active&&current.backdrop.passes===3,'Inventory owns one scene and two temporary blur passes');
+   assert.ok(current.backdrop.width<=1920&&current.backdrop.height<=1080,'High DPI inventory blur allocation is capped');
+   if(!test.touch){
+    const cards=current.widgets.filter(w=>w.inventoryMotion),hover=cards.find(w=>!w.focused);
+    assert.ok(hover,'Source virtual inventory contains a pointer-testable card');
+    const [x,y,w,h]=hover.rect,canvas=await page.locator('canvas').boundingBox();
+    await page.mouse.move(canvas.x+(x+w/2)/current.width*canvas.width,canvas.y+(y+h/2)/current.height*canvas.height);
+    await sleep(500);await dump();
+    const settled=current.widgets.find(w=>w.inventoryMotion&&w.part===hover.part);
+    assert.ok(settled.hovered&&settled.inventoryMotion.image.value>.99&&settled.inventoryMotion.budget.value>.99,'Real pointer triggers source image lift and budget reveal');
+    await shot('inventory-hover');
+    await page.mouse.click(canvas.x+(x+w/2)/current.width*canvas.width,canvas.y+(y+h/2)/current.height*canvas.height);
+    await dump();assert.equal(current.inventoryState.current,hover.part,'Transformed card remains clickable');
+    await key('Tab');assert.ok(current.inventoryState.focus,'Inventory traps real keyboard focus');
+    for(let i=0;i<40&&!current.inventoryState.focus.search;i++)await key('Shift+Tab');
+    assert.equal(current.inventoryState.focus.search,true,'Reverse Tab reaches source search');
+    await key('Tab');assert.equal(current.inventoryState.focus.close,true,'Search Tab advances to close');
+    await key('Tab');assert.equal(current.inventoryState.focus.kind,'category','Close Tab advances to source categories');
+    while(current.inventoryState.focus.kind==='category'||current.inventoryState.focus.kind==='material')await key('Tab');
+    const focused=current.inventoryState.focus.part;assert.ok(focused,'Tab materializes the first catalog part');
+    await key('Enter');assert.equal(current.inventoryState.current,focused,'Real Enter activates focused source part');
+    await key('7');assert.equal(current.inventoryState.hotbar[6],focused,'Real digit assigns focused source part');
+    await key('Shift+Tab');assert.equal(current.inventoryState.focus.kind,'material','Shift Tab returns to material selector');
+    assert.equal(current.inventoryState.scroll,0,'Focused material selector is scrolled into view');
+    await key('Tab');assert.equal(current.inventoryState.focus.part,focused,'Forward Tab restores exact catalog focus');
+    await shot('inventory-keyboard');
+    for(let i=0;i<20&&!current.inventoryState.focus.search;i++)await key('Shift+Tab');
+    assert.equal(current.inventoryState.focus.search,true,'Reverse Tab crosses source material and category stops');
+    for(let i=0;i<5;i++)await key('Shift+Tab');
+    assert.equal(current.inventoryState.focus.slot,7,'Reverse Tab reaches the exact hotbar slot');
+    await key('Delete');assert.equal(current.inventoryState.hotbar[6],false,'Real Delete clears focused hotbar only');
+    await key('Space');assert.equal(current.inventoryState.active,7,'Real Space activates focused hotbar');
+    for(let i=0;i<5;i++)await key('Tab');
+    assert.equal(current.inventoryState.focus.search,true,'Forward Tab wraps within source inventory');
+    for(let i=0;i<13;i++)await key('Shift+Tab');
+    assert.equal(current.inventoryState.focus.part,current.inventoryState.last,'Reverse Tab materializes exact last catalog entry');
+    assert.ok(current.inventoryState.scroll>0&&current.inventoryState.pool.total<20,'Offscreen browser focus scrolls with bounded virtual allocation');
+    for(let i=0;i<13;i++)await key('Tab');
+    assert.equal(current.inventoryState.focus.search,true,'Offscreen catalog focus wraps back through the hotbar');
+    await page.mouse.move(test.width-8,test.height-8);await sleep(400);
+   }
    await click('更多参数');await shot('inventory-expanded');
    await click('操作说明');await shot('inventory-help');await click('操作说明');
    await click('关闭');await wait(s=>!s.inventory,'inventory close');
+   assert.equal(current.backdrop,undefined,'Closing restores hall and releases inventory render chain');
    await click('机库');await wait(s=>!s.build&&s.tab==='hangar','builder close');
    if(process.env.VOX_QA_EXTENDED==='1'){
     await click('商店');await wait(s=>s.tab==='shop','shop');await shot('shop');
