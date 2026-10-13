@@ -13,6 +13,12 @@ function M.Open(owner)
         Add('home','回机库','hangar','有车位的车自动保存',function() Host.Close(owner);owner.app:ExitBuild() end)
     end
     Add('help','操作说明','help','建造、视角、试车的全部按键（H）',function() require('ui.GarageDialogs').Help(owner) end)
+    Add('tutorial','重新播放新手引导','play','入职培训',function()
+        Host.Close(owner);local app=owner.app
+        if app.build then app:ExitBuild() end
+        local home=require('ui.GarageHud').GetState();if home then home.SetTab('hangar') end
+        app.tutorial:Start()
+    end)
     Add('graphics','画面设置','gear','画质、泛光、曝光、环境光遮蔽',function() require('ui.GarageDialogs').Settings(owner) end)
     Add('keys','键位设置','sliders','开发中',function() end,true)
     modal.actions=buttons;return modal

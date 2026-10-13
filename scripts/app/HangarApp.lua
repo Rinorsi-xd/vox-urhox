@@ -178,6 +178,7 @@ function App:Start(existingScene)
     self.loadingFlow=require('app.LoadingFlow').New(self)
     self.toasts=require('ui.SourceToasts').New()
     self.toasts:Attach()
+    self.tutorial=require('story.Tutorial').New(self)
     if not existingScene then cache.autoReloadResources=self.development end
     renderer.hdrRendering=true
     renderer.shadowMapSize=Quality.current.shadowMapSize
@@ -250,7 +251,7 @@ function App:EnterTrial(mapId,battleMode,roster,reuseLoading)
     for _,path in ipairs(require('render.MissileView').Dependencies()) do options.resources[#options.resources+1]=path end
     for _,path in ipairs(require('audio.WeaponAudio').Dependencies()) do options.resources[#options.resources+1]=path end
     if battleMode then for _,path in ipairs(require('combat.BattleController').Dependencies(self.blueprint,roster,battleMode)) do options.resources[#options.resources+1]=path end end
-    if map.storyLevel then for _,path in ipairs(require('story.Mission').Dependencies(self.blueprint)) do options.resources[#options.resources+1]=path end end
+    if map.storyLevel then for _,path in ipairs(require('story.Mission').Dependencies(self.blueprint,map.storyLevel)) do options.resources[#options.resources+1]=path end end
     if map.prepareWorld then options.prepare=function(scene,checkpoint)
         preparedWorld=require(map.world).New(scene,true)
         require(map.prepareWorld).Build(preparedWorld,checkpoint)
@@ -329,6 +330,7 @@ function App:Install(scene)
     h:Welcome(self.blueprint)
     h:SetGrid(self.hangar and self.hangar.gridOn or false)
     local oldScene,oldHangar,oldCar=self.scene,self.hangar,self.car
+    if self.tutorial then self.tutorial:DetachVoice() end
     local oldSwitch=self.vehicleSwitch
     local oldTrial=self.trial
     local oldHome=Hud.GetState()
@@ -449,6 +451,7 @@ function App:Update(dt)
     self.store:Update(dt)
     self.previews:Update(dt)
     self.graphicsSettings:Update(dt)
+    if self.tutorial and self.tutorial:Keys() then return end
     if self.loadingFlow and self.loadingFlow.active then
         -- Keep downloads, saves and renderer retirement alive under the overlay.
         -- The old scene is fully covered; candidate rendering warms only after commit.
@@ -467,7 +470,7 @@ function App:Update(dt)
     if self.development then self.hotReload:Update(dt) end
     if input:GetKeyPress(KEY_F5) then self:Reload() end
     if not self.scene then return end
-    if self.mode=='hangar' and self.restartStory then self.restartStory=false;self:EnterTrial('story1');return end
+    if self.mode=='hangar' and self.restartStory then local id=self.restartStory;self.restartStory=false;self:EnterTrial(type(id)=='string' and id or 'story1');return end
     if self.trial then self.trial:Update(dt);return end
     if self.mapPreview then self.mapPreview:Update(dt);return end
     if self.vehicleSwitch then self.vehicleSwitch:Update(dt) end
@@ -544,6 +547,7 @@ function App:Stop()
     self.stopped=true
     self.vehicleGate:Cancel()
     if self.loadingFlow then self.loadingFlow:Dispose();self.loadingFlow=nil end
+    if self.tutorial then self.tutorial:Dispose();self.tutorial=nil end
     if self.warehouse then self.warehouse:Dispose();self.warehouse=nil end
     self.pendingAssetRelease=nil
     print("[HangarApp] Stop ownsScene="..tostring(self.ownsScene))

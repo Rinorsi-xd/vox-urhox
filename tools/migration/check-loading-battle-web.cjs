@@ -11,7 +11,9 @@ const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
   let state;let closed=false;const states=[],errors=[],expectedErrors=[],httpFailures=[];let intentional=false;
   page.on('crash',()=>{closed=true;errors.push('Browser renderer crashed');});page.on('close',()=>closed=true);
   const report={build:prepared.source_directory,manifest:path.basename(prepared.manifest_path),viewport:test,checks:[],states,errors,expectedErrors,httpFailures,memory:[],truncatedProbes:0};
-  const prefix='loading-battle-web-'+test.name;
+  const sustained=Math.max(0,Number(process.env.VOX_QA_PRESSURE_SECONDS||0));
+  const prefix=(sustained?'battle-pressure-web-':'loading-battle-web-')+test.name;
+  report.pressure=[];
   fs.writeFileSync(path.join(out,prefix+'.log'),'');
   page.on('console',msg=>{const text=msg.text();fs.appendFileSync(path.join(out,prefix+'.log'),text+'\n');const index=text.indexOf('OUTGAME_STATE ');
    if(index>=0){const payload=text.slice(index+14);try{state=JSON.parse(payload);states.push(state);}catch(error){
@@ -74,6 +76,19 @@ const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
     check(live.battle.units.some((u,i)=>!u.player&&Math.hypot(u.position[0]-initial.battle.units[i].position[0],u.position[2]-initial.battle.units[i].position[2])>3),mode+' bots navigate actual crater');
     if(mode==='conquest')check(live.battle.points.length===3,'three source capture points remain in live state');
     if(mode==='escort')check(live.battle.payload.length>300,'source payload route is installed in Web');
+    if(sustained){
+     await page.evaluate(()=>{window.voxPressureRaf={samples:[],at:performance.now(),running:true};
+      const tick=now=>{const s=window.voxPressureRaf;if(!s.running)return;s.samples.push(now-s.at);s.at=now;requestAnimationFrame(tick);};requestAnimationFrame(tick);
+     });
+     const started=Date.now();while(Date.now()-started<sustained*1000){await sleep(3000);const s=await dump();
+      const wallFrames=await page.evaluate(()=>{const samples=window.voxPressureRaf.samples.splice(0).sort((a,b)=>a-b),n=samples.length;
+       return {count:n,p50:samples[Math.ceil(n*.5)-1],p95:samples[Math.ceil(n*.95)-1],p99:samples[Math.ceil(n*.99)-1],max:samples[n-1]};
+      });
+      report.pressure.push({wallSeconds:(Date.now()-started)/1000,frames:s.frames,rafWallMs:wallFrames,performance:s.performance,battle:s.battle});
+     }
+     await page.evaluate(()=>window.voxPressureRaf.running=false);
+     check(report.pressure.some(s=>s.frames?.count>=10),'battle frame windows sampled in production '+mode);
+    }
     await shot(mode+'-battle-live');if(!test.touch){await page.keyboard.press('Escape');await wait(s=>!s.pointer.captured,'battle release');await sleep(500);}await widget('退出对局');await wait(s=>s.mode==='hangar'&&!s.loadingFlow.active,'battle return',60000);check(!state.craterModelResident,mode+' return retires unused crater models');
     await sleep(500);await dump();report.memory.push({stage:mode+'-returned',...state.performance});
     check(state.performance.arrayBytes===0,mode+' return releases both terrain arrays');

@@ -120,12 +120,15 @@ local actionKeys={KEY_ESCAPE,KEY_T,KEY_R,KEY_BACKSPACE,KEY_I,KEY_C,KEY_N}
 function M:KeyPressed(key) return input:GetKeyPress(key) end
 function M:HandleKey(key)
     if self.story and self.story.rules.finished then
-        if key==KEY_R then self.app.restartStory=true;self.wantsReturn=true
+        if key==KEY_R then self.app.restartStory=self.map.id;self.wantsReturn=true
         elseif key==KEY_ESCAPE or key==KEY_RETURN or key==KEY_T then self.wantsReturn=true end
         return
     end
     if self.combat and (key==KEY_N or key==KEY_BACKSPACE) then return end
     if self.combat and not self.combat.player.alive and key==KEY_R then return end
+    if self.story and self.story.rules.choice then
+        for i,digit in ipairs(digitKeys) do if key==digit then self.story.rules:Choose(i);self.story:Events();return end end
+    end
     if key==KEY_ESCAPE then self:Escape()
     elseif key==KEY_T then if self.enteredTime>.4 then self.wantsReturn=true end
     elseif key==KEY_R then self:Flip()

@@ -173,7 +173,7 @@ end
 function M.Leave(s) if s.storyHolo then s.storyHolo:Dispose();s.storyHolo=nil end end
 function M.Start(s)
     local l=Data.levels[s.storyLevel]
-    if s.storyLevel==1 then s.app:EnterTrial('story1')
+    if s.storyLevel<=4 then s.app:EnterTrial('story'..s.storyLevel)
     else s.app.toasts:Push('第 '..l.no..' 关「'..l.name..'」的玩法还在迁移中','warn') end
 end
 function M.Update(s,dt)

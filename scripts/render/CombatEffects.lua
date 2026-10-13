@@ -149,10 +149,15 @@ function M:Consume(events)
         elseif e.type=="beam" then self:Beam(e)
         elseif e.type=="impact" then
             local t=e.tier or 3;local n=e.normal or V.Scale(e.dir,-1);local p=At(e.pos,n,.03)
-            self:Flash(p,(.35+t*.06)*(e.bright and 1.4 or 1),.07,{1,.63,.22})
-            self:Burst(p,4+t,6,e.target and {6,2,.6} or BOLT.spark,n,.05,.3)
-            if t>=4 and (e.bright or math.random()<.35) then self:Ring(p,n,.05,.3+(t-4)*.1,.12,{4,1.6,.4},.7,.3) end
-            if math.random()<.15 then self:Puff(p,1,.25,.6,.4) end
+            self:Flash(p,(.6+t*.09)*(e.bright and 1.4 or 1),.09,{1,.63,.22})
+            self.light:Emit(p,40+t*12,0xffb050,14)
+            self:Burst(p,9+t*2,8.5,e.target and {7,2.4,.7} or BOLT.spark,n,.06,.38)
+            self:Ring(p,n,.05,.35+(t-3)*.1,.13,{4,1.6,.4},.75,.3)
+            if e.material=='metal' or e.target then for _=1,3 do
+                self.chips:Emit({p[1],p[2],p[3]},{n[1]*6+(math.random()-.5)*8,n[2]*6+math.random()*6,n[3]*6+(math.random()-.5)*8},
+                    .03+math.random()*.04,0xffa040,.5+math.random()*.4)
+            end end
+            if math.random()<.4 then self:Puff(p,1,.3,.8,.35) end
         elseif e.type=="dry" then
             local p=At(e.pos,e.dir,.05);self:Flash(p,.3,.05,{1,1,1})
             self:Burst(p,5,3.5,e.kind=="mg" and {5,2.4,.8} or LASER.spark,e.dir,.035,.22,6);self:Puff(p,1,.18,.7,.32)

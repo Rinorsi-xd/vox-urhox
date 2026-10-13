@@ -40,6 +40,18 @@ function Panel:Render(vg)
     local rows={{'用时','TIME',string.format('%d:%02d',math.floor(r.time/60),math.floor(r.time%60))},
         {'情报','INTEL',r.stats.intel..' / 3'},{'采集器','COLLECTOR',r.stats.collectors..' / 3'},
         {'击退海盗','KILLS',r.stats.kills},{'战车损毁','LOSSES',r.stats.deaths..' 次'}}
+    if mission.level.resultPolicy=='truck' then
+        rows[2]={'运输车耐久','CARGO HP',string.format('%d%%',math.floor((r.stats.truckHp or 0)*100+.5))}
+        rows[3]={'检查点','CHECKPOINT',(r.stats.checkpoints or 0)..' / 3'}
+    end
+    if mission.level.resultPolicy=='shield' then
+        rows[2]={'护盾剩余','SHIELD',string.format('%d%%',math.floor(math.max(0,r.stats.shield or 0)*100+.5))}
+        rows[3]={'击退海盗','KILLS',r.stats.kills};rows[4]={'重来次数','RETRIES',r.stats.fails}
+    end
+    if mission.level.resultPolicy=='sites' then
+        rows[2]={'夺回采集器','RECLAIMED',(r.stats.sites or 0)..' / 3'}
+        rows[3]={'你的留言','TAG',({'机修师到此一游','狐狐是笨蛋','（没写，很专业）'})[(r.flags.tag or 2)+1]}
+    end
     for i,row in ipairs(rows) do local yy=216+(i-1)*38
         D.Rect(vg,34,yy,660,32,{0,0,0,90});Text(vg,'>',42,yy+4,16,cyan)
         Text(vg,row[1],62,yy+4,15,muted);Text(vg,row[2],160,yy+9,10,muted)
@@ -61,6 +73,7 @@ function M.Attach(session,root)
     local buttons={}
     for i,item in ipairs({{'再来一次',true},{'返回剧情页',false}}) do local again=item[2]
         local button=Button{text=item[1],back=not again,position='absolute',onClick=function() session.app.restartStory=again;session.wantsReturn=true end}
+        button.props.onClick=function() session.app.restartStory=again and session.map.id or false;session.wantsReturn=true end
         panel:AddChild(button);buttons[i]=button
     end
     root:AddChild(panel)

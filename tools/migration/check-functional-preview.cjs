@@ -9,7 +9,10 @@ const root=path.resolve(__dirname,'../..');
  assert.deepEqual(await published.json(),manifest);
  const files=['main.lua','app/LoadingFlow.lua','app/TrialSession.lua','combat/ArenaData.lua','combat/WeaponSystem.lua',
   'story/Mission.lua','story/MissionRules.lua','audio/StoryComms.lua','render/MissionView.lua','ui/MissionHud.lua','ui/MissionResult.lua','ui/MissionFrame.lua',
-  'Story/Mission/Level1.json','Story/Mission/model-1.bin','Shaders/BLGL/Story/MissionBeam.shader'];
+  'Story/Mission/Level1.json','Story/Mission/Level2.json','Story/Mission/Level3.json','Story/Mission/Level4.json','story/ConvoyRules.lua','story/HoldRules.lua','story/CaptureRules.lua',
+  'ui/MissionChoice.lua','Story/Mission/model-1.bin','Shaders/BLGL/Story/MissionBeam.shader','Shaders/BLGL/Story/MissionFlag.shader','Story/Mission/company.png','Story/Mission/graffiti.png',
+  'story/Tutorial.lua','story/TutorialRules.lua','ui/TutorialPage.lua','UI/Tutorial.json'];
+ const tutorial=JSON.parse(fs.readFileSync(path.join(root,'assets/UI/Tutorial.json'),'utf8'));files.push(...Object.values(tutorial.voices).map(v=>v.path));
  const mission=JSON.parse(fs.readFileSync(path.join(root,'assets/Story/Mission/Level1.json'),'utf8'));files.push(Object.values(mission.voices)[0].path);
  const checked=[];
  for(const name of files){

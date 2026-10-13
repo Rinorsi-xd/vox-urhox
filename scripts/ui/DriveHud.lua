@@ -63,7 +63,18 @@ function M.Create(session)
             for child,mode in pairs(modes) do child:SetStyle({pointerEvents=active and 'none' or mode}) end
         end
         local alive=not s.combat or s.combat.player.alive;local over=s.battle and s.battle.rules.state=='over' or s.story and s.story.rules.finished
-        state.pause:SetVisible(not active and not s.touch and not over);state.vitals:SetVisible(active and alive);state.detailPanel:SetVisible(s.details and alive)
+        local choosing=s.story and s.story.rules.choice~=nil
+        state.pause:SetVisible(not active and not s.touch and not over and not choosing);state.vitals:SetVisible(active and alive);state.detailPanel:SetVisible(s.details and alive)
+        if state.touchControls then
+            local blocked=over or choosing
+            if state.touchBlocked~=blocked then
+                state.touchBlocked=blocked
+                if blocked then state.touchControls.Clear() end
+                state.touchControls.stick:SetVisible(not blocked)
+                for _,button in pairs(state.touchControls.buttons) do button:SetVisible(not blocked) end
+            end
+            for _,card in ipairs(state.cards) do card.widget:SetVisible(not blocked) end
+        end
         state.meter:SetVisible(alive and not s.touch and not s.story);state.playfield:SetVisible(not over)
         if state.match then state.match.Update() end
         if state.story then state.story.Update(dt) end

@@ -1,6 +1,14 @@
 local original=HandleUpdate
+VOX_SKIP_TUTORIAL=true
 local UI=require 'urhox-libs/UI'
 local frames=0;local previous='';local samples={}
+local sampleMode=''
+local function FrameStats()
+    if #samples<10 then return nil end
+    table.sort(samples);local n=#samples
+    local data={count=n,p50=samples[math.ceil(n*.5)]*1000,p95=samples[math.ceil(n*.95)]*1000,p99=samples[math.ceil(n*.99)]*1000,max=samples[n]*1000}
+    samples={};return data
+end
 local function ResourceStats()
     local data={luaKiB=collectgarbage('count'),resourceBytes=cache:GetTotalMemoryUse(),
         modelBytes=cache:GetMemoryUse(StringHash('Model')),arrayBytes=cache:GetMemoryUse(StringHash('Texture2DArray')),
@@ -16,7 +24,10 @@ local function DumpTrial(app)
         camera={position={c.x,c.y,c.z},yaw=s.yaw,pitch=s.pitch,dist=s.cameraDistance},
         vehicle=p and {position={p.x,p.y,p.z},speed=s.vehicle.speed} or false,
         weapons={energy=s.weapons.energy,shots=s.world.stats.shots,hits=s.world.stats.hits,kills=s.world.stats.kills,blocked=s.weapons.blocked,turning=s.weapons.turning},
-        widgets={},performance=ResourceStats()}
+        widgets={},performance=ResourceStats(),frames=FrameStats()}
+    data.performance.batches=renderer.numBatches;data.performance.primitives=renderer.numPrimitives
+    data.performance.fixedSteps=s.fixedSteps;data.performance.droppedSeconds=s.droppedTime
+    data.performance.effects={particles=#s.effects.particles,smoke=#s.effects.smoke,beams=#s.effects.beams,flashes=#s.effects.flashes}
     local mouse=input.mousePosition;local hit=UI.FindWidgetAt(mouse.x/UI.GetScale(),mouse.y/UI.GetScale())
     local lock=s.weapons:LockInfo()
     local models=0;for _,vis in pairs(s.view.view.visuals) do if vis.weaponMotion and vis.weaponMotion.kind=='missile' then models=models+#vis.models end end
@@ -56,6 +67,7 @@ local function Dump(app)
         touch=require('controls.TouchMode').Enabled(),tab=home and home.tab or '',build=app.build~=nil,
         inventory=app.build and app.build.inventoryPanel~=nil or false,dialog=(app.build and app.build.dialog~=nil or home and home.dialog~=nil) or false,blueprint=app.blueprint.name,parts=app.blueprint:Size(),
         widgets={},quality=require('render.Quality').current.name}
+    if app.tutorial then data.tutorial=app.tutorial:Snapshot() end
     data.performance=ResourceStats();data.performance.batches=renderer.numBatches;data.performance.primitives=renderer.numPrimitives
     local c=app.camera;local p=c.node.position;local t=c.cur.target
     data.camera={position={p.x,p.y,p.z},target={t.x,t.y,t.z},yaw=c.cur.yaw,pitch=c.cur.pitch,dist=c.cur.dist,fov=c.camera.fov}
@@ -224,23 +236,47 @@ local function Dump(app)
         local r=close:GetAbsoluteLayoutForHitTest()
         if r.w>0 and r.h>0 then data.widgets[#data.widgets+1]={text='关闭',rect={r.x,r.y,r.w,r.h}} end
     end
-    if #samples>10 then
-        table.sort(samples);local n=#samples
-        data.frames={count=n,p50=samples[math.ceil(n*.5)]*1000,p95=samples[math.ceil(n*.95)]*1000,p99=samples[math.ceil(n*.99)]*1000,max=samples[n]*1000}
-    end
+    data.frames=FrameStats()
     if VOX_QA_MISSILES then data.widgets=nil;data.homeRects=nil;data.hangar=nil;data.anchors=nil end
-    print('OUTGAME_STATE '..cjson.encode(data));samples={}
+    print('OUTGAME_STATE '..cjson.encode(data))
 end
 function HandleUpdate(et,ed)
     original(et,ed)
     local app=VOX_HANGAR and VOX_HANGAR.app or VOX_TRIAL and VOX_TRIAL.app
     if not app then return end
     frames=frames+1
+    local mode=app.trial and app.trial.map.id or app.build and 'build' or 'hangar'
+    if mode~=sampleMode or app.loadingFlow.active then samples={};sampleMode=mode
+    else local dt=ed:GetFloat('TimeStep');if dt>0 then samples[#samples+1]=dt end end
     if app.trial then
         local story=app.trial.story
         if story then
+            if story.rules.cap and input:GetKeyPress(KEY_F10) then
+                for i=2,#story.entries do local entry=story.entries[i];local u=entry.unit
+                    if entry.flee then for _,p in ipairs(u.bp:List()) do if p.type~='core' and u:Integrity()>=.59 then u:Destroy(p.id) end end end
+                end
+            end
+            if story.rules.hold and input:GetKeyPress(KEY_F9) then
+                local r=story.rules
+                r.stepT=r.stepT<8 and 8 or r.stepT<36 and 36 or r.stepT<56 and 56 or r.stepT<66 and 66 or r.stepT<84 and 84 or r.stepT<104 and 104 or 126
+                r.hold.left=r.stepT>=126 and .001 or math.max(1,124-r.stepT)
+                story:Place({pos={0,6,-234},yaw=0});app.trial.view:ResetPose();app.trial.view:Update(1)
+            end
+            if story.rules.hold and input:GetKeyPress(KEY_F10) then
+                story.rules.hold.energy=.00001
+                story:Spawn({enemies={{at={0,8,-234},role='assault',name='QA shield attacker'}}})
+            end
+            if story.convoy and input:GetKeyPress(KEY_F9) then
+                local c=story.convoy;local p=c.d/c.total;local nextP=p<.15 and .16 or p<.5 and .51 or p<.76 and .77 or .99999
+                c.d=c.total*nextP;c.pos=c:Along(c.d);story.rules.progress=nextP
+                story:Place({pos=c.pos,yaw=c.yaw});app.trial.view:ResetPose();app.trial.view:Update(1)
+            end
+            if story.convoy and input:GetKeyPress(KEY_F10) then
+                local c=story.convoy;c.hp=.00001
+                story:Spawn({enemies={{at={c.pos[1],c.pos[2],c.pos[3]},role='assault',target='truck',name='QA transport attacker'}}})
+            end
             if input:GetKeyPress(KEY_F4) and story.player.alive then
-                local target=story.rules:Target()
+                local spec=story.rules:StepSpec();local target=story.rules.cap and spec and spec.pos or story.rules:Target()
                 if target then story:Place({pos=target,yaw=0});app.trial.view:ResetPose();app.trial.view:Update(1);app.trial:PostUpdate(.1) end
             end
             if input:GetKeyPress(KEY_F2) then
@@ -250,7 +286,7 @@ function HandleUpdate(et,ed)
                 local u=story.player;u.struct=0;u:Damage(u.bp:CoreParts()[1].id,1e9,u:Position());u:Flush()
             end
         end
-        if input:GetKeyPress(KEY_F3) and not app.trial.battle then
+        if input:GetKeyPress(KEY_F3) and not app.trial.combat then
             local s=app.trial;local target=s.world.targets[1]
             target.node.position=Vector3(-155,10.4,20);target.native.position=target.node.position;target.pos={155,12,20};target.hp=10000
             s.vehicle:Place({155,0,-140},0);s.view:ResetPose();s.yaw=0;s.pitch=0;s.follow=false;s:PostUpdate(1)
@@ -268,6 +304,7 @@ function HandleUpdate(et,ed)
         local bp=require('construction.Prefab').Create(require('construction.Blueprint').New(),'miniHeavy'):ToTable()
         app:WithVehicle(bp,function() return app:LoadBlueprint(bp) end)
     end
+    if input:GetKeyPress(KEY_F12) and app.tutorial and not app.build and require('ui.GarageHud').GetState().tab=='hangar' then app.tutorial:Start() end
     if input.mouseMoveWheel~=0 then print('OUTGAME_WHEEL '..cjson.encode({raw=input.mouseMoveWheel,dist=app.camera.dist,build=app.build~=nil})) end
     if input:GetKeyPress(KEY_F6) then app:PreviewMap(app.selectedMap or 'trial') end
     if input:GetKeyPress(KEY_F7) then app:PreviewMap('crater') end -- QA only: exercises the production map gate.
@@ -288,7 +325,6 @@ function HandleUpdate(et,ed)
             end
         end
     end
-    local dt=ed:GetFloat('TimeStep');if dt>0 then samples[#samples+1]=dt end
     local home=require('ui.GarageHud').GetState()
     if input:GetKeyPress(KEY_F4) and home and home.tab=='workshop' then home.WorkshopOpen('megaMech') end
     if home and home.workshop and home.workshop.view=='feature' then
@@ -317,7 +353,7 @@ function HandleUpdate(et,ed)
     local preview=home and home.workshopPreview
     local key=tostring(home and home.tab)..':'..tostring(home and home.workshop and home.workshop.view)..':'..tostring(home and home.salvage and home.salvage.tab)..':'..tostring(app.mapPreview~=nil)..':'..tostring(preview and preview.ready and preview.cursor>#preview.parts)..':'..tostring(app.build~=nil)..':'..tostring(app.build and app.build.inventoryPanel~=nil)..':'..graphics:GetWidth()..':'..graphics:GetHeight()
     local story=home and home.storyHolo
-    key=key..':'..tostring(story and story.ready)..':'..tostring(story and story.gate.state)
+    key=key..':'..tostring(story and story.ready)..':'..tostring(story and story.gate.state)..':'..tostring(story and story.level)
     key=key..':'..tostring(app.warehouse and app.warehouse.ready)..':'..tostring(app.build and app.build.dialog~=nil)
     key=key..':'..app.loader.state..':'..app.loader.phase..':'..app.loader.gate.completed
     key=key..':'..app.loadingFlow.phase..':'..tostring(app.loadingFlow.failed)..':'..tostring(app.loadingFlow.match and app.loadingFlow.match.stage)

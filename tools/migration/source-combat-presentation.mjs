@@ -4,7 +4,9 @@ import path from 'node:path';
 import {registerHooks} from 'node:module';
 import {pathToFileURL,fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
-const source='D:/Rino_Project/Vox',root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
+const baseline=JSON.parse(fs.readFileSync(path.join(root,'docs/migration/outgame-baseline.json')));
+const source=baseline.snapshot;
 const url=p=>pathToFileURL(path.join(source,p)).href;
 registerHooks({resolve(s,c,n){return n(s==='three'?url('three/vendor/three/build/three.module.js'):s,c);}});
 globalThis.document={createElement(){return {width:64,height:64,getContext(){return {createRadialGradient(){return {addColorStop(){}}},fillRect(){}}}}}};
@@ -48,5 +50,6 @@ run('no-invented-light',[consume([{type:'impact',tier:5,pos:[1,2,3],dir:[0,0,1],
  consume([{type:'break',cells:2,pos:[1,2,3],dir:[0,0,1],color:0xff0000}]),step(.016)]);
 const files=['three/src/drive/effects.js','three/src/drive/weaponFx.js'];
 const provenance=files.map(file=>({path:file,sha256:createHash('sha256').update(fs.readFileSync(path.join(source,file))).digest('hex')}));
-fs.writeFileSync(path.join(root,'tools/migration/source-combat-presentation.json'),JSON.stringify({provenance,cases}));
+const output=path.join(root,'tools/migration/source-combat-presentation.json'),temp=output+'.import-tmp';
+fs.writeFileSync(temp,JSON.stringify({baseline:baseline.commit,provenance,cases}));fs.renameSync(temp,output);
 console.log(`${cases.length} source cases / ${cases.reduce((n,c)=>n+c.states.length,0)} states`);

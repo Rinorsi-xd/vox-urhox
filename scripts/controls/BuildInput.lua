@@ -69,7 +69,12 @@ function M:FirstPerson(dt)
         fly.buttonsReady=not (input:GetMouseButtonDown(MOUSEB_LEFT) or input:GetMouseButtonDown(MOUSEB_RIGHT) or input:GetMouseButtonDown(MOUSEB_MIDDLE));return
     end
     self.session:Trace(self.x,self.y)
-    local left,right=input:GetMouseButtonDown(MOUSEB_LEFT),input:GetMouseButtonDown(MOUSEB_RIGHT)
+    local leftPress=input:GetMouseButtonPress(MOUSEB_LEFT)
+    local rightPress=input:GetMouseButtonPress(MOUSEB_RIGHT)
+    -- A down/up pair may arrive between frames. Preserve the source pointerdown
+    -- action while held input retains its 300/100 ms repeat cadence.
+    local left=input:GetMouseButtonDown(MOUSEB_LEFT) or leftPress
+    local right=input:GetMouseButtonDown(MOUSEB_RIGHT) or rightPress
     local selecting=self.session.selecting and not e.pasting
     if input:GetMouseButtonPress(MOUSEB_MIDDLE) then
         if e:Pick(e.hit) then self.session.selecting=false;self:Cancel();e.dirty=true end
@@ -85,7 +90,7 @@ function M:FirstPerson(dt)
         if selecting then e:SweepSelect(false)
         elseif kind=='right' then e:Remove() else self.session:Act() end
     end
-    if not self.pointer or self.pointer.kind~=kind then
+    if not self.pointer or self.pointer.kind~=kind or kind=='left' and leftPress or kind=='right' and rightPress then
         self.pointer={kind=kind,held=0,nextRepeat=.3}
         if selecting then
             self.pointer.select=true;self.pointer.nextRepeat=.03

@@ -43,7 +43,7 @@ function M.Create(session)
         {'liftUp','liftUp',function() editor:Lift(1) end},{'liftDown','liftDown',function() editor:Lift(-1) end}}) do
         Action(right,spec[1],'',spec[2],'icon',spec[3],{width=42,height=42})
     end
-    Action(right,'help','','help','icon',function() require('ui.GarageDialogs').Help(session) end,{width=42,height=42,tooltip='操作说明（H）'})
+    Action(right,'help','','help','icon',function() session.buildCamera:Release();session.app.tutorial:Replay() end,{width=42,height=42,tooltip='再看一遍拼装教学'})
     Action(right,'trial','试车','wheel','side',function() session.app:EnterTrial() end,{width=138.015625,height=46,key='T'})
     Action(right,'save','保存','save','save',function() session:SaveSlot() end,{width=179.046875,height=46,key='Ctrl+S'})
     local stats=require('ui.BuildStats').Create(session);root:AddChild(stats.root);state.stats=stats

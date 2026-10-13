@@ -10,12 +10,14 @@ function M.New(scene) return setmetatable({scene=scene,units={},pieces={}},M) en
 function M:Consume(world)
     for _,e in ipairs(world.viewEvents) do
         local v=self.units[e.unit]
-        if not e.unit.externalView and e.type=="unitSpawn" then
+        if not e.unit.externalView and e.type=="unitSpawn" and e.unit.alive and e.unit.vehicle then
             if v then v:Dispose() end
             self.units[e.unit]=DriveView.New(self.scene,e.unit.bp,e.unit.vehicle)
         elseif e.type=="partRemoved" then if v then v.view:RemovePart(e.id) end
         elseif e.type=='partRestored' then if v then v.view:AddPart(e.unit.bp.parts[e.id]) end
-        elseif e.type=="unitRebuilt" then if v then v:Bind(e.unit.bp,e.unit.vehicle) end
+        -- A later damage event may kill the unit before this batch is read.
+        -- Its kill event still retires the old view; never bind the freed body.
+        elseif e.type=="unitRebuilt" then if v and e.unit.alive and e.unit.vehicle then v:Bind(e.unit.bp,e.unit.vehicle) end
         elseif e.type=="unitKilled" or e.type=="unitRemoved" then
             if v then v:Dispose();self.units[e.unit]=nil end
         end
