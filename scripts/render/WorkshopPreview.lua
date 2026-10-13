@@ -26,10 +26,7 @@ function M:Reset(duration)
     self.app.camera:FlyTo(self.framing,duration or .5)
 end
 function M:Frame()
-    local box=BoundingBox()
-    for _,visual in pairs(self.view.visuals) do
-        for _,model in ipairs(visual.models) do box:Merge(model.worldBoundingBox) end
-    end
+    local box=self.view:GetWorldBounds()
     if not box:Defined() then return end
     local center,size=box.center,box.size
     local radius=math.sqrt(size.x^2+size.y^2+size.z^2)*.5
@@ -56,7 +53,7 @@ function M:Update(dt)
             if not ok then self:Clear();self.app.toasts:Push('预制车加载失败：'..tostring(err),'bad');return end
             self.cursor=self.cursor+1
         end
-        if self.cursor>#self.parts then self.view.livery:Set(self.bp.livery);self.view.livery:Update();self.complete=true;self:Frame() end
+        if self.cursor>#self.parts then self.view.joined:Update();self.view.livery:Set(self.bp.livery);self.view.livery:Update();self.complete=true;self:Frame() end
     end
     local rise=self.rise
     if rise then

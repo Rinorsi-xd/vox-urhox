@@ -4,6 +4,7 @@ local Config=require 'Config'
 local Coord=require 'core.Coord'
 local Assets=require 'parts.PartAssets'
 local Quality=require 'render.Quality'
+local Surface=require 'render.JoinedSurface'
 local M={};M.__index=M
 local COLORS={ok=0x3fe6ff,bad=0xff3b3b,paint=0xffd23f,erase=0xff5a3b,selected=0xffc21a}
 local EDGES={{1,2},{2,4},{4,3},{3,1},{5,6},{6,8},{8,7},{7,5},{1,5},{2,6},{3,7},{4,8}}
@@ -104,6 +105,11 @@ function M:Face(hit,state)
     self.face:Commit()
 end
 function M:Refresh(editor,showHit,selecting,drag)
+    if self.groupRevision~=editor.history.revision or self.groupBlueprint~=editor.bp then
+        self.groupRevision=editor.history.revision;self.groupBlueprint=editor.bp;self.groupEdges={}
+        local _,groups=Surface.Build(editor.bp:List())
+        for g,positions in pairs(groups) do self.groupEdges[g]=Surface.Edges(positions) end
+    end
     local selectionParts
     if selecting then
         selectionParts={}
@@ -138,6 +144,15 @@ function M:Refresh(editor,showHit,selecting,drag)
     self.cellCount=0
     self.lines:BeginGeometry(0,LINE_LIST)
     self.volume:BeginGeometry(0,TRIANGLE_LIST)
+    local drawnGroups={}
+    local function Group(p,state)
+        if not Surface.IsJoined(p) then return false end
+        if not drawnGroups[p.g] then
+            drawnGroups[p.g]=true
+            for _,v in ipairs(self.groupEdges[p.g] or {}) do self.lines:DefineVertex(Coord.Vec(table.unpack(v)));self.lines:DefineColor(Config.HexLinear(COLORS[state],.85)) end
+        end
+        return true
+    end
     local function Item(it,state)
         count=count+1;self:Model(count,it,state)
         local color=Config.HexLinear(COLORS[state],.65)
@@ -167,9 +182,11 @@ function M:Refresh(editor,showHit,selecting,drag)
     end
     if selecting then
         if showHit and drag and drag.lo then self:Region(drag.lo,drag.hi) end
-        for _,p in ipairs(selectionParts) do Item({type=p.type,pos=p.pos,rot=p.rot,res={cells=p._cells}},not drag and editor.selection[p.id] and 'erase' or 'ok') end
+        for _,p in ipairs(selectionParts) do local state=not drag and editor.selection[p.id] and 'erase' or 'ok'
+            if not Group(p,state) then Item({type=p.type,pos=p.pos,rot=p.rot,res={cells=p._cells}},state) end
+        end
     end
-    for _,p in ipairs(editor:Selected()) do for _,c in ipairs(p._cells) do self:Cell(c,Config.HexLinear(COLORS.selected,.85)) end end
+    for _,p in ipairs(editor:Selected()) do if not Group(p,'selected') then for _,c in ipairs(p._cells) do self:Cell(c,Config.HexLinear(COLORS.selected,.85)) end end end
     self.lines:Commit()
     self.volume:Commit()
     -- Return unused slots immediately so cycling types/pastes cannot pin old models.

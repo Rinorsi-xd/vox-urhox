@@ -62,7 +62,7 @@ function M.Create(session,state,Action,root,layout)
     local toggleWidth=(layout.toggles-8)/3
     Action(toggles,'mirror','镜像','mirror','toggle',function() editor.mirror=not editor.mirror end,{width=toggleWidth,height=52,key='M',tooltip='镜像'})
     Action(toggles,'xray','透视','eye','toggle',function() session:ToggleXray() end,{width=toggleWidth,height=52,key='V',tooltip='透视'})
-    Action(toggles,'form','连块','cube','toggle',function() session:Notify('连块功能尚未迁移','bad') end,{width=toggleWidth,height=52,key='F',tooltip='连块'})
+    Action(toggles,'form','连块','cube','toggle',function() session:ToggleForm() end,{width=toggleWidth,height=52,key='F',tooltip='连块'})
     state.xrayButton=state.buttons.xray
     function state.RefreshDock()
         local painting=editor.tool=='paint';channels:SetVisible(painting)
@@ -71,6 +71,7 @@ function M.Create(session,state,Action,root,layout)
         now.props.text='原色';for _,c in ipairs(Config.PALETTE) do if not editor.autoColor and c.hex==editor.color then now.props.text=c.name;break end end
         for _,t in ipairs(tools) do state.buttons[t[1]].props.selected=t[1]=='select' and session.selecting or t[1]~='select' and not session.selecting and editor.tool==t[1] and not editor.pasting end
         state.autoSwatch.props.selected=editor.autoColor
+        state.buttons.form.props.selected=editor.joinNew==true
     end
     return dock
 end

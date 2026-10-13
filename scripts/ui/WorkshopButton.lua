@@ -2,6 +2,16 @@ local Base=require 'urhox-libs/UI/Widgets/Button'
 local D=require 'ui.SourceDraw'
 local Relief=require 'ui.SourceRelief'
 local Button=Base:Extend('VoxWorkshopSourceButton')
+local Motion=require 'ui.SourceButtonMotion'
+function Button:Update(dt)
+    if self.props.sourceKind~='tab' then return end
+    if not self.tabMotion then
+        local initial=self.props.selected and 1 or 0
+        self.tabMotion={line={value=initial,start=initial,target=initial,elapsed=0,duration=0},color={value=initial,start=initial,target=initial,elapsed=0,duration=0}}
+    end
+    Motion.Step(self.tabMotion.line,self.props.selected and 1 or 0,.25,dt,false)
+    Motion.Step(self.tabMotion.color,(self.props.selected or self.state.hovered) and 1 or 0,.15,dt,'ease')
+end
 function Button:GetShelfContent(vg)
     local kind=self.props.sourceKind
     if kind~='ghost' and kind~='all' then return nil end
@@ -25,6 +35,9 @@ function Button:Render(vg)
     nvgSave(vg);if p.disabled then nvgGlobalAlpha(vg,.45) end
     if kind=='tab' or kind=='sort' then
         c=(p.selected or self.state.hovered) and D.white or {219,238,255,kind=='sort' and 115 or 128}
+        if kind=='tab' and self.tabMotion then
+            local t=self.tabMotion.color.value;c={219+36*t,238+17*t,255,128+127*t}
+        end
         if kind=='sort' and p.separator then D.Text(vg,'/',x,y+8,13,{255,255,255,77},nil,nil,1) end
         local tab=self:GetTabContent(vg)
         if tab then
@@ -32,7 +45,17 @@ function Button:Render(vg)
             local countColor={c[1],c[2],c[3],math.floor(c[4]*.7+.5)}
             D.Text(vg,p.count,x+tab.count.x,y+tab.count.y,11,countColor,'vox-display',nil,0,false,13)
         else D.Text(vg,p.text,x+12,y+8,13,c) end
-        if kind=='tab' and p.selected then D.Rect(vg,x+14,y+h-5,w-28,3,D.orange) end
+        if kind=='tab' then
+            local scale=self.tabMotion and self.tabMotion.line.value or 0
+            if scale>0 then
+                local length=(w-28)*scale;local left=x+(w-length)/2;local top=y+h-5
+                local skew=math.tan(math.pi/6)*1.5
+                local points={left+skew,top,left+length+skew,top,left+length-skew,top+3,left-skew,top+3}
+                nvgBeginPath(vg);nvgRect(vg,left-18,top-18,length+36,39)
+                nvgFillPaint(vg,nvgBoxGradient(vg,left,top,length,3,0,12,nvgRGBA(122,216,255,204),nvgRGBA(122,216,255,0)));nvgFill(vg)
+                D.Path(vg,points);nvgFillColor(vg,D.Color(D.orange));nvgFill(vg)
+            end
+        end
     else
         if kind=='view' or kind=='all' or kind=='go' then Relief.Draw(vg,x,y,w,h,true,false,{x,y,x+w-14,y,x+w,y+14,x+w,y+h,x,y+h})
         elseif kind=='back' then Relief.Draw(vg,x,y,w,h,false,false,{x,y,x+w,y,x+w,y+h-14,x+w-14,y+h,x,y+h})

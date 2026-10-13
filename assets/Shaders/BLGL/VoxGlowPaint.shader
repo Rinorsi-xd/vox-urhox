@@ -5,12 +5,13 @@ render_mode shading_model_pbr, cull_back;
 #include "lib/VoxHemi.shaderinc"
 
 uniform float glow_strength = 1.7;
+uniform float use_vertex_color = 0.0;
 uniform float roughness_value = 0.25;
 
 varying vec4 inst_color;
 
 void vertex() {
-    inst_color = INSTANCE_COLOR;
+    inst_color = mix(INSTANCE_COLOR, COLOR, use_vertex_color);
 }
 
 void fragment() {

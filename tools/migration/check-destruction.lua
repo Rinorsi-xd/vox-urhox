@@ -104,12 +104,18 @@ V.atFrame(90,function()
     -- A deliberately single-bridge source blueprint proves grouped detachment.
     local config=fixtures.cases[1]
     local countBefore=#world.debris.pieces
-    local bridge=Unit.New(world,config.source,{name='BridgeFixture',spawn={pos={130,3,-130},yaw=0}})
+    local joinedBlueprint=BP.New():Load(config.source)
+    for _,part in ipairs(joinedBlueprint:List()) do part.g=1 end
+    local joinedSource=joinedBlueprint:ToTable()
+    local bridge=Unit.New(world,joinedSource,{name='BridgeFixture',spawn={pos={130,3,-130},yaw=0}})
     world.units[#world.units+1]=bridge;trial.combatView:Consume(world)
     bridge:Damage(3,10000,{131,3,-130});bridge:Flush();trial.combatView:Consume(world)
     V.assert(bridge.bp:Size()==2 and #world.debris.pieces==countBefore+2 and not bridge.alive,'bridge detaches group then wrecks remaining sub-threshold chassis')
     local piece=world.debris.pieces[countBefore+1]
     V.assert(#piece.parts==4 and piece.mass>0 and trial.combatView.pieces[piece]~=nil,'debris has grouped source parts native mass and visible model')
+    local debrisView=trial.combatView.pieces[piece].view
+    V.assert(debrisView.joined.vertices>0 and debrisView.joined.rebuilds==1,'detached joined solids upload visible exterior once before first combat update')
+    V.assert(debrisView:GetWorldBounds():Defined(),'detached joined vehicle has nonempty rendered bounds')
     local start=piece.body.translation();Step(30);local moved=piece.body.translation()
     V.assert(V3.Length(V3.Sub({moved.x,moved.y,moved.z},{start.x,start.y,start.z}))>.2,'detached group physically moves')
     local oldVelocity=piece.body.linvel()

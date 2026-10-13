@@ -104,9 +104,12 @@ local function Dump(app)
             hit=b.editor.hit and {id=b.editor.hit.partId,cell=b.editor.hit.cell} or false,
             drag=drag and {anchor=drag.anchor,lo=drag.lo,hi=drag.hi,pending=#drag.parts} or false,
             hover=b.hud.hover and b.hud.hover.info or false}
+        local joined=b.car.joined
+        local groups={};for _,p in ipairs(b.editor.bp:List()) do if p.g>0 then groups[#groups+1]={id=p.id,g=p.g,type=p.type} end end
+        data.buildGroups={joinNew=b.editor.joinNew,parts=groups,vertices=joined.vertices or 0,rebuilds=joined.rebuilds,xray=app.buildXray==true}
         if b.selecting then
             local parts={}
-            for _,part in ipairs(b.editor.bp:List()) do parts[#parts+1]={id=part.id,type=part.type,pos=part.pos,rot=part.rot,_cells=part._cells} end
+            for _,part in ipairs(b.editor.bp:List()) do parts[#parts+1]={id=part.id,type=part.type,pos=part.pos,rot=part.rot,_cells=part._cells,g=part.g,color=part.color} end
             data.buildSelection.parts=parts;data.buildSelection.mirror=b.editor.mirror
         end
         local badge=b.hud.modeBadge
@@ -148,6 +151,7 @@ local function Dump(app)
     end
     if home and home.workshop then
         local ws=home.workshop;data.workshop={}
+        data.workshop.tabMotions=ws.tabMotions
         for _,key in ipairs({'selected','pending','view','group','sort','elapsed','hold','from','slides','imagesReady'}) do
             data.workshop[key]=ws[key]
         end

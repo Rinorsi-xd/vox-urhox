@@ -53,6 +53,12 @@ function M:OpenPause() return require('ui.PauseMenu').Open(self) end
 function M:ToggleXray()
     self.app.buildXray=not self.app.buildXray;self.car:SetXray(self.app.buildXray);self:Refresh()
 end
+function M:ToggleForm()
+    self.controls:Cancel()
+    local ok,message=self.editor:ToggleForm()
+    if message then self:Notify(message,ok and 'ok' or 'bad') end
+    self:Refresh();return ok
+end
 function M:Escape()
     self.controls:Cancel()
     if self.editor.stretch then require('construction.BuildStretch').Cancel(self.editor);self:Refresh();return end
@@ -189,7 +195,7 @@ function M:Keys()
         local speeds={.5,.75,1,1.5,2}
         local speedDelta=(Press(KEY_EQUALS) or Press(KEY_RIGHTBRACKET)) and 1 or (Press(KEY_MINUS) or Press(KEY_LEFTBRACKET)) and -1 or 0
         if speedDelta~=0 then self.flyStep=math.max(1,math.min(#speeds,self.flyStep+speedDelta));self.flyScale=speeds[self.flyStep];self.app.buildFlyStep=self.flyStep end
-        if Press(KEY_F) then self:Notify('连块功能尚未迁移','bad') end
+        if Press(KEY_F) then self:ToggleForm() end
         if Press(KEY_L) then self.buildCamera:Focus() end
         if Press(KEY_V) then self:ToggleXray() end
         if Press(KEY_R) then if input:GetKeyDown(KEY_ALT) then e:Tilt(shift and -1 or 1) else e:Rotate(shift and -1 or 1) end end

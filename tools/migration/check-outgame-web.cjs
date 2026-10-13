@@ -26,7 +26,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
  try{
   for(const test of cases.filter(test=>!process.env.VOX_QA_CASE||process.env.VOX_QA_CASE.split(',').includes(test.name))){
    const page=await browser.newPage({viewport:{width:test.width,height:test.height},deviceScaleFactor:test.dpr,...(test.touch?{hasTouch:true,isMobile:true}:{})});
-   const context=page.context(),messages=[],errors=[],states=[],mediaResponses=new Set();let current;
+   const context=page.context(),messages=[],errors=[],probeIssues=[],states=[],mediaResponses=new Set();let current;
    if(process.env.VOX_QA_COLD_CAROUSEL==='1'){
     const manifest=JSON.parse(fs.readFileSync(prepared.manifest_path,'utf8'));
     const file=manifest.files.find(f=>f.fs_path==='UI/Prefabs/hawk.jpg');
@@ -38,10 +38,10 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
     if(source&&response.ok())mediaResponses.add(source);
    });
    const logFile=path.join(out,'outgame-web-'+test.name+'.log');fs.writeFileSync(logFile,'');
-   page.on('console',msg=>{const text=msg.text();messages.push(text);fs.appendFileSync(logFile,text+'\n');const marker=text.indexOf('OUTGAME_STATE ');if(marker>=0){current=JSON.parse(text.slice(marker+14));states.push(current);}if(/ERROR:|Execute Lua|stack traceback|Aborted\(|Shader compilation failed/.test(text))errors.push(text);});
+   page.on('console',msg=>{const text=msg.text();messages.push(text);fs.appendFileSync(logFile,text+'\n');const marker=text.indexOf('OUTGAME_STATE ');if(marker>=0){try{current=JSON.parse(text.slice(marker+14));states.push(current);}catch(e){probeIssues.push({message:e.message,length:text.length,truncated:!text.trimEnd().endsWith('}')});if(text.trimEnd().endsWith('}'))errors.push('Malformed complete QA state: '+e.message);}}if(/ERROR:|Execute Lua|stack traceback|Aborted\(|Shader compilation failed/.test(text))errors.push(text);});
    page.on('pageerror',e=>errors.push('PAGEERROR '+e.message));
    page.on('requestfailed',r=>errors.push('NETWORK '+r.url()+' '+r.failure()?.errorText));
-   async function wait(predicate,label,timeout=240000){const start=Date.now();while(!current||!predicate(current)){if(Date.now()-start>timeout){await page.screenshot({path:path.join(out,'outgame-web-'+test.name+'-failure.png')});fs.writeFileSync(path.join(out,'outgame-web-'+test.name+'-failure.json'),JSON.stringify({label,current,errors},null,2));throw Error(test.name+' timeout '+label+' '+JSON.stringify(current));}await sleep(100);}return current;}
+   async function wait(predicate,label,timeout=240000){const start=Date.now();let nextDump=start+1000;while(!current||!predicate(current)){if(Date.now()-start>timeout){await page.screenshot({path:path.join(out,'outgame-web-'+test.name+'-failure.png')});fs.writeFileSync(path.join(out,'outgame-web-'+test.name+'-failure.json'),JSON.stringify({label,current,errors},null,2));throw Error(test.name+' timeout '+label+' '+JSON.stringify(current));}if(Date.now()>nextDump){nextDump=Date.now()+1000;await page.keyboard.down('F8');await sleep(60);await page.keyboard.up('F8');}await sleep(100);}return current;}
    async function dump(){const count=states.length;await page.keyboard.down('F8');await sleep(100);await page.keyboard.up('F8');await wait(()=>states.length>count,'UI bounds',10000);return current;}
    async function key(name){await page.keyboard.down(name);await sleep(100);await page.keyboard.up(name);await sleep(100);await dump();}
    async function click(text,icon){
@@ -128,7 +128,13 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
     const restored=current.widgets.find(w=>w.text==='赤焰 GT'&&w.card);
     assert.ok(!restored.card.hovered&&restored.card.image<.01&&restored.card.reveal<.01,'Leaving restores frozen card without rebuilding page');
    }
-   await click('轮式');await dump();assert.equal(current.workshop.group,'wheel');await shot('filter');
+   await click('轮式');await dump();assert.equal(current.workshop.group,'wheel');
+   assert.equal(current.workshop.tabMotions.wheel.line.target,1,'Selected source tab begins the underline transition');
+   assert.equal(current.workshop.tabMotions.all.line.target,0,'Previous source tab retracts its underline across page rebuild');
+   assert.equal(current.workshop.tabMotions.wheel.line.duration,.25,'Frozen source underline duration');
+   await shot('filter');await dump();
+   assert.equal(current.workshop.tabMotions.wheel.line.value,1,'Selected underline settles fully visible');
+   assert.equal(current.workshop.tabMotions.all.line.value,0,'Previous underline settles hidden');
    await click('机库');await wait(s=>s.tab==='hangar','return');
    await click('改装');await wait(s=>s.build,'builder');await shot('builder');
    await dump();assert.ok(current.widgets.some(w=>w.text==='赛车红'),'Frozen default paint color');
@@ -143,8 +149,13 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
     const next=swatches.find(other=>Math.abs(other.rect[1]-cell.rect[1])<.001&&other.rect[0]>cell.rect[0]+.001);
     if(next)assert.ok(next.rect[0]>=cell.rect[0]+cell.rect[2]-.001,'Palette cells do not overlap');
    }
-   await click('','help');await wait(s=>s.dialog,'build help');await shot('build-help');
-   await page.keyboard.press('h');await wait(s=>!s.dialog,'H closes help without reopening',10000);
+   await click('','help');await wait(s=>s.tutorial?.visible&&s.tutorial.replay&&s.tutorial.id==='bag','source editor tutorial replay');await shot('build-help');
+   await dump();const skip=current.tutorial.buttons.find(b=>b.id==='skip');assert.ok(skip,'Original replay skip button');
+   const skipX=(skip.x+skip.w/2)/current.width*test.width,skipY=(skip.y+skip.h/2)/current.height*test.height;
+   if(test.touch)await page.touchscreen.tap(skipX,skipY);else await page.mouse.click(skipX,skipY);
+   await wait(s=>!s.tutorial.running,'source replay closes');
+   await key('h');await wait(s=>s.dialog,'H opens original controls help');await shot('build-help-keys');
+   await key('h');await wait(s=>!s.dialog,'H closes help without reopening',10000);
    if(test.touch){
     await dump();const slot=current.widgets.find(w=>w.part&&w.rect[1]>current.height*.8);assert.ok(slot,'Original hotbar is available for touch inventory access');
     const [x,y,w,h]=slot.rect,canvas=await page.locator('canvas').boundingBox();
@@ -152,7 +163,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
     const cdp=await context.newCDPSession(page);
     await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:px,y:py,id:1}]});await sleep(900);
     await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await cdp.detach();
-   }else await page.keyboard.press('b');
+   }else await key('b');
    await wait(s=>s.inventory,'inventory');await shot('inventory');
    await click('更多参数');await shot('inventory-expanded');
    await click('操作说明');await shot('inventory-help');await click('操作说明');
@@ -201,7 +212,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
    }
    if(!test.touch){
     await click('创意工坊');await wait(s=>s.tab==='workshop','workshop key acceptance');
-    if(current.workshop.view==='browse'){await click('返回');await wait(s=>s.workshop?.view==='feature','feature entry');}
+    if(current.workshop.view==='browse'){await click('','back');await wait(s=>s.workshop?.view==='feature','feature entry');}
     await key('Enter');await wait(s=>s.workshop?.view==='detail'&&s.preview?.complete,'detail for add');
     const prefabs=JSON.parse(fs.readFileSync(path.join(root,'assets/UI/Workshop.json'),'utf8')).prefabs;
     for(let i=0;i<prefabs.length&&current.workshop.selected!=='raceCar';i++){
@@ -215,7 +226,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
     await click('机库');await wait(s=>s.tab==='hangar','key acceptance returns home');
    }
    await sleep(5000);await dump();
-   const result={...test,gpu,build:{directory:path.basename(prepared.source_directory),manifest:path.basename(prepared.manifest_path)},engineSources:cached?{mode:'downloaded-snapshots',snapshots:require('./cached-engine-sources.cjs').snapshots}:{mode:'live-cdn'},home:{width:home.width,height:home.height,physical:home.physical,render:home.render,touch:home.touch},frames:current.frames,errors,states,...(checkStreaming?{streaming:{startupMedia,visitedPageMedia:[...mediaResponses]}}:{})};
+   const result={...test,gpu,build:{directory:path.basename(prepared.source_directory),manifest:path.basename(prepared.manifest_path)},engineSources:cached?{mode:'downloaded-snapshots',snapshots:require('./cached-engine-sources.cjs').snapshots}:{mode:'live-cdn'},home:{width:home.width,height:home.height,physical:home.physical,render:home.render,touch:home.touch},frames:current.frames,errors,probeIssues,states,...(checkStreaming?{streaming:{startupMedia,visitedPageMedia:[...mediaResponses]}}:{})};
    report.push(result);fs.writeFileSync(path.join(out,'outgame-web-'+test.name+'.log'),messages.join('\n'));
    fs.writeFileSync(path.join(out,'outgame-web-'+test.name+'.json'),JSON.stringify(result,null,2));
    if(errors.length)failed.push(test.name+': '+errors.length+' runtime errors');

@@ -200,6 +200,24 @@ function Materials.DynamicEmission(slot)
     end
     return cache[key]
 end
+function Materials.Joined(slot,xray)
+    local key='joined:'..slot..':'..tostring(xray==true)
+    if not cache[key] then
+        local m=xray and Materials.New('BuildXray.shader') or Materials.Get(slot):Clone()
+        m:SetShaderParameter('use_vertex_color',Variant(1.0))
+        if xray then m:SetShaderParameter('tint_color',Variant(Color(1,1,1,.12)))
+        elseif slot=='paint' then
+            SetFloat(m,'roughness_value',.56);SetFloat(m,'metallic_value',.04)
+        elseif slot=='heavyPaint' then SetFloat(m,'clearcoat_roughness_value',.22) end
+        cache[key]=m
+    end
+    return cache[key]
+end
+function Materials.JoinedOutline()
+    local key='joined:outline'
+    if not cache[key] then cache[key]=Materials.New('BuildLines.shader') end
+    return cache[key]
+end
 
 --- 车库等场景物体用的固定色 PBR 材质（按参数缓存）
 ---@param hex integer

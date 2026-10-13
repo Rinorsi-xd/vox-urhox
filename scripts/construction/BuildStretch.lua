@@ -140,19 +140,20 @@ function M.Commit(editor)
     local items=plan.items or {};local ops={};local id=editor.bp.nextId
     if s.phase~='selection' then
         local finish=editor:FinishFor(s.type)
-        for _,c in ipairs(plan.cells) do items[#items+1]={type=s.type,pos=c,rot=s.rot,color=finish.color,shellColor=finish.shellColor} end
+        local g=editor.joinNew and editor.bp.nextGroup or 0
+        for _,c in ipairs(plan.cells) do items[#items+1]={type=s.type,pos=c,rot=s.rot,color=finish.color,shellColor=finish.shellColor,g=g} end
         -- H5 skips occupied mirrored rectangle cells, while selection extrusion
         -- rejects either side atomically. Keep those distinct authored rules.
         local occupied={};for _,it in ipairs(items) do occupied[Blueprint.Key(table.unpack(it.pos))]=true end
         for _,m in ipairs(plan.mirrorCells) do
             local key=Blueprint.Key(table.unpack(m.pos));local res=editor.bp:Check(s.type,m.pos,m.rot,editor.bounds,nil,false)
-            if res.ok and not occupied[key] then items[#items+1]={type=s.type,pos=m.pos,rot=m.rot,color=finish.color,shellColor=finish.shellColor};occupied[key]=true end
+            if res.ok and not occupied[key] then items[#items+1]={type=s.type,pos=m.pos,rot=m.rot,color=finish.color,shellColor=finish.shellColor,g=g>0 and g+1 or 0};occupied[key]=true end
         end
     end
     for _,it in ipairs(items) do local data=History.Snapshot({id=id,type=it.type,pos=it.pos,rot=it.rot,color=it.color,shellColor=it.shellColor,g=it.g})
         ops[#ops+1]={op='add',data=data};id=id+1
     end
-    local selection=s.phase=='selection';local ok=editor.history:Commit(ops)
+    local selection=s.phase=='selection';local ok=editor.history:Commit(ops,not selection and editor.joinNew and require('construction.BuildGroups').JoinAdded or nil)
     if selection and ok then for _,op in ipairs(ops) do editor.selection[op.data.id]=true end;editor:SelectionChanged() end
     M.Cancel(editor);if selection then editor.tool='build';editor.stretchSelected=true end
     return ok

@@ -21,7 +21,7 @@ function M:Mesh(d,parts,old,keep,order,ghost)
     local path=st.kind=='shape' and st.mask or st.texture
     if not cache:Exists(path) then return nil end
     local near=Project.Near(d,st,parts);local key={}
-    for _,p in ipairs(near) do key[#key+1]=p.id..':'..p.type..':'..table.concat(p.pos,',')..':'..p.rot end
+    for _,p in ipairs(near) do key[#key+1]=p.id..':'..p.type..':'..table.concat(p.pos,',')..':'..p.rot..':'..(p.g or 0) end
     local gk=table.concat(key,';')..'|'..table.concat(d.p,',')..'|'..table.concat(d.n,',')..'|'..d.r..'|'..d.w..'|'..(d.f or 0)..'|'..st.aspect..(ghost and '|g' or '')
     local mesh
     for _,candidate in pairs(old) do if not keep[candidate] and candidate.key==gk then mesh=candidate;break end end

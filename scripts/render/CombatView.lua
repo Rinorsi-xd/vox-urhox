@@ -30,6 +30,7 @@ function M:Consume(world)
                 vis:AddPart(p)
                 for _,cell in ipairs(p._cells) do c[1]=c[1]+cell[1];c[2]=c[2]+cell[2]+.5;c[3]=c[3]+cell[3];count=count+1 end
             end
+            vis.joined:Update()
             self.pieces[e.piece]={view=vis,center=Coord.Vec(c[1]/count,c[2]/count,c[3]/count)}
         else
             local d=self.pieces[e.piece];if d then d.view:Dispose();self.pieces[e.piece]=nil end

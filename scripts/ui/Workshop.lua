@@ -24,7 +24,10 @@ function Dot:Render(vg)
     Paint.Image(vg,image,{x=r.x,y=r.y,w=r.w,h=66},1,.62)
     D.Text(vg,p.name,r.x,r.y+72,13,selected and D.white or {219,238,255,140})
     D.Rect(vg,r.x,r.y+r.h-3,r.w,3,{255,255,255,38})
-    if selected then D.Rect(vg,r.x,r.y+r.h-3,r.w*math.min(1,(self.owner.workshop.elapsed or 0)/7),3,D.orange) end
+    if selected then
+        local length=r.w*math.min(1,(self.owner.workshop.elapsed or 0)/7)
+        Paint.Glow(vg,r.x,r.y+r.h-3,length,3,8,D.orange,.8);D.Rect(vg,r.x,r.y+r.h-3,length,3,D.orange)
+    end
 end
 function More:Render(vg)
     D.Begin(vg);local r=self:GetAbsoluteLayout()
@@ -102,6 +105,8 @@ function Page:Render(vg)
         nvgRestore(vg)
         local cy=y+self.capY
         CaptionBegin(vg,ws,1)
+        local tierColor=Paint.colors[(Data.stats[p.id] or {}).tier or 1]
+        nvgSave(vg);nvgTranslate(vg,x+pad+8,cy+9);nvgRotate(vg,math.pi/4);Paint.Glow(vg,-6,-6,12,12,14,tierColor,.9);nvgRestore(vg)
         D.Path(vg,{x+pad,cy+9,x+pad+8,cy+1,x+pad+16,cy+9,x+pad+8,cy+17});nvgFillColor(vg,D.Color(Paint.colors[(Data.stats[p.id] or {}).tier or 1]));nvgFill(vg)
         D.Text(vg,'本周推荐',x+pad+22,cy,15,{255,255,255,255},nil,nil,4);D.Text(vg,'FEATURED',x+pad+108,cy+3,11,{219,238,255,102},nil,nil,5)
         nvgRestore(vg)
@@ -329,7 +334,9 @@ function M.Create(s)
         for i,g in ipairs(groups) do
             local count=0;for _,p in ipairs(Data.prefabs) do if g[1]=='all' or p.group==g[1] then count=count+1 end end
             local width=36+D.Width(vg,g[2],tabSize,nil,2)+D.Width(vg,count,11,'vox-display')
-            Animate(Add(g[2],nil,x,tabTop,width,tabHeight,function() ws.group=g[1];Entrance.Start(ws,'grid');s.revision=-1 end,'tab',{selected=ws.group==g[1],count=count,sourceFontSize=tabSize}),3);x=x+width+2
+            local button=Add(g[2],nil,x,tabTop,width,tabHeight,function() ws.group=g[1];Entrance.Start(ws,'grid');s.revision=-1 end,'tab',{selected=ws.group==g[1],count=count,sourceFontSize=tabSize})
+            ws.tabMotions=ws.tabMotions or {};button.tabMotion=ws.tabMotions[g[1]];button:Update(0);ws.tabMotions[g[1]]=button.tabMotion
+            Animate(button,3);x=x+width+2
         end
         local sx=w-pad-245
         for i,sort in ipairs({{'rec','推荐',52},{'tier','档位',60},{'parts','零件数',74},{'speed','极速',59}}) do

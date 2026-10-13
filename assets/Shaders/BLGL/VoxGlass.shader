@@ -7,13 +7,14 @@ render_mode shading_model_pbr, blend_mix, cull_back;
 
 uniform sampler2D screen_color : hint_screen_texture;
 uniform float roughness_value = 0.24;
+uniform float use_vertex_color = 0.0;
 uniform float blur_px = 11.0;
 uniform float refract_offset = 0.012;
 
 varying vec4 inst_color;
 
 void vertex() {
-    inst_color = INSTANCE_COLOR;
+    inst_color = mix(INSTANCE_COLOR, COLOR, use_vertex_color);
 }
 
 void fragment() {

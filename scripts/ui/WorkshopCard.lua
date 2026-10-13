@@ -42,7 +42,8 @@ function Card:Render(vg)
     PolygonFade(vg,points,x,y+h*.38,w,h*.28,{4,9,18,0},{4,9,18,140})
     PolygonFade(vg,points,x,y+h*.66,w,h*.34,{4,9,18,140},{4,9,18,245})
     -- CSS inset shadows sit below the opaque positioned image, so no visible outline.
-    D.Rect(vg,x,y,w-22,3,c)
+    nvgSave(vg);nvgIntersectScissor(vg,x,y,w,h)
+    Paint.Glow(vg,x,y,w-22,3,14,c,.9);D.Rect(vg,x,y,w-22,3,c);nvgRestore(vg)
     if m.sweep.value>0 and m.sweep.value<1 then Paint.Sweep(vg,points,x,y,w,h,m.sweep.value) end
     local badgeY=y+(self.mini and 10 or 14);local badgeSize=self.mini and 13 or 15
     local badgePad=self.mini and 10 or 12;local tierText='T'..tier

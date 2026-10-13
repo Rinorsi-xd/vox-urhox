@@ -119,12 +119,10 @@ end
 function M:CarSize()
     local u=self.player;local p=u:Position();local key=u.bp:Size()
     if self.sizeKey==key then return self.size end
-    local low,high={math.huge,math.huge,math.huge},{-math.huge,-math.huge,-math.huge}
-    if self.session.view then for _,vis in pairs(self.session.view.view.visuals) do for _,sm in ipairs(vis.models) do
-        local b=sm.worldBoundingBox;local a,z=b.min,b.max;local av,bv={a.x,a.y,a.z},{z.x,z.y,z.z}
-        for j=1,3 do low[j]=math.min(low[j],av[j]);high[j]=math.max(high[j],bv[j]) end
-    end end end
-    if low[1]==math.huge then return {w=2,below=1.5,above=1.5} end
+    if not self.session.view then return {w=2,below=1.5,above=1.5} end
+    local box=self.session.view.view:GetWorldBounds()
+    if not box:Defined() then return {w=2,below=1.5,above=1.5} end
+    local a,z=box.min,box.max;local low,high={a.x,a.y,a.z},{z.x,z.y,z.z}
     self.sizeKey=key;self.size={w=math.max(high[1]-low[1],high[3]-low[3])/2,below=math.max(1.5,p[2]-low[2]),above=math.max(1.5,high[2]-p[2])};return self.size
 end
 function M:AfterStep(dt)

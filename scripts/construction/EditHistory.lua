@@ -12,19 +12,27 @@ function M:Apply(op)
     if op.op=='add' then return self.bp:Add(op.data)
     elseif op.op=='remove' then return self.bp:Remove(op.data.id)
     elseif op.op=='color' then return self.bp:SetColor(op.id,op.to,op.channel) end
+    if op.op=='group' then
+        for i,id in ipairs(op.ids) do local p=self.bp.parts[id]
+            if p then p.g=op.to[i];self.bp.nextGroup=math.max(self.bp.nextGroup,p.g+1) end
+        end
+        return
+    end
     error('Unknown edit operation '..tostring(op.op))
 end
 function M.Inverse(op)
     if op.op=='color' then return {op='color',id=op.id,channel=op.channel,from=op.to,to=op.from} end
+    if op.op=='group' then return {op='group',ids=op.ids,from=op.to,to=op.from} end
     return {op=op.op=='add' and 'remove' or 'add',data=op.data}
 end
 function M:Changed(ops)
     self.revision=self.revision+1
     if self.onChange then self.onChange(ops,self.revision) end
 end
-function M:Commit(ops)
+function M:Commit(ops,derive)
     if #ops==0 then return false end
     for _,op in ipairs(ops) do self:Apply(op) end
+    if derive then for _,op in ipairs(derive(self.bp,ops)) do self:Apply(op);ops[#ops+1]=op end end
     self.undoStack[#self.undoStack+1]=ops
     if #self.undoStack>300 then table.remove(self.undoStack,1) end
     self.redoStack={};self:Changed(ops);return true

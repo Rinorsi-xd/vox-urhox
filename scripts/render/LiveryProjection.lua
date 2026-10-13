@@ -32,12 +32,25 @@ local function Clip(pts,axis,sign,lim)
 end
 function M.Project(d,s,parts)
     local f=M.Frame(d);local w,h,depth=M.Size(d,s);local out={}
+    local Surface=require 'render.JoinedSurface'
+    local _,_,joined=Surface.Build(parts,true)
     for _,p in ipairs(parts) do
-        local model=require('parts.PartAssets').Get(p.type,p.rot)
-        for _,layer in ipairs(model.whole.layers) do for _,mesh in ipairs(Models.Read(layer)) do if not Models.Skip(mesh.slot) then
+        local layers={}
+        if joined[p.id] then
+            local surface=joined[p.id];local triangles={}
+            for i=1,#surface.position,9 do local tri={}
+                for j=0,2 do local k=i+j*3;tri[#tri+1]={surface.position[k]-p.pos[1],surface.position[k+1]-p.pos[2]-.5,surface.position[k+2]-p.pos[3],surface.normal[k],surface.normal[k+1],surface.normal[k+2]} end
+                triangles[#triangles+1]=tri
+            end
+            layers[1]={{slot=Surface.Slot(p),triangles=triangles,worldAxes=true}}
+        else
+            for _,layer in ipairs(require('parts.PartAssets').Get(p.type,p.rot).whole.layers) do layers[#layers+1]=Models.Read(layer) end
+        end
+        for _,layer in ipairs(layers) do for _,mesh in ipairs(layer) do if not Models.Skip(mesh.slot) then
             for _,tri in ipairs(mesh.triangles) do
                 local verts={};for _,v in ipairs(tri) do
-                    local point=Rot.ApplyRot(p.rot,{v[1],v[2],v[3]});local normal=Rot.ApplyRot(p.rot,{v[4],v[5],v[6]})
+                    local point,normal={v[1],v[2],v[3]},{v[4],v[5],v[6]}
+                    if not mesh.worldAxes then point=Rot.ApplyRot(p.rot,point);normal=Rot.ApplyRot(p.rot,normal) end
                     local q={point[1]+p.pos[1]-d.p[1],point[2]+p.pos[2]+.5-d.p[2],point[3]+p.pos[3]-d.p[3]}
                     verts[#verts+1]={Dot(q,f.x),Dot(q,f.y),Dot(q,f.n),Dot(normal,f.x),Dot(normal,f.y),Dot(normal,f.n)}
                 end

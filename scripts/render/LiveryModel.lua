@@ -50,6 +50,7 @@ end
 function M.Fixed(part)
     local def=require('parts.Defs').PARTS[part.type]
     if not def or def.weapon or def.wheel or def.leg or def.mech then return false end
+    if require('render.JoinedSurface').IsJoined(part) then return true end
     local data=require('parts.PartAssets').Get(part.type,part.rot)
     return not data.segments or data.segments==cjson.null
 end

@@ -8,11 +8,12 @@ local Defs=require('parts.Defs').PARTS
 local Config=require 'Config'
 local Finish=require 'parts.Finish'
 local Selection=require 'construction.SelectionTools'
+local Groups=require 'construction.BuildGroups'
 local M={};M.__index=M
 local function Copy(v) return {table.unpack(v)} end
 function M.New(bp,onChange)
     local self=setmetatable({bp=bp,bounds=Config.TierBounds(),type='cube',tool='build',paintChannel='shell',color=Config.PALETTE[1].hex,
-        autoColor=false,mirror=true,spin=0,forward={0,0,1},selection={},clipboard={},pasteSpin=0,pasting=false,dirty=true},M)
+        autoColor=false,mirror=true,joinNew=false,spin=0,forward={0,0,1},selection={},clipboard={},pasteSpin=0,pasting=false,dirty=true},M)
     self.history=History.New(bp,function(ops,revision)
         self.dirty=true;self.preview=nil
         self:SelectionChanged()
@@ -91,17 +92,29 @@ function M:Place()
     if not pv.res.ok or not res.ok then return false,pv.res.ok and res.reason or pv.res.reason end
     local finish=self.sampledFinish and self.sampledFinish.type==pv.type and self.sampledFinish or Defs[pv.type]
     local first={id=self.bp.nextId,type=pv.type,pos=Copy(pv.pos),rot=pv.rot,color=finish.color,shellColor=finish.shellColor}
+    if self.joinNew and Defs[pv.type].shape then first.g=self.bp.nextGroup end
     if not self.autoColor then first[Finish.Field(first,self.paintChannel) or 'color']=self.color end
     -- The mirror is checked after the first addition, as in source. Probe within
     -- the synchronous command, then remove it before committing the single delta.
     local ops={{op='add',data=first}}
     if pv.mirror then
-        local nextId=self.bp.nextId;self.bp:Add(first)
+        local nextId,nextGroup=self.bp.nextId,self.bp.nextGroup;self.bp:Add(first)
         local m=pv.mirror;local valid=self.bp:Check(pv.type,m.pos,m.rot,self.bounds)
-        if valid.ok then ops[#ops+1]={op='add',data={id=self.bp.nextId,type=pv.type,pos=Copy(m.pos),rot=m.rot,color=first.color,shellColor=first.shellColor}} end
-        self.bp:Remove(first.id);self.bp.nextId=nextId
+        if valid.ok then ops[#ops+1]={op='add',data={id=self.bp.nextId,type=pv.type,pos=Copy(m.pos),rot=m.rot,color=first.color,shellColor=first.shellColor,g=first.g and self.bp.nextGroup}} end
+        self.bp:Remove(first.id);self.bp.nextId=nextId;self.bp.nextGroup=nextGroup
     end
-    return self.history:Commit(ops)
+    return self.history:Commit(ops,self.joinNew and Groups.JoinAdded or nil)
+end
+function M:ToggleForm()
+    if self.stretch then return false end
+    if next(self.selection) then
+        local op,message=Groups.Selection(self);if not op then return false,message end
+        local ok=self.history:Commit({op});self.selection={};self.selectionOrder=op.ids
+        for _,id in ipairs(op.ids) do self.selection[id]=true end;self:SelectionChanged()
+        return ok,message
+    end
+    self.joinNew=not self.joinNew;self.dirty=true
+    return true,self.joinNew and '连块放置：新方块相邻时连成整体，F 关闭' or '普通方块放置'
 end
 function M:Targets(hit)
     local p=hit and self.bp.parts[hit.partId];if not p then return {} end
@@ -111,7 +124,7 @@ end
 function M:Remove(hit)
     if self.stretch then return require('construction.BuildStretch').Right(self) end
     local ops={};for _,p in ipairs(self:Targets(hit or self.hit)) do ops[#ops+1]={op='remove',data=History.Snapshot(p)} end
-    return self.history:Commit(ops)
+    return self.history:Commit(ops,Groups.SplitRemoved)
 end
 function M:Paint()
     if self.tool~='paint' then return false end
@@ -155,8 +168,8 @@ function M:SelectionParts(parts)
 end
 function M:SelectionChanged()
     for id in pairs(self.selection) do if not self.bp.parts[id] then self.selection[id]=nil end end
-    local selected={};for _,p in ipairs(self.bp:List()) do if self.selection[p.id] then selected[#selected+1]=p end end
-    for _,p in ipairs(self:SelectionParts(selected)) do self.selection[p.id]=true end
+    local selected=self:SelectionParts(self:Selected());self.selectionOrder={}
+    for _,p in ipairs(selected) do self.selection[p.id]=true;self.selectionOrder[#self.selectionOrder+1]=p.id end
     local corners={}
     for _,c in ipairs(self.selectionCorners or {}) do if self.selection[c.id] then corners[#corners+1]=c end end
     self.selectionCorners=corners;self.selectionVersion=(self.selectionVersion or 0)+1;self.dirty=true
@@ -223,7 +236,12 @@ function M:BoxSelect(rect,project)
     end end
 end
 function M:Selected()
-    local out={};for _,p in ipairs(self.bp:List()) do if self.selection[p.id] then out[#out+1]=p end end;return out
+    local out,seen={},{}
+    for _,id in ipairs(self.selectionOrder or {}) do
+        if self.selection[id] and self.bp.parts[id] then out[#out+1]=self.bp.parts[id];seen[id]=true end
+    end
+    for _,p in ipairs(self.bp:List()) do if self.selection[p.id] and not seen[p.id] then out[#out+1]=p end end
+    return out
 end
 function M:Move(parts,delta)
     if #parts==0 then return false end

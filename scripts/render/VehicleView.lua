@@ -8,6 +8,7 @@ local Defs = require "parts.Defs"
 local Coord = require "core.Coord"
 local Assets = require "parts.PartAssets"
 local Rig = require "render.PartRig"
+local JoinedSurface=require 'render.JoinedSurface'
 
 ---@class PartVisual
 ---@field node Node
@@ -40,6 +41,7 @@ function VehicleView:init(parent, name)
     self.root = parent:CreateChild(name or "Vehicle")
     self.root:SetScale(Config.CELL)
     self.visuals = {}
+    self.joined=require('render.JoinedMesh').New(self.root)
     self.livery=require('render.LiveryLayer').New(self)
 end
 
@@ -60,12 +62,14 @@ end
 ---@return PartVisual
 function VehicleView:AddPart(part)
     local def = Defs.PARTS[part.type]
-    local mesh = Assets.Get(part.type,part.rot)
     local node = self.root:CreateChild("P" .. part.id)
     node.position = VehicleView.PartLocalPos(part)
     node.rotation = Coord.RotQuat(part.rot)
     local vis = {node=node,models={},resources={},variation=Variation(part.id),instanced=def.instanced==true}
-    Rig.Build(node,mesh,part,vis)
+    vis.joined=JoinedSurface.IsJoined(part)==true
+    if vis.joined then
+        vis.rig={};vis.shellSlots={};vis.materialSlots={};vis.data={};self.joined:Add(part)
+    else Rig.Build(node,Assets.Get(part.type,part.rot),part,vis) end
     self.visuals[part.id] = vis
     vis.part=part
     self.livery:PartsChanged()
@@ -78,6 +82,7 @@ end
 function VehicleView:RemovePart(id)
     local vis = self.visuals[id]
     if not vis then return end
+    self.joined:Remove(id)
     vis.node:Dispose()
     vis.xrayOriginals=nil;vis.materialSlots={}
     if vis.weaponMotion then require('render.WeaponPresentation').Dispose(vis) end
@@ -99,6 +104,8 @@ end
 function VehicleView:Repaint(part)
     local vis = self.visuals[part.id]
     if not vis then return end
+    vis.part=part
+    if vis.joined then self.joined:Repaint(part);return end
     local color = Config.HexLinear(part.color, Variation(part.id))
     for _, sm in ipairs(vis.models) do sm.instanceColor = color end
     if #vis.shellSlots>0 then
@@ -117,11 +124,16 @@ end
 function VehicleView:ApplyEdits(ops,bp)
     self.livery:PartsChanged()
     local touched={}
-    for _,op in ipairs(ops) do touched[op.id or op.data.id]=true end
+    for _,op in ipairs(ops) do
+        if op.ids then for _,id in ipairs(op.ids) do touched[id]=true end
+        else touched[op.id or op.data.id]=true end
+    end
     for id in pairs(touched) do
         local part,vis=bp.parts[id],self.visuals[id]
         if not part then self:RemovePart(id)
         elseif not vis then self:AddPart(part)
+        elseif vis.joined~=(JoinedSurface.IsJoined(part)==true) then
+            self:RemovePart(id);self:AddPart(part)
         else
             vis.node.position=self.PartLocalPos(part);vis.node.rotation=Coord.RotQuat(part.rot)
             self:Repaint(part)
@@ -136,17 +148,20 @@ function VehicleView:Clear()
     for id in pairs(self.visuals) do ids[#ids+1]=id end
     for _,id in ipairs(ids) do self:RemovePart(id) end
     self.visuals = {}
+    self.joined:Clear()
 end
 
 function VehicleView:Dispose()
     if self.weaponEffects then self.weaponEffects:Dispose();self.weaponEffects=nil end
     self:Clear()
     self.livery:Dispose()
+    self.joined:Dispose()
     if self.xray then self.xray:Dispose();self.xray=nil end
     self.root:Dispose()
 end
 
 function VehicleView:SetXray(on)
+    self.joined:SetXray(on)
     if on and not self.xray then
         self.xray=require('render.BuildXray').New()
         for _,vis in pairs(self.visuals) do self.xray:Attach(vis) end
@@ -160,6 +175,7 @@ end
 function VehicleView:Rebuild(bp)
     self:Clear()
     for _, part in ipairs(bp:List()) do self:AddPart(part) end
+    self.joined:Update()
     self.livery:Set(bp.livery);self.livery:Update()
 end
 
@@ -170,8 +186,19 @@ function VehicleView:SetVisible(visible)
 end
 
 function VehicleView:UpdateIdle(dt,time)
+    self.joined:Update()
     self.livery:Update()
     for _,vis in pairs(self.visuals) do if vis.weaponMotion then require('render.WeaponPresentation').Update(vis,dt,time) end end
+end
+
+function VehicleView:GetWorldBounds()
+    self.joined:Update()
+    local box=BoundingBox()
+    for _,vis in pairs(self.visuals) do
+        for _,model in ipairs(vis.models) do box:Merge(model.worldBoundingBox) end
+    end
+    for _,mesh in pairs(self.joined.meshes) do box:Merge(mesh.geometry.worldBoundingBox) end
+    return box
 end
 
 function VehicleView:UpdateWeaponEffects(dt,context,emitter)

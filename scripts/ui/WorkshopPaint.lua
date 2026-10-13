@@ -82,9 +82,15 @@ end
 function M.Tier(vg,id,x,y)
     local st=Data.stats[id] or {};local t=st.tier or 1;local p
     for _,v in ipairs(Data.prefabs) do if v.id==id then p=v end end
-    local c=M.colors[t];D.Rect(vg,x,y+7,34,4,c)
+    local c=M.colors[t];M.Glow(vg,x,y+7,34,4,12,c,.9);D.Rect(vg,x,y+7,34,4,c)
     local tier=require('Config').TIERS[t].name
     D.Text(vg,tier,x+44,y,14,c,nil,nil,2);D.Text(vg,'/  '..p.kind,x+44+D.Width(vg,tier,14,nil,2)+10,y,14,{219,238,255,140},nil,nil,2)
+end
+function M.Glow(vg,x,y,w,h,blur,c,opacity)
+    if w<=0 or h<=0 then return end
+    local pad=blur*1.5
+    nvgBeginPath(vg);nvgRect(vg,x-pad,y-pad,w+pad*2,h+pad*2)
+    nvgFillPaint(vg,nvgBoxGradient(vg,x,y,w,h,0,blur,nvgRGBA(c[1],c[2],c[3],255*opacity),nvgRGBA(c[1],c[2],c[3],0)));nvgFill(vg)
 end
 function M.Segments(vg,x,y,w,ratio,c)
     local step=w/20

@@ -1,0 +1,51 @@
+{
+  "commit": "90862445074e7e146da900037979ad97899ecf6c",
+  "sources": {
+    "shared/parts/shapes.js": {
+      "sha256": "bec9526f19618dff290b75993053caa5cc8d4859910278be1aca86bccbe9635a",
+      "bytes": 23170
+    },
+    "shared/parts/polytope.js": {
+      "sha256": "dd9ba10dc604b67c491076cabb27ee951852e8644c83f97727aa6e061e49cb66",
+      "bytes": 2997
+    },
+    "shared/parts/solid.js": {
+      "sha256": "f9294ec2ab0ec659132c29cd2cf103e73e005c1ae121811b0f0d10096a27cb47",
+      "bytes": 8499
+    },
+    "shared/parts/defs.js": {
+      "sha256": "fea657b421e6d89de26714b988bad479fedd1ad11bb2148989164b9ef8aff7e2",
+      "bytes": 45266
+    },
+    "shared/core/rotations.js": {
+      "sha256": "518991e9e8ec6df511a7f64db5771c4b426c7e642d217e2df02bb264e79089c1",
+      "bytes": 4369
+    }
+  },
+  "asset": "assets/Parts/JoinedShapes.json",
+  "bytes": 1164586,
+  "sha256": "87432a859056d4494b2a6e63912f51bd581ac935adddddf6c0ee4b0715fb91a5",
+  "shapes": [
+    "cube",
+    "slope",
+    "corner",
+    "inner",
+    "tetra",
+    "cutCorner",
+    "roundEdge",
+    "roundCorner",
+    "roundInner",
+    "concEdge",
+    "concCorner",
+    "concInner",
+    "cone",
+    "half",
+    "cylinder",
+    "gentleHi",
+    "gentleLo",
+    "gentleOutHi",
+    "gentleOutLo",
+    "gentleInHi",
+    "gentleInLo"
+  ]
+}

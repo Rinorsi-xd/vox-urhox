@@ -8,6 +8,7 @@ render_mode shading_model_pbr, cull_back;
 #include "lib/VoxHemi.shaderinc"
 
 uniform float block_edges = 0.0;
+uniform float use_vertex_color = 0.0;
 uniform float roughness_value = 0.55;
 uniform float metallic_value = 0.05;
 uniform float clearcoat_value = 0.12;
@@ -33,7 +34,7 @@ float p_noise(vec3 p) {
 
 void vertex() {
     local_p = VERTEX;
-    inst_color = INSTANCE_COLOR;
+    inst_color = mix(INSTANCE_COLOR, COLOR, use_vertex_color);
 }
 
 void fragment() {
