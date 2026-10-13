@@ -96,7 +96,7 @@ function M:Zoom(wheel)
     self.camera:SetModeConfig(mode,{distance=self.cameraDistance,offset=self.cameraOffset,fov=48})
     self.camera:SetMode(mode)
 end
-function M:Pause() self.pointer:Release();self.weaponAudio:SetActive(false);self.drivingAudio:SetActive(false);self.feedbackAudio:SetActive(false) end
+function M:Pause() self.pendingRotorStep=false;self.pointer:Release();self.weaponAudio:SetActive(false);self.drivingAudio:SetActive(false);self.feedbackAudio:SetActive(false) end
 function M:Escape()
     if self.dialog then Host.Close(self);self:Pause()
     elseif self.pointer.captured then self:Pause()
@@ -186,11 +186,17 @@ function M:Tick(dt,command)
     -- Fixed 60 Hz on both desktop and 30 Hz mobile. Bound catch-up after pauses.
     local elapsed=math.min(math.max(dt,0),.1);self.droppedTime=self.droppedTime+math.max(0,dt-elapsed)
     self.accumulator=self.accumulator+elapsed
+    self.pendingRotorStep=self.pendingRotorStep or command.rotorStep==true
+    command.rotorStep=self.pendingRotorStep
     local aim=command.aim or self:Aim()
     self.aimPoint=aim;self.firing=command.firing==true
+    local rotorStepped=false
     while self.accumulator>=1/60 do
         if self.combat then self.combat:BeforeStep(1/60,command,aim)
         else
+            self.vehicle:StepRotors(aim,command.rotorStep and not rotorStepped,1/60)
+            rotorStepped=true
+            require('drive.RotorMotion').Weapons(self.vehicle.rotors,self.weapons)
             self.vehicle:Step(command,1/60)
             local body=self.vehicle.body;local p,v=body.translation(),body.linvel()
             local eye=self.camera:GetNode().worldPosition
@@ -199,6 +205,8 @@ function M:Tick(dt,command)
         end
         -- WeaponSystem reuses its event array: consume every fixed step immediately.
         if not self.combat then self.effects:Consume(self.weapons.fx);self.weaponAudio:Consume(self.weapons.fx) end
+        command.rotorStep=false
+        self.pendingRotorStep=false
         self.world:Step(1/60)
         if self.combat then self.combat:AfterStep(1/60);self.combat:SyncPlayer() end
         if self.combat then

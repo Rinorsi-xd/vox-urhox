@@ -27,6 +27,8 @@ local function DumpTrial(app)
         widgets={},performance=ResourceStats(),frames=FrameStats()}
     data.performance.batches=renderer.numBatches;data.performance.primitives=renderer.numPrimitives
     if s.drivingAudio then data.drivingAudio=s.drivingAudio:Snapshot() end
+    data.rotors={}
+    for _,r in ipairs(s.vehicle.rotors) do data.rotors[#data.rotors+1]={id=r.partId,mode=r.mode,angle=r.angle,target=r.target} end
     if s.feedbackAudio then data.feedbackAudio=s.feedbackAudio:Snapshot() end
     local rt=s.hud.vitals
     data.reticle={hp=rt.hp,structure=rt.structure,fire=rt.fire,clock=rt.clock,hit=rt.hit,repair=rt.repair,
@@ -107,6 +109,8 @@ local function Dump(app)
         local joined=b.car.joined
         local groups={};for _,p in ipairs(b.editor.bp:List()) do if p.g>0 then groups[#groups+1]={id=p.id,g=p.g,type=p.type} end end
         data.buildGroups={joinNew=b.editor.joinNew,parts=groups,vertices=joined.vertices or 0,rebuilds=joined.rebuilds,xray=app.buildXray==true}
+        local rotor=b.hud.rotor
+        data.rotorHud={mode=rotor.mode,visible=rotor.info~=nil,bounds=rotor.bounds,load=rotor.info and rotor.info.count}
         if b.selecting then
             local parts={}
             for _,part in ipairs(b.editor.bp:List()) do parts[#parts+1]={id=part.id,type=part.type,pos=part.pos,rot=part.rot,_cells=part._cells,g=part.g,color=part.color} end
@@ -381,6 +385,26 @@ function HandleUpdate(et,ed)
         end
     end
     local home=require('ui.GarageHud').GetState()
+    if input:GetKeyPress(KEY_INSERT) and home and home.tab=='hangar' and not app.build then
+        local bp=require('construction.Blueprint').New();local id=require('core.Rotations').IDENTITY
+        for _,p in ipairs({{type='core',pos={0,3,0},rot=id},{type='rotorStep',pos={0,4,0},rot=id},
+            {type='cube',pos={0,5,0},rot=id,g=7},{type='cube',pos={1,5,0},rot=id,g=7},
+            {type='cube',pos={2,5,0},rot=id,g=7},{type='laser1',pos={0,6,0},rot=id}}) do bp:Add(p) end
+        app.qaRotorGate=require('app.ResourceGate').New()
+        local scene=app.scene
+        app.qaRotorGate:Start(require('parts.Dependencies').For(bp:List()),function(ready,message)
+            if not ready then error(message) end
+            if app.scene~=scene or app.stopped then return end
+            local ok,why=app:LoadBlueprint(bp:ToTable());assert(ok,why)
+            app:EnterBuild();app.build.editor.mirror=false
+            local fly=app.build.buildCamera;local ry=(app.blueprint.parts[2].pos[2]+.5)*require('Config').CELL
+            fly:FocusAt(Vector3(0,ry,0),5)
+            if fly.mode=='fp' then
+                fly.flight=require('controls.FreeFlight').New({4,ry,-5},require('core.Math3').Normalize({-4,0,5}),fly.flight.limit);fly:Apply()
+            end
+            print('[RotorQA] Authored fixture ready after model gate')
+        end)
+    end
     if input:GetKeyPress(KEY_F4) and home and home.tab=='workshop' then home.WorkshopOpen('megaMech') end
     if home and home.workshop and home.workshop.view=='feature' then
         local ws=home.workshop

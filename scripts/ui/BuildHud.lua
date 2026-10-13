@@ -57,6 +57,8 @@ function M.Create(session)
     hover.session=session;root:AddChild(hover);state.hover=hover
     local badge=require('ui.BuildModeBadge'){position='absolute',width='100%',height='100%',pointerEvents='none'}
     badge.session=session;root:AddChild(badge);state.modeBadge=badge
+    local rotor=require('ui.RotorHud'){position='absolute',width='100%',height='100%',pointerEvents='none'}
+    rotor.session=session;root:AddChild(rotor);state.rotor=rotor
     local owned={};for _,child in ipairs(root.children) do owned[#owned+1]=child end
     local pointerModes={};for _,child in ipairs(owned) do pointerModes[child]=child.props.pointerEvents or 'auto' end
     local blockedPointer=false;local inventoryHidden=false
@@ -80,7 +82,7 @@ function M.Create(session)
         if not name.state.focused and name:GetValue()~=editor.bp.name then name:SetValue(editor.bp.name);name.state.cursorPos=0 end
         local b=controls.selectionBox
         box:SetStyle(b and {left=math.min(b.x0,b.x1),top=math.min(b.y0,b.y1),width=math.abs(b.x1-b.x0),height=math.abs(b.y1-b.y0)} or {width=0,height=0})
-        hotbar.Refresh();stats.Refresh();hover:Sync();badge:Sync()
+        hotbar.Refresh();stats.Refresh();hover:Sync();badge:Sync();rotor:Sync()
     end
     function state.Dispose()
         if state.disposed then return end;state.disposed=true;controls:Cancel()

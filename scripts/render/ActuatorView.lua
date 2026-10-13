@@ -30,7 +30,9 @@ function M:Update(dt)
             item.motor=item.motor+(target-item.motor)*(1-math.exp(-dt*(target>item.motor and 6 or 3.5)))
             if item.motor<.0005 then item.motor=0 end
             local direction=vehicle.thrusterDirections[item.id]
-            local exhaust=direction and Math.Unrotate(item.rotation,Math.Scale(direction,-1)) or info.exhaustDir
+            local owner=vehicle.spec.rotorOf and vehicle.spec.rotorOf[item.id]
+            local rotation=owner and Math.QMul(vehicle.rotors[owner].pose.q,item.rotation) or item.rotation
+            local exhaust=direction and Math.Unrotate(rotation,Math.Scale(direction,-1)) or info.exhaustDir
             r.gimbal.rotation=Quaternion(Coord.Vec(table.unpack(info.exhaustDir)),Coord.Vec(table.unpack(exhaust)))
             for i,node in ipairs(r.rotors) do
                 local name=vis.data.segments.rotors[i].name

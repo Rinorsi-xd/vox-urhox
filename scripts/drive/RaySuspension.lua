@@ -33,8 +33,8 @@ function M:init(vehicle)
 end
 function M:Sample()
     local v=self.vehicle;local body=v.body;local q=body.rotation();local position=Array(body.translation())
-    local down=Math.Rotate(q,{0,-1,0})
     for i,w in ipairs(v.wheels) do
+        local down=Math.Rotate(q,w.down or {0,-1,0})
         local s=self.states[i]
         s.hard=Math.Add(position,Math.Rotate(q,w.conn))
         local hit=v.space:Raycast(s.hard,down,w.rest+w.radius,body)
@@ -68,7 +68,8 @@ function M:Apply(dt)
     for i,w in ipairs(v.wheels) do
         local s=self.states[i];s.forwardImpulse=0;s.sideImpulse=0;s.skid=1
         local cy,sy=math.cos(s.steer),math.sin(s.steer);local a=w.contactAxle
-        local axle=Math.Rotate(q,{a[1]*cy+a[3]*sy,a[2],-a[1]*sy+a[3]*cy})
+        local turned=w.rotor and Math.Rotate(require('construction.Rotors').AxisQuat(Math.Scale(w.down,-1),s.steer),a) or {a[1]*cy+a[3]*sy,a[2],-a[1]*sy+a[3]*cy}
+        local axle=Math.Rotate(q,turned)
         s.axle=Math.Normalize(Math.Sub(axle,Math.Scale(s.normal,Math.Dot(axle,s.normal))))
         s.forward=Math.Normalize(Math.Cross(s.normal,s.axle))
         if s.grounded then

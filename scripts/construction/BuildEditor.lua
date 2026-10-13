@@ -116,6 +116,18 @@ function M:ToggleForm()
     self.joinNew=not self.joinNew;self.dirty=true
     return true,self.joinNew and '连块放置：新方块相邻时连成整体，F 关闭' or '普通方块放置'
 end
+function M:SetRotorMode(index)
+    local rotor=self.hit and self.bp.parts[self.hit.partId];local mode=require('construction.Rotors').MODES[index]
+    if not rotor or not require('construction.Rotors').Is(rotor.type) or not mode then return false end
+    if rotor.type==mode.type then return false,'转轴已经是「'..mode.name..'」' end
+    local ops={}
+    for _,p in ipairs(self:Targets(self.hit)) do if require('construction.Rotors').Is(p.type) and p.type~=mode.type then
+        local before=History.Snapshot(p);local after=History.Snapshot(p);after.type=mode.type
+        ops[#ops+1]={op='remove',data=before};ops[#ops+1]={op='add',data=after}
+    end end
+    local ok=self.history:Commit(ops)
+    return ok,'转轴：'..mode.name..' · '..mode.hint..(#ops>2 and '（含镜像）' or '')
+end
 function M:Targets(hit)
     local p=hit and self.bp.parts[hit.partId];if not p then return {} end
     local list={p};local mirror=self.mirror and Placement.MirrorPart(self.bp,p)

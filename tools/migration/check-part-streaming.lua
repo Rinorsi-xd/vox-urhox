@@ -18,6 +18,12 @@ local function Backend()
     return b
 end
 V.atFrame(55,function()
+    local dependencies=require('parts.Dependencies')
+    local warmed={};for _,path in ipairs(dependencies.For({{type='rotorStep',rot=22}})) do warmed[path]=true end
+    for _,type in ipairs({'rotor','rotorSpin','rotorStep'}) do
+        local ready=true;for _,path in ipairs(dependencies.For({{type=type,rot=22}})) do if not warmed[path] then ready=false end end
+        V.assert(ready,type..' mode substitution and undo have warmed model dependencies')
+    end
     local app=VOX_HANGAR.app;local controller=Controller.New(app,app.car.root)
     local backend=Backend();controller.gate=Gate.New(backend)
     local calls,results=0,{}

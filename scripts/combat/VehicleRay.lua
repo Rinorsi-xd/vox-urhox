@@ -50,7 +50,7 @@ local function Bounds(vehicle)
     end end
     for _,w in ipairs(vehicle.wheels) do if not w.track then
         local radius=math.max(w.radius,w.width*.5);local half={radius,radius,radius}
-        Grow({w.center[1],w.center[2]-w.drop,w.center[3]},half);Grow(w.conn,half)
+        Grow(V.Add(w.center,V.Scale(w.down or {0,-1,0},w.drop)),half);Grow(w.conn,half)
     end end
     return {center=V.Scale(V.Add(lo,hi),.5),half=V.Scale(V.Sub(hi,lo),.5)}
 end
@@ -73,7 +73,7 @@ function M.Cast(vehicle,origin,direction,length)
         Accept(distance,normal,shape.partId)
     end end
     for _,w in ipairs(vehicle.wheels) do if not w.track then
-        local center={w.center[1],w.center[2]-w.drop,w.center[3]}
+        local center=V.Add(w.center,V.Scale(w.down or {0,-1,0},w.drop))
         local distance,normal=Cylinder(V.Sub(o,center),d,w.axle,w.radius,w.width*.5,limit)
         Accept(distance,normal,w.partId)
         distance,normal=Cylinder(V.Sub(o,w.conn),d,w.axle,w.radius*.9,w.width*.45,limit)

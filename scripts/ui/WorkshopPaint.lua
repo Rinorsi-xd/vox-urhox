@@ -3,6 +3,20 @@ local Images=require 'urhox-libs/UI/Core/ImageCache'
 local Data=require('core.ResourceData').Read('UI/Workshop.json')
 local Defs=require('parts.Defs').PARTS
 local M={colors={{154,167,180,255},{95,211,138,255},{74,168,255,255},{183,123,255,255},{255,180,60,255}}}
+-- Frozen workshop.css text shadows; NanoVG supplies the glyph-shaped blur.
+M.textShadows={more={{blur=20,color={122,216,255,153}}},title={{blur=24,color={122,216,255,64}}},
+    sort={{blur=10,color={122,216,255,230}}},card={{y=2,blur=8,color={0,0,0,255}}},
+    count={{y=1,blur=3,color={0,0,0,255}}},pager={{y=1,blur=4,color={0,0,0,255}}}}
+local nameShadows={}
+function M.NameShadows(tier,detail)
+    local key=tier+(detail and 5 or 0)
+    if nameShadows[key] then return nameShadows[key] end
+    local c=M.colors[tier]
+    nameShadows[key]={{y=detail and 4 or 6,blur=detail and 24 or 30,color={0,0,0,179}},
+        {blur=detail and 40 or 50,color={c[1],c[2],c[3],detail and 46 or 51}}}
+    return nameShadows[key]
+end
+local rarityShadows={}
 local meta={};local bars={};local maxHp=0
 function M.Meta(id)
     if meta[id] then return meta[id] end
@@ -84,7 +98,8 @@ function M.Tier(vg,id,x,y)
     for _,v in ipairs(Data.prefabs) do if v.id==id then p=v end end
     local c=M.colors[t];M.Glow(vg,x,y+7,34,4,12,c,.9);D.Rect(vg,x,y+7,34,4,c)
     local tier=require('Config').TIERS[t].name
-    D.Text(vg,tier,x+44,y,14,c,nil,nil,2);D.Text(vg,'/  '..p.kind,x+44+D.Width(vg,tier,14,nil,2)+10,y,14,{219,238,255,140},nil,nil,2)
+    rarityShadows[t]=rarityShadows[t] or {{blur=14,color={c[1],c[2],c[3],128}}}
+    D.Text(vg,tier,x+44,y,14,c,nil,nil,2,nil,nil,rarityShadows[t]);D.Text(vg,'/  '..p.kind,x+44+D.Width(vg,tier,14,nil,2)+10,y,14,{219,238,255,140},nil,nil,2)
 end
 function M.Glow(vg,x,y,w,h,blur,c,opacity)
     if w<=0 or h<=0 then return end

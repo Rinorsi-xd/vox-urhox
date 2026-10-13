@@ -29,5 +29,38 @@ function M:Update(bp,diag,focus)
     self.counts.red=self:Fill(self.red,bp,red,Color(.8,.06,.05,.35))
     self.counts.orange=self:Fill(self.orange,bp,orange,Color(.8,.35,.025,.3))
 end
+function M:SetRotor(bp,info)
+    self.rotorLines=self.rotorLines or {}
+    local load,red,yellow={}, {}, {}
+    if info then
+        if info.problem then for _,id in ipairs(info.blockers) do red[id]=true end
+        else load=info.load
+            if info.range then
+                for _,id in ipairs(info.range.hiBlockers) do red[id]=true end
+                for _,id in ipairs(info.range.loBlockers) do if not red[id] then yellow[id]=true end end
+            end
+        end
+    end
+    for i,set in ipairs({load,red,yellow}) do
+        local geometry=self.rotorLines[i]
+        if not geometry then geometry=self.node:CreateChild('RotorOutline'..i):CreateComponent('CustomGeometry');geometry.material=self.material;self.rotorLines[i]=geometry end
+        local cells={};for id in pairs(set) do local p=bp.parts[id];if p then for _,c in ipairs(p._cells) do cells[bp.Key(table.unpack(c))]=c end end end
+        local pos={}
+        for _,c in pairs(cells) do
+            local vertices={};for j=0,7 do vertices[j+1]={c[1]+((j&1)~=0 and .5 or -.5),c[2]+.5+((j&2)~=0 and .5 or -.5),c[3]+((j&4)~=0 and .5 or -.5)} end
+            local dirs={{0,0,-1},{0,0,1},{-1,0,0},{1,0,0},{0,-1,0},{0,1,0}}
+            for j,face in ipairs(faces) do local d=dirs[j]
+                if not cells[bp.Key(c[1]+d[1],c[2]+d[2],c[3]+d[3])] then for _,v in ipairs({1,3,2,1,4,3}) do
+                    for a=1,3 do pos[#pos+1]=vertices[face[v]][a] end
+                end end
+            end
+        end
+        local lines=require('render.JoinedSurface').Edges(pos);geometry.enabled=#lines>0
+        if #lines>0 then
+            geometry:BeginGeometry(0,LINE_LIST);local color=({Color(.18,.66,1,.85),Color(1,.23,.19,.9),Color(1,.83,.3,.9)})[i]
+            for _,v in ipairs(lines) do geometry:DefineVertex(Coord.Vec(table.unpack(v)));geometry:DefineColor(color) end;geometry:Commit()
+        end
+    end
+end
 function M:Dispose() self.node:Dispose();self.material:Dispose() end
 return M

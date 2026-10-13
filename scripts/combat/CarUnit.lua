@@ -155,16 +155,44 @@ function M:SavePose()
     self:Position()
 end
 function M:Step(dt)
-    if self.alive then if not self.externalControl then self.vehicle:Step(PARK,dt) end
+    if self.alive then if not self.externalControl then
+        self.vehicle:StepRotors(nil,false,dt)
+        require('drive.RotorMotion').Weapons(self.vehicle.rotors,self.weapons)
+        self.vehicle:Step(PARK,dt)
+    end
     elseif self.autoRespawn and self.deadAt>=0 and self.env.time-self.deadAt>=M.RESPAWN_TIME then self:Spawn() end
 end
 function M:Local(p)
     local b=self.vehicle.body;local t=b.translation();return V.Unrotate(b.rotation(),V.Sub(p,{t.x,t.y,t.z}))
 end
-function M:PartAt(p)
+function M:RestPartAt(p)
     local g={p[1]/CELL+.5,p[2]/CELL,p[3]/CELL+.5};local cell,sub={},{}
     for i=1,3 do cell[i]=math.floor(g[i]);sub[i]=math.min(3,math.floor((g[i]-cell[i])*4)) end
     local part=self.bp:PartAtSub(cell,sub);return part and part.id or nil
+end
+function M:PartAt(p)
+    local rotors=self.vehicle and self.vehicle.rotors or {}
+    for _,r in ipairs(rotors) do if r.moved then
+        local id=self:RestPartAt(require('construction.Rotors').Inverse(r.pose,p))
+        if id and r.ownSet[id] then return id end
+    end end
+    local id=self:RestPartAt(p)
+    if id then for _,r in ipairs(rotors) do if r.moved and r.ownSet[id] then return nil end end end
+    return id
+end
+function M:PartPoint(id,p)
+    for _,r in ipairs(self.vehicle and self.vehicle.rotors or {}) do if r.ownSet[id] then return require('construction.Rotors').Apply(r.pose,p) end end
+    return p
+end
+function M:DebrisPose(ids,pose)
+    local best=nil ---@type table|nil
+    for _,r in ipairs(self.vehicle and self.vehicle.rotors or {}) do if r.moved then
+        local inside=true;for _,id in ipairs(ids) do if not r.loadSet[id] then inside=false;break end end
+        if inside and (not best or #r.load<#best.load) then best=r end
+    end end
+    if not best then return pose end
+    local t=V.Add({pose.p.x,pose.p.y,pose.p.z},V.Rotate(pose.q,best.pose.t))
+    return {p={x=t[1],y=t[2],z=t[3]},q=V.QMul(pose.q,best.pose.q)}
 end
 function M:March(p,d,length,skip)
     for s=0,length,CELL*.25 do local id=self:PartAt(V.Add(p,V.Scale(d,s)));if id and (type(skip)=='table' and not skip[id] or type(skip)~='table' and id~=skip) then return id end end
@@ -198,7 +226,7 @@ function M:Explode(point,radius,damage)
     for _,part in ipairs(self.bp:List()) do
         local best={0,0,0};local distance=math.huge
         for _,c in ipairs(part._cells) do
-            local cc={c[1]*CELL,(c[2]+.5)*CELL,c[3]*CELL};local d=V.Length(V.Sub(cc,p))
+            local cc=self:PartPoint(part.id,{c[1]*CELL,(c[2]+.5)*CELL,c[3]*CELL});local d=V.Length(V.Sub(cc,p))
             if d<distance then distance=d;best=cc end
         end
         local edge=math.max(0,distance-CELL*.5)
@@ -259,7 +287,7 @@ function M:Destroy(id)
     local part=self.bp.parts[id];if not part then return end
     local b=self.vehicle.body;local p=b.translation();local q=b.rotation();local c={0,0,0}
     for _,cell in ipairs(part._cells) do c=V.Add(c,{cell[1]*CELL,(cell[2]+.5)*CELL,cell[3]*CELL}) end
-    local w=V.Add(V.Rotate(q,V.Scale(c,1/#part._cells)),{p.x,p.y,p.z})
+    local w=V.Add(V.Rotate(q,self:PartPoint(id,V.Scale(c,1/#part._cells))),{p.x,p.y,p.z})
     if self.hull then self:HurtHull((self.hp[id] or 0)*self.hull.lossOnBreak) end
     self.bp:Remove(id);self.hp[id]=nil;self.shields[id]=nil;self.dirty=true
     if part.type=="core" then self.kill="核心被摧毁" end
@@ -280,7 +308,7 @@ function M:Flush()
                 if self.hull then self:HurtHull((self.hp[id] or 0)*self.hull.lossOnBreak) end
                 self.hp[id]=nil;self.shields[id]=nil;self:Event("partRemoved",id,{reason='disconnect'})
             end
-            self.env.debris:Spawn(parts,pose,Velocity,kick)
+            self.env.debris:Spawn(parts,self:DebrisPose(group,pose),Velocity,kick)
         end
         if self:Budget()<self.budget0*(self.combat and .15 or M.WRECK_RATIO) then self.kill="瘫痪" end
     end
@@ -295,7 +323,7 @@ function M:Die(pose,velocity)
     local pos=self:Position();local adj=self.bp:Graph();local random=self.env.random or math.random
     for _,group in ipairs(Components(Sorted(self.bp.parts),adj)) do
         local parts={};for _,id in ipairs(group) do parts[#parts+1]=self.bp.parts[id] end
-        self.env.debris:Spawn(parts,pose,velocity,{(random()-.5)*5,3+random()*3,(random()-.5)*5})
+        self.env.debris:Spawn(parts,self:DebrisPose(group,pose),velocity,{(random()-.5)*5,3+random()*3,(random()-.5)*5})
     end
     self:DisposeVehicle();self.alive=false;self.deadAt=self.env.time;self.env:RecordKill(self,pos);self:Event("unitKilled")
 end

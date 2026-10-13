@@ -132,7 +132,7 @@ function VehicleView:ApplyEdits(ops,bp)
         local part,vis=bp.parts[id],self.visuals[id]
         if not part then self:RemovePart(id)
         elseif not vis then self:AddPart(part)
-        elseif vis.joined~=(JoinedSurface.IsJoined(part)==true) then
+        elseif vis.part.type~=part.type or vis.joined~=(JoinedSurface.IsJoined(part)==true) then
             self:RemovePart(id);self:AddPart(part)
         else
             vis.node.position=self.PartLocalPos(part);vis.node.rotation=Coord.RotQuat(part.rot)
@@ -142,6 +142,8 @@ function VehicleView:ApplyEdits(ops,bp)
 end
 
 function VehicleView:Clear()
+    if self.rotorJoined then for _,mesh in pairs(self.rotorJoined) do mesh:Dispose() end end
+    self.rotorJoined={};self.rotorOwners=nil
     self.livery:Clear()
     if self.weaponEffects then self.weaponEffects:Reset() end
     local ids={}
@@ -162,6 +164,7 @@ end
 
 function VehicleView:SetXray(on)
     self.joined:SetXray(on)
+    for _,mesh in pairs(self.rotorJoined or {}) do mesh:SetXray(on) end
     if on and not self.xray then
         self.xray=require('render.BuildXray').New()
         for _,vis in pairs(self.visuals) do self.xray:Attach(vis) end
@@ -187,6 +190,7 @@ end
 
 function VehicleView:UpdateIdle(dt,time)
     self.joined:Update()
+    for _,mesh in pairs(self.rotorJoined or {}) do mesh:Update() end
     self.livery:Update()
     for _,vis in pairs(self.visuals) do if vis.weaponMotion then require('render.WeaponPresentation').Update(vis,dt,time) end end
 end
@@ -198,6 +202,7 @@ function VehicleView:GetWorldBounds()
         for _,model in ipairs(vis.models) do box:Merge(model.worldBoundingBox) end
     end
     for _,mesh in pairs(self.joined.meshes) do box:Merge(mesh.geometry.worldBoundingBox) end
+    for _,joined in pairs(self.rotorJoined or {}) do for _,mesh in pairs(joined.meshes) do box:Merge(mesh.geometry.worldBoundingBox) end end
     return box
 end
 

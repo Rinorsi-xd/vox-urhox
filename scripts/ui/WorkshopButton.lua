@@ -44,7 +44,7 @@ function Button:Render(vg)
             D.Text(vg,p.text,x+tab.x,y+tab.y,tab.size,c,nil,nil,tab.spacing,false,math.floor(tab.size+.5)+math.floor(tab.size*.2+.5))
             local countColor={c[1],c[2],c[3],math.floor(c[4]*.7+.5)}
             D.Text(vg,p.count,x+tab.count.x,y+tab.count.y,11,countColor,'vox-display',nil,0,false,13)
-        else D.Text(vg,p.text,x+12,y+8,13,c) end
+        else D.Text(vg,p.text,x+12,y+8,13,c,nil,nil,nil,nil,nil,p.selected and require('ui.WorkshopPaint').textShadows.sort or nil) end
         if kind=='tab' then
             local scale=self.tabMotion and self.tabMotion.line.value or 0
             if scale>0 then

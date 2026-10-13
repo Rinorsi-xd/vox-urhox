@@ -34,6 +34,25 @@ local function FullTrack(g)
     for k=1,3 do half[k]=half[k]-.02 end
     return {c=Math.Scale(Math.Add(lo,hi),.5),h=half}
 end
+local function TrackShape(g)
+    -- The hull is clipped at the lowest road axle: suspension supports below
+    -- it, while the rounded/sloping ends contact rocks without a vertical wall.
+    -- Inverted/sideways mounts retain the full box used by source debris.
+    local axle=math.huge
+    for _,w in ipairs(g.wheels) do if w.kind=='road' then axle=math.min(axle,w.c[3]) end end
+    local out={};local c=g.hull.c
+    for _,w in ipairs(g.wheels) do for i=0,15 do
+        local a=i/16*math.pi*2;local r=w.r+g.thickness
+        local x=w.c[1]+math.cos(a)*r;local z=math.max(axle,w.c[3]+math.sin(a)*r)
+        for _,y in ipairs(g.lanes[1]) do
+            -- Match the source Float32Array before the native convex hull.
+            for _,v in ipairs({(x-c[1])*CELL,(y-c[2])*CELL,(z-c[3])*CELL}) do
+                out[#out+1]=string.unpack('f',string.pack('f',v))
+            end
+        end
+    end end
+    return out
+end
 local function HoverBox(g)
     -- Mount-local collision along dominant lift axis, before rotating to body:
     --   installation face | solid hull | lift point ... hover gap ... ground
@@ -122,12 +141,15 @@ local function AddTrack(p,def,g,up,out)
         end
     end
     local hull=Box(p,upright and g.hull or FullTrack(g),def.mass);hull.track=upright
+    if upright then hull.shape=TrackShape(g) end
     out.hulls[#out.hulls+1]=hull;out.sensors[#out.sensors+1]=Box(p,FullTrack(g),0)
 end
-function M.BuildParts(parts,dropped)
+function M.BuildParts(parts,dropped,rotors,rotorOf)
     local out={ok=true,reason="",partIds={},dropped=dropped or 0,hulls={},sensors={},wheels={},hovers={},legs={},thrusters={},weapons={}}
-    local solid={};local mass=0
+    out.rotors=rotors or {};out.rotorOf=rotorOf or {}
+    local buckets={[0]={}};local mass=0
     for _,p in ipairs(parts) do
+        local owner=out.rotorOf[p.id] or 0;buckets[owner]=buckets[owner] or {};local solid=buckets[owner]
         local def=Defs.PARTS[p.type];local up=Rot.ApplyRot(p.rot,{0,1,0})
         mass=mass+def.mass;out.partIds[#out.partIds+1]=p.id
         local leg,track,wheel=Geometry.legs[p.type],Geometry.tracks[p.type],Geometry.wheels[p.type]
@@ -165,7 +187,13 @@ function M.BuildParts(parts,dropped)
             else for _,c in ipairs(p._cells) do AddMass(solid,c,def.mass/#p._cells) end end
         end
     end
-    out.boxes=M.MergeBoxes(solid)
+    out.boxes={}
+    for owner=0,#out.rotors do for _,box in ipairs(M.MergeBoxes(buckets[owner] or {})) do
+        if owner>0 then box.rotor=owner end;out.boxes[#out.boxes+1]=box
+    end end
+    for _,list in ipairs({out.hulls,out.sensors,out.wheels,out.hovers,out.thrusters,out.weapons}) do
+        for _,item in ipairs(list) do item.rotor=out.rotorOf[item.partId] end
+    end
     local load,speed=0,0
     for _,list in ipairs({out.wheels,out.hovers,out.legs}) do for _,m in ipairs(list) do
         if m.works~=false then load=load+m.load;speed=speed+m.load*m.speed end
@@ -201,10 +229,16 @@ function M.BuildParts(parts,dropped)
     return out
 end
 function M.Build(bp)
-    local conn=bp:Connectivity()
+    local adj=bp:Graph();local conn=bp:Connectivity(adj)
     if not conn.coreId then return {ok=false,reason="车上没有核心驾驶舱，无法试车"} end
     local parts={}
     for _,p in ipairs(bp:List()) do if conn.reached[p.id] then parts[#parts+1]=p end end
-    return M.BuildParts(parts,bp:Size()-#parts)
+    local rotors,owner=require('construction.Rotors').Spec(bp,adj,conn.reached)
+    local out=M.BuildParts(parts,bp:Size()-#parts,rotors,owner)
+    if out.ok then
+        local ranges=require('construction.TurretRange').For(bp,owner)
+        for _,w in ipairs(out.weapons) do w.range=ranges[w.partId] end
+    end
+    return out
 end
 return M

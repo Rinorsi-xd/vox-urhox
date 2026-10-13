@@ -5,6 +5,7 @@ local Defs=require "combat.WeaponDefs"
 local M=require "core.Math3"
 local ENERGY=Defs.ENERGY
 local Missiles=require 'combat.MissileWeapons'
+local TurretRange=require 'construction.TurretRange'
 local DEG=math.pi/180
 local FORWARD={0,0,1}
 ---@class WeaponSystem
@@ -154,9 +155,19 @@ function Weapons:Aim(w,dt,state)
     if w.lofting then tp=w.stats.loft end
     local pitch=M.Clamp(tp,w.stats.pitch[1],w.stats.pitch[2])
     local step=w.stats.slew*dt
-    local delta=ty-w.yaw;local wrapped=delta-2*math.pi*math.floor(delta/(2*math.pi)+.5)
-    w.yaw=w.yaw+M.Clamp(wrapped,-step,step);w.pitch=M.Approach(w.pitch,pitch,step)
-    w.limited=pitch~=tp
+    local range=w.range;local yawOut=false
+    local function Wrap(a) return a-2*math.pi*math.floor(a/(2*math.pi)+.5) end
+    if range and not range.free then
+        local inside
+        for _,angle in ipairs({ty,ty-2*math.pi,ty+2*math.pi}) do if angle>=range.lo and angle<=range.hi then inside=angle;break end end
+        local target=inside or (math.abs(Wrap(ty-range.lo))<math.abs(Wrap(ty-range.hi)) and range.lo or range.hi)
+        yawOut=inside==nil;w.yaw=w.yaw+M.Clamp(target-w.yaw,-step,step)
+    else w.yaw=w.yaw+M.Clamp(Wrap(ty-w.yaw),-step,step) end
+    local limits=range and TurretRange.PitchLimits(range,w.yaw)
+    if range and not limits then pitch=w.pitch
+    elseif limits then pitch=M.Clamp(pitch,limits[1],limits[2]) end
+    w.pitch=M.Approach(w.pitch,pitch,step)
+    w.limited=pitch~=tp or yawOut or range and range.stuck or false
     w.err=w.lofting and math.max(math.abs(ty-w.yaw-2*math.pi*math.floor((ty-w.yaw)/(2*math.pi)+.5)),math.abs(w.pitch-tp))
         or math.acos(M.Clamp(M.Dot(M.Turret(FORWARD,w.yaw,w.pitch),M.Normalize(d)),-1,1))
 end

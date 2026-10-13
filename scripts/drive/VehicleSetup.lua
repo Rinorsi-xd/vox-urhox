@@ -103,6 +103,7 @@ function M.Wheels(spec)
         local result={};for key,value in pairs(w) do result[key]=value end
         result.rest=rest;result.sag0=sag;result.drop=drop;result.spinSign=sign;result.index=i;result.share=shares[i]
         result.conn=conn;result.contactAxle=axle;result.stiffness=k;result.compression=damping*.5;result.relaxation=damping*Contact.FEEL.bounce
+        result.down={0,-1,0}
         result.maxTravel=rest*.95;result.maxForce=w.load*9.81*6;result.friction=w.track and Contact.TUNING.trackGrip or Contact.TUNING.wheelGrip
         wheels[#wheels+1]=result
     end

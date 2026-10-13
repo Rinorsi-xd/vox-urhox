@@ -131,7 +131,9 @@ function M:BeforeStep(dt,command,aim)
             end
             u:Flush()
             if u.alive then
-                local v=u.vehicle;v:Step(cmd,dt);local p,velocity=v.body.translation(),v.body.linvel()
+                local v=u.vehicle;v:StepRotors(live and target or nil,live and cmd.rotorStep,live and dt or 0)
+                require('drive.RotorMotion').Weapons(v.rotors,u.weapons)
+                v:Step(cmd,dt);local p,velocity=v.body.translation(),v.body.linvel()
                 local eye=u==self.player and self.session.camera:GetNode().worldPosition or nil
                 u.weapons:Step(dt,{firing=live and firing,aim=target or u:Position(),pos={p.x,p.y,p.z},quat=v.body.rotation(),vel={velocity.x,velocity.y,velocity.z},body=v.body,
                     team=u.team,eye=eye and {-eye.x,eye.y,eye.z}},entry.env)

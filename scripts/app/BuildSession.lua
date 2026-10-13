@@ -189,7 +189,10 @@ function M:Keys()
             return
         end
         for i,k in ipairs({KEY_1,KEY_2,KEY_3,KEY_4,KEY_5,KEY_6,KEY_7,KEY_8,KEY_9,KEY_0}) do if Press(k) then
-            if input:GetKeyDown(KEY_ALT) then e.autoColor=false;e.color=Config.PALETTE[i].hex;e.dirty=true else self:SelectHotbar(i) end
+            if input:GetKeyDown(KEY_ALT) then e.autoColor=false;e.color=Config.PALETTE[i].hex;e.dirty=true
+            elseif i<=3 and e.hit and e.bp.parts[e.hit.partId] and require('construction.Rotors').Is(e.bp.parts[e.hit.partId].type) then
+                local _,message=e:SetRotorMode(i);if message then self:Notify(message,'info') end
+            else self:SelectHotbar(i) end
         end end
         if input:GetKeyDown(KEY_ALT) and Press(KEY_BACKQUOTE) then e.autoColor=true;e.dirty=true end
         local speeds={.5,.75,1,1.5,2}

@@ -7,6 +7,7 @@ local Hover=require "drive.HoverControl"
 local Thrusters=require "drive.ThrusterControl"
 local Legs=require "drive.LegControl"
 local LegHitboxes=require "drive.LegHitboxes"
+local RotorMotion=require 'drive.RotorMotion'
 ---@class Vehicle
 ---@field node Node
 ---@field native RigidBody
@@ -28,13 +29,22 @@ function Vehicle:init(space,spec)
     b:DisableMassUpdate();b.friction=.55;b.restitution=.05
     b.linearDamping=.02;b.angularDamping=.6;b.linearRestThreshold=0;b.angularRestThreshold=0
     b.collisionLayer=2;b.collisionMask=0xffff;b.ccdRadius=.15;b.ccdMotionThreshold=.1
+    self.rotors=RotorMotion.New(spec.rotors);self.rotorShapes={}
     for _,list in ipairs({spec.boxes,spec.hulls}) do for _,h in ipairs(list) do
         local shape=self.node:CreateComponent("CollisionShape")
-        shape:SetBox(Vector3(h.half[1]*2,h.half[2]*2,h.half[3]*2),Vec(h.center),h.quat and Quat(h.quat) or Quaternion.IDENTITY)
+        local rotation=h.quat and Quat(h.quat) or Quaternion.IDENTITY
+        if h.shape then
+            local geo=self.node:CreateComponent('CustomGeometry');geo:BeginGeometry(0,POINT_LIST)
+            for i=1,#h.shape,3 do geo:DefineVertex(Vec({h.shape[i],h.shape[i+1],h.shape[i+2]})) end
+            geo:Commit();geo.enabled=false
+            shape:SetCustomConvexHull(geo,Vector3.ONE,Vec(h.center),rotation)
+        else shape:SetBox(Vector3(h.half[1]*2,h.half[2]*2,h.half[3]*2),Vec(h.center),rotation) end
+        if h.rotor then self.rotorShapes[#self.rotorShapes+1]={shape=shape,item=h} end
     end end
     for _,w in ipairs(self.wheels) do if not w.track then
         local orientation=math.abs(w.axle[1])>.5 and Quaternion(90,Vector3.FORWARD) or Quaternion(90,Vector3.RIGHT)
-        self.node:CreateComponent("CollisionShape"):SetCylinder(w.radius*1.8,w.width*.9,Vec(w.conn),orientation)
+        local shape=self.node:CreateComponent('CollisionShape');shape:SetCylinder(w.radius*1.8,w.width*.9,Vec(w.conn),orientation)
+        if w.rotor then self.rotorShapes[#self.rotorShapes+1]={shape=shape,item=w,wheel=true,orientation=orientation} end
     end end
     b:EnableMassUpdate()
     -- Register as dynamic only after the compound shape has valid mass/inertia.
@@ -58,6 +68,7 @@ function Vehicle:Place(pos,yaw)
     self.steer=0;self.flightTarget=nil;self.liftTilt=0;self.landingTime=0;self.hoverHeightScale=1
     self.vPrev=0;self.aLong=0;self.aLat=0
     self.thrusterOutputs={};self.thrusterDirections={};self.hoverStates={}
+    RotorMotion.Restore(self.rotors);self:ApplyRotors()
     if self.legControl then self.legControl:Reset();self.legHitboxes:Update() end
     for _,w in ipairs(self.wheels) do w.lenPrev=nil end
     self.suspension:Sample()
@@ -69,14 +80,41 @@ function Vehicle:GetState()
     local b=self.body
     return {p=b.translation(),q=b.rotation(),lv=b.linvel(),av=b.angvel(),steer=self.steer,
         flightTarget=self.flightTarget,liftTilt=self.liftTilt,hoverHeightScale=self.hoverHeightScale,
-        legs=self.legControl and self.legControl:Snapshot() or nil}
+        legs=self.legControl and self.legControl:Snapshot() or nil,rotors=RotorMotion.Snapshot(self.rotors)}
 end
 function Vehicle:SetState(s)
     local b=self.body;b.setTranslation(s.p);b.setRotation(s.q);b.setLinvel(s.lv);b.setAngvel(s.av)
     self.steer=s.steer;self.flightTarget=s.flightTarget;self.liftTilt=s.liftTilt or 0
     self.hoverHeightScale=Math.Clamp(s.hoverHeightScale or 1,.6,1.35)
+    RotorMotion.Restore(self.rotors,s.rotors);self:ApplyRotors()
     if self.legControl then self.legControl:Restore(s.legs);self.legHitboxes:Update() end
     self.suspension:Sample()
+end
+function Vehicle:StepRotors(aim,step,dt)
+    if #self.rotors==0 then return end
+    local p=self.body.translation();local localAim=aim and Math.Unrotate(self.body.rotation(),Math.Sub(aim,{p.x,p.y,p.z}))
+    RotorMotion.Step(self.rotors,localAim,step,dt);self:ApplyRotors()
+end
+function Vehicle:ApplyRotors()
+    if #self.rotors==0 then return end
+    local changed=not self.rotorAppliedAngles
+    self.rotorAppliedAngles=self.rotorAppliedAngles or {}
+    for i,r in ipairs(self.rotors) do
+        if self.rotorAppliedAngles[i]~=r.angle then changed=true;self.rotorAppliedAngles[i]=r.angle end
+    end
+    if not changed then return end
+    for _,list in ipairs({self.spec.boxes,self.spec.hulls,self.spec.sensors}) do RotorMotion.Follow(self.rotors,list,{'center'},{},{'quat'}) end
+    RotorMotion.Follow(self.rotors,self.wheels,{'conn','center'},{'axle','contactAxle','down'})
+    RotorMotion.Follow(self.rotors,self.spec.hovers,{'pos'},{'dir'})
+    RotorMotion.Follow(self.rotors,self.spec.thrusters,{'pos','pivot'},{'dir'})
+    -- Compound shapes keep the original inertia/mass while moving kinematically
+    -- within the vehicle, matching the source turntables rather than free joints.
+    self.native:DisableMassUpdate()
+    for _,c in ipairs(self.rotorShapes) do local item=c.item;local pose=self.rotors[item.rotor].pose
+        c.shape.position=Vec(c.wheel and item.conn or item.center)
+        c.shape.rotation=c.wheel and Quat(pose.q)*c.orientation or Quat(item.quat)
+    end
+    self.native:EnableMassUpdate();self.rayBounds=nil
 end
 function Vehicle:Step(cmd,dt)
     if self.disposed then return end

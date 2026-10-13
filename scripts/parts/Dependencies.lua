@@ -7,9 +7,13 @@ function M.For(parts)
     local result,seen={},{}
     for _,part in ipairs(parts) do
         local key=Assets.Key(part.type,part.rot)
-        for _,path in ipairs(assert(paths[key],'Missing dependency index: '..key)) do
+        -- Turntable mode keys replace the authored rig synchronously and undo
+        -- can restore it immediately. Warm only this part's three alternatives.
+        local keys={key}
+        if require('parts.Defs').PARTS[part.type].rotor then keys={'rotor','rotorSpin','rotorStep'} end
+        for _,variant in ipairs(keys) do for _,path in ipairs(assert(paths[variant],'Missing dependency index: '..variant)) do
             if not seen[path] then seen[path]=true;result[#result+1]=path end
-        end
+        end end
     end
     return result
 end

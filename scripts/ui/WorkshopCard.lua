@@ -68,7 +68,7 @@ function Card:Render(vg)
     local barHeight=self.hero and 62 or self.mini and 0 or 50*m.reveal.value
     local titleY=y+h-(self.hero and 26+16 or self.mini and 14 or 14+8)-barHeight-titleHeight
     D.Text(vg,p.kind,tx,titleY-(self.hero and 22 or 17),self.hero and 14 or 12,c,nil,nil,2)
-    D.Text(vg,p.name,tx,titleY,size,nil,nil,nil,self.hero and 2 or 1,false,titleHeight)
+    D.Text(vg,p.name,tx,titleY,size,nil,nil,nil,self.hero and 2 or 1,false,titleHeight,Paint.textShadows.card)
     if not self.mini and (self.hero or m.opacity.value>0) then
         local barY=titleY+titleHeight+(self.hero and 16 or 8)
         local column=self.hero and 46 or 38;local length=self.hero and 254 or 182

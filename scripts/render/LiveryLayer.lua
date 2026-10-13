@@ -16,13 +16,13 @@ local function Color(hex) return Vector3(((hex>>16)&255)/255,((hex>>8)&255)/255,
 local function Retire(mesh)
     if not mesh then return end;mesh.node:Dispose();mesh.material:Dispose();mesh.vertices={}
 end
-function M:Mesh(d,parts,old,keep,order,ghost)
+function M:Mesh(d,parts,old,keep,order,ghost,owner)
     local st=Data.Catalog().byId[d.s];if not st then return nil end
     local path=st.kind=='shape' and st.mask or st.texture
     if not cache:Exists(path) then return nil end
     local near=Project.Near(d,st,parts);local key={}
     for _,p in ipairs(near) do key[#key+1]=p.id..':'..p.type..':'..table.concat(p.pos,',')..':'..p.rot..':'..(p.g or 0) end
-    local gk=table.concat(key,';')..'|'..table.concat(d.p,',')..'|'..table.concat(d.n,',')..'|'..d.r..'|'..d.w..'|'..(d.f or 0)..'|'..st.aspect..(ghost and '|g' or '')
+    local gk=table.concat(key,';')..'|'..table.concat(d.p,',')..'|'..table.concat(d.n,',')..'|'..d.r..'|'..d.w..'|'..(d.f or 0)..'|'..st.aspect..(ghost and '|g' or '')..'|'..(owner or 0)
     local mesh
     for _,candidate in pairs(old) do if not keep[candidate] and candidate.key==gk then mesh=candidate;break end end
     if not mesh then
@@ -36,7 +36,7 @@ function M:Mesh(d,parts,old,keep,order,ghost)
         local material=Material:new();assert(material:SetSurfaceShader('Shaders/BLGL/Livery.shader'))
         geometry.material=material;mesh={node=node,geometry=geometry,material=material,vertices=vertices,key=gk,ghost=ghost}
     end
-    keep[mesh]=true;mesh.material.renderOrder=100+order
+    mesh.owner=owner;keep[mesh]=true;mesh.material.renderOrder=100+order
     mesh.material:SetShaderParameter('opacity',Variant(ghost and .62 or 1.0))
     mesh.material:SetShaderParameter('shape_mask',Variant(st.kind=='shape' and 1.0 or 0.0))
     local c=d.c or st.colors
@@ -63,7 +63,12 @@ function M:Update()
     local parts={};for _,v in pairs(self.view.visuals) do parts[#parts+1]=v.part end;table.sort(parts,function(a,b) return a.id<b.id end)
     local old={};for _,v in pairs(self.meshes) do old[#old+1]=v end;if self.previewMesh then old[#old+1]=self.previewMesh end
     local keep={};local meshes={}
-    for i,d in ipairs(self.list) do meshes[i]=self:Mesh(d,parts,old,keep,i,false) end
+    local buckets={[0]={}};local owners=self.view.rotorOwners or {}
+    for _,p in ipairs(parts) do local owner=owners[p.id] or 0;buckets[owner]=buckets[owner] or {};buckets[owner][#buckets[owner]+1]=p end
+    for i,d in ipairs(self.list) do for owner,bucket in pairs(buckets) do
+        local mesh=self:Mesh(d,bucket,old,keep,i,false,owner>0 and owner or nil)
+        if mesh then meshes[#meshes+1]=mesh end
+    end end
     self.previewMesh=self.preview and self:Mesh(self.preview,parts,old,keep,#self.list+1,true) or nil
     for _,v in ipairs(old) do if not keep[v] then Retire(v) end end;self.meshes=meshes
     local used={};for _,m in pairs(meshes) do used[m.texturePath]=true end;if self.previewMesh then used[self.previewMesh.texturePath]=true end

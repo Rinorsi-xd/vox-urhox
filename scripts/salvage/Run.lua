@@ -56,7 +56,8 @@ function M:BeforeStep(dt,command,aim)
             end
             if u.alive then
                 if u==self.player then cmd.strafe=0 end -- E belongs to source salvage interaction.
-                local v=u.vehicle;v:Step(cmd,dt);local p,velocity=v.body.translation(),v.body.linvel()
+                local v=u.vehicle;v:StepRotors(target,cmd.rotorStep,dt);require('drive.RotorMotion').Weapons(v.rotors,u.weapons)
+                v:Step(cmd,dt);local p,velocity=v.body.translation(),v.body.linvel()
                 u.weapons:Step(dt,{firing=firing,aim=target,pos={p.x,p.y,p.z},quat=v.body.rotation(),vel={velocity.x,velocity.y,velocity.z},body=v.body,team=u.team},entry.env)
                 self.session.effects:Consume(u.weapons.fx);self.session.weaponAudio:Consume(u.weapons.fx,u~=self.player)
                 if p.y< -300 then u.kill='掉出地图';u.dirty=true;u:Flush() end

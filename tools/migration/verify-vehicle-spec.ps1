@@ -7,7 +7,7 @@ try {
     $report=Join-Path $projectRoot 'docs/migration/evidence/vehicle-spec.json'
     if(Test-Path -LiteralPath $report){Remove-Item -LiteralPath $report}
     $args=@('main.lua',('-tapcode_dir='+$projectRoot),'-tool_mode','-validate',
-        '-validate-frames=65','-validate-timeout=90','-validate-spike-threshold=5000',
+        '-validate-frames=225','-validate-timeout=90','-validate-spike-threshold=5000',
         ('-validate-test='+$PSScriptRoot+'/check-vehicle-spec.lua'),('-validate-output='+$report),'-log','info')
     $p=Start-Process -FilePath ($projectRoot+'/.cli/UrhoXRuntime.exe') -WorkingDirectory $projectRoot -WindowStyle Hidden -PassThru -ArgumentList $args -RedirectStandardOutput ($projectRoot+'/.tmp/vehicle-spec-out.txt') -RedirectStandardError ($projectRoot+'/.tmp/vehicle-spec-err.txt')
     $timer=[Diagnostics.Stopwatch]::StartNew()

@@ -138,7 +138,15 @@ function M.FontMetrics(vg,size,font)
     nvgSave(vg);nvgFontFace(vg,font or 'vox-display');nvgFontSize(vg,size)
     local a,d=nvgTextMetrics(vg);nvgRestore(vg);return a,-d
 end
-function M.Text(vg,text,x,y,size,color,font,align,spacing,atBaseline,lineHeight)
+function M.Text(vg,text,x,y,size,color,font,align,spacing,atBaseline,lineHeight,shadows)
+    if shadows then
+        nvgSave(vg)
+        for i=#shadows,1,-1 do local s=shadows[i]
+            nvgFontBlur(vg,s.blur or 0)
+            M.Text(vg,text,x+(s.x or 0),y+(s.y or 0),size,s.color,font,align,spacing,atBaseline,lineHeight)
+        end
+        nvgRestore(vg)
+    end
     font=font or 'vox-title';spacing=spacing or 0
     if lineHeight and not atBaseline then
         local ascent,descent=M.FontMetrics(vg,size,font)
