@@ -6,7 +6,7 @@ local Typography=require 'ui.SourceTextLayout'
 local icons=require('core.ResourceData').Read('UI/SourceIcons.json')
 function M.Begin(vg)
     if contexts[vg] then return end
-    local title=nvgCreateFont(vg,'vox-title','Fonts/VoxIndustrial-Bold.ttf')
+    local title=nvgCreateFont(vg,'vox-title','Fonts/VoxIndustrial-Bold.otf')
     local display=nvgCreateFont(vg,'vox-display','Fonts/BarlowCondensed-BoldItalic.ttf')
     local tabular=nvgCreateFont(vg,'vox-tabular','Fonts/VoxDisplayTabular-BoldItalic.ttf')
     local story=nvgCreateFont(vg,'vox-story','Fonts/SmileySans-Oblique.ttf')

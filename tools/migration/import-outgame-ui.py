@@ -9,9 +9,11 @@ from fontTools.svgLib.path import parse_path
 from fontTools.pens.recordingPen import RecordingPen
 baseline=json.loads((root/'docs/migration/outgame-baseline.json').read_text(encoding='utf-8'))
 source=Path(baseline['snapshot'])/'shared'
-font=TTFont(source/'fonts/AlimamaShuHeiTi/AlimamaShuHeiTi-Bold.woff2',recalcTimestamp=False)
-font.flavor=None
-font.save(root/'assets/Fonts/VoxIndustrial-Bold.ttf')
+from importlib.util import spec_from_file_location, module_from_spec
+font_import_spec=spec_from_file_location('industrial_font_import',root/'tools/migration/import-industrial-font.py')
+font_import=module_from_spec(font_import_spec)
+font_import_spec.loader.exec_module(font_import)
+font_import.main()
 shutil.copyfile(source/'fonts/AlimamaShuHeiTi/LICENSE.txt',root/'assets/Fonts/VoxIndustrial-LICENSE.txt')
 folder=root/'assets/UI/Prefabs'
 folder.mkdir(exist_ok=True)

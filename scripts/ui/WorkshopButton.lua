@@ -2,6 +2,23 @@ local Base=require 'urhox-libs/UI/Widgets/Button'
 local D=require 'ui.SourceDraw'
 local Relief=require 'ui.SourceRelief'
 local Button=Base:Extend('VoxWorkshopSourceButton')
+function Button:GetShelfContent(vg)
+    local kind=self.props.sourceKind
+    if kind~='ghost' and kind~='all' then return nil end
+    local r=self:GetAbsoluteLayout()
+    -- Final .wsh-sh span overrides the button's font and color.
+    return {size=11,spacing=4,color=D.orange,x=kind=='all' and 20 or 37,y=(r.h-14)/2,
+        width=vg and D.Width(vg,self.props.text,11,nil,4) or nil,
+        count=kind=='all' and {x=90,y=(r.h-18)/2,w=29.140625,h=18,size=13,spacing=3} or nil,
+        arrow=kind=='all' and {x=r.w-32,y=(r.h-18)/2,w=18,h=18} or nil}
+end
+function Button:GetTabContent(vg)
+    if self.props.sourceKind~='tab' then return nil end
+    local size=self.props.sourceFontSize or 19
+    local width=D.Width(vg,self.props.text,size,nil,2)
+    return {size=size,spacing=2,x=16,y=10,width=width,
+        count={x=16+width+4,y=10,size=11,width=D.Width(vg,self.props.count,11,'vox-display')}}
+end
 function Button:Render(vg)
     D.Begin(vg);local r=self:GetAbsoluteLayout();local p=self.props;local x,y,w,h=r.x,r.y,r.w,r.h
     local kind=p.sourceKind;local c=D.white
@@ -9,8 +26,12 @@ function Button:Render(vg)
     if kind=='tab' or kind=='sort' then
         c=(p.selected or self.state.hovered) and D.white or {219,238,255,kind=='sort' and 115 or 128}
         if kind=='sort' and p.separator then D.Text(vg,'/',x,y+8,13,{255,255,255,77},nil,nil,1) end
-        D.Text(vg,p.text,x+(kind=='tab' and 16 or 12),y+8,kind=='tab' and 19 or 13,c)
-        if p.count then D.Text(vg,p.count,x+w-18,y+5,11,c) end
+        local tab=self:GetTabContent(vg)
+        if tab then
+            D.Text(vg,p.text,x+tab.x,y+tab.y,tab.size,c,nil,nil,tab.spacing,false,math.floor(tab.size+.5)+math.floor(tab.size*.2+.5))
+            local countColor={c[1],c[2],c[3],math.floor(c[4]*.7+.5)}
+            D.Text(vg,p.count,x+tab.count.x,y+tab.count.y,11,countColor,'vox-display',nil,0,false,13)
+        else D.Text(vg,p.text,x+12,y+8,13,c) end
         if kind=='tab' and p.selected then D.Rect(vg,x+14,y+h-5,w-28,3,D.orange) end
     else
         if kind=='view' or kind=='all' or kind=='go' then Relief.Draw(vg,x,y,w,h,true,false,{x,y,x+w-14,y,x+w,y+14,x+w,y+h,x,y+h})
@@ -45,9 +66,21 @@ function Button:Render(vg)
             end
             if p.icon then D.Icon(vg,p.icon,ix,y+(h-icon)/2,icon,kind=='ghost' and D.orange or c) end
             local tx=ix+(p.icon and icon+8 or 0)
-            D.Text(vg,p.text or '',tx,y+(h-size*1.2)/2,size,kind=='add' and {255,255,255,255} or kind=='ghost' and {237,246,255,217} or c,nil,nil,kind=='add' and 2 or kind=='all' and 3 or 1)
-            if p.count then D.Rect(vg,x+w-70,y+13,28,18,{255,255,255,255});D.Text(vg,p.count,x+w-56,y+14,13,D.ink,'vox-tabular',NVG_ALIGN_CENTER) end
-            if kind=='all' then nvgSave(vg);nvgTranslate(vg,x+w-18,y+h/2);nvgRotate(vg,-math.pi/2);D.Icon(vg,'chev',-9,-9,18);nvgRestore(vg) end
+            local shelf=self:GetShelfContent(vg)
+            if shelf then
+                D.Text(vg,p.text or '',x+shelf.x,y+shelf.y,shelf.size,shelf.color,nil,nil,shelf.spacing,false,14)
+            else
+                D.Text(vg,p.text or '',tx,y+(h-size*1.2)/2,size,kind=='add' and {255,255,255,255} or c,nil,nil,kind=='add' and 2 or 1)
+            end
+            if shelf and shelf.count then
+                local box=shelf.count
+                D.Rect(vg,x+box.x,y+box.y,box.w,box.h,{255,255,255,255})
+                D.Text(vg,p.count,x+box.x+7,y+box.y+1,box.size,D.ink,'vox-tabular',nil,box.spacing,false,16)
+            end
+            if shelf and shelf.arrow then
+                local box=shelf.arrow
+                nvgSave(vg);nvgTranslate(vg,x+box.x+box.w/2,y+box.y+box.h/2);nvgRotate(vg,-math.pi/2);D.Icon(vg,'chev',-9,-9,18);nvgRestore(vg)
+            end
         end
     end
     nvgRestore(vg)

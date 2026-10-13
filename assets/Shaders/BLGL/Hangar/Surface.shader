@@ -1,6 +1,6 @@
 shader_type spatial;
 #include "../lib/PlanarClip.shaderinc"
-render_mode shading_model_pbr, cull_back;
+render_mode shading_model_pbr, world_vertex_coords, cull_back;
 #include "../lib/VoxHemi.shaderinc"
 uniform vec4 base_color = vec4(0.5,0.5,0.5,1.0);
 uniform vec3 emission_color = vec3(0.0);
@@ -14,6 +14,12 @@ uniform float uVary = 0.05;
 uniform float uPulse = 0.0;
 uniform float uBlink = 0.0;
 uniform float hangar_time = 0.0;
+varying vec3 panel_world_normal;
+
+void vertex() {
+    // H5 vHN is normalized per vertex, then interpolated without renormalizing.
+    panel_world_normal = normalize(NORMAL);
+}
 
 	
 	
@@ -27,8 +33,10 @@ uniform float hangar_time = 0.0;
 void fragment() {
     if (planar_clip_reject(VERTEX, VIEW_MATRIX, IN_SHADOW_PASS)) discard;
  vec3 w=vec3(-VERTEX.x,VERTEX.yz);
- vec3 n=vec3(-NORMAL.x,NORMAL.yz);
+ vec3 n=vec3(-panel_world_normal.x,panel_world_normal.yz);
  ALBEDO=base_color.rgb; ROUGHNESS=roughness_value; METALLIC=metallic_value;
+ // Derivatives must precede the per-fragment normal/projection branch.
+ vec3 hWorldWidth = fwidth(w);
  if(panel_on>0.5) {
 vec2 hp = hPlane( w, n );
 				vec2 hg = hp / uPanel;
@@ -36,7 +44,7 @@ vec2 hp = hPlane( w, n );
 				vec2 hf = fract( hg );
 				vec2 hde = min( hf, 1.0 - hf ) * uPanel;
 				float he = min( hde.x, hde.y );
-				float haa = length( fwidth( hp ) ) + 1e-4;
+				float haa = length( hPlane( hWorldWidth, n ) ) + 1e-4;
 				float hSeam = 1.0 - smoothstep( uSeam, uSeam + haa * 1.2, he );
 				float hRnd = hHash( hid + floor( n.xz * 3.0 + 0.5 ) * 17.0 );
 				float hGrit = hNoise( hp * 5.0 );

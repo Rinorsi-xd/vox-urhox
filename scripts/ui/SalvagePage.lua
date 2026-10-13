@@ -95,13 +95,16 @@ function M.Create(s)
         local scroll=UI.ScrollView{position='absolute',left=56,top=h-270,width=w-636,height=150,scrollX=true,scrollY=false,children={strip}}
         s.salvagePreviews=require('ui.BayPreviews').New(scroll,s.app.previews)
         for i,data in ipairs(slots) do if data then
-            local tile=s.Track(UI.Panel{width=220,height=150,flexShrink=0,backgroundColor='#18324d',onClick=function() s.Run(function(discard) return s.app.bays:Open(i,discard) end) end})
+            local tile=s.Track(UI.Panel{width=220,height=150,flexShrink=0,backgroundColor='#18324d',onClick=function() s.Run(function(discard) return s.app.bays:Open(i,discard) end,nil,data) end})
             local picture=s.salvagePreviews:Add(data);picture:SetStyle({position='absolute',width=220,height=108});tile:AddChild(picture)
             tile:AddChild(Paint.Text{text=string.format('%02d  ',i)..data.name,fontSize=18,position='absolute',left=14,top=120,width=192,height=28});strip:AddChild(tile)
         end end
-        strip:AddChild(Button{text='新建底盘',kind='slot',width=220,height=150,flexShrink=0,onClick=function() s.Run(function(d) return s.app.bays:CreateVehicle('empty',nil,d) end) end})
+        strip:AddChild(Button{text='新建底盘',kind='slot',width=220,height=150,flexShrink=0,onClick=function()
+            local data=require('construction.Prefab').Create(require('construction.Blueprint').New(),'empty'):ToTable()
+            s.Run(function(discard) return s.app.bays:CreateVehicle('empty',nil,discard) end,nil,data)
+        end})
         page:AddChild(scroll)
-        Add('拆掉这辆车','ghost',w-234,h-270,178,44,function() local slot=s.app.bays.active;require('ui.GarageDialogs').Confirm(s,'拆掉这辆车？','零件退回仓库。',function() s.Run(function() return s.app.bays:Delete(slot) end) end) end,{icon='trash',disabled=used<=1 or not s.app.bays.active})
+        Add('拆掉这辆车','ghost',w-234,h-270,178,44,function() local slot=s.app.bays.active;require('ui.GarageDialogs').Confirm(s,'拆掉这辆车？','零件退回仓库。',function() s.Run(function() return s.app.bays:Delete(slot) end,nil,s.app.bays:ReplacementAfterDelete(slot)) end) end,{icon='trash',disabled=used<=1 or not s.app.bays.active})
         Add('改装','primary',w-496,h-150,440,80,function() s.app:EnterBuild() end,{subtitle='零件优先用仓库里的',key='E'})
     elseif sv.tab=='loadout' then
         local sections=UI.Panel{width=456,height=600,flexShrink=0};local yy=0

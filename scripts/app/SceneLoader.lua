@@ -17,6 +17,7 @@ function Loader:init()
     self.state="idle"
     self.progress=0
     self.elapsed=0
+    self.downloadCompleted=0;self.downloadBytes=0
     self.phase='idle';self.job=nil;self.options=nil
     self.gate=require('app.ResourceGate').New()
     self.prepareFrames=0;self.maxPrepareMs=0;self.prepareBudgetMs=3
@@ -38,6 +39,7 @@ function Loader:Load(path,onReady,onError,options)
     self:Cancel()
     local token=self.generation
     self.state="loading";self.progress=0;self.elapsed=0
+    self.downloadCompleted=0;self.downloadBytes=0
     self.onReady,self.onError=onReady,onError
     self.options=options;self.phase='download';self.prepareFrames=0;self.maxPrepareMs=0
     self.prepareStage='world';self.prepareStageMax={};self.prepareTotalMs=0
@@ -86,6 +88,11 @@ end
 function Loader:Update(dt)
     if self.state~="loading" then return end
     self.elapsed=self.elapsed+dt
+    -- Download size is not a deadline. Only stalled downloads use the idle
+    -- timeout; scene decoding and preparation retain their bounded phase time.
+    if self.phase=='download' and (self.gate.completed>self.downloadCompleted or self.gate.bytes>self.downloadBytes) then
+        self.elapsed=0;self.downloadCompleted=self.gate.completed;self.downloadBytes=self.gate.bytes
+    end
     if self.elapsed>90 then self:Fail("Scene loading timed out");return end
     if self.phase=='download' then
         self.progress=self.gate.total>0 and .35*self.gate.completed/self.gate.total or 0;return
@@ -103,6 +110,7 @@ function Loader:Update(dt)
         end
         local ok,resource=pcall(cache.GetResource,cache,item.type,item.name)
         if not ok or not resource then self:Fail('Cannot prepare texture: '..item.name);return end
+        print('[SceneLoader] Prepared '..item.name..' bytes='..resource.memoryUse..' cache='..cache:GetTotalMemoryUse())
         self.warmIndex=self.warmIndex+1;self.warmWait=3
         self.progress=.35+.1*(self.warmIndex-1)/#resources
         return

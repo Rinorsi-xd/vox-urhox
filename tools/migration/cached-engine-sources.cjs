@@ -38,7 +38,12 @@ function read(url){
  const parsed=new URL(url);if(parsed.hostname!=='tapcode-sce.spark.xd.com')return null;
  const source=parsed.pathname.split('/')[2],snapshot=snapshots[source];if(!snapshot)return null;
  let key;
- if(/\/(stable|latest)\.json$/.test(parsed.pathname)){
+ // The Web runtime asks engine-res for the wasm channel name directly. The
+ // offline fixture only stores the pinned manifest by digest, so route this
+ // channel to that exact snapshot instead of letting the source be skipped.
+ if(source==='engine-res' && /\/wasm-1\.32\.json$/.test(parsed.pathname)){
+  key=snapshot.manifest;
+ }else if(/\/(stable|latest)\.json$/.test(parsed.pathname)){
   for(const file of fs.readdirSync(directory).filter(f=>!f.endsWith('.json'))){
    const candidate=path.join(directory,file);if(fs.statSync(candidate).size>200)continue;
    try{const tag=JSON.parse(fs.readFileSync(candidate));if(tag.client===snapshot.client&&tag.version===snapshot.version){key=file;break;}}catch{}
@@ -46,6 +51,16 @@ function read(url){
  }else if(/\/manifest(?:-[^/]+)?\.json$/.test(parsed.pathname)&&parsed.pathname.includes(snapshot.client))key=snapshot.manifest;
  else key=crypto.createHash('sha256').update(parsed.origin+parsed.pathname).digest('hex');
  if(!key||!fs.existsSync(path.join(directory,key)))return bundledAsset(parsed);
- return {body:fs.readFileSync(path.join(directory,key)),headers:JSON.parse(fs.readFileSync(path.join(directory,key+'.json')))};
+ let body=fs.readFileSync(path.join(directory,key));
+ // Engine source manifests are tag responses, and the pinned snapshot stores
+ // its manifest with null tag fields. The runtime rejects that response unless
+ // the channel client/version are present.
+ if(source==='engine-res' && /\/wasm-1\.32\.json$/.test(parsed.pathname)){
+  const manifest=JSON.parse(body);
+  manifest.client=snapshot.client;
+  manifest.version=snapshot.version;
+  body=Buffer.from(JSON.stringify(manifest));
+ }
+ return {body,headers:JSON.parse(fs.readFileSync(path.join(directory,key+'.json')))};
 }
 module.exports={read,snapshots};

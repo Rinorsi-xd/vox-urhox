@@ -61,7 +61,7 @@ function model(entries){
  }
  u(entries.length);for(let i=0;i<entries.length;i++){u(0,1);f(0);u(0,i,i,0,sizes[i]);}
  u(0,0);f(...lo,...hi);for(const e of entries)f(...lo.map((v,i)=>(v+hi[i])/2));
- const buffer=Buffer.concat(chunks),hash=crypto.createHash('sha256').update(buffer).digest('hex').slice(0,24),name='Models/'+hash+'.mdl';
+ const buffer=Buffer.concat(chunks),hash=crypto.createHash('sha256').update(buffer).digest('hex').slice(0,24),name='Models/'+hash+'.bin';
  if(!written.has(name)){fs.writeFileSync(path.join(out,name),buffer);written.add(name);counts.models++;counts.bytes+=buffer.length;counts.vertices+=entries.reduce((s,[,g])=>s+g.p.length/3,0);counts.triangles+=sizes.reduce((s,n)=>s+n/3,0);}
  return 'Parts/'+name;
 }
@@ -168,7 +168,7 @@ function save(name,v){fs.writeFileSync(path.join(out,name),JSON.stringify(v));}
  // Check every model reference before applying any files to the active project.
  for(const id of ids){
   const text=fs.readFileSync(path.join(out,'Rigs/'+id+'.json'),'utf8');
-  for(const match of text.matchAll(/"model":"Parts\/(Models\/[a-f0-9]{24}\.mdl)"/g))if(!written.has(match[1]))throw Error('Unresolved model: '+match[1]);
+  for(const match of text.matchAll(/"model":"Parts\/(Models\/[a-f0-9]{24}\.bin)"/g))if(!written.has(match[1]))throw Error('Unresolved model: '+match[1]);
  }
  const changes=files.filter(name=>!fs.existsSync(path.join(destination,name))||sha(fs.readFileSync(path.join(destination,name)))!==manifest.files[name].sha256);
  fs.writeFileSync(path.join(out,'manifest.json'),JSON.stringify(manifest,null,2));
@@ -187,7 +187,7 @@ function save(name,v){fs.writeFileSync(path.join(out,name),JSON.stringify(v));}
   }
   const referenced=external.join('\n');manifest.removedModels=[];
   for(const name of fs.readdirSync(path.join(destination,'Models'))){
-   if(!/^[a-f0-9]{24}\.mdl$/.test(name)||written.has('Models/'+name)||referenced.includes('Parts/Models/'+name))continue;
+   if(!/^[a-f0-9]{24}\.(mdl|bin)$/.test(name)||written.has('Models/'+name)||referenced.includes('Parts/Models/'+name))continue;
    fs.unlinkSync(path.join(destination,'Models',name));
    if(fs.existsSync(path.join(destination,'Models',name+'.meta')))fs.unlinkSync(path.join(destination,'Models',name+'.meta'));
    manifest.removedModels.push(name);

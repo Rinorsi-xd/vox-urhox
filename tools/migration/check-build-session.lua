@@ -5,6 +5,16 @@ end
 local function PickValid()
     local UI=require 'urhox-libs/UI';local w,h=UI.GetViewportSize()
     for y=.35,.72,.025 do for x=.32,.68,.025 do
+        if session.buildCamera.mode=='fp' then
+            -- Aim the free camera at each source-space grid candidate; FP rays
+            -- originate at the crosshair, so varying screen XY cannot aim it.
+            local st=editor.bp:Stats();local b=st.bb
+            local target=Vector3(-(b.minX+(b.maxX-b.minX)*x)*require('Config').CELL,
+                (b.minY+(b.maxY-b.minY)*y+.5)*require('Config').CELL,(b.minZ+b.maxZ)*.5*require('Config').CELL)
+            local f=session.buildCamera.flight;local p=session.camera.node.position
+            local forward=(target-p):Normalized()
+            f.yaw=math.atan(forward.x,-forward.z);f.pitch=math.asin(forward.y);session.buildCamera:Apply()
+        end
         session:Trace(x*w,y*h)
         if editor.preview and editor.preview.res and editor.preview.res.ok then
             session.controls.x=x*w;session.controls.y=y*h;session.controls.inside=true;session:Refresh();return true

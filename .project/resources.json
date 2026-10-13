@@ -14,7 +14,9 @@
       "!UI/Modes/**",
       "!UI/Salvage/**",
       "!UI/Faces/**",
-      "Parts/Dependencies.json",
+      "!UI/Avatars/**",
+      "!UI/Music/**",
+      "!Parts/Dependencies.json",
       "Editor/Textures/Engine/Vignetting.png"
     ],
     "default": [

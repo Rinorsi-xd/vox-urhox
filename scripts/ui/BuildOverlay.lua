@@ -2,7 +2,9 @@ local Panel=require 'urhox-libs/UI/Widgets/Panel'
 local D=require 'ui.SourceDraw'
 local Key=require('ui.BuildButton').Key
 local Defs=require 'parts.Defs'
+local Badge=require 'ui.BuildModeBadge'
 local Overlay=Panel:Extend('VoxBuildOverlay')
+local arms={{-1,-13,2,8},{-1,5,2,8},{-13,-1,8,2},{5,-1,8,2}}
 local function Fade(vg,x,y,w,h,a,b,horizontal)
     nvgBeginPath(vg);nvgRect(vg,x,y,w,h);D.Gradient(vg,x,y,w,h,a,b,horizontal)
 end
@@ -25,16 +27,17 @@ function Overlay:Render(vg)
     local hints={};local function Hint(text,key,mouse,extra,bold) hints[#hints+1]={text=text,key=key,mouse=mouse,extra=extra,bold=bold} end
     local rot=tostring(((e.pasting and e.pasteSpin or e.spin)%4)*90)..'°'
     if e.pasting then Hint('放下粘贴',nil,'L');Hint('旋转 '..rot,'R');Hint('取消','Esc')
-    elseif e.tool=='erase' then Hint('删除零件',nil,'L',nil,true);Hint('删除零件',nil,'R');Hint('多选','Shift','L');Hint('删除所选','Del');Hint('退出删除','X')
+    elseif s.selecting then Hint('选择',nil,'L',nil,true);Hint('全选','Ctrl+A');Hint('清空 / 退出','Esc')
+    elseif e.tool=='erase' then Hint('删除零件',nil,'L',nil,true);Hint('删除零件',nil,'R');Hint('退出删除','X / Esc')
     elseif e.tool=='paint' then
-        Hint(e.paintChannel=='accent' and '涂装饰色' or '涂装外壳',nil,'L',nil,true);Hint('外壳 / 饰色',nil,'W');Hint('吸取颜色','C');Hint('复制零件及配色',nil,'M');Hint('切回放置','1–0');Hint('退出涂装','P')
+        Hint(e.paintChannel=='accent' and '涂装饰色' or '涂主色',nil,'L',nil,true);Hint('换颜色',nil,'W');Hint('主色 / 装饰色','Tab');Hint('吸色','C');Hint('回去放零件','1–0')
     else
         Hint('放置',nil,'L',nil,true);Hint('删除',nil,'R');Hint('换零件',nil,'W');Hint('旋转 '..rot,'R')
         if Defs.PARTS[e.type].shape then Hint('翻转安装面','Alt+R');Hint('换材质','G') end
-        Hint('拾取',nil,'M');Hint('零件库','B')
+        Hint('拾取零件和颜色',nil,'M');Hint('换颜色','Alt','W');Hint('零件库','B')
     end
     local fly=s.buildCamera
-    if fly.mode=='fp' then Hint('平移','WASD');Hint('上升','空格');Hint('下降','Shift');Hint('快飞','Z');Hint('回到车旁','L')
+    if fly.mode=='fp' then Hint('平移','WASD');Hint('上升','空格');Hint('下降','Shift');Hint('快飞','Z');Hint('飞行速度 '..s.flyStep..' 档','- / =');Hint('回到车旁','L')
     else Hint('拖动转视角',nil,'R');Hint('缩放','Shift','W') end
     local selected=#e:Selected();if selected>0 then Hint('移动所选 '..selected..' 个','方向键') end;Hint('全部操作','H')
     local cy=76
@@ -48,9 +51,19 @@ function Overlay:Render(vg)
         D.Text(vg,item.text,tx,cy+(height-(item.bold and 18 or 16))/2,item.bold and 15 or 12.5,item.bold and e.tool=='erase' and {255,59,48,255} or {201,206,214,255},item.bold and nil or 'vox-body');cy=cy+height+2
     end
     if fly.mode=='fp' and not s.dialog and not s.hud.colorOpen then
-        local x,y=w/2,h/2;for _,q in ipairs({{-1,-13,2,8},{-1,5,2,8},{-13,-1,8,2},{5,-1,8,2}}) do D.Rect(vg,x+q[1],y+q[2],q[3],q[4],D.white) end;D.Rect(vg,x-2,y-2,4,4,D.orange)
+        -- H5 keeps its crosshair in CSS pixels, outside the reference-scaled UI.
+        local unit=graphics:GetDPR()/require('urhox-libs/UI').GetScale()
+        local x,y=w/2,h/2;local mode=Badge.Mode(s)
+        nvgSave(vg);nvgTranslate(vg,x,y);nvgScale(vg,unit,unit)
+        D.Rect(vg,-2,-14,4,10,{0,0,0,153});D.Rect(vg,-14,-2,10,4,{0,0,0,153})
+        for _,q in ipairs(arms) do D.Rect(vg,q[1],q[2],q[3],q[4],D.white) end
+        local size=mode=='paint' and 10 or (mode=='erase' or mode=='select') and 6 or 4
+        local edge=mode=='paint' and 2 or size==6 and 1 or 0
+        if edge>0 then D.Rect(vg,-size/2-edge,-size/2-edge,size+edge*2,size+edge*2,{0,0,0,mode=='paint' and 166 or 179}) end
+        local badge=s.hud.modeBadge
+        D.Rect(vg,-size/2,-size/2,size,size,badge.renderMode==mode and badge.color or Badge.Color(s));nvgRestore(vg)
         if not fly.captured then
-            local text='点击画面开始建造 · Tab 返回环绕视角';local width=D.Width(vg,text,17)+40;D.Rect(vg,(w-width)/2,h*.58,width,42,{14,15,18,235});D.Rect(vg,(w-width)/2,h*.58,3,42,D.orange);D.Text(vg,text,w/2,h*.58+10,17,nil,nil,NVG_ALIGN_CENTER)
+            local text='点击画面开始建造';local width=D.Width(vg,text,17)+40;D.Rect(vg,(w-width)/2,h*.58,width,42,{14,15,18,235});D.Rect(vg,(w-width)/2,h*.58,3,42,D.orange);D.Text(vg,text,w/2,h*.58+10,17,nil,nil,NVG_ALIGN_CENTER)
         end
     end
 end

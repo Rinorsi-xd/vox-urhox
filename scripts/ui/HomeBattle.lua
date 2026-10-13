@@ -54,7 +54,7 @@ function Page:Render(vg)
     D.Rect(vg,x,y+59,w,1,{255,255,255,20})
 end
 function M.Start(s)
-    if Data.modes[s.modeChoice] then s.app.toasts:Push('竞技对战尚未迁移','bad');return end
+    if Data.modes[s.modeChoice] then s.app:EnterBattle(s.modeChoice);return end
     s.app:EnterTrial(s.modeChoice=='test' and 'trial' or 'crater')
 end
 function M.Create(s)

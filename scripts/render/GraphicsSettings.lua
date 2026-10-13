@@ -80,11 +80,11 @@ function M:Flush()
     return ok,err
 end
 function M:Update(dt)
-    if self.post then self.post:Update(dt) end
+    if self.post and not self.suspendedViewport then self.post:Update(dt) end
     if self.tonemap then self.tonemap:Update() end
     if self.pending then self.delay=self.delay-dt;if self.delay<=0 then self:Flush() end end
 end
-function M:PostUpdate() if self.post then self.post:PostUpdate() end end
+function M:PostUpdate() if self.post and not self.suspendedViewport then self.post:PostUpdate() end end
 function M:Dispose()
     self.suspendedViewport=nil
     self:Flush()

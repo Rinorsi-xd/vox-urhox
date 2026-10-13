@@ -13,4 +13,13 @@ function M.For(parts)
     end
     return result
 end
+function M.FromBlueprint(data)
+    local result={}
+    for _,part in ipairs(data.parts or {}) do result[#result+1]={type=part[1],rot=part[5]} end
+    return M.For(result)
+end
+function M.Ready(parts)
+    for _,path in ipairs(M.For(parts)) do if not cache:Exists(path) then return false end end
+    return true
+end
 return M

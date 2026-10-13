@@ -56,7 +56,7 @@ function M:Update(dt)
             if not ok then self:Clear();self.app.toasts:Push('预制车加载失败：'..tostring(err),'bad');return end
             self.cursor=self.cursor+1
         end
-        if self.cursor>#self.parts then self.complete=true;self:Frame() end
+        if self.cursor>#self.parts then self.view.livery:Set(self.bp.livery);self.view.livery:Update();self.complete=true;self:Frame() end
     end
     local rise=self.rise
     if rise then

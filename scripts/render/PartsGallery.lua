@@ -14,10 +14,11 @@ end
 function Gallery:init(scene,page)
     self.root=scene:CreateChild("Gallery")
     self.view=VehicleView.New(self.root,"GalleryParts")
-    self.labels={};self.pending={};self.page=1
+    self.labels={};self.pending={};self.page=1;self.gate=require('app.ResourceGate').New()
     self:Page(page)
 end
 function Gallery:Page(page)
+    self.gate:Cancel();self.ready=false
     self.view:Clear()
     for _,n in ipairs(self.labels) do n:Remove() end
     self.labels={};self.pending={}
@@ -32,8 +33,12 @@ function Gallery:Page(page)
         for _,c in ipairs(d.cells) do low=math.min(low,Rot.ApplyRot(rot,c)[2]) end
         self.pending[#self.pending+1]={id=i,type=d.id,pos={(index%4-1.5)*9,1-low,-12-(index//4)*9},rot=rot,color=d.color}
     end
+    self.gate:Start(require('parts.Dependencies').For(self.pending),function(ok,message)
+        self.ready=ok;if not ok then print('[PartsGallery] '..message) end
+    end)
 end
 function Gallery:Update()
+    if not self.ready then return end
     local started=os.clock()
     local font=cache:GetResource("Font","Fonts/MiSans-Regular.ttf")
     while #self.pending>0 and os.clock()-started<0.002 do
@@ -48,6 +53,6 @@ function Gallery:Update()
     end
 end
 function Gallery:Dispose()
-    self.pending={};self.view:Dispose();self.root:Remove();self.labels={}
+    self.gate:Cancel();self.pending={};self.view:Dispose();self.root:Remove();self.labels={}
 end
 return Gallery

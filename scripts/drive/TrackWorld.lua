@@ -28,7 +28,8 @@ function M:init(scene)
     self.metrics=require('drive.TrialMetrics').New(self.layout.drag)
     self.units={};self.fx={};self.viewEvents={};self.debris=Debris.New(self.space)
     self.env={stats=self.stats,castRay=function(...) return self:CastRay(...) end,
-        hit=function(...) self:Hit(...) end}
+        hit=function(...) self:Hit(...) end,lockables=function(...) return self:Lockables(...) end,
+        explode=function(...) return self:Explode(...) end}
     local ground=self.root:CreateChild("Ground")
     -- Same 400 x 2 x 400 m solid footprint as H5, but planar triangle normals.
     -- Box.mdl is the documented 1 m unit cube; this collider is static only.
@@ -66,7 +67,7 @@ function M:init(scene)
         local n=self.root:CreateChild("Target"..i);n.position=Coord.Vec(t.pos[1],0,t.pos[2])
         local shape=n:CreateComponent("CollisionShape");shape:SetBox(Vector3(.3,2.2,2),Vector3(0,1.6,0))
         local b=n:CreateComponent("RigidBody");b.collisionLayer=4;b.kinematic=t.kind=="moving"
-        local target={node=n,native=b,definition=t,hp=t.hp,alive=true,respawn=0,fall=0,hitAt=-9}
+        local target={node=n,native=b,definition=t,hp=t.hp,alive=true,respawn=0,fall=0,hitAt=-9,pos={t.pos[1],1.6,t.pos[2]}}
         target.body=self.space:Register(b,{type="target",ref=target})
         Assets.Attach(n,Assets.data.targetBase)
         target.board=n:CreateChild("Board");target.board.position=Vector3(0,.5,0)
@@ -97,6 +98,45 @@ function M:CastRay(origin,direction,length,excluded)
         end
     end end
     return best
+end
+function M:Lockables(excluded,team,accept)
+    local out={}
+    for _,t in ipairs(self.targets) do if t.alive then out[#out+1]=t end end
+    for _,u in ipairs(self.units) do
+        if u.alive and u.vehicle.body~=excluded and (not team or team=='neutral' or u.team~=team) and (not accept or accept(u)) then
+            u:Position();out[#out+1]=u
+        end
+    end
+    return out
+end
+-- Sphere around impact -> exposed targets/parts receive source falloff; self is
+-- excluded. Ray occlusion protects targets; each car distributes one damage pool
+-- across its visible parts. Boundary edge == radius retains 30 percent damage.
+function M:Explode(point,radius,damage,excluded,accept,cast)
+    local V=require 'core.Math3'
+    for _,t in ipairs(self.targets) do if t.alive then
+        local delta=V.Sub(t.pos,point);local d=V.Length(delta);local edge=math.max(0,d-1)
+        if edge<=radius then
+            local dir=V.Scale(delta,1/(d>0 and d or 1))
+            local los=cast and cast(point,dir,d,excluded) or self:CastRay(point,dir,d,excluded)
+            if not los or los.owner and los.owner.ref==t then
+                self:Hit({owner={type='target',ref=t},point=t.pos},damage*(1-edge/radius*.7),dir,0,0)
+            end
+        end
+    end end
+    for _,u in ipairs(self.units) do
+        if u.alive and u.vehicle.body~=excluded and (not accept or accept(u)) and V.Length(V.Sub(u:Position(),point))<=radius+u.spec.bounds.radius then
+            if u:Explode(point,radius,damage)>0 then self.stats.hits=self.stats.hits+1 end
+        end
+    end
+    local function Push(body,k0,mass)
+        local p=body.translation();local delta={p.x-point[1],p.y-point[2],p.z-point[3]};local d=V.Length(delta)
+        if d>radius*2 then return end
+        local f=1-d/(radius*2);local k=k0*f/(d>0 and d or 1)
+        body.applyImpulse({x=delta[1]*k,y=8*f*mass/4,z=delta[3]*k},true)
+    end
+    for _,c in ipairs(self.cones) do Push(c.body,25,4) end
+    for _,p in ipairs(self.debris.pieces) do Push(p.body,6*p.mass,p.mass) end
 end
 function M:RecordDamage(unit,amount,point)
     self.stats.damage=self.stats.damage+amount;self.metrics:Damage(self.time,unit,amount,point,false)
@@ -132,6 +172,7 @@ function M:Step(dt)
     for _,t in ipairs(self.targets) do
         local d=t.definition
         if d.kind=="moving" then t.node.position=Coord.Vec(d.pos[1],0,d.pos[2]+d.amp*math.sin(self.time*d.speed/d.amp)) end
+        local p=t.node.position;t.pos[1],t.pos[2],t.pos[3]=-p.x,p.y+1.6,p.z
         if not t.alive and self.time>=t.respawn then t.alive=true;t.hp=d.hp;t.native.enabled=true end
     end
     self.space:Step(dt)

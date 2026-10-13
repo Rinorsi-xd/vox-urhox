@@ -27,6 +27,8 @@ function M.Create(session)
     state.detailPanel=require('ui.DriveDetails'){position='absolute',left=12,top=72,width=280,height=260,pointerEvents='none',visible=session.details};state.detailPanel.session=session;root:AddChild(state.detailPanel)
     state.vitals=require('ui.DriveVitals'){position='absolute',left=width/2-125,top=height/2-125,width=250,height=250,pointerEvents='none'};state.vitals.session=session;root:AddChild(state.vitals)
     state.overlay=require('ui.DriveOverlay').New(session,root,state.vitals)
+    state.missile=require('ui.MissileHud'){position='absolute',width='100%',height='100%',pointerEvents='none'}
+    state.missile.session=session;state.missile.overlay=state.overlay;root:AddChild(state.missile)
     local total=math.max(1,#weapons.groups)*50-4
     for i=1,math.max(1,#weapons.groups) do
         local index=i
@@ -35,6 +37,13 @@ function M.Create(session)
     end
     state.keys=Add('keys',{left=0,bottom=14,width='100%',height=33})
     state.pause=Add('pause',{width='100%',height='100%'})
+    if session.battle then
+        for _,widget in ipairs({state.title,state.timer,state.stats,state.keys,state.buttons['return']}) do widget:SetVisible(false) end
+        state.match=require('ui.MatchHud').Attach(session,root)
+    elseif session.story then
+        for _,widget in ipairs({state.timer,state.stats,state.keys}) do widget:SetVisible(false) end
+        state.story=require('ui.MissionHud').Attach(session,root)
+    end
     if session.touch then
         local safe=UI.GetSafeAreaInsets();local edge=math.max(18,safe.right or 0)
         state.buttons['return']:SetStyle({right=edge,top=12,width=112,height=48})
@@ -46,21 +55,26 @@ function M.Create(session)
     state.Clear=controls.Clear
     function state.Update(s,dt)
         if state.disposed then return end;dt=dt or 0
+        weapons=s.weapons
         local active=s.pointer.captured and not s.dialog
         if state.captured~=active and not s.touch then
             state.captured=active
             root:SetStyle({pointerEvents=active and 'none' or 'box-none'})
             for child,mode in pairs(modes) do child:SetStyle({pointerEvents=active and 'none' or mode}) end
         end
-        state.pause:SetVisible(not active and not s.touch);state.vitals:SetVisible(active);state.detailPanel:SetVisible(s.details)
+        local alive=not s.combat or s.combat.player.alive;local over=s.battle and s.battle.rules.state=='over' or s.story and s.story.rules.finished
+        state.pause:SetVisible(not active and not s.touch and not over);state.vitals:SetVisible(active and alive);state.detailPanel:SetVisible(s.details and alive)
+        state.meter:SetVisible(alive and not s.touch and not s.story);state.playfield:SetVisible(not over)
+        if state.match then state.match.Update() end
+        if state.story then state.story.Update(dt) end
         state.vitals:SetEnergy(weapons.energy/weapons.energyMax,weapons.offline,#weapons.groups>0,dt);state.overlay:Update(dt)
-        for i,card in ipairs(state.cards) do card.widget.readiness=weapons.groups[i] and math.max(0,math.min(1,weapons:Readiness(weapons.groups[i]))) or 0 end
+        for i,card in ipairs(state.cards) do card.widget.group=weapons.groups[i];card.widget.readiness=weapons.groups[i] and math.max(0,math.min(1,weapons:Readiness(weapons.groups[i]))) or 0 end
         local group=weapons:Group()
-        state.vitals.hint=s.firing and group and weapons.blocked>=#group.weapons and '目标在射界外' or s.firing and state.overlay.aimState=='blocked' and '炮口被挡住' or ''
+        state.vitals.hint=group and group.kind=='missile' and '' or s.firing and group and weapons.blocked>=#group.weapons and '目标在射界外' or s.firing and state.overlay.aimState=='blocked' and '炮口被挡住' or ''
         state.refresh=state.refresh-dt
         if state.refresh<=0 or dt==0 then
-            state.refresh=.1;state.readoutUpdates=state.readoutUpdates+1;state.meter:Refresh()
-            if s.details then state.detailPanel:Refresh() end
+            state.refresh=.1;state.readoutUpdates=state.readoutUpdates+1;if alive then state.meter:Refresh() end
+            if s.details and alive then state.detailPanel:Refresh() end
         end
     end
     function state.Dispose()

@@ -6,7 +6,7 @@ local Config=require 'Config'
 local M={};M.__index=M
 function M.New(app)
     return setmetatable({app=app,loader=require('app.SceneLoader').New(function(scene) scene:SetVar('VoxPreview',Variant(true)) end),queue={},frame=0,
-        captures=0,cacheHits=0,cancelled=0,sceneLoads=0,idle=0},M)
+        captures=0,cacheHits=0,cancelled=0,sceneLoads=0,idle=0,gate=require('app.ResourceGate').New()},M)
 end
 function M:Request(data,done)
     local request={data=data,ref=data.preview,done=done}
@@ -15,6 +15,7 @@ end
 function M:Cancel(request)
     if not request or request.finished or request.cancelled then return end
     request.cancelled=true;request.done=nil;request.data=nil;self.cancelled=self.cancelled+1
+    if self.loadingRequest==request then self.gate:Cancel();self.loadingRequest=nil end
     if self.job and self.job.request==request then self:ReleaseJob() end
 end
 function M:ReleaseJob()
@@ -24,10 +25,11 @@ function M:ReleaseJob()
     self.job=nil;self.bp=nil
 end
 function M:ReleaseScene()
+    self.gate:Cancel();self.loadingRequest=nil
     self:ReleaseJob();self.loader:Cancel()
     if self.hangar then self.hangar:Dispose();self.hangar=nil end
     if self.scene then self.scene:Dispose();self.scene=nil end
-    self.camera=nil;self.cameraNode=nil
+    self.camera=nil;self.cameraNode=nil;self.cameraSafety=nil
 end
 function M:Complete(request,image,message)
     request.finished=true;local done=request.done;request.done=nil;request.data=nil
@@ -42,6 +44,7 @@ function M:LoadScene()
         -- render targets; tearing those nested captures down can stall the GPU.
         self.cameraNode=scene:CreateChild('SavedVehicleCamera')
         self.camera=self.cameraNode:CreateComponent('Camera')
+        self.cameraSafety=require('controls.PreviewRoom').New(scene)
         self.camera.nearClip=.05;self.camera.farClip=320;self.camera.autoAspectRatio=false
     end,function(message)
         -- SceneLoader owns disposal of a failed candidate.
@@ -69,7 +72,8 @@ function M:Start(request)
     local center=stats.count>0 and Vector3(-(b.minX+b.maxX)*cell/2,((b.minY+b.maxY)/2+.5)*cell-floor,(b.minZ+b.maxZ)*cell/2) or Vector3(0,1,0)
     local dims=stats.dims
     local radius=stats.count>0 and math.sqrt(dims.L^2+dims.W^2+dims.H^2)*cell/2 or 2
-    self.cameraNode.position=center+Vector3(-.72,.42,.95):Normalized()*(radius*1.75+1.2)
+    local requested=center+Vector3(-.72,.42,.95):Normalized()*(radius*1.75+1.2)
+    self.cameraNode.position=self.cameraSafety:Resolve(center,requested)
     self.cameraNode:LookAt(center);self.camera.fov=48;self.camera.aspectRatio=width/height
     self.bp=bp;self.tier=math.max(1,math.min(5,tonumber(context.tier) or 3));self.slot=request.ref and request.ref.slot
     local settings=context.graphics
@@ -96,8 +100,10 @@ function M:Readback()
 end
 function M:Update(dt)
     self.frame=self.frame+1;self.loader:Update(dt)
+    if self.loadingRequest then return end
     if self.job then
         local job=self.job
+        job.view.livery:Update()
         if job.request.ref and not Cache.Current(job.request.ref) then
             self:ReleaseJob();self:Complete(job.request,nil,'存档版本已更新');return
         end
@@ -127,10 +133,19 @@ function M:Update(dt)
     end
     if not self.scene then if self.loader.state~='loading' then self:LoadScene() end;return end
     table.remove(self.queue,1)
-    local ok,err=pcall(self.Start,self,request)
-    if not ok then self:ReleaseJob();self:Complete(request,nil,tostring(err)) end
+    self.loadingRequest=request
+    self.gate:Start(require('parts.Dependencies').FromBlueprint(request.data),function(ready,message)
+        if self.loadingRequest~=request then return end
+        self.loadingRequest=nil
+        if request.cancelled then return end
+        if not ready then self:Complete(request,nil,message);return end
+        if request.ref and not Cache.Current(request.ref) then self:Complete(request,nil,'存档版本已更新');return end
+        local ok,err=pcall(self.Start,self,request)
+        if not ok then self:ReleaseJob();self:Complete(request,nil,tostring(err)) end
+    end)
 end
 function M:Dispose()
+    if self.loadingRequest then self:Cancel(self.loadingRequest) end
     if self.job then self:Cancel(self.job.request) end
     for _,r in ipairs(self.queue) do self:Cancel(r) end
     self.queue={};self:ReleaseScene()

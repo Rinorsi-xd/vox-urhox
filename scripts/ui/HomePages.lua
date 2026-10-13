@@ -17,6 +17,7 @@ function Page:Render(vg)
 end
 local M={}
 function M.Create(s)
+    if s.tab=='livery' then return require('ui.LiveryPage').Create(s) end
     if s.tab=='workshop' then return require('ui.Workshop').Create(s) end
     if s.tab=='battle' then return require('ui.HomeBattle').Create(s) end
     if s.tab=='story' then return require('ui.StoryPage').Create(s) end

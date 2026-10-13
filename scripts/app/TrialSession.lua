@@ -24,12 +24,19 @@ function M:init(scene,bp,preparedWorld)
     self.touch=require('controls.TouchMode').Enabled()
     self.scene=scene;self.controls=Input.New();self.accumulator=0;self.fixedSteps=0;self.droppedTime=0
     self.pointer=require('controls.DrivePointer').New(self)
-    self.world=preparedWorld or require(self.map.world).New(scene);self.vehicle=Vehicle.New(self.world.space,Spec.Build(bp))
+    self.world=preparedWorld or require(self.map.world).New(scene)
+    if self.map.storyLevel then
+        self.story=require('story.Mission').New(self,bp);self.vehicle=self.story.player.vehicle
+    elseif self.map.battleMode then
+        self.battle=require('combat.BattleController').New(self,bp);self.vehicle=self.battle.player.vehicle
+    else self.vehicle=Vehicle.New(self.world.space,Spec.Build(bp)) end
+    self.combat=self.battle or self.story
     if self.map.environment then self.environment=require(self.map.environment).New(scene,self.world.layout) end
     self.ReleaseAssets=require(self.map.assets).Release
     if #self.world.targets>0 then self.targetFeedback=TargetFeedback.New(self.world.root,self.world.targets) end
-    self.weapons=Weapons.New(self.vehicle.spec);self.effects=Effects.New(scene,function(x,z) return self.world:GroundAt(x,z) end)
-    self.combatView=CombatView.New(scene);self.world:SetUnits(bp);self.combatView:Consume(self.world)
+    self.weapons=self.combat and self.combat.player.weapons or Weapons.New(self.vehicle.spec);self.effects=Effects.New(scene,function(x,z) return self.world:GroundAt(x,z) end)
+    self.weaponAudio=require('audio.WeaponAudio').New(scene)
+    self.combatView=CombatView.New(scene);if not self.combat then self.world:SetUnits(bp) end;self.combatView:Consume(self.world)
     self.view=DriveView.New(scene,bp,self.vehicle);self.target=scene:CreateChild("FollowTarget")
     self.cameraOffset=self.vehicle.legMode and Vector3.ZERO or Vector3(0,math.max(3.8,(self.vehicle.spec.bounds.max[2]-self.vehicle.spec.bounds.min[2])*.65),0)
     self.minCameraDistance=math.max(8,self.vehicle.spec.bounds.radius*1.5)
@@ -42,7 +49,10 @@ function M:init(scene,bp,preparedWorld)
     self.camera=ThirdPerson.Create(scene,{modes={normal={distance=self.cameraDistance,offset=self.cameraOffset,fov=48}},collisionMask=1 | require('controls.CameraObstacles').LAYER,collisionPadding=.85,farClip=2600})
     self.fxContext={camera=self.camera:GetNode(),time=0,fov=60}
     self.yaw=0;self.pitch=30;self.teleport=1;self.wantsReturn=false;self.disposed=false;self.hud=nil
-    self:Reset();self:PostUpdate(1)
+    if self.combat then self.yaw=self.story and -self.story.player.spawnAt.yaw*180/math.pi or 0;self.view:ResetPose();self.view:Update(1)
+    else self:Reset() end
+    if self.battle then self.battle.objectives:Update(0) end
+    self:PostUpdate(1)
 end
 function M:Activate(onReturn)
     self.onReturn=onReturn;self.enteredTime=0
@@ -51,26 +61,33 @@ function M:Activate(onReturn)
     input.mouseMode=MM_ABSOLUTE
     self.app.graphicsSettings:Show(self.scene,self.camera:GetCamera())
 end
+function M:StartIntro()
+    if self.battle and not self.disposed then
+        self.weaponAudio:SetActive(false)
+        if self.intro then self.intro:Dispose() end
+        self.intro=require('app.MatchIntro').New(self)
+    end
+end
 function M:Reset()
     local spawn=self.world.layout.teleports[self.teleport]
     self.vehicle:Place(spawn.pos,spawn.yaw);self.yaw=-spawn.yaw*180/math.pi
     self.controls:Clear();if self.hud then self.hud.Clear() end
     self.accumulator=0;self.prevZ=nil;self.view:ResetPose();self.view:Update(1)
     -- A teleport cancels shots in flight and transient feedback, not energy/cooldowns.
-    self.weapons.projectiles={};self.weapons.wasFiring=false;self.effects:Clear()
+    self.weapons.projectiles={};self.weapons.wasFiring=false;self.effects:Clear();self.weaponAudio:Stop()
 end
 function M:HasFocus() return input.focus and not input.minimized end
-function M:Resume() return self.pointer:Capture() end
+function M:Resume() if self.story and self.story.rules.finished then return false end;return self.pointer:Capture() end
 function M:Zoom(wheel)
     if wheel==0 then return end
-    self.cameraDistance=math.max(self.minCameraDistance,math.min(self.maxCameraDistance,self.cameraDistance*math.exp(-wheel*.12)))
+    self.cameraDistance=require('controls.Wheel').Zoom(self.cameraDistance,wheel,self.minCameraDistance,self.maxCameraDistance)
     -- The library interpolates only across distinct modes. Alternate two public
     -- mode configurations instead of mutating its private interpolation state.
     local mode=self.camera:GetMode()=='zoomA' and 'zoomB' or 'zoomA'
     self.camera:SetModeConfig(mode,{distance=self.cameraDistance,offset=self.cameraOffset,fov=48})
     self.camera:SetMode(mode)
 end
-function M:Pause() self.pointer:Release() end
+function M:Pause() self.pointer:Release();self.weaponAudio:SetActive(false) end
 function M:Escape()
     if self.dialog then Host.Close(self);self:Pause()
     elseif self.pointer.captured then self:Pause()
@@ -81,17 +98,20 @@ function M:GoTo(name)
     return false
 end
 function M:Flip()
+    if self.combat and not self.combat.player.alive then return end
     local p=self.vehicle.body.translation();local yaw=self.vehicle:Yaw()
     self.vehicle:Place({p.x,p.y+self.vehicle.spec.bounds.radius*.6,p.z},yaw)
     self.controls:Clear();if self.hud then self.hud.Clear() end
     self.accumulator=0;self.prevZ=nil;self.view:ResetPose();self.view:Update(1)
 end
 function M:ResetAll()
+    if self.combat then return end
     self.world:Reset();self.combatView:Consume(self.world);self.teleport=1;self:Reset()
     if self.hud then self.hud.overlay:Clear() end
     self.app.toasts:Push(self.map.id=='crater' and '已返回我方要塞，复原车辆' or '已复原：车辆、靶子、靶车、锥桶')
 end
 function M:NextArea()
+    if self.combat then return end
     self.teleport=self.teleport%#self.world.layout.teleports+1;self:Reset()
     self.app.toasts:Push('传送：'..self.world.layout.teleports[self.teleport].name)
 end
@@ -99,6 +119,13 @@ local digitKeys={KEY_1,KEY_2,KEY_3,KEY_4,KEY_5,KEY_6,KEY_7,KEY_8,KEY_9,KEY_0}
 local actionKeys={KEY_ESCAPE,KEY_T,KEY_R,KEY_BACKSPACE,KEY_I,KEY_C,KEY_N}
 function M:KeyPressed(key) return input:GetKeyPress(key) end
 function M:HandleKey(key)
+    if self.story and self.story.rules.finished then
+        if key==KEY_R then self.app.restartStory=true;self.wantsReturn=true
+        elseif key==KEY_ESCAPE or key==KEY_RETURN or key==KEY_T then self.wantsReturn=true end
+        return
+    end
+    if self.combat and (key==KEY_N or key==KEY_BACKSPACE) then return end
+    if self.combat and not self.combat.player.alive and key==KEY_R then return end
     if key==KEY_ESCAPE then self:Escape()
     elseif key==KEY_T then if self.enteredTime>.4 then self.wantsReturn=true end
     elseif key==KEY_R then self:Flip()
@@ -114,8 +141,10 @@ function M:PollKeys(typing)
     if typing or self.dialog or not self:HasFocus() then return end
     for _,key in ipairs(actionKeys) do if self:KeyPressed(key) then self:HandleKey(key) end end
     for _,key in ipairs(digitKeys) do if self:KeyPressed(key) then self:HandleKey(key) end end
+    if self.story and self:KeyPressed(KEY_RETURN) then self:HandleKey(KEY_RETURN) end
 end
 function M:Aim()
+    if self.combat and not self.combat.player.alive then return self.aimPoint or self.combat.player:Position() end
     local ray=self.camera:GetCamera():GetScreenRay(.5,.5)
     local p,d=ray.origin,ray.direction
     local origin,direction={-p.x,p.y,p.z},{-d.x,d.y,d.z}
@@ -124,36 +153,61 @@ function M:Aim()
     return hit and hit.point or {origin[1]+direction[1]*500,origin[2]+direction[2]*500,origin[3]+direction[3]*500}
 end
 function M:Tick(dt,command)
+    self.weaponAudio:SetActive(self.pointer.captured and (not self.battle or self.battle.rules.state=='live') and (not self.story or not self.story.rules.finished))
+    self.weaponAudio:Update(dt,self.weapons,self.camera:GetNode(),self.combat and self.combat.entries,self.combat and self.combat.voice.card~=nil)
+    if self.story and self.story.rules.finished then if self.hud then self.hud.Update(self,dt) end;return end
     -- Fixed 60 Hz on both desktop and 30 Hz mobile. Bound catch-up after pauses.
     local elapsed=math.min(math.max(dt,0),.1);self.droppedTime=self.droppedTime+math.max(0,dt-elapsed)
     self.accumulator=self.accumulator+elapsed
     local aim=command.aim or self:Aim()
     self.aimPoint=aim;self.firing=command.firing==true
     while self.accumulator>=1/60 do
-        self.vehicle:Step(command,1/60)
-        local body=self.vehicle.body;local p,v=body.translation(),body.linvel()
-        self.weapons:Step(1/60,{firing=command.firing==true,aim=aim,pos={p.x,p.y,p.z},quat=body.rotation(),
-            vel={v.x,v.y,v.z},body=body},self.world.env)
+        if self.combat then self.combat:BeforeStep(1/60,command,aim)
+        else
+            self.vehicle:Step(command,1/60)
+            local body=self.vehicle.body;local p,v=body.translation(),body.linvel()
+            local eye=self.camera:GetNode().worldPosition
+            self.weapons:Step(1/60,{firing=command.firing==true,aim=aim,pos={p.x,p.y,p.z},quat=body.rotation(),
+                vel={v.x,v.y,v.z},body=body,eye={-eye.x,eye.y,eye.z}},self.world.env)
+        end
         -- WeaponSystem reuses its event array: consume every fixed step immediately.
-        self.effects:Consume(self.weapons.fx)
-        self.world:Step(1/60);self.view:SavePose()
-        local center=self.vehicle.body.center()
-        self.world.metrics:Timing(self.world.time,{center.x,center.y,center.z},self.vehicle.speed,self.prevZ);self.prevZ=center.z
+        if not self.combat then self.effects:Consume(self.weapons.fx);self.weaponAudio:Consume(self.weapons.fx) end
+        self.world:Step(1/60)
+        if self.combat then self.combat:AfterStep(1/60);self.combat:SyncPlayer() end
+        if not self.combat or self.combat.player.alive then
+            self.view:SavePose();local center=self.vehicle.body.center()
+            self.world.metrics:Timing(self.world.time,{center.x,center.y,center.z},self.vehicle.speed,self.prevZ);self.prevZ=center.z
+        end
         self.combatView:Consume(self.world);self.combatView:SavePose()
         self.effects:Consume(self.world.fx);self.world.fx={}
         self.accumulator=self.accumulator-1/60;self.fixedSteps=self.fixedSteps+1
+        if self.story and self.story.rules.finished then self.accumulator=0;break end
     end
     self.fxContext.time=self.world.time
-    self.view:Update(self.accumulator*60,elapsed,self.fxContext)
+    local alive=not self.combat or self.combat.player.alive
+    if alive then self.view:Update(self.accumulator*60,elapsed,self.fxContext) end
     if self.targetFeedback then self.targetFeedback:Update(self.world.targets,self.world.time,self.camera:GetNode(),elapsed) end
-    WeaponView.Update(self.view.view,self.weapons,self.accumulator*60,elapsed,self.world.time,self.effects)
-    self.view.view:UpdateWeaponEffects(elapsed,self.fxContext,self.effects)
+    if alive then
+        WeaponView.Update(self.view.view,self.weapons,self.accumulator*60,elapsed,self.world.time,self.effects)
+        self.view.view:UpdateWeaponEffects(elapsed,self.fxContext,self.effects)
+    end
     self.combatView:Update(self.accumulator*60,elapsed,self.fxContext)
-    self.effects:Update(elapsed,self.weapons.projectiles,self.camera:GetNode())
+    if self.combat then
+        local shots={};for _,entry in ipairs(self.combat.entries) do if entry.unit.alive then for _,shot in ipairs(entry.unit.weapons.projectiles) do shots[#shots+1]=shot end end end
+        self.effects:Update(elapsed,shots,self.camera:GetNode())
+    else self.effects:Update(elapsed,self.weapons.projectiles,self.camera:GetNode()) end
     if self.hud then self.hud.Update(self,elapsed) end
 end
 function M:Update(dt)
     if self.disposed then return end
+    if self.app.loadingFlow and self.app.loadingFlow.active then return end
+    if self.battle then self.battle.sounds:Update(dt);self.battle.voice:Update(dt) end
+    if self.story then self.story:Update(dt) end
+    if self.intro and not self.intro.done then
+        if input:GetKeyPress(KEY_SPACE) or input:GetKeyPress(KEY_RETURN) or input:GetKeyPress(KEY_ESCAPE) then self.intro:Finish()
+        else self.intro:Update(dt) end
+        return
+    end
     Host.Update(self,dt)
     self.enteredTime=(self.enteredTime or 0)+math.max(0,dt)
     local width,height=UI.GetViewportSize()
@@ -183,16 +237,26 @@ function M:Update(dt)
     local sensitivity=self.camera:GetCamera().fov/48
     self.yaw=self.yaw+dx*.2*sensitivity;self.pitch=math.max(-10,math.min(65,self.pitch+dy*.2*sensitivity))
     self.lookIdle=(dx~=0 or dy~=0) and 0 or self.lookIdle+dt
-    if self.follow and self.lookIdle>1.2 and not command.firing and self.vehicle.speed>3 then
+    local alive=not self.combat or self.combat.player.alive
+    if alive and self.follow and self.lookIdle>1.2 and not command.firing and self.vehicle.speed>3 then
         local difference=(-self.vehicle:Yaw()*180/math.pi-self.yaw+180)%360-180
         self.yaw=self.yaw+difference*math.min(1,dt*1.5)
     end
-    if self.vehicle.body.translation().y < -30 then self:Reset() end
+    if alive and not self.combat and self.vehicle.body.translation().y < -30 then self:Reset() end
     self:Tick(dt,command)
 end
 function M:PostUpdate(dt)
     if self.disposed then return end
+    if self.intro and not self.intro.done then
+        self.intro:Camera();if self.environment then self.environment:Update(dt,self.camera:GetNode()) end;return
+    end
     local root=self.view.view.root;local p=root.position
+    if self.combat and not self.combat.player.alive then
+        local watched=false
+        for _,entry in ipairs(self.combat.entries) do if entry.unit.team=='blue' and entry.unit.alive then watched=entry.unit;break end end
+        if watched then p=Coord.Vec(table.unpack(watched:Position())) end
+        self.target.position=p;self.camera:Update(dt,self.target,self.yaw,self.pitch);return
+    end
     -- A wall-walking chassis rotates its entire local height axis. Ground-only
     -- bounds offsets aim above it and crop the feet; follow its displayed COM.
     if self.vehicle.legMode then self.target.position=p+root.rotation*Coord.Vec(table.unpack(self.vehicle.com))
@@ -214,14 +278,16 @@ end
 function M:Dispose()
     if self.disposed then return end
     self.disposed=true;Host.Dispose(self)
+    if self.intro then self.intro:Dispose();self.intro=nil end
     if self.pointer then self.pointer:Release() end
     if self.hud then self.hud.Dispose();self.hud=nil end
     if self.controls then self.controls:Clear() end
     if self.effects then self.effects:Dispose() end
+    if self.weaponAudio then self.weaponAudio:Dispose() end
     if self.combatView then self.combatView:Dispose() end
     self.weapons=nil;self.aimHit=nil
     if self.view then self.view:Dispose() end
-    if self.vehicle then self.vehicle:Dispose() end
+    if self.combat then self.combat:Dispose() elseif self.vehicle then self.vehicle:Dispose() end
     if self.targetFeedback then self.targetFeedback:Dispose() end
     if self.environment then self.environment:Dispose();self.environment=nil end
     if self.world then self.world:Dispose() end

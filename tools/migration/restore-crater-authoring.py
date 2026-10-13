@@ -13,7 +13,7 @@ import struct
 
 ROOT = Path(__file__).resolve().parents[2]
 EXPORT = ROOT / 'tools/migration/crater-source'
-SOURCE = Path('D:/Rino_Project/Vox/shared/assets/maps/crater')
+SOURCE = Path(json.loads((ROOT/'docs/migration/outgame-baseline.json').read_text('utf8'))['snapshot'])/'shared/assets/maps/crater'
 
 
 def close(a, b):
@@ -43,6 +43,7 @@ def run(check=False):
             material['color'] = color
     source_hashes = {material_path.name: hashlib.sha256(material_path.read_bytes()).hexdigest()}
     pending = []
+    expected_poses = 0
     for entry in manifest['roots']:
         source_path = SOURCE / (entry['id'] + '.glb')
         if not source_path.exists():
@@ -83,9 +84,10 @@ def run(check=False):
 
         visit(exported)
         assert seen == set(authored), 'Missing source dynamics: ' + entry['id']
+        expected_poses += len(authored)
         pending.append((export_path, exported))
         source_hashes[source_path.name] = hashlib.sha256(raw).hexdigest()
-    assert checked_poses == 54
+    assert checked_poses == expected_poses and expected_poses > 0
     report = {'checked_colors': checked_colors, 'checked_poses': checked_poses,
               'changed_colors': changed_colors, 'changed_poses': changed_poses, 'source_hashes': source_hashes}
     if check:

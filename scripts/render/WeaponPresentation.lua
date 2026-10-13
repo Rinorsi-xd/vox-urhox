@@ -35,7 +35,10 @@ function M.Apply(vis)
     local motion=vis.weaponMotion
     for index,pose in pairs(motion.poses) do
         local node=vis.rig.parts[index].node;node.position=Vec(pose.p);node:SetScale(Vector3(table.unpack(pose.scale)))
-        node.rotation=Quaternion(pose.angle*180/math.pi*(pose.axis=='x' and 1 or -1),pose.axis=='x' and Vector3.RIGHT or Vector3.FORWARD)
+        node.enabled=pose.visible~=false
+        if type(pose.axis)=='table' then
+            node.rotation=Quaternion(pose.angle*180/math.pi,Vector3(pose.axis[1],-pose.axis[2],-pose.axis[3]))
+        else node.rotation=Quaternion(pose.angle*180/math.pi*(pose.axis=='x' and 1 or -1),pose.axis=='x' and Vector3.RIGHT or Vector3.FORWARD) end
     end
     if motion.spinPose and vis.rig.spin then
         local p=vis.data.weapon.spin;vis.rig.spin.position=Vec({p[1],p[2],p[3]+motion.spinPose.buzz})
@@ -45,8 +48,9 @@ function M.Apply(vis)
         local base=vis.weaponBases[slot];local state=motion.material[slot] or {};local intensity=state.intensity or base.intensity*(state.factor or 1)
         local color=base.color
         if state.colorMix then
-            local from=Config.HexLinear(slot=='heatGlow' and 0xff7a22 or 0x1a9dff)
-            local to=Config.HexLinear(slot=='heatGlow' and 0xffc46a or 0xa8e6ff);color=from:Lerp(to,state.colorMix)
+            local heat=slot=='heatGlow' and vis.weaponMotion.kind=='mg'
+            local from=Config.HexLinear(heat and 0xff7a22 or 0x1a9dff)
+            local to=Config.HexLinear(heat and 0xffc46a or 0xa8e6ff);color=from:Lerp(to,state.colorMix)
         end
         material:SetShaderParameter('emission_color',Variant(color));material:SetShaderParameter('emission_strength',Variant(intensity))
         local f=motion.flow
@@ -66,9 +70,10 @@ function M.Reset(vis)
     local old=vis.weaponMotion
     local fresh=Motion.New(old.type,vis.data,vis.weaponProfile,old.random)
     -- Preserve physical weapon state and shot baseline; only visual transients reset.
-    for _,k in ipairs({'live','charge','windup','spinV','spinRate','spinAngle','offline','lastShot','power'}) do fresh[k]=old[k] end
+    for _,k in ipairs({'live','charge','windup','spinV','spinRate','spinAngle','offline','lastShot','power','open','lock','tubes','mphase','reload','readyAt'}) do fresh[k]=old[k] end
     fresh.eject.x=old.offline and 1 or 0
     vis.weaponMotion=fresh;fresh:Update(old.t or 0,0);M.Apply(vis)
     vis.head.position=Vector3.ZERO;vis.head.rotation=Quaternion.IDENTITY
+    if vis.rig.pod then vis.rig.pod.position=Vector3.ZERO;vis.rig.pod.rotation=Quaternion.IDENTITY end
 end
 return M

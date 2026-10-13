@@ -1,0 +1,361 @@
+{
+  "baseline": {
+    "branch": "2026-10-13",
+    "commit": "90862445074e7e146da900037979ad97899ecf6c"
+  },
+  "sourceFiles": {
+    "shared/css/livery.css": "45286d6b5f259d9e37ab24dba3e4f176902417dd8c6866151460127566780085",
+    "shared/assets/livery/portraits/portrait_nono_stamp.png": "d3b950c36d138c006c0066ef85832e1a31c8eccd985b968b14bf148a2dec4dfd",
+    "shared/assets/livery/portraits/portrait_nono_talk.png": "89621e3d4a5fbc2e4ab076bf494f2fe23e03cbeb7bf7ac83a4821734fcdbaaf8",
+    "shared/assets/livery/portraits/portrait_nono_deadpan.png": "a972b92c08431b5cc2a11aa1626f18e14c5a6eaf900215b9567eed86af6dfc52",
+    "shared/assets/livery/portraits/portrait_huhu_smug.png": "6a1a457fc64ae0254a1bf055a26232ce5fd72ca811c2b136973916165f8f310c",
+    "shared/assets/livery/portraits/portrait_huhu_angry.png": "843dfdbd307d2d04230ea476d4f102265246b26805eb155757c0cca642aeb768",
+    "shared/assets/livery/portraits/portrait_huhu_flustered.png": "a7d1d1e74659d60a977177822801103f1ebaeabc42146bd6d53dff4e1b84e370",
+    "shared/assets/livery/portraits/portrait_machinist_hero.png": "cf6813b07fce967e9181ca77fd618e7c3887da1c2a8f17c6f4c193dfb79177ed",
+    "shared/assets/livery/shapes/burst.svg": "ae6e2175d006c20f29b739f67a5b561bdd426fb5ab33aeb92f95058857a7b34b",
+    "shared/assets/livery/shapes/speed_lines.svg": "3ba45d0e242e38b47e95560a79be09b0164e56bda2da29779b9f39786c035555",
+    "shared/assets/livery/shapes/sparkle.svg": "f5d5c9737dc7221b48695f58e6aa03991a60109b2594d2026218f0c4e20a763e",
+    "shared/assets/livery/shapes/heart.svg": "d18eb9c33f9191cf647ce3b7a67b8425fd3b3462f8a28d59793acde246f02c8a",
+    "shared/assets/livery/shapes/lightning.svg": "a6411e4720f9acd078a257d76a418f2111e99f0eb3d01444de78db9130eb2089",
+    "shared/assets/livery/shapes/flame.svg": "3913ad9b6eb77c6f1224f7f16ce7ec01f4b0057ebdd678f286fd6595a9dacc0f",
+    "shared/assets/livery/shapes/sakura.svg": "3e0bb798a2028971976c1a96f627fe507c98ec720b35360128621025f171195a",
+    "shared/assets/livery/shapes/paw.svg": "de054c981d41986752161b810d6c5f424b231d8ad9a5dbfad39852cd48954124",
+    "shared/assets/livery/shapes/cat_ears.svg": "bc930cc5260ae2f9698476b70fe49a62e8aab525d5d52c11a4873dc8f83601a3",
+    "shared/assets/livery/shapes/wings.svg": "c0020ecdb8e52968700ae37b1d3c5af1531f411225264eeda55871c0633246c0",
+    "shared/assets/livery/shapes/chevron.svg": "3dbc8a2f612fb5f0d446a6b734a1601fe98d3cfd93489c73ca841b96ebece021",
+    "shared/assets/livery/shapes/hazard.svg": "587b4ba397ac0097474ff301f88e7504db2458ef9cf3e40f96b6470d2096e1d5",
+    "shared/assets/livery/shapes/tail_stripe.svg": "4c711da3c1fcc4417e7dcfe32b43b1dbe780fae96ffbcc117b7a0aa13313f9fe",
+    "shared/assets/livery/shapes/number_plate.svg": "6d9a00a89d3924e02927ef058ac28d5476d6444af9369ebd33dd1bfb43ff75d0",
+    "shared/assets/livery/shapes/race_number.svg": "62356954cfb41c6a14791d2222ad94dd9f76b43d475c9bb63e61accc806ecf51",
+    "shared/assets/livery/shapes/sfx_doon.svg": "59064ecd8faff9170b32ed69b5e2389ea89457eb0a8836f4adc8227873a92065",
+    "shared/assets/livery/shapes/sfx_zukyun.svg": "b3d79598a150dbe64b48209358bfc86b36722707510f4d1dc91a8e30157c4556",
+    "shared/assets/livery/shapes/seal_hissho.svg": "1735d84b68cc84f3d19e506a52e848b575cbd8dea77154e6a53a494b999bc114",
+    "shared/assets/livery/shapes/seal_baku.svg": "4f736b9d420c7c01de45c76729dbd5968951d68f2674cc5508990e087e9f394c",
+    "shared/assets/livery/shapes/soku_banner.svg": "b222ba5b8da155fa425e20dda23f644e1683bb912e3c2111fba5f5478aded409",
+    "shared/assets/livery/manifest.json": "612d38cc2fad5b8e01bc2db657dac12bc3b1461d0fc417c57ce9316b28727486",
+    "shared/build/livery.js": "68996dd726e8e0c57ddc348b9efd9f8721ff7bd22f871718ff3bd8b7c5e2cf95",
+    "shared/ui/liveryPanel.js": "257c3c5ccca34201ca9203abb76b45043cffd9eb28cc3f86549c01400dfa2db0",
+    "shared/assets/ui/new-ui/relief-side.svg": "5a720634d2c8aa779fe562716001c8f35b7287e4a79e28a6730be035917d6f60",
+    "shared/assets/ui/new-ui/relief-primary.svg": "1fb4be795cb761af9ca118152370d31a6084a00699e34a6da73be04b0b3053d2",
+    "three/src/build/liveryStudio.js": "f2ca599f309a098191e155730190736514eb66b5a523d42f99d21edfad286b24",
+    "three/src/build/liveryView.js": "cadb1b16411ae7c5bfbda1a6e436a4b84fe72c44203e3f7011da75c6dc623510"
+  },
+  "files": [
+    {
+      "source": "shared/css/livery.css",
+      "source_sha256": "45286d6b5f259d9e37ab24dba3e4f176902417dd8c6866151460127566780085",
+      "target": "assets/Livery/bar-undo.png",
+      "sha256": "adc26f65d2b4adbbd9c3747df1d31f373e66c09aa97d2c75bf2ba1c81f68000a"
+    },
+    {
+      "source": "shared/css/livery.css",
+      "source_sha256": "45286d6b5f259d9e37ab24dba3e4f176902417dd8c6866151460127566780085",
+      "target": "assets/Livery/bar-redo.png",
+      "sha256": "e8e19d7fe4313311d74c7958d4c79f3aaecf69d3fc718a16ccc01abd1d19c07e"
+    },
+    {
+      "source": "shared/css/livery.css",
+      "source_sha256": "45286d6b5f259d9e37ab24dba3e4f176902417dd8c6866151460127566780085",
+      "target": "assets/Livery/bar-clear.png",
+      "sha256": "cd3614a2981a60c7744513ec4c728508e60e2124ace353b6a7c44d236becabeb"
+    },
+    {
+      "source": "shared/css/livery.css",
+      "source_sha256": "45286d6b5f259d9e37ab24dba3e4f176902417dd8c6866151460127566780085",
+      "target": "assets/Livery/bar-done.png",
+      "sha256": "1531079a8db483167a967c6fde5a9500e839e707abad6807ad88471555a73590"
+    },
+    {
+      "source": "shared/assets/livery/portraits/portrait_nono_stamp.png",
+      "source_sha256": "d3b950c36d138c006c0066ef85832e1a31c8eccd985b968b14bf148a2dec4dfd",
+      "target": "assets/Livery/nono_stamp.png",
+      "sha256": "d3b950c36d138c006c0066ef85832e1a31c8eccd985b968b14bf148a2dec4dfd"
+    },
+    {
+      "source": "shared/assets/livery/portraits/portrait_nono_talk.png",
+      "source_sha256": "89621e3d4a5fbc2e4ab076bf494f2fe23e03cbeb7bf7ac83a4821734fcdbaaf8",
+      "target": "assets/Livery/nono_talk.png",
+      "sha256": "89621e3d4a5fbc2e4ab076bf494f2fe23e03cbeb7bf7ac83a4821734fcdbaaf8"
+    },
+    {
+      "source": "shared/assets/livery/portraits/portrait_nono_deadpan.png",
+      "source_sha256": "a972b92c08431b5cc2a11aa1626f18e14c5a6eaf900215b9567eed86af6dfc52",
+      "target": "assets/Livery/nono_deadpan.png",
+      "sha256": "a972b92c08431b5cc2a11aa1626f18e14c5a6eaf900215b9567eed86af6dfc52"
+    },
+    {
+      "source": "shared/assets/livery/portraits/portrait_huhu_smug.png",
+      "source_sha256": "6a1a457fc64ae0254a1bf055a26232ce5fd72ca811c2b136973916165f8f310c",
+      "target": "assets/Livery/huhu_smug.png",
+      "sha256": "6a1a457fc64ae0254a1bf055a26232ce5fd72ca811c2b136973916165f8f310c"
+    },
+    {
+      "source": "shared/assets/livery/portraits/portrait_huhu_angry.png",
+      "source_sha256": "843dfdbd307d2d04230ea476d4f102265246b26805eb155757c0cca642aeb768",
+      "target": "assets/Livery/huhu_angry.png",
+      "sha256": "843dfdbd307d2d04230ea476d4f102265246b26805eb155757c0cca642aeb768"
+    },
+    {
+      "source": "shared/assets/livery/portraits/portrait_huhu_flustered.png",
+      "source_sha256": "a7d1d1e74659d60a977177822801103f1ebaeabc42146bd6d53dff4e1b84e370",
+      "target": "assets/Livery/huhu_flustered.png",
+      "sha256": "a7d1d1e74659d60a977177822801103f1ebaeabc42146bd6d53dff4e1b84e370"
+    },
+    {
+      "source": "shared/assets/livery/portraits/portrait_machinist_hero.png",
+      "source_sha256": "cf6813b07fce967e9181ca77fd618e7c3887da1c2a8f17c6f4c193dfb79177ed",
+      "target": "assets/Livery/machinist_hero.png",
+      "sha256": "cf6813b07fce967e9181ca77fd618e7c3887da1c2a8f17c6f4c193dfb79177ed"
+    },
+    {
+      "source": "shared/assets/livery/shapes/burst.svg",
+      "source_sha256": "ae6e2175d006c20f29b739f67a5b561bdd426fb5ab33aeb92f95058857a7b34b",
+      "target": "assets/Livery/burst-mask.png",
+      "sha256": "87f348fed7b1c00cef7951f69964e5b4baba1086a6736f85519c1aeccd596838"
+    },
+    {
+      "source": "shared/assets/livery/shapes/burst.svg",
+      "source_sha256": "ae6e2175d006c20f29b739f67a5b561bdd426fb5ab33aeb92f95058857a7b34b",
+      "target": "assets/Livery/burst.png",
+      "sha256": "9c6dd691b7a2efdb0f38e5bd52a1659add7009846637b248f16a4e6dd9d4bf15"
+    },
+    {
+      "source": "shared/assets/livery/shapes/speed_lines.svg",
+      "source_sha256": "3ba45d0e242e38b47e95560a79be09b0164e56bda2da29779b9f39786c035555",
+      "target": "assets/Livery/speed_lines-mask.png",
+      "sha256": "2d476bfe55790ba4220a546098b1a6a750f8249da7fa778d695a92b5465fe5a6"
+    },
+    {
+      "source": "shared/assets/livery/shapes/speed_lines.svg",
+      "source_sha256": "3ba45d0e242e38b47e95560a79be09b0164e56bda2da29779b9f39786c035555",
+      "target": "assets/Livery/speed_lines.png",
+      "sha256": "3c6010f0b391a93264194bbaaa2ca8456473029d654b7f7cb68572393bc59a44"
+    },
+    {
+      "source": "shared/assets/livery/shapes/sparkle.svg",
+      "source_sha256": "f5d5c9737dc7221b48695f58e6aa03991a60109b2594d2026218f0c4e20a763e",
+      "target": "assets/Livery/sparkle-mask.png",
+      "sha256": "d317ac5923a12ae5f28bfc7f9793b72362b03cb216ce7d11d7efcc156311c7ee"
+    },
+    {
+      "source": "shared/assets/livery/shapes/sparkle.svg",
+      "source_sha256": "f5d5c9737dc7221b48695f58e6aa03991a60109b2594d2026218f0c4e20a763e",
+      "target": "assets/Livery/sparkle.png",
+      "sha256": "f8694d6a46fb2351d77e6ae2d3130eece4a3346db83b0e8734dba34ec0be85a4"
+    },
+    {
+      "source": "shared/assets/livery/shapes/heart.svg",
+      "source_sha256": "d18eb9c33f9191cf647ce3b7a67b8425fd3b3462f8a28d59793acde246f02c8a",
+      "target": "assets/Livery/heart-mask.png",
+      "sha256": "55bba66c2c6f87777c228245fea189a436deedf3807bd1e3bc19ea9ca2649db4"
+    },
+    {
+      "source": "shared/assets/livery/shapes/heart.svg",
+      "source_sha256": "d18eb9c33f9191cf647ce3b7a67b8425fd3b3462f8a28d59793acde246f02c8a",
+      "target": "assets/Livery/heart.png",
+      "sha256": "25c3157a64369aad248a0988aed58a73b48fc39c4b76ce3d5372fa72ee40fe41"
+    },
+    {
+      "source": "shared/assets/livery/shapes/lightning.svg",
+      "source_sha256": "a6411e4720f9acd078a257d76a418f2111e99f0eb3d01444de78db9130eb2089",
+      "target": "assets/Livery/lightning-mask.png",
+      "sha256": "84441ae3c5dfd202d56620dc1a3baf1976c16b35940c78cd3892e79468888483"
+    },
+    {
+      "source": "shared/assets/livery/shapes/lightning.svg",
+      "source_sha256": "a6411e4720f9acd078a257d76a418f2111e99f0eb3d01444de78db9130eb2089",
+      "target": "assets/Livery/lightning.png",
+      "sha256": "e9ab917539420b5fc2d5570c9c0793bdae294c1b134e39ec01aea605ce4e7308"
+    },
+    {
+      "source": "shared/assets/livery/shapes/flame.svg",
+      "source_sha256": "3913ad9b6eb77c6f1224f7f16ce7ec01f4b0057ebdd678f286fd6595a9dacc0f",
+      "target": "assets/Livery/flame-mask.png",
+      "sha256": "0faf0ff15773d96e36bdeea0d93542f877c0e5a44c3ffb3931747b22aef157ba"
+    },
+    {
+      "source": "shared/assets/livery/shapes/flame.svg",
+      "source_sha256": "3913ad9b6eb77c6f1224f7f16ce7ec01f4b0057ebdd678f286fd6595a9dacc0f",
+      "target": "assets/Livery/flame.png",
+      "sha256": "6349bbe7e8b22f3bb7531785bfe0bb4489cc2638096d9e8770f41f493326262c"
+    },
+    {
+      "source": "shared/assets/livery/shapes/sakura.svg",
+      "source_sha256": "3e0bb798a2028971976c1a96f627fe507c98ec720b35360128621025f171195a",
+      "target": "assets/Livery/sakura-mask.png",
+      "sha256": "038a2cc686b2205692244fdf90c0d8d490ef146a06022a28ebfc7bf118be7d02"
+    },
+    {
+      "source": "shared/assets/livery/shapes/sakura.svg",
+      "source_sha256": "3e0bb798a2028971976c1a96f627fe507c98ec720b35360128621025f171195a",
+      "target": "assets/Livery/sakura.png",
+      "sha256": "7ccc4fdf08f7b12ad23bd811b00708bb17df6f395c1716fd2d879d59c16ddb8b"
+    },
+    {
+      "source": "shared/assets/livery/shapes/paw.svg",
+      "source_sha256": "de054c981d41986752161b810d6c5f424b231d8ad9a5dbfad39852cd48954124",
+      "target": "assets/Livery/paw-mask.png",
+      "sha256": "874d28debaf5b7ff8d970e0a8f6005b2e4550262c34a40babd429f14d1af6e23"
+    },
+    {
+      "source": "shared/assets/livery/shapes/paw.svg",
+      "source_sha256": "de054c981d41986752161b810d6c5f424b231d8ad9a5dbfad39852cd48954124",
+      "target": "assets/Livery/paw.png",
+      "sha256": "a9240c5a09184dc323c39e61371efda828d1138c83a5c36b94b7338753b92727"
+    },
+    {
+      "source": "shared/assets/livery/shapes/cat_ears.svg",
+      "source_sha256": "bc930cc5260ae2f9698476b70fe49a62e8aab525d5d52c11a4873dc8f83601a3",
+      "target": "assets/Livery/cat_ears-mask.png",
+      "sha256": "7fd3d40e19107b493e4598aefc25071213055764e903ba91b5e7894899219169"
+    },
+    {
+      "source": "shared/assets/livery/shapes/cat_ears.svg",
+      "source_sha256": "bc930cc5260ae2f9698476b70fe49a62e8aab525d5d52c11a4873dc8f83601a3",
+      "target": "assets/Livery/cat_ears.png",
+      "sha256": "03606081d16d531fd705fbbabe44d46194d00e15c281aca32c4e36732e5fb227"
+    },
+    {
+      "source": "shared/assets/livery/shapes/wings.svg",
+      "source_sha256": "c0020ecdb8e52968700ae37b1d3c5af1531f411225264eeda55871c0633246c0",
+      "target": "assets/Livery/wings-mask.png",
+      "sha256": "49e1e6763992d69326c59f89de25b5da8d5dc15f7490a0a145489c52284e3dc1"
+    },
+    {
+      "source": "shared/assets/livery/shapes/wings.svg",
+      "source_sha256": "c0020ecdb8e52968700ae37b1d3c5af1531f411225264eeda55871c0633246c0",
+      "target": "assets/Livery/wings.png",
+      "sha256": "2637197b10ce28b192952abb6debbbe1821d27501430d4141809508821368c18"
+    },
+    {
+      "source": "shared/assets/livery/shapes/chevron.svg",
+      "source_sha256": "3dbc8a2f612fb5f0d446a6b734a1601fe98d3cfd93489c73ca841b96ebece021",
+      "target": "assets/Livery/chevron-mask.png",
+      "sha256": "e2356661a0751196f0580c9003812b4f30abb2e190901e0d359e88fd19929b42"
+    },
+    {
+      "source": "shared/assets/livery/shapes/chevron.svg",
+      "source_sha256": "3dbc8a2f612fb5f0d446a6b734a1601fe98d3cfd93489c73ca841b96ebece021",
+      "target": "assets/Livery/chevron.png",
+      "sha256": "1e54c65750e61bf73dd2dd65903fb050910da3cdccc49c0dd6d93d9a7185eac8"
+    },
+    {
+      "source": "shared/assets/livery/shapes/hazard.svg",
+      "source_sha256": "587b4ba397ac0097474ff301f88e7504db2458ef9cf3e40f96b6470d2096e1d5",
+      "target": "assets/Livery/hazard-mask.png",
+      "sha256": "9243fc8c837cbd8d89be9374ddfb27f4c148333bed2d976906c0882aeb61f3df"
+    },
+    {
+      "source": "shared/assets/livery/shapes/hazard.svg",
+      "source_sha256": "587b4ba397ac0097474ff301f88e7504db2458ef9cf3e40f96b6470d2096e1d5",
+      "target": "assets/Livery/hazard.png",
+      "sha256": "97b849a644e02fd3f66f69bb8223bfdccc8da817e8a4ffafc5b958f0c003376f"
+    },
+    {
+      "source": "shared/assets/livery/shapes/tail_stripe.svg",
+      "source_sha256": "4c711da3c1fcc4417e7dcfe32b43b1dbe780fae96ffbcc117b7a0aa13313f9fe",
+      "target": "assets/Livery/tail_stripe-mask.png",
+      "sha256": "eecdf823da8aa8144274cd1c92d2581c39d58924759d1fcacc459c55a7df3960"
+    },
+    {
+      "source": "shared/assets/livery/shapes/tail_stripe.svg",
+      "source_sha256": "4c711da3c1fcc4417e7dcfe32b43b1dbe780fae96ffbcc117b7a0aa13313f9fe",
+      "target": "assets/Livery/tail_stripe.png",
+      "sha256": "1501323290987877f4207d02360b22267f50c16cb922bac760d9a7884da8205c"
+    },
+    {
+      "source": "shared/assets/livery/shapes/number_plate.svg",
+      "source_sha256": "6d9a00a89d3924e02927ef058ac28d5476d6444af9369ebd33dd1bfb43ff75d0",
+      "target": "assets/Livery/number_plate-mask.png",
+      "sha256": "0824f2361d00c3a307f690a1026eb3c7770f58ae2c8238821779da77c6d89ce6"
+    },
+    {
+      "source": "shared/assets/livery/shapes/number_plate.svg",
+      "source_sha256": "6d9a00a89d3924e02927ef058ac28d5476d6444af9369ebd33dd1bfb43ff75d0",
+      "target": "assets/Livery/number_plate.png",
+      "sha256": "3917ce06aac8c3ba8f36852a7a4f72e99d863c2590ecaf3549634d1a9f57f312"
+    },
+    {
+      "source": "shared/assets/livery/shapes/race_number.svg",
+      "source_sha256": "62356954cfb41c6a14791d2222ad94dd9f76b43d475c9bb63e61accc806ecf51",
+      "target": "assets/Livery/race_number-mask.png",
+      "sha256": "53a15af3ca9895c2f534a62306f63d79bf3d4d624dbcf9bd9418dbf1338b6326"
+    },
+    {
+      "source": "shared/assets/livery/shapes/race_number.svg",
+      "source_sha256": "62356954cfb41c6a14791d2222ad94dd9f76b43d475c9bb63e61accc806ecf51",
+      "target": "assets/Livery/race_number.png",
+      "sha256": "69309804b0592f25ccce79211351fb3a8d4660262a078df1ced832d8c33b9145"
+    },
+    {
+      "source": "shared/assets/livery/shapes/sfx_doon.svg",
+      "source_sha256": "59064ecd8faff9170b32ed69b5e2389ea89457eb0a8836f4adc8227873a92065",
+      "target": "assets/Livery/sfx_doon-mask.png",
+      "sha256": "6c795c475584a951e680012023d6f4e76b74d0121bb7850ccac17d3b0cec3339"
+    },
+    {
+      "source": "shared/assets/livery/shapes/sfx_doon.svg",
+      "source_sha256": "59064ecd8faff9170b32ed69b5e2389ea89457eb0a8836f4adc8227873a92065",
+      "target": "assets/Livery/sfx_doon.png",
+      "sha256": "0219fb2775833a0a238f9580e6d52b8eb8ec34a39ea4d6edc94be8736e82c5eb"
+    },
+    {
+      "source": "shared/assets/livery/shapes/sfx_zukyun.svg",
+      "source_sha256": "b3d79598a150dbe64b48209358bfc86b36722707510f4d1dc91a8e30157c4556",
+      "target": "assets/Livery/sfx_zukyun-mask.png",
+      "sha256": "e016aca7d787b34f43d17afbad3a9e46d1bad5bf13eba37531103c2952d7f1d3"
+    },
+    {
+      "source": "shared/assets/livery/shapes/sfx_zukyun.svg",
+      "source_sha256": "b3d79598a150dbe64b48209358bfc86b36722707510f4d1dc91a8e30157c4556",
+      "target": "assets/Livery/sfx_zukyun.png",
+      "sha256": "b25af31991d1050bd2a0b6c67291b3aac8bc30f8d95af0b8044aa63fff1d5a2b"
+    },
+    {
+      "source": "shared/assets/livery/shapes/seal_hissho.svg",
+      "source_sha256": "1735d84b68cc84f3d19e506a52e848b575cbd8dea77154e6a53a494b999bc114",
+      "target": "assets/Livery/seal_hissho-mask.png",
+      "sha256": "c04138913bfc06e3f597c4cb22d2d8012a04da6e2caa3720f30cb4a988313b90"
+    },
+    {
+      "source": "shared/assets/livery/shapes/seal_hissho.svg",
+      "source_sha256": "1735d84b68cc84f3d19e506a52e848b575cbd8dea77154e6a53a494b999bc114",
+      "target": "assets/Livery/seal_hissho.png",
+      "sha256": "d73311ee5c15c02cf33901e6219eb72cf515567ee5668256ccae83c07d20bb64"
+    },
+    {
+      "source": "shared/assets/livery/shapes/seal_baku.svg",
+      "source_sha256": "4f736b9d420c7c01de45c76729dbd5968951d68f2674cc5508990e087e9f394c",
+      "target": "assets/Livery/seal_baku-mask.png",
+      "sha256": "f4c906be878a4e1bd60a8529664c066788c710f17555c6d1f6d35ab9768dc794"
+    },
+    {
+      "source": "shared/assets/livery/shapes/seal_baku.svg",
+      "source_sha256": "4f736b9d420c7c01de45c76729dbd5968951d68f2674cc5508990e087e9f394c",
+      "target": "assets/Livery/seal_baku.png",
+      "sha256": "4a1453a939fca07be61debc40261827329fc6d0704980d7de243b811699f4120"
+    },
+    {
+      "source": "shared/assets/livery/shapes/soku_banner.svg",
+      "source_sha256": "b222ba5b8da155fa425e20dda23f644e1683bb912e3c2111fba5f5478aded409",
+      "target": "assets/Livery/soku_banner-mask.png",
+      "sha256": "63507547f000f39d004a8d03add6fe46b951357d1c3d3dbe7235d8f45ef01c9a"
+    },
+    {
+      "source": "shared/assets/livery/shapes/soku_banner.svg",
+      "source_sha256": "b222ba5b8da155fa425e20dda23f644e1683bb912e3c2111fba5f5478aded409",
+      "target": "assets/Livery/soku_banner.png",
+      "sha256": "07c723972459f7ac4298c535683bef3dca5b3fb9d6f66f82c0b88842772b92ff"
+    },
+    {
+      "source": "shared/css/livery.css",
+      "source_sha256": "45286d6b5f259d9e37ab24dba3e4f176902417dd8c6866151460127566780085",
+      "target": "assets/Livery/custom-color.png",
+      "sha256": "b2e910352c151a677284dc9e56bee60d369db2b4e2e06bcdc1565ccfb6c05f83"
+    }
+  ],
+  "catalog": {
+    "path": "assets/Livery/Catalog.json",
+    "sha256": "bf76572ac1f5cd407bd2c87d70a258ef11b8ef385bdd224ab22a42cf40767e5b"
+  }
+}

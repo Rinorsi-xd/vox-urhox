@@ -7,6 +7,7 @@ local Rot=require 'core.Rotations'
 local Defs=require('parts.Defs').PARTS
 local Config=require 'Config'
 local Finish=require 'parts.Finish'
+local Selection=require 'construction.SelectionTools'
 local M={};M.__index=M
 local function Copy(v) return {table.unpack(v)} end
 function M.New(bp,onChange)
@@ -14,7 +15,7 @@ function M.New(bp,onChange)
         autoColor=false,mirror=true,spin=0,forward={0,0,1},selection={},clipboard={},pasteSpin=0,pasting=false,dirty=true},M)
     self.history=History.New(bp,function(ops,revision)
         self.dirty=true;self.preview=nil
-        for id in pairs(self.selection) do if not bp.parts[id] then self.selection[id]=nil end end
+        self:SelectionChanged()
         if onChange then onChange(ops,revision) end
     end)
     return self
@@ -109,7 +110,11 @@ function M:Paint()
 end
 function M:Pick(hit)
     local p=hit and self.bp.parts[hit.partId];if not p then return false end
-    self:SelectType(p.type);self.sampledRot=p.rot;self.sampledFinish=History.Snapshot(p);return true
+    self:SelectType(p.type)
+    local main=Finish.Field(p,'shell')
+    self.autoColor=p[main]==nil;if p[main]~=nil then self.color=p[main] end
+    if main=='shellColor' then self.sampledFinish={type=p.type,color=p.color} end
+    return true
 end
 function M:Eyedrop(hit)
     local p=hit and self.bp.parts[hit.partId];if not p then return false end
@@ -117,9 +122,75 @@ function M:Eyedrop(hit)
     self.color=p[field] or (field=='shellColor' and 0xcbd1d7 or Defs[p.type].color);self.autoColor=false;return true
 end
 function M:ToggleSelect(id)
-    if self.bp.parts[id] then self.selection[id]=not self.selection[id] or nil end
+    return self:ToggleSelectTarget({partId=id,cell=self.bp.parts[id] and self.bp.parts[id].pos})
 end
-function M:SelectAll() for id in pairs(self.bp.parts) do self.selection[id]=true end end
+function M:SelectionParts(parts)
+    local out,seen={},{}
+    for _,p in ipairs(parts) do
+        if not seen[p.id] then out[#out+1]=p;seen[p.id]=true end
+        local mirror=self.mirror and Placement.MirrorPart(self.bp,p)
+        if mirror and not seen[mirror.id] then out[#out+1]=mirror;seen[mirror.id]=true end
+    end
+    return out
+end
+function M:SelectionChanged()
+    for id in pairs(self.selection) do if not self.bp.parts[id] then self.selection[id]=nil end end
+    local corners={}
+    for _,c in ipairs(self.selectionCorners or {}) do if self.selection[c.id] then corners[#corners+1]=c end end
+    self.selectionCorners=corners;self.selectionVersion=(self.selectionVersion or 0)+1;self.dirty=true
+end
+function M:ToggleSelectTarget(hit)
+    hit=hit or self.hit;local p=hit and self.bp.parts[hit.partId];if not p then return nil end
+    self:SelectionChanged()
+    local cell=hit.cell or p.pos;local offset={cell[1]-p.pos[1],cell[2]-p.pos[2],cell[3]-p.pos[3]}
+    local function Same(c) return c.id==p.id and Rot.Eq(c.offset,offset) end
+    local corners=self.selectionCorners or {};local second=#corners==1 and not Same(corners[1])
+    local on=second or not self.selection[p.id]
+    if on then
+        local nextCorners={};for _,c in ipairs(corners) do if not Same(c) then nextCorners[#nextCorners+1]=c end end
+        nextCorners[#nextCorners+1]={id=p.id,offset=offset}
+        if #nextCorners>2 then table.remove(nextCorners,1) end
+        self.selectionCorners=nextCorners
+    end
+    for _,part in ipairs(self:SelectionParts({p})) do self.selection[part.id]=on or nil end
+    self:SelectionChanged();return on
+end
+function M:SweepSelect(on,hit)
+    hit=hit or self.hit;local p=hit and self.bp.parts[hit.partId]
+    if not p or (self.selection[p.id]==true)==on then return false end
+    for _,part in ipairs(self:SelectionParts({p})) do self.selection[part.id]=on or nil end
+    self:SelectionChanged();return true
+end
+function M:DragPreview(drag)
+    local hit=self.hit;local cell=hit and (hit.cell or hit.place)
+    local key=table.concat({self.history.revision,self.selectionVersion or 0,tostring(self.mirror),cell and table.concat(cell,',') or '',hit and hit.partId or ''},'|')
+    if drag.key==key then return end;drag.key=key;drag.parts={};drag.lo=nil;drag.hi=nil
+    if cell then
+        drag.lo,drag.hi=Selection.Bounds(drag.anchor,cell)
+        if hit.partId and self.bp.parts[hit.partId] then
+            for _,p in ipairs(self:SelectionParts(Selection.CornerParts(self.bp,drag.anchor,cell))) do
+                if not self.selection[p.id] then drag.parts[#drag.parts+1]=p end
+            end
+        end
+    end
+    self.dirty=true
+end
+function M:AddSelection(parts)
+    for _,p in ipairs(parts) do if self.bp.parts[p.id] then self.selection[p.id]=true end end
+    self:SelectionChanged()
+end
+function M:SelectCorner()
+    local corners=self.selectionCorners or {}
+    if #corners~=2 then return false,'先左键选 A，再左键选 B，最后按 K 选中间的方块' end
+    local cells={}
+    for i,c in ipairs(corners) do
+        local p=self.bp.parts[c.id];if not p then return false end
+        cells[i]={p.pos[1]+c.offset[1],p.pos[2]+c.offset[2],p.pos[3]+c.offset[3]}
+    end
+    self:AddSelection(self:SelectionParts(Selection.CornerParts(self.bp,cells[1],cells[2])))
+    return true
+end
+function M:SelectAll() for id in pairs(self.bp.parts) do self.selection[id]=true end;self:SelectionChanged() end
 function M:BoxSelect(rect,project)
     if not rect.add then self.selection={} end
     local x0,x1=math.min(rect.x0,rect.x1),math.max(rect.x0,rect.x1)

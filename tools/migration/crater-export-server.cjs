@@ -1,8 +1,11 @@
 // Read-only H5 host, explicit conversion endpoint writes only target Crater assets.
 const fs=require('fs'),path=require('path'),http=require('http');
 const {optimize:optimizeModel}=require('./crater-model.cjs');
-const source=path.resolve('D:/Rino_Project/Vox'),root=path.resolve(__dirname,'../..'),out=path.join(root,'assets/Crater');
-const raw=path.join(__dirname,'crater-source');
+const root=path.resolve(__dirname,'../..'),exportRoot=process.env.VOX_CRATER_EXPORT_ROOT?path.resolve(root,process.env.VOX_CRATER_EXPORT_ROOT):root;
+if(exportRoot!==root&&!exportRoot.startsWith(path.join(root,'.tmp')+path.sep))throw Error('Export staging must stay in the project .tmp directory');
+const out=path.join(exportRoot,'assets/Crater');
+const source=path.resolve(JSON.parse(fs.readFileSync(path.join(root,'docs/migration/outgame-baseline.json'))).snapshot);
+const raw=exportRoot===root?path.join(__dirname,'crater-source'):path.join(exportRoot,'crater-source');
 fs.mkdirSync(out,{recursive:true});fs.mkdirSync(raw,{recursive:true});
 function mdl(g){
  const chunks=[],u=(...a)=>{let b=Buffer.alloc(a.length*4);a.forEach((v,i)=>b.writeUInt32LE(v,i*4));chunks.push(b)},f=(...a)=>{let b=Buffer.alloc(a.length*4);a.forEach((v,i)=>b.writeFloatLE(v,i*4));chunks.push(b)};
@@ -30,7 +33,7 @@ http.createServer(async(req,res)=>{try{
  if(req.method==='POST'&&url.pathname.startsWith('/export/')){
   const name=url.pathname.slice(8);if(!/^[\w.-]+$/.test(name))throw Error('Invalid output');
   const parts=[];for await(const part of req)parts.push(part);const body=Buffer.concat(parts);
-  fs.writeFileSync(path.join(name.endsWith('.json')?raw:out,name),name.endsWith('.mdl')?mdl(JSON.parse(body)):body);res.end('ok');return;
+  fs.writeFileSync(path.join(name.endsWith('.json')?raw:out,name),/^mesh-\d+\.bin$/.test(name)?mdl(JSON.parse(body)):body);res.end('ok');return;
  }
  if(url.pathname==='/three/crater-export.html'){res.setHeader('Content-Type','text/html');res.end(html);return}
  if(url.pathname==='/three/crater-post-probe.html'){

@@ -7,7 +7,7 @@ function M.New(session,root,vitals)
     self.layer=require('ui.DriveFeedback'){position='absolute',width='100%',height='100%',pointerEvents='none'};self.layer.owner=self;root:AddChild(self.layer)
     self.aim={visible=false}
     for _=1,40 do self.pops[#self.pops+1]={t=1} end
-    for _,unit in ipairs(session.world.units) do self.tags[#self.tags+1]={unit=unit,visible=false} end
+    for _,unit in ipairs(session.world.units) do if not unit.externalView then self.tags[#self.tags+1]={unit=unit,visible=false} end end
     return self
 end
 function M:Project(point)
@@ -24,6 +24,7 @@ function M:Pop(point,amount,killed)
 end
 function M:AimMarker()
     local s=self.session;local w=s.weapons;local part=w.pointing
+    if s.combat and not s.combat.player.alive then self.aim.visible=false;return end
     if not part then self.aim.visible=false;return end
     local root=s.view.view.root;local p,q=root.position,root.rotation
     local muzzle=w:Muzzle(part,{pos={-p.x,p.y,p.z},quat={w=q.w,x=q.x,y=-q.y,z=-q.z}})
@@ -58,7 +59,8 @@ function M:Update(dt)
             local key=tostring(unit.hitAt)..'|'..tostring(unit.alive)..'|'..unit.bp:Size()
             if t.healthKey~=key then t.healthKey=key;t.integrity=unit:Integrity();t.core=unit:Core() end
             local integrity,core=t.integrity,t.core
-            t.text=unit.alive and string.format('完整度 %.0f%% · 核心 %.0f%%',integrity*100,core.hp/core.max*100) or string.format('已击毁 · %d 秒后复原',math.ceil(math.max(0,5-(s.world.time-unit.deadAt))))
+            if s.combat then t.text=unit.name..(unit.alive and string.format(' · %.0f%%',unit:Health()*100) or ' · 已击毁')
+            else t.text=unit.alive and string.format('完整度 %.0f%% · 核心 %.0f%%',integrity*100,core.hp/core.max*100) or string.format('已击毁 · %d 秒后复原',math.ceil(math.max(0,5-(s.world.time-unit.deadAt)))) end
         end
     end
     self.aimState=self:AimMarker()

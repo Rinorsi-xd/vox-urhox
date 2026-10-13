@@ -33,7 +33,8 @@ function M:Render(vg)
         Arc(a,b,{10,12,16,140},7)
         if side==2 then Arc(a,a+(b-a)*(self.ghost or 1),{color[1],color[2],color[3],97},5) end
         local fillColor=side==2 and (self.boot or 0)>0 and D.white or color
-        Arc(a,a+(b-a)*(side==1 and 1 or self.value or 1),fillColor,5)
+        local health=self.session.combat and self.session.combat.player:Health() or 1
+        Arc(a,a+(b-a)*(side==1 and health or self.value or 1),fillColor,5)
         for i=0,10 do
             local angle=(a+(b-a)*i/10)*math.pi/180;local endpoint=i==0 or i==10
             local ra,rb=64+(endpoint and 9 or 4),64-(endpoint and 5 or 2.5)
@@ -41,7 +42,7 @@ function M:Render(vg)
             nvgStrokeWidth(vg,1.4);nvgStrokeColor(vg,nvgRGBA(10,12,16,191));nvgStroke(vg)
         end
         local lx,ly=math.cos(a*math.pi/180)*68,-math.sin(a*math.pi/180)*68+4
-        local label=side==1 and '耐久' or '能量';local value=side==1 and '100%' or tostring(math.floor((self.value or 1)*100+.5))
+        local label=side==1 and '耐久' or '能量';local value=side==1 and tostring(math.floor(health*100+.5))..'%' or tostring(math.floor((self.value or 1)*100+.5))
         local lw,vw=Draw.Width(vg,label,11,1),Draw.Width(vg,value,11,1,'vox-tabular');if side==1 then lx=lx-lw-4-vw end
         Draw.Text(vg,label,lx,ly,11,D.muted,1);Draw.Text(vg,value,lx+lw+4,ly,11,side==1 and D.white or (self.value or 1)<.25 and energyColor or {143,210,255,255},1,'vox-tabular')
         nvgRestore(vg)

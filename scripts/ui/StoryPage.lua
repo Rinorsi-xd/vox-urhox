@@ -159,8 +159,9 @@ function Page:Render(vg)
     D.Line(vg,x+240,y+135,x+700,y+135,{214,240,255,100})
     for xx=0,450,14 do D.Line(vg,x+240+xx,y+137,x+240+xx,y+142,{214,240,255,60}) end
     D.Text(vg,'章节进度',x+w-180,y+28,13,muted,'vox-body');D.Text(vg,'PROGRESS',x+w-108,y+31,10,dim,'vox-tabular')
-    D.Text(vg,'0',x+w-112,y+53,34);D.Text(vg,'/ '..#Data.levels,x+w-79,y+67,20,dim)
-    for i=1,#Data.levels do D.Rect(vg,x+w-56-i*33,y+94,28,5,{214,240,255,31}) end
+    local completed=0;for _,level in ipairs(Data.levels) do if self.owner.storyProgress[level.id] then completed=completed+1 end end
+    D.Text(vg,tostring(completed),x+w-112,y+53,34);D.Text(vg,'/ '..#Data.levels,x+w-79,y+67,20,dim)
+    for i,level in ipairs(Data.levels) do D.Rect(vg,x+w-56-i*33,y+94,28,5,self.owner.storyProgress[level.id] and cy or {214,240,255,31}) end
     D.Text(vg,'任务航线',x+56,y+200,20);D.Text(vg,'MISSION ROUTE',x+150,y+211,11,dim,'vox-tabular')
     for yy=270,704,11 do D.Rect(vg,x+87,y+yy,1,6,{214,240,255,102}) end
     D.Text(vg,'关卡全部开放，可以任意顺序挑战',x+142,y+762,13,dim,'vox-body')
@@ -172,7 +173,8 @@ end
 function M.Leave(s) if s.storyHolo then s.storyHolo:Dispose();s.storyHolo=nil end end
 function M.Start(s)
     local l=Data.levels[s.storyLevel]
-    s.app.toasts:Push(l.ready and '剧情战斗尚未迁移' or '第 '..l.no..' 关「'..l.name..'」的玩法还在制作中','warn')
+    if s.storyLevel==1 then s.app:EnterTrial('story1')
+    else s.app.toasts:Push('第 '..l.no..' 关「'..l.name..'」的玩法还在迁移中','warn') end
 end
 function M.Update(s,dt)
     if s.storyHolo then s.storyHolo:Update(dt) end
@@ -187,6 +189,7 @@ function M.Key(s)
     if nextIndex~=s.storyLevel then s.storyLevel=nextIndex;s.revision=-1 end
 end
 function M.Create(s)
+    s.storyProgress=s.app.store:Read('story-progress',function(data) return type(data)=='table' end) or {}
     s.storyLevel=s.storyLevel or 1;s.storyHolo=s.storyHolo or require('render.StoryHolo').New(s.app)
     if s.storyHolo.level~=s.storyLevel then s.storyHolo:Select(s.storyLevel) end
     local w,h=s.width,s.height;local page=Page{position='absolute',width=w,height=h,pointerEvents='box-none'};page.owner=s

@@ -7,7 +7,8 @@
 	<parameter name="hemi_intensity" type="Double" value="1.85" />
 	<parameter name="uEnvMin" value="-15.25 -20.25" />
 	<parameter name="uEnvMax" value="15.25 20.25" />
-	<parameter name="uGrid" type="Double" value="0.18" />
+	<parameter name="uGrid" type="Double" value="0.3" />
+	<parameter name="uFrame" type="Double" value="0.8" />
 	<parameter name="hangar_time" type="Double" value="10" />
 	<parameter name="uScan" value="-5.25 2.55 0.00" />
 	<parameter name="uFlash" type="Double" value="0" />

@@ -91,6 +91,7 @@ function Blueprint.New()
 end
 
 function Blueprint:init()
+    self.livery = {}
     self.parts = {}
     self.occ = {}
     self.cellIds = {}
@@ -101,6 +102,7 @@ function Blueprint:init()
 end
 
 function Blueprint:Clear()
+    self.livery = {}
     self.parts = {}
     self.occ = {}
     self.cellIds = {}
@@ -436,7 +438,9 @@ function Blueprint:ToTable()
     for _, p in ipairs(self:List()) do
         parts[#parts + 1] = { p.type, p.pos[1], p.pos[2], p.pos[3], p.rot, p.color, p.shellColor }
     end
-    return { v = 1, sizeVersion=1, name = self.name, parts = parts }
+    local out = { v = 1, sizeVersion=1, name = self.name, parts = parts }
+    if #self.livery>0 then out.livery=require('construction.LiveryData').Clean(self.livery) end
+    return out
 end
 
 ---@return Blueprint

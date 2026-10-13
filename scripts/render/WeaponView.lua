@@ -15,7 +15,7 @@ function M.Update(vehicleView,system,alpha,dt,time,effects)
             if motion and dt then
                 Presentation.Apply(vis) -- articulated spin includes its authored pivot and kick
                 if effects then for _,e in ipairs(motion.emits) do
-                    local p=vis.rig.head:LocalToWorld(Coord.Vec(table.unpack(e.p)));effects:EquipmentEmit(e.kind,{-p.x,p.y,p.z})
+                    local p=(vis.rig.pod or vis.rig.head):LocalToWorld(Coord.Vec(table.unpack(e.p)));effects:EquipmentEmit(e.kind,{-p.x,p.y,p.z})
                 end end
             end
         end

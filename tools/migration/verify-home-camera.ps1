@@ -4,7 +4,7 @@ $projectRoot=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 if($LASTEXITCODE -ne 0){throw 'Source home camera fixtures failed'}
 $report=$projectRoot+'/docs/migration/evidence/pc-home-camera.json'
 if(Test-Path -LiteralPath $report){Remove-Item -LiteralPath $report}
-$runtimeArgs=@('main.lua',('-tapcode_dir='+$projectRoot),'-tool_mode','-quality=desktop','-validate','-validate-frames=130','-validate-timeout=90','-validate-spike-threshold=30000',('-validate-test='+$PSScriptRoot+'/check-home-camera.lua'),('-validate-output='+$report),'-log','info')
+$runtimeArgs=@('main.lua',('-tapcode_dir='+$projectRoot),'-tool_mode','-quality=desktop','-x','1920','-y','1080','-validate','-validate-frames=130','-validate-timeout=90','-validate-spike-threshold=30000',('-validate-test='+$PSScriptRoot+'/check-home-camera.lua'),('-validate-output='+$report),'-log','info')
 $p=Start-Process -FilePath ($projectRoot+'/.cli/UrhoXRuntime.exe') -WorkingDirectory $projectRoot -WindowStyle Hidden -PassThru -ArgumentList $runtimeArgs -RedirectStandardOutput ($projectRoot+'/.tmp/home-camera-out.txt') -RedirectStandardError ($projectRoot+'/.tmp/home-camera-err.txt')
 $timer=[Diagnostics.Stopwatch]::StartNew()
 while(-not $p.WaitForExit(1000)){if($timer.Elapsed.TotalSeconds -gt 105){$p.Kill();throw 'PC home camera verification timeout'}}

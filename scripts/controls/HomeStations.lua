@@ -12,6 +12,7 @@ function M.Get(stats,id,maxDist)
     local near=math.min(math.max(r*2.5+3.2,5),maxDist*.85,36)
     local s=({
         hangar={x,y,z,near,.7,1.22,true},
+        livery={x,y,z,near*.9,1.1,1.28,false},
         battle={x-r*.75-1.2,y+.3,z-6,near*1.15+6,.3,1.36,false},
         workshop={22,3,-2,15,-1.3,1.38,false},
         shop={22,3,8,15,-1.75,1.38,false},

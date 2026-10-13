@@ -31,7 +31,6 @@
       <attribute name="Height Fog Falloff" value="0.16" />
       <attribute name="Height Fog Height" value="-16" />
       <attribute name="Priority" value="-1" />
-      <attribute name="Env Spec Texture" value="TextureCube;Cube/Day/DaySpecularHDR.dds" />
       <attribute name="Vignette Texture" value="Texture2D;Editor/Textures/Engine/Vignetting.png" />
       <attribute name="Env texture diff intensity" value="1" />
       <attribute name="Env texture spec intensity" value="1" />
@@ -50,32 +49,6 @@
       <attribute name="Environment Source Texture" value="Texture2D;Hangar/HangarEnv.hdr" />
       <attribute name="Tonemap Mode" value="ACES" />
     </component>
-    <node id="3">
-      <attribute name="Is Enabled" value="true" />
-      <attribute name="Name" value="Directional Light" />
-      <attribute name="Tags" />
-      <attribute name="Position" value="0.00 0.00 0.00" />
-      <attribute name="Rotation" value="0.884784 0.399593 0.239756 0" />
-      <attribute name="Scale" value="1.00 1.00 1.00" />
-      <attribute name="Variables" />
-      <component type="Light" id="4">
-        <attribute name="Is Enabled" value="false" />
-        <attribute name="Light Type" value="Directional" />
-        <attribute name="Color" value="1 0.92736 0.9 1" />
-        <attribute name="Brightness Multiplier" value="3" />
-        <attribute name="Use Temperature" value="true" />
-        <attribute name="Range" value="0" />
-        <attribute name="Cast Shadows" value="true" />
-        <attribute name="Shadow Intensity" value="0.05" />
-        <attribute name="Shadow Resolution" value="0.6" />
-        <attribute name="CSM Splits" value="10 50 200 1000" />
-        <attribute name="Depth Constant Bias" value="0.00025" />
-        <attribute name="Max Extrusion" value="5000" />
-        <attribute name="Ignore Ray" value="true" />
-        <attribute name="Auto Shadow Cascade" value="true" />
-        <attribute name="Num Auto Shadow Cascade" value="4" />
-      </component>
-    </node>
   </node>
   <node id="4">
     <attribute name="Is Enabled" value="true" />

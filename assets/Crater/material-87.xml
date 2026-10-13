@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <material>
-  <surfaceshader name="Shaders/BLGL/Crater/Map-MAP_BAKE.shader" />
+  <surfaceshader name="Shaders/BLGL/Crater/Map-MAP_NOSAND.shader" />
   <parameter name="tint" value="0.011 0.0086 0.007 1" />
   <parameter name="roughness" type="Float" value="0.9" />
   <parameter name="metalness" type="Float" value="0.2" />
@@ -19,11 +19,10 @@
   <parameter name="uSoot" value="0 -9 6 0" />
   <parameter name="uSootColor" value="1 1 1" />
   <parameter name="uRockTint" value="1 1 1" />
-  <surfacetexture name="tBake" texture="Crater/texture-5.png" type="Texture2D" />
   <surfacetexture name="tTerrA" texture="Crater/albedo.xml" type="Texture2DArray" />
   <surfacetexture name="tTerrN" texture="Crater/nra.xml" type="Texture2DArray" />
   <surfacetexture name="tHeight" texture="Crater/height.png" type="Texture2D" />
   <surfacetexture name="craterDFG" texture="Crater/dfg.png" type="Texture2D" />
-  <depthbias constant="-1.1920928955078125e-07" slopescaled="-1" />
+  <depthbias constant="-9.5367431640625e-07" slopescaled="-4" />
   <renderorder value="128" />
 </material>

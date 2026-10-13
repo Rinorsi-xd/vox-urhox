@@ -23,11 +23,12 @@ function Hangar:init(scene,options)
     self.layout=Data.layout
     self.time=0
     self.reflW,self.reflH=0,0
-    self.materials=Mat.Bind(self.root)
+    self.materials,self.animatedMaterials=Mat.Bind(self.root)
     self.planeMats={}
     self.holos={}
     self.niches={}
     self.padMat=self:Material("BuildDeck")
+    self.grid=1;self.frame=1
     self.reflMats={self.padMat}
     for _,key in ipairs({"bay","mark"}) do self.planeMats[key]=self:Material(key) end
     for _,def in ipairs(self.layout.holos) do
@@ -37,6 +38,7 @@ function Hangar:init(scene,options)
     for i=1,6 do self.niches[i]=self:Node("DisplayPart"..i) end
     self.boundary=self:Node("BuildBoundary")
     self.guides=self:Node("BuildHeightGuides")
+    self.guideMat=self.guides:GetComponent("CustomGeometry"):GetMaterial(0)
     Motion.Bind(self)
     self.motion=Motion
     Atmosphere.Bind(self)
@@ -51,7 +53,11 @@ function Hangar:Material(name)
     return assert(self:Node(name):GetComponent("StaticModel"),name).material
 end
 function Hangar:SetEnvelope(bounds)
-    -- The visible build envelope is authored in the scene; tier limits belong to the blueprint.
+    -- The frozen source uses one shared build volume for all tiers.
+    local x0,x1=(bounds.minX-.5)*Config.CELL,(bounds.maxX+.5)*Config.CELL
+    local z0,z1=(bounds.minZ-.5)*Config.CELL,(bounds.maxZ+.5)*Config.CELL
+    Mat.Set(self.padMat,"uEnvMin",Vector2(x0,z0))
+    Mat.Set(self.padMat,"uEnvMax",Vector2(x1,z1))
 end
 function Hangar:SetTier(tier)
     self.tier=tier
@@ -60,10 +66,21 @@ function Hangar:SetInfoSource(provider)
     if self.panels then self.panels:Dispose() end
     self.panels=require('scene.HangarPanels').New(self,provider,self.canvasScale)
 end
-function Hangar:SetGrid(on)
-    self.gridOn=on
-    Mat.Set(self.padMat,"uGrid",on and 1.0 or 0.18)
-    if self.boundary then self.boundary.enabled=on;self.guides.enabled=on end
+function Hangar:SetGrid(on,frame)
+    -- Boolean callers select the original homepage/editing presets.
+    self.gridTarget=type(on)=="number" and on or (on and 1 or .3)
+    self.frameTarget=frame or (type(on)=="number" and on or (on and 1 or .8))
+    self.gridOn=self.gridTarget>.6
+end
+function Hangar:UpdateGrid(dt)
+    local k=math.min(1,dt*5)
+    self.grid=self.grid+(self.gridTarget-self.grid)*k
+    self.frame=self.frame+(self.frameTarget-self.frame)*k
+    Mat.Set(self.padMat,"uGrid",self.grid)
+    Mat.Set(self.padMat,"uFrame",self.frame)
+    Mat.Set(self.guideMat,"uOpacity",.16*self.grid)
+    local visible=self.grid>.6
+    self.boundary.enabled=visible;self.guides.enabled=visible
 end
 function Hangar:Welcome(bp)
     local bb=bp and bp:Stats().bb or {minX=-4,maxX=4,minZ=-6,maxZ=6,maxY=4}
@@ -77,6 +94,7 @@ function Hangar:Dispose()
     if self.reflTex then require('render.RenderTargetLifetime').Retire(self.reflTex); self.reflTex=nil end
     if self.reflNode then self.reflNode:Remove(); self.reflNode=nil end
     self.materials={}
+    self.animatedMaterials={}
 end
 function Hangar:Update(camNode,cam,dt)
     if not self.root.enabled then self.time=self.time+(dt or 1/60);return end
@@ -86,7 +104,8 @@ function Hangar:Update(camNode,cam,dt)
     local dbg=rawget(_G,"VOX_DEBUG")
     local t=type(dbg)=="table" and dbg.time or self.time
     if type(dbg)=="table" and dbg.time then self.greet=0;self.scanTime=10 end
-    Mat.Update(self.materials,t)
+    Mat.Update(self.animatedMaterials,t)
+    self:UpdateGrid(dt)
     self.motion.Update(self,dt,t)
     Atmosphere.Update(self,camNode,cam,t)
 end

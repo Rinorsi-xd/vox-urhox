@@ -104,6 +104,7 @@ function M.Validate(data)
         assert(row[5]>=0 and row[5]<24,'零件朝向无效')
         for i=6,7 do local c=row[i];assert(c==nil or c==cjson.null or type(c)=='number' and c%1==0 and c>=0 and c<=0xffffff,'涂装颜色无效') end
     end
+    if data.livery~=nil and data.livery~=cjson.null then data.livery=require('construction.LiveryData').Clean(data.livery) end
     return data
 end
 function M.Encode(data)
@@ -111,6 +112,7 @@ function M.Encode(data)
     -- Engine JSON encodes an empty Lua table as {}; H5 requires an array here.
     local text=cjson.encode(data)
     if #data.parts==0 then text=text:gsub('"parts"%s*:%s*{}','"parts":[]',1) end
+    if data.livery and #data.livery==0 then text=text:gsub('"livery"%s*:%s*{}','"livery":[]',1) end
     return 'FKZC1:j'..Encode(text)
 end
 function M.Decode(code)

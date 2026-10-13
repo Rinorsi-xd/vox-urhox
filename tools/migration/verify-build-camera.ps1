@@ -5,6 +5,8 @@ Push-Location $projectRoot
 try {
     & 'C:/Program Files/nodejs/node.exe' ($PSScriptRoot+'/source-build-camera.mjs')
     if($LASTEXITCODE -ne 0){throw 'Source camera fixtures failed'}
+    & 'C:/Program Files/nodejs/node.exe' ($PSScriptRoot+'/source-build-selection.mjs')
+    if($LASTEXITCODE -ne 0){throw 'Source selection fixtures failed'}
     $report=$projectRoot+'/docs/migration/evidence/build-camera.json'
     if(Test-Path -LiteralPath $report){Remove-Item -LiteralPath $report}
     $runtimeArgs=@('main.lua',('-tapcode_dir='+$projectRoot),'-tool_mode','-quality=desktop','-validate','-validate-frames=180','-validate-timeout=95','-validate-spike-threshold=30000',('-validate-test='+$PSScriptRoot+'/check-build-camera.lua'),('-validate-output='+$report),'-log','info')

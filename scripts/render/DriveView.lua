@@ -33,6 +33,7 @@ function M:Bind(bp,vehicle)
     self.legs=Legs.New(self.view,vehicle)
     self.equipment:Bind(self.view,vehicle)
     self:ResetPose(false)
+    self:Update(1,0)
 end
 function M:ResetPose(resetActuators)
     self.current={p=self.vehicle.native.position,q=self.vehicle.native.rotation};self.previous=self.current

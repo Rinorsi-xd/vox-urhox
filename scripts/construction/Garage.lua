@@ -108,15 +108,17 @@ function M:Rename(name)
     if not length or length>40 then return false,'车名最多 40 个字' end
     self.bp.name=name;self:Changed();return true
 end
+function M:ReplacementAfterDelete(slot)
+    if slot~=self.active then return nil end
+    for i=slot+1,20 do local data=self.store:LoadSlot(i);if data then return data,i end end
+    for i=slot-1,1,-1 do local data=self.store:LoadSlot(i);if data then return data,i end end
+    return Prefab.BuildEmpty(Blueprint.New()):ToTable()
+end
 function M:Delete(slot)
     if not self.store:LoadSlot(slot) then return false,'这个车位没有战车' end
     local ok,err=self.store:DeleteSlot(slot);if not ok then return false,err end
     if slot==self.active then
-        ---@type integer|nil
-        local nextSlot
-        for i=slot+1,20 do if self.store:LoadSlot(i) then nextSlot=i;break end end
-        if not nextSlot then for i=slot-1,1,-1 do if self.store:LoadSlot(i) then nextSlot=i;break end end end
-        local data=nextSlot and self.store:LoadSlot(nextSlot) or Prefab.BuildEmpty(Blueprint.New()):ToTable()
+        local data,nextSlot=self:ReplacementAfterDelete(slot)
         ok,err=self.replace(data);if not ok then return false,err end
         return self:Activate(nextSlot)
     end

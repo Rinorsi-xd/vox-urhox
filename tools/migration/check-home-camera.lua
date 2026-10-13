@@ -9,6 +9,7 @@ end
 local function Near(a,b) return math.abs(a-b)<.0001 end
 local function Replay()
     local f=assert(io.open('tools/migration/source-home-camera.json'));local data=cjson.decode(f:read('*a'));f:close()
+    V.assert(data.baseline.commit=='90862445074e7e146da900037979ad97899ecf6c','camera frames belong to frozen H5 commit')
     for _,case in ipairs(data.cases) do
         local cam=require('controls.OrbitCamera').New(app.scene);cam.roomLimit=data.limit
         for i,s in ipairs(case.frames) do
@@ -32,12 +33,28 @@ local function FinishFlight()
     if app.camera.flight then app.camera:Step(.65) end
     app.camera.autoSpin=false
 end
+local function RoomClearance()
+    local safety=app.camera.safety;local b=safety.limit;local target=Vector3(0,3,0)
+    local count=0;for _ in pairs(safety.solids) do count=count+1 end
+    V.assert(count>10,'preview guard uses authored opaque architecture')
+    for i=1,64 do
+        local a=i*math.pi/32;local requested=target+Vector3(math.sin(a)*60,20,math.cos(a)*60)
+        local p=safety:Resolve(target,requested)
+        V.assert(p.x>=-b.x+.34 and p.x<=b.x-.34 and p.y>=b.y0+.34 and p.y<=b.y1-.34 and p.z>=b.z0+.34 and p.z<=b.z1-.34,'large preview orbit stays inside room '..i)
+        local desired=(requested-target):Normalized();local actual=(p-target):Normalized()
+        V.assert((desired-actual).length<.0001,'wall clearance preserves orbit view direction '..i)
+        local hits=safety.octree:Raycast(Ray(target,actual),RAY_TRIANGLE,(p-target).length+.25,DRAWABLE_GEOMETRY)
+        local clear=true
+        for _,hit in ipairs(hits) do if safety.solids[hit.drawable] and hit.distance>.35 then clear=false end end
+        V.assert(clear,'camera stops in front of opaque architecture '..i)
+    end
+end
 local function Shot(name)
-    local img=Image:new();local ok=graphics:TakeScreenShot(img);local crop=img:GetSubimage(IntRect(0,0,1920,1080))
-    V.assert(ok and crop:SavePNG('docs/migration/evidence/pc-camera-'..name..'.png'),'actual PC camera '..name);crop:Dispose();img:Dispose()
+    local img=Image:new();local ok=graphics:TakeScreenShot(img)
+    V.assert(ok and img:SavePNG('docs/migration/evidence/pc-camera-'..name..'.png'),'actual native backbuffer camera '..name);img:Dispose()
 end
 V.atFrame(60,function()
-    app=VOX_HANGAR.app;Replay();FinishFlight()
+    app=VOX_HANGAR.app;Replay();RoomClearance();FinishFlight()
     _G.VOX_DEBUG={time=10}
     UI.SetScale(1);UI.GetViewportSize=function() return 1920,1080 end;UI.GetWidth=function() return 1920 end;UI.GetHeight=function() return 1080 end
     Hud.Update(0);Bounds()
@@ -50,11 +67,12 @@ V.atFrame(90,function() Shot('shop');local p=app.camera.cur.target;V.assert(Near
 V.atFrame(100,function()
     Shot('hangar');Hud.GetState().SetTab('battle');app:EnterBuild();V.assert(not app.camera.flight,'entering edit cancels homepage flight')
     app:ExitBuild();V.assert(app.camera.flight~=false,'return from edit restores source home transition');FinishFlight();Bounds()
+    V.assert(app.hangar.gridTarget==.3 and app.hangar.frameTarget==.8,'return from edit restores original homepage deck')
     V.assert(app.homeTab=='hangar' and Hud.GetState().tab=='hangar','return from battle edit restores hangar UI and camera together')
 end)
 V.atFrame(110,function()
     Shot('return')
-    local bp=require('construction.Prefab').BuildTank(require('construction.Blueprint').New())
+    local bp=require('construction.Prefab').Create(require('construction.Blueprint').New(),'tianyuan')
     app:HomeView('shop');local yaw=app.camera.yaw
     V.assert(app:LoadBlueprint(bp:ToTable()),'vehicle replacement accepts source tank')
     local expected=Stations.Get(app.blueprint:Stats(),'hangar',app.camera.maxDist)

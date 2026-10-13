@@ -63,7 +63,7 @@ function Card:Render(vg)
         nvgRestore(vg);D.Text(vg,'主打推荐',fx+12,y+19,13,{26,18,5,255},nil,nil,3)
     end
     local tx=x+(self.hero and 30 or 16)
-    local size=self.hero and 46 or self.mini and 17 or 21;local titleHeight=size*1.2
+    local size=self.hero and (self.heroTitleSize or 46) or self.mini and 17 or 21;local titleHeight=size*1.2
     local barHeight=self.hero and 62 or self.mini and 0 or 50*m.reveal.value
     local titleY=y+h-(self.hero and 26+16 or self.mini and 14 or 14+8)-barHeight-titleHeight
     D.Text(vg,p.kind,tx,titleY-(self.hero and 22 or 17),self.hero and 14 or 12,c,nil,nil,2)

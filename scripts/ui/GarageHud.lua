@@ -11,21 +11,33 @@ local function Clear(container)
 end
 function M.Dispose()
     if not state then return end
+    require('ui.MusicBox').Close(state)
+    require('ui.LiveryPage').Leave(state)
     require('ui.DialogHost').Dispose(state);state.CancelInput();state.previews:Dispose()
     require('ui.Workshop').Leave(state)
+    if state.workshop then
+        local saved={}
+        for _,key in ipairs({'view','selected','group','sort','from'}) do saved[key]=state.workshop[key] end
+        state.app.homeWorkshopState=saved
+    end
     require('ui.StoryPage').Leave(state)
     require('ui.SalvagePage').Leave(state)
     if UI.GetRoot()==state.root then UI.SetRoot(nil) end
     if state.root.node then state.root:Destroy() end
     Theme.TrimThumbnails({});state=false
 end
-function M.IsBlocked() return state and (state.dialog~=nil or state.newOpen) or false end
+function M.IsBlocked() return state and (state.dialog~=nil or state.newOpen or state.musicBox~=nil) or false end
 function M.SetMode(text) if state then state.message:SetText(text or '') end end
 function M.GetState() return state end
 function M.Refresh() if state then state.revision=-1 end end
 function M.Create(app)
     M.Dispose();require('controls.TouchMode').Apply('home');local w,h=UI.GetViewportSize()
     local s={app=app,revision=-1,tab=app.homeTab or 'hangar',buttons={},cards={},width=w,height=h,pointers={}}
+    if app.homeWorkshopState then
+        s.workshop={elapsed=0}
+        for _,key in ipairs({'view','selected','group','sort','from'}) do s.workshop[key]=app.homeWorkshopState[key] end
+        if s.workshop.view~='feature' then s.workshop.entrance={kind=s.workshop.view,elapsed=.9} end
+    end
     state=s
     s.Track=function(widget)
         local down,up,cancel=widget.OnPointerDown,widget.OnPointerUp,widget.OnPointerCancel
@@ -45,6 +57,9 @@ function M.Create(app)
     end
     s.SetNew=function(open) s.newOpen=open;s.menu:SetOpen(open);s.scrim:SetVisible(open) end
     s.SetTab=function(tab)
+        app.vehicleGate:Cancel()
+        if app.vehicleSwitch then app.vehicleSwitch:CancelDownload() end
+        if s.tab=='livery' and tab~='livery' then require('ui.LiveryPage').Leave(s) end
         if s.tab=='story' and tab~='story' then require('ui.StoryPage').Leave(s) end
         if (s.tab=='workshop' or s.tab=='salvage') and tab~=s.tab then require('ui.Workshop').Leave(s) end
         if s.tab=='salvage' and tab~='salvage' then require('ui.SalvagePage').Leave(s) end
@@ -53,7 +68,7 @@ function M.Create(app)
         app:HomeView(tab)
         Layout.Apply(s,s.width,s.height,s.safe)
     end
-    s.Run=function(fn,onSuccess)
+    s.Run=function(fn,onSuccess,data)
         local function Begin(discard)
             if state~=s then return false end
             return app.vehicleSwitch:Begin(function()
@@ -68,25 +83,26 @@ function M.Create(app)
                     s.message:SetText(ok and '' or err)
                     if ok and onSuccess then onSuccess() end
                 end
-            end)
+            end,data and require('parts.Dependencies').FromBlueprint(data) or nil)
         end
         return Begin(false) -- Accepted request, not a synchronous storage result.
     end
     s.SetLobby=function(mode)
         s.Run(function() return require('app.SalvageLobby').Switch(app,mode) end,function()
             s.bayRevision=nil;s.SetTab(mode=='salvage' and 'salvage' or 'hangar')
-        end)
+        end,require('app.SalvageLobby').VehicleData(app,mode))
     end
     s.CreateVehicle=function(id)
         s.SetNew(false)
         s.Run(function(discard) return app.bays:CreateVehicle(id,nil,discard) end,function()
             s.SetTab('hangar');if id=='empty' then app:EnterBuild() end
-        end)
+        end,require('construction.Prefab').Create(require('construction.Blueprint').New(),id):ToTable())
     end
     s.root=UI.Panel{width='100%',height='100%',pointerEvents='box-none'}
     local chrome=require('ui.HomeChrome'){position='absolute',width='100%',height='100%',pointerEvents='none'};chrome.owner=s;s.root:AddChild(chrome)
     s.nav=UI.Panel{position='absolute',pointerEvents='box-none'};s.root:AddChild(s.nav)
-    for _,tab in ipairs({{'hangar','机库'},{'workshop','创意工坊'},{'shop','商店'}}) do AddButton(s.nav,tab[1],tab[2],tab[1],'tab',function() s.SetTab(tab[1]) end) end
+    for _,tab in ipairs({{'hangar','机库'},{'livery','涂装'},{'workshop','创意工坊'},{'shop','商店'}}) do AddButton(s.nav,tab[1],tab[2],tab[1],'tab',function() s.SetTab(tab[1]) end) end
+    AddButton(s.nav,'intro','开场动画','play','intro',function() end)
     AddButton(s.nav,'help','','help','icon',function() Dialogs.Help(s) end)
     AddButton(s.nav,'settings','','gear','icon',function() require('ui.PauseMenu').Open(s) end)
     local Info=UI.ScrollView
@@ -112,6 +128,8 @@ function M.Create(app)
     s.rightArrow=AddButton(s.root,nil,'','back','arrow',function() Scroll(1) end,{rightArrow=true})
     AddButton(s.root,'new','新战车','plus','new',function() s.SetNew(not s.newOpen) end)
     s.root:AddChild(s.cta)
+    s.musicConsole=require('ui.MusicBoxVisual').Console{text='音乐盒',icon='music',position='absolute',padding=0,onClick=function() require('ui.MusicBox').Open(s) end}
+    s.musicConsole.player=app.music;s.root:AddChild(s.musicConsole);s.buttons.music=s.musicConsole
     s.modeStrip=UI.Panel{position='absolute',pointerEvents='box-none'}
     AddButton(s.modeStrip,'arena','竞技对战','battle','mode',function() end,{selected=true,subtitle='3v3 / 4v4 匹配'})
     AddButton(s.modeStrip,'salvage','打捞行动','hook','mode',function() s.SetLobby('salvage') end,{subtitle='搜打撤 · 独立仓库',salvage=true})
@@ -123,26 +141,31 @@ function M.Create(app)
     Layout.Apply(s,w,h,UI.GetSafeAreaInsets());UI.SetRoot(s.root,true)
 end
 local function Rebuild(s)
+    -- Decal edits dirty the blueprint each pointer move; hidden home cards can
+    -- wait until SetTab invalidates the page again on returning to the hangar.
+    if s.tab=='livery' and s.page.session then s.revision=s.app.bays.revision;s.tier=s.app.tier;return end
     local app=s.app;local slots=app.bays:Slots();local used=0
     for _,d in ipairs(slots) do if d then used=used+1 end end;s.usedCount=used
     s.buttons.copy:SetDisabled(used==20);s.buttons.new:SetDisabled(used==20);s.buttons.delete:SetDisabled(not app.bays.active)
     Clear(s.info);Clear(s.loadout);require('ui.HomeStats').Fill(s.info,app,s)
-    for _,id in ipairs({'hangar','workshop','shop'}) do s.buttons[id].props.selected=s.tab==id end
+    for _,id in ipairs({'hangar','livery','workshop','shop'}) do s.buttons[id].props.selected=s.tab==id end
     s.buttons.battle:SetText(s.tab=='battle' and '开始战斗' or '出战');s.buttons.battle.props.key=s.tab=='battle' and 'Enter' or 'F'
     local mode=require('core.ResourceData').Read('UI/Outgame.json').modes[s.modeChoice or 'elimination']
     s.buttons.battle.props.subtitle=mode and (mode.name..' · '..mode.size..'v'..mode.size) or '单人 · 不计战绩'
-    s.root:RemoveChild(s.page);s.page:Destroy();s.page=require('ui.HomePages').Create(s);s.root:InsertChild(s.page,1)
+    if not (s.tab=='livery' and s.page.session) then
+        s.root:RemoveChild(s.page);s.page:Destroy();s.page=require('ui.HomePages').Create(s);s.root:InsertChild(s.page,1)
+    end
     if s.bayRevision~=app.bays.revision then
         s.previews:Clear();Clear(s.bayStrip);s.cards={}
         local function Card(slot,data)
             local draft=not slot;local active=slot==app.bays.active
-            local card=s.Track(UI.Panel{width=184,height=90,flexShrink=0,overflow='hidden',backgroundColor='#122638',onClick=function() if slot and slot~=app.bays.active then s.Run(function(d) return app.bays:Open(slot,d) end) end end})
-            if not draft then local picture=s.previews:Add(data);picture:SetStyle({position='absolute',left=0,top=0,width=184,height=90});card:AddChild(picture) end
+            local card=s.Track(UI.Panel{width=s.cardWidth,height=s.cardHeight,flexShrink=0,overflow='hidden',backgroundColor='#122638',onClick=function() if slot and slot~=app.bays.active then s.Run(function(d) return app.bays:Open(slot,d) end,nil,data) end end})
+            if not draft then local picture=s.previews:Add(data);picture:SetStyle({position='absolute',left=0,top=0,width=s.cardWidth,height=s.cardHeight});card:AddChild(picture) end
             local overlay=require('ui.HomeBay'){position='absolute',width='100%',height='100%',pointerEvents='none'}
             local budget=0;local defs=require('parts.Defs').PARTS;for _,p in ipairs(data.parts) do budget=budget+(defs[p[1]] and defs[p[1]].budget or 0) end
             overlay.data={draft=draft,slot=slot,active=active,name=data.name,budget=budget,parts=#data.parts};overlay.card=card;card:AddChild(overlay)
             if draft then
-                local save=s.Track(Button{text='保存到车位',icon='save',sourceKind='save',position='absolute',right=10,top=8,width=110.5,height=28,onClick=function() Dialogs.Save(s) end})
+                local save=s.Track(Button{text='保存到车位',icon='save',sourceKind='save',position='absolute',right=18,top=8,width=110.5,height=28,onClick=function() Dialogs.Save(s) end})
                 card:AddChild(save);s.buttons.save=save
             end
             s.bayStrip:AddChild(card);s.cards[#s.cards+1]=card
@@ -162,12 +185,15 @@ function M.Update(dt)
     if s.salvagePreviews then s.salvagePreviews:Update(dt) end
     if s.tab=='workshop' then require('ui.Workshop').Update(s,dt) end
     if s.tab=='story' then require('ui.StoryPage').Update(s,dt) end
+    if s.tab=='livery' then require('ui.LiveryPage').Update(s,dt) end
     if s.workshopPreview then s.workshopPreview:Update(dt) end
     if s.dialogTick then s.dialogTick(dt) end
+    if s.musicBox then require('ui.MusicBox').Update(s,dt);return end
     if not input.focus or input.minimized then s.CancelInput();return end
     local focus=UI.GetFocus();local typing=focus and focus.OnTextInput~=nil
     if s.dialog then if input:GetKeyPress(KEY_ESCAPE) then Dialogs.Close(s) end
     elseif not typing and s.tab=='story' then require('ui.StoryPage').Key(s)
+    elseif not typing and s.tab=='livery' and s.livery.controls:Key() then
     elseif not typing and s.tab=='salvage' then require('ui.SalvagePage').Key(s)
     elseif not typing and s.tab=='workshop' and require('ui.Workshop').Key(s) then
         -- Workshop consumes its source keys before global garage shortcuts.

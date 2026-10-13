@@ -54,7 +54,8 @@ function M.Open(owner,mode)
         Host.Close(owner);local ok,err=app.bays:Save(slot);Host.Notify(owner,ok and ('已保存到车位 '..slot) or err)
     end
     local function Load(slot)
-        Host.Close(owner);local ok,err=app.bays:Restore(slot);Host.Notify(owner,ok and ('已载入车位 '..slot) or err)
+        Host.Close(owner)
+        app:WithVehicle(slots[slot],function() return app.bays:Restore(slot) end,function(ok,err) Host.Notify(owner,ok and ('已载入车位 '..slot) or err) end)
     end
     for i,data in ipairs(slots) do
         local card=Card{width=cardWidth,height='100%',flexShrink=0,pictureHeight=pictureHeight,data=data or nil,mode=mode,slot=i,
@@ -71,7 +72,9 @@ function M.Open(owner,mode)
             if mode=='load' then
                 local delete=Card.Delete{card=card,width=30,height=30,position='absolute',top=6,right=6,onClick=function()
                     Host.Confirm(owner,'删除车位 '..i..'？','删除“'..data.name..'”，此操作无法撤销。',function()
-                        local ok,err=app.bays:Delete(i);Host.Notify(owner,ok and '已删除' or err);Reopen()
+                        app:WithVehicle(app.bays:ReplacementAfterDelete(i) or {parts={}},function() return app.bays:Delete(i) end,function(ok,err)
+                            Host.Notify(owner,ok and '已删除' or err);Reopen()
+                        end)
                     end,Reopen)
                 end}
                 card:AddChild(delete);card.deleteButton=delete

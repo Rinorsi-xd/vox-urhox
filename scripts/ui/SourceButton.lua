@@ -26,6 +26,16 @@ function Button:Render(vg)
         D.Icon(vg,p.icon,x+inset,y+(h-22)/2,22,p.selected and D.orange or color)
         D.Text(vg,p.text,x+inset+31,y+(h-(p.headerHangar and 24 or 25))/2,size,hover and D.white or color,nil,nil,1)
         if p.selected then D.Rect(vg,x+14,y+h-4,w-28,4,D.orange) end
+    elseif kind=='intro' then
+        -- Exact source header entry: the unfinished intro replay button is part
+        -- of the frozen H5 page, including its compact relief and badge.
+        local points={x,y,x+w-14,y,x+w,y+14,x+w,y+h,x,y+h}
+        nvgGlobalAlpha(vg,hover and 1 or .68)
+        Relief.Draw(vg,x,y,w,h,false,true,points)
+        D.Icon(vg,'play',x+12,y+11,18,D.orange)
+        D.Text(vg,'开场动画',x+36,y+11,13,{183,210,232,255},'vox-body')
+        D.Rect(vg,x+106,y+11,39,18,{230,187,112,255})
+        D.Text(vg,'未完成',x+125.5,y+12.5,11,D.ink,'vox-body',NVG_ALIGN_CENTER)
     elseif kind=='mode' then
         if p.salvage then
             self:RenderBackgroundImage(vg,'UI/Salvage/map.jpg',r,'cover',nil)
@@ -53,17 +63,19 @@ function Button:Render(vg)
         local points=main and {x+18,y,x+w-18,y,x+w,y+h,x,y+h} or kind=='cta-left' and {x+w*.17,y,x+w,y,x+w-18,y+h,x+w*.07,y+h,x,y+h*.79} or {x,y,x+w*.855,y,x+w,y+h*.79,x+w*.93,y+h,x+18,y+h}
         Relief.Draw(vg,x,y,w,h,main,false,points)
         if hover then D.Path(vg,points);nvgFillColor(vg,nvgRGBA(255,255,255,main and 51 or 26));nvgFill(vg) end
-        local kw=math.max(18,D.Width(vg,p.key or '',12)+10)
+        local kw=D.Width(vg,p.key or '',12,nil,.5)+12
         local iconSize=main and 33 or 24;local titleSize=main and 36 or 25;local subSize=main and 11 or 10
-        local span=math.max(D.Width(vg,p.text,titleSize),D.Width(vg,p.subtitle or '',subSize,'vox-body'))
+        local tracking=main and 3 or 0
+        local span=math.max(D.Width(vg,p.text,titleSize,nil,tracking),D.Width(vg,p.subtitle or '',subSize,'vox-body'))
         local start=main and x+(w-(iconSize+12+span+12+kw))*.5 or x+18
         D.Icon(vg,p.icon,start,y+(h-iconSize)/2,iconSize,main and {6,31,53,255} or {228,243,255,255})
         local tx=start+iconSize+(main and 12 or 9)
-        D.Text(vg,p.text,tx,y+(main and 11 or 17),titleSize,color)
+        D.Text(vg,p.text,tx,y+(main and 11 or 17),titleSize,color,nil,nil,tracking,false,titleSize)
         D.Text(vg,p.subtitle or '',tx,y+(main and 52 or 47),subSize,main and {228,244,255,255} or {195,222,244,255},'vox-body')
         local kx=main and tx+span+12 or x+w-18-kw
-        D.Rect(vg,kx,y+25,kw,19,{0,0,0,56});nvgBeginPath(vg);nvgRect(vg,kx+.5,y+25.5,kw-1,18);nvgStrokeWidth(vg,1);nvgStrokeColor(vg,nvgRGBA(0,0,0,main and 77 or 0));nvgStroke(vg)
-        D.Text(vg,p.key or '',kx+kw/2,y+27,12,color,nil,NVG_ALIGN_CENTER)
+        local ky=y+(h-19)/2
+        D.Rect(vg,kx,ky,kw,19,main and {22,61,103,102} or {19,36,58,255});nvgBeginPath(vg);nvgRect(vg,kx+.5,ky+.5,kw-1,18);nvgStrokeWidth(vg,1);nvgStrokeColor(vg,nvgRGBA(0,0,0,0));nvgStroke(vg)
+        D.Text(vg,p.key or '',kx+kw/2,ky+1,12,color,nil,NVG_ALIGN_CENTER,.5,false,17)
     elseif kind=='pause' then
         if hover and not p.disabled then x=x+4 end
         D.Panel(vg,x,y,w,h,0,{44,48,55,255},{29,32,37,255})
@@ -106,7 +118,7 @@ function Button:Render(vg)
         else D.Panel(vg,x,y,w,h,0,{44,48,55,255},{29,32,37,255}) end
         local size=kind=='icon' and 22 or kind=='save' and 15 or 18;local ix=kind=='icon' and x+(w-size)/2 or x+(kind=='save' and 9 or 14)
         D.Icon(vg,p.icon,ix,y+(h-size)/2,size,hover and D.white or D.muted)
-        if kind~='icon' then local fs=kind=='save' and 14 or 17;D.Text(vg,p.text,ix+size+(kind=='save' and 5 or 7),y+(h-fs*1.2)/2,fs,D.white) end
+        if kind~='icon' then local fs=kind=='save' and 14 or 17;D.Text(vg,p.text,ix+size+(kind=='save' and 5 or 7),y+(h-fs*1.2)/2,fs,D.white,nil,nil,kind=='save' and .5 or 0,false,fs*1.2) end
     end
     if hover and not p.disabled and not Flat(kind) and kind~='tab' and kind~='arrow' and kind~='pause' and kind:sub(1,4)~='cta-' then D.Rect(vg,x+4,y+2,w-8,h-5,{255,255,255,14}) end
     nvgRestore(vg)

@@ -1,6 +1,7 @@
 local DriveView=require "render.DriveView"
 local View=require "render.VehicleView"
 local Coord=require "core.Coord"
+local WeaponView=require 'render.WeaponView'
 local CELL=require("Config").CELL
 local M={};M.__index=M
 local function Vec(p) return Coord.Vec(table.unpack(p)) end
@@ -9,10 +10,11 @@ function M.New(scene) return setmetatable({scene=scene,units={},pieces={}},M) en
 function M:Consume(world)
     for _,e in ipairs(world.viewEvents) do
         local v=self.units[e.unit]
-        if e.type=="unitSpawn" then
+        if not e.unit.externalView and e.type=="unitSpawn" then
             if v then v:Dispose() end
             self.units[e.unit]=DriveView.New(self.scene,e.unit.bp,e.unit.vehicle)
         elseif e.type=="partRemoved" then if v then v.view:RemovePart(e.id) end
+        elseif e.type=='partRestored' then if v then v.view:AddPart(e.unit.bp.parts[e.id]) end
         elseif e.type=="unitRebuilt" then if v then v:Bind(e.unit.bp,e.unit.vehicle) end
         elseif e.type=="unitKilled" or e.type=="unitRemoved" then
             if v then v:Dispose();self.units[e.unit]=nil end
@@ -35,8 +37,9 @@ function M:Consume(world)
 end
 function M:SavePose() for _,view in pairs(self.units) do view:SavePose() end end
 function M:Update(alpha,dt,context)
-    for _,view in pairs(self.units) do
+    for unit,view in pairs(self.units) do
         view:Update(alpha,dt,context)
+        if unit.weapons then WeaponView.Update(view.view,unit.weapons,alpha,dt,context and context.time or 0) end
         view.view:UpdateIdle(dt,context and context.time or 0)
         view.view:UpdateWeaponEffects(dt,context)
     end

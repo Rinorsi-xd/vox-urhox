@@ -14,13 +14,14 @@ function Stats:Render(vg)
         local sy=y;local cols=5;local stride=50
         for _,group in ipairs(a.groups) do
             D.Icon(vg,group.icon,x,sy+1,16,D.orange);D.Text(vg,group.title,x+23,sy,14)
-            D.Text(vg,group.count,x+w,sy,14,D.muted,nil,NVG_ALIGN_RIGHT);sy=sy+27
+            D.Text(vg,group.count,x+w,sy,14,D.muted,'vox-display',NVG_ALIGN_RIGHT);sy=sy+27
             for i,item in ipairs(group.items) do
                 local tx=x+((i-1)%cols)*stride;local ty=sy+math.floor((i-1)/cols)*50
-                D.Panel(vg,tx,ty,44,44,8,item.id and {32,58,84,128} or {28,48,69,102},item.id and {32,58,84,128} or {28,48,69,102})
+                D.Path(vg,{tx,ty,tx+44,ty,tx+44,ty+36,tx+36,ty+44,tx,ty+44})
+                nvgFillColor(vg,D.Color(item.id and {32,58,84,128} or {28,48,69,102}));nvgFill(vg)
                 if item.id then
-                    self:RenderBackgroundImage(vg,Theme.Thumbnail(item.id),{x=tx+3,y=ty+3,w=38,h=38},'contain',nil)
-                    D.Text(vg,'×'..item.count,tx+41,ty+29,13,nil,nil,NVG_ALIGN_RIGHT)
+                    self:RenderBackgroundImage(vg,Theme.Thumbnail(item.id),{x=tx+3.52,y=ty+3.52,w=36.96,h=36.96},'contain',nil)
+                    D.Text(vg,'×'..item.count,tx+40,ty+28,13,nil,'vox-display',NVG_ALIGN_RIGHT)
                 else D.Icon(vg,'plus',tx+14,ty+14,16,D.dim) end
             end
             sy=sy+math.max(1,math.ceil(#group.items/cols))*50+10
@@ -29,22 +30,25 @@ function Stats:Render(vg)
         D.Text(vg,'战车整备',x,y,11,D.white,'vox-body');D.Text(vg,a.slot,x+w,y,11,D.muted,'vox-body',NVG_ALIGN_RIGHT)
         D.Path(vg,{x,y+39.55,x+20,y+28.3,x+40,y+39.55,x+40,y+62.05,x+20,y+73.3,x,y+62.05})
         nvgFillColor(vg,D.Color({24,52,83,255}));nvgFill(vg);nvgStrokeWidth(vg,2);nvgStrokeColor(vg,D.Color(a.ok and D.orange or {255,109,114,255}));nvgStroke(vg)
-        D.Text(vg,'T'..a.tier.id,x+20,y+42,17,nil,nil,NVG_ALIGN_CENTER)
+        D.Text(vg,'T'..a.tier.id,x+20,y+42,17,nil,'vox-display',NVG_ALIGN_CENTER)
         D.Text(vg,a.tier.name,x+50,y+28.3,16)
-        local badge=a.ok and '可出战' or '超出限制';local badgeWidth=D.Width(vg,badge,11,'vox-body')+10
+        local badge=a.ok and '可出战' or '超出限制';local badgeWidth=D.Width(vg,badge,11,'vox-body')+29
         D.Rect(vg,x+50,y+53.3,badgeWidth,20,a.ok and {142,227,208,255} or {255,109,114,255})
-        D.Text(vg,badge,x+55,y+56.3,11,{10,37,48,255},'vox-body')
+        D.Icon(vg,a.ok and 'check' or 'warn',x+55,y+56.3,14,{10,37,48,255},2.6)
+        D.Text(vg,badge,x+74,y+56.3,11,{10,37,48,255},'vox-body')
         if a.unsaved then D.Text(vg,'有改动未保存',x+57+badgeWidth,y+56.3,11,D.muted,'vox-body') end
-        D.Text(vg,a.name,x,y+85.3,Fit(vg,a.name,46,w),D.white)
+        local nameSize=Fit(vg,a.name,46,w)
+        D.Text(vg,a.name,x+3,y+89.3,nameSize,{2,8,17,255},nil,nil,.5,false,nameSize*1.08)
+        D.Text(vg,a.name,x,y+85.3,nameSize,D.white,nil,nil,.5,false,nameSize*1.08)
         D.Icon(vg,'chip',x,y+163.97,16,D.orange);D.Text(vg,'预算',x+23,y+163.97,12,D.muted,'vox-body')
-        local cap='/ '..D.Number(a.tier.budget);local capWidth=D.Width(vg,cap,14,'vox-tabular')
-        D.Text(vg,D.Number(st.budget),x+w-capWidth,y+148.97,31,nil,'vox-tabular',NVG_ALIGN_RIGHT)
-        D.Text(vg,cap,x+w,y+162.97,14,D.muted,'vox-tabular',NVG_ALIGN_RIGHT)
+        local cap=' / '..D.Number(a.tier.budget);local capWidth=D.Width(vg,cap,14,'vox-display')
+        D.Text(vg,D.Number(st.budget),x+w-capWidth,y+148.97,31,nil,'vox-display',NVG_ALIGN_RIGHT,0,false,31)
+        D.Text(vg,cap,x+w,y+162.97,14,D.muted,'vox-display',NVG_ALIGN_RIGHT,0,false,14)
         D.Meter(vg,x,y+187.97,w,7,st.budget,a.tier.budget,true)
         for i,entry in ipairs({{'shield','总耐久',D.Number(a.hp)},{'gauge','参考极速',tostring(math.floor(st.topSpeed+.5))}}) do
             local tx=x+(i-1)*(w+15)*.5;D.Icon(vg,entry[1],tx,y+208.97,16,D.orange);D.Text(vg,entry[2],tx+23,y+209.47,12,D.muted,'vox-body')
-            D.Text(vg,entry[3],tx,y+230.97,27,nil,'vox-tabular')
-            if i==2 then D.Text(vg,'km/h',tx+D.Width(vg,entry[3],27,'vox-tabular')+2,y+243.97,11,D.muted,'vox-body') end
+            D.Text(vg,entry[3],tx,y+230.97,27,nil,'vox-display',nil,0,false,27)
+            if i==2 then D.Text(vg,'km/h',tx+D.Width(vg,entry[3],27,'vox-display')+2,y+243.97,11,D.muted,'vox-body') end
         end
         if self.expanded then
             local cy=y+344
@@ -73,7 +77,7 @@ function M.Fill(root,app,s)
     for _,spec in ipairs({{'weapon','武器','crosshair'},{'movement','移动部件','wheel'}}) do
         local items=groups[spec[1]];local total=0
         for _,item in ipairs(items) do total=total+item.count;keep[Theme.Thumbnail(item.id)]=true end
-        if spec[1]=='weapon' then for _=#items+1,math.min(tier.weapons,math.max(5,#items)) do items[#items+1]={} end end
+        if spec[1]=='weapon' then for _=st.weapons+1,math.min(tier.weapons,math.max(st.weapons,6)) do items[#items+1]={} end end
         data.groups[#data.groups+1]={title=spec[2],icon=spec[3],items=items,count=spec[1]=='weapon' and (st.weapons..' / '..tier.weapons) or tostring(total)}
     end
     local expanded=s and s.detailsOpen

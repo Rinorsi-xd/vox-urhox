@@ -5,9 +5,11 @@ local function Tween(value)
     return {value=value,start=value,target=value,elapsed=0,duration=0}
 end
 function M.Ensure(ws)
+    ws.shelf=ws.shelf or {elapsed=0}
     if ws.slides then return end
     ws.slides={}
     ws.imagesReady={}
+    ws.caption={elapsed=0,distance=30}
     ws.imageGate=ResourceGate.New()
     for _,id in ipairs(M.ids) do
         ws.slides[id]={alpha=Tween(id==ws.selected and 1 or 0),imageElapsed=0}
@@ -25,10 +27,14 @@ function M.Select(s,id)
             if s.message then s.message:SetText(err) end
             return
         end
+        local repeatSelection=ws.imagesReady[id] and id==ws.selected
         ws.imagesReady[id]=true
         if id~=ws.selected then
             for _,slide in pairs(ws.slides) do slide.imageElapsed=0 end
             ws.selected=id
+            ws.caption={elapsed=0,distance=24}
+        elseif repeatSelection then
+            ws.caption={elapsed=0,distance=24}
         end
         ws.elapsed=0;s.revision=-1
     end)
@@ -40,7 +46,7 @@ end
 function M.Leave(ws)
     if not ws then return end
     if ws.imageGate then ws.imageGate:Cancel() end
-    ws.imageGate=nil;ws.pending=nil;ws.imagesReady=nil;ws.slides=nil
+    ws.imageGate=nil;ws.pending=nil;ws.imagesReady=nil;ws.slides=nil;ws.caption=nil;ws.shelf=nil
 end
 function M.Target(ws)
     return ws.pending or ws.selected
@@ -50,6 +56,8 @@ function M.Ready(ws,id)
 end
 function M.Step(s,dt)
     local ws=s.workshop;M.Ensure(ws)
+    ws.caption.elapsed=math.min(.46,ws.caption.elapsed+math.max(0,dt))
+    ws.shelf.elapsed=math.min(.62,ws.shelf.elapsed+math.max(0,dt))
     for id,slide in pairs(ws.slides) do
         local previous=slide.alpha.value
         Motion.Step(slide.alpha,id==ws.selected and 1 or 0,.9,dt,'ease')
@@ -58,6 +66,24 @@ function M.Step(s,dt)
             require('urhox-libs/UI/Core/ImageCache').Release('UI/Prefabs/'..id..'.jpg')
         end
     end
+end
+-- Frozen motion.js: six siblings, 40ms stagger, 260ms (.16,1,.3,1).
+function M.Caption(ws,index)
+    if not ws.caption then return 1,0 end
+    local delay=math.min(index-1,16)*.04
+    if ws.caption.elapsed>=delay+.26 then return 1,0 end
+    local progress=math.max(0,math.min(1,(ws.caption.elapsed-delay)/.26))
+    local alpha=Motion.Ease(progress,false)
+    return alpha,-ws.caption.distance*(1-alpha)
+end
+-- Frozen feature view: header actions precede row cards in DOM order.
+function M.Shelf(ws,index)
+    if not ws.shelf then return 1,0 end
+    local delay=.12+math.min(index-1,16)*.03
+    if ws.shelf.elapsed>=delay+.26 then return 1,0 end
+    local progress=math.max(0,math.min(1,(ws.shelf.elapsed-delay)/.26))
+    local alpha=Motion.Ease(progress,false)
+    return alpha,20*(1-alpha)
 end
 function M.Keep(ws,keep)
     M.Ensure(ws)

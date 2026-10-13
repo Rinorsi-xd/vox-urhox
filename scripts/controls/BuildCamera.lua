@@ -7,21 +7,28 @@ local M={};M.__index=M
 function M.New(session)
     local self=setmetatable({session=session,mode='orbit',captured=false,touch=require('controls.TouchMode').Enabled(),held={},dx=0,dy=0},M)
     local state=session.app.buildCameraState
-    if state and not self.touch then self.mode='fp';self.flight=Flight.New(state.pos,state.forward,require('scene.HangarConfig').layout.cameraLimit);self:Apply() end
+    if not self.touch then
+        self.mode='fp'
+        local p=session.camera.node.position;local f=session.camera.node.rotation*Vector3.FORWARD
+        self.flight=Flight.New(state and state.pos or {-p.x,p.y,p.z},state and state.forward or {-f.x,f.y,f.z},require('scene.HangarConfig').layout.cameraLimit)
+        self:Apply()
+    end
     return self
 end
 function M:SetMouseMode(mode) input.mouseMode=mode end
 function M:Capture()
     if self.mode~='fp' or self.session.dialog or self.session.inventoryPanel then return end
-    self.session.controls:Cancel();self.captured=true;self.skipInput=true;self.buttonsReady=false
+    self.pending=not self.touch and require('urhox-libs.Platform.PlatformUtils').IsWebPlatform()
+    self.session.controls:Cancel();self.captured=not self.pending;self.skipInput=true;self.buttonsReady=false
+    self.avgMove=0;self.lastSpike=false;self.lockWait=0
     if not self.touch then self:SetMouseMode(MM_RELATIVE) end
     if self.session.hud then self.session.hud.Refresh() end
 end
 function M:Release()
-    local changed=self.captured
-    if self.captured and not self.touch then self:SetMouseMode(MM_ABSOLUTE) end
+    local changed=self.captured or self.pending
+    if changed and not self.touch then self:SetMouseMode(MM_ABSOLUTE) end
     self.held={};self.dx=0;self.dy=0
-    self.captured=false;if self.flight then self.flight:Stop() end
+    self.captured=false;self.pending=false;if self.flight then self.flight:Stop() end
     self.session.controls:Cancel()
     if changed and self.session.hud and not self.session.disposed then self.session.hud.Refresh() end
 end
@@ -31,20 +38,6 @@ function M:Center()
     local b=st.bb
     return {(b.minX+b.maxX)*.5*Config.CELL,((b.minY+b.maxY)*.5+.5)*Config.CELL,(b.minZ+b.maxZ)*.5*Config.CELL},
         math.sqrt(st.dims.L^2+st.dims.W^2+st.dims.H^2)*Config.CELL*.5
-end
-function M:Toggle()
-    local c=self.session.camera
-    if self.mode=='orbit' then
-        local p=c.node.position;local f=c.node.rotation*Vector3.FORWARD
-        self.flight=Flight.New({-p.x,p.y,p.z},{-f.x,f.y,f.z},require('scene.HangarConfig').layout.cameraLimit)
-        self.mode='fp';self:Capture()
-    else
-        self:Release();local center=self:Center();local target=Coord.Vec(table.unpack(center))
-        local delta=c.node.position-target;local dist=math.max(.001,delta.length)
-        c.target=target;c.dist=Math.Clamp(dist,3,c.maxDist-2)
-        c.yaw=math.atan(-delta.x,-delta.z)*180/math.pi;c.pitch=math.asin(Math.Clamp(delta.y/dist,-1,1))*180/math.pi
-        c.cur={target=c.target,dist=c.dist,yaw=c.yaw,pitch=c.pitch};self.mode='orbit';c:Apply()
-    end
 end
 function M:Focus()
     local center,radius=self:Center();local c=self.session.camera
@@ -73,13 +66,29 @@ function M:Read()
     local function Axis(a,b) return (a and 1 or 0)-(b and 1 or 0) end
     local ctrl=Down(KEY_CTRL);local shift=Down(KEY_SHIFT)
     local edit=input:GetMouseButtonDown(MOUSEB_LEFT) or Down(KEY_R) or ctrl
-    return {dx=input.mouseMoveX,dy=input.mouseMoveY,forward=Axis(Down(KEY_W),Down(KEY_S)),right=Axis(Down(KEY_D),Down(KEY_A)),
-        up=Axis(Down(KEY_SPACE) or Down(KEY_E),shift and not edit),fast=Down(KEY_Z) and not ctrl}
+    local dx,dy=input.mouseMoveX,input.mouseMoveY
+    local magnitude=math.sqrt(dx*dx+dy*dy);local avg=self.avgMove or 0
+    local spike=magnitude>120 and magnitude>avg*8+80 and not self.lastSpike
+    self.lastSpike=spike
+    if spike then dx,dy=0,0 else self.avgMove=avg+(magnitude-avg)*.3 end
+    return {dx=dx,dy=dy,forward=Axis(Down(KEY_W),Down(KEY_S)),right=Axis(Down(KEY_D),Down(KEY_A)),
+        up=Axis(Down(KEY_SPACE) or Down(KEY_E),shift and not edit),fast=Down(KEY_Z) and not ctrl,speed=self.session.flyScale or 1}
 end
 function M:Update(dt,blocked)
     if self.mode=='orbit' then self.session.camera:Update(dt,true);return end
     if blocked or not input.focus or input.minimized then self:Release() end
+    if self.pending then
+        if input.mouseMode==MM_RELATIVE and input.mouseLocked then
+            self.pending=false;self.captured=true
+            if self.session.hud then self.session.hud.Refresh() end
+        else
+            self.lockWait=self.lockWait+dt
+            if self.lockWait>=2 then self:Release() end
+            return
+        end
+    end
     if self.captured then
+        if not self.touch and require('urhox-libs.Platform.PlatformUtils').IsWebPlatform() and not input.mouseLocked then self:Release();return end
         if self.skipInput then self.skipInput=false else self.flight:Step(math.min(dt,.1),self:Read()) end
     end
     self:Apply()

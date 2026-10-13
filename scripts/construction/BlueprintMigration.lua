@@ -6,6 +6,7 @@ local Mounts=require 'parts.Mounts'
 local M={}
 function M.Load(bp,data)
     bp:Clear();bp.name=data.name and data.name~='' and data.name or '未命名战车'
+    bp.livery=require('construction.LiveryData').Clean(data.livery)
     bp.dropped=0;bp.migrationWarnings={}
     local ordered,oldWheels={},{};local migratedHovers,droppedHovers=0,0
     for _,row in ipairs(data.parts or {}) do if row[1]~='hover' then ordered[#ordered+1]=row end end

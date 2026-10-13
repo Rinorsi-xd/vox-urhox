@@ -39,7 +39,7 @@ end
 function M.Build(node,data,part,vis)
     local s=data.segments
     vis.data=data;vis.rig={};vis.shellSlots={};vis.materialSlots={}
-    if data.weapon and data.weapon~=cjson.null and (part.type:match('^mg%d+$') or part.type:match('^laser%d+$') or part.type:match('^sniper%d+$')) then
+    if data.weapon and data.weapon~=cjson.null and (part.type:match('^mg%d+$') or part.type:match('^laser%d+$') or part.type:match('^sniper%d+$') or part.type:match('^missile%d+$')) then
         WeaponPresentation.Create(vis,part.type)
     end
     vis.emissionModels={}
@@ -82,10 +82,14 @@ function M.Build(node,data,part,vis)
         Add(node,s.base);r.head=Group(node,"Head");vis.head=r.head;Add(r.head,s.head)
         if s.spin and data.weapon and data.weapon~=cjson.null then r.spin=Group(r.head,"BarrelSpin",data.weapon.spin);Add(r.spin,s.spin) end
         r.parts={}
-        for _,p in ipairs(s.parts or {}) do
-            local n=Group(r.head,p.name,p.origin);Add(n,p.model)
-            r.parts[#r.parts+1]={node=n,definition=p}
+        local function Parts(parent,list)
+            for _,p in ipairs(list or {}) do
+                local n=Group(parent,p.name,p.origin);Add(n,p.model)
+                r.parts[#r.parts+1]={node=n,definition=p}
+            end
         end
+        Parts(r.head,s.parts)
+        if s.pod then r.pod=Group(r.head,'Pod');Add(r.pod,s.pod);Parts(r.pod,s.podParts) end
     end
 end
 function M.SetTrack(vis,distance)
@@ -118,8 +122,16 @@ function M.SetWheel(vis,up,suspension,steer,roll)
 end
 function M.SetWeapon(vis,yaw,pitch,spin,recoil,kick)
     local p=Vec(vis.data.weapon.pivot)
-    local rotation=Quaternion(-yaw*180/math.pi,Vector3.UP)*Quaternion(-(pitch+(kick or 0))*180/math.pi,Vector3.RIGHT)
-    vis.rig.head.rotation=rotation;vis.rig.head.position=p-rotation*(p+Vector3(0,0,recoil or 0))
+    local turn=Quaternion(-yaw*180/math.pi,Vector3.UP)
+    local tilt=Quaternion(-(pitch+(kick or 0))*180/math.pi,Vector3.RIGHT)
+    if vis.rig.pod then
+        vis.rig.head.rotation=turn;vis.rig.head.position=p-turn*p
+        local pivot=Vec(vis.data.weapon.tilt)
+        vis.rig.pod.rotation=tilt;vis.rig.pod.position=pivot-tilt*(pivot+Vector3(0,0,recoil or 0))
+    else
+        local rotation=turn*tilt
+        vis.rig.head.rotation=rotation;vis.rig.head.position=p-rotation*(p+Vector3(0,0,recoil or 0))
+    end
     if vis.rig.spin then vis.rig.spin.rotation=Quaternion(-spin*180/math.pi,Vector3.FORWARD) end
 end
 function M.SetLegTarget(vis,target,bladeAngle)

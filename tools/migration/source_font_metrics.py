@@ -87,7 +87,7 @@ def main():
     baseline = json.loads((ROOT / 'docs/migration/outgame-baseline.json').read_text(encoding='utf-8'))
     source = Path(baseline['snapshot']) / 'shared/fonts'
     inputs = {
-        'vox-title': (ROOT / 'assets/Fonts/VoxIndustrial-Bold.ttf', lambda cp: True),
+        'vox-title': (ROOT / 'assets/Fonts/VoxIndustrial-Bold.otf', lambda cp: True),
         'vox-display': (source / 'BarlowCondensed-BoldItalic.ttf', latin),
         'vox-tabular': (ROOT / 'assets/Fonts/VoxDisplayTabular-BoldItalic.ttf', latin),
     }

@@ -1,9 +1,9 @@
 <?xml version='1.0' encoding='utf-8'?>
 <material>
   <surfaceshader name="Shaders/BLGL/Crater/Map-MAP_BAKE.shader" />
-  <parameter name="tint" value="0.0056 0.0056 0.0056 1" />
-  <parameter name="roughness" type="Float" value="0.6" />
-  <parameter name="metalness" type="Float" value="0" />
+  <parameter name="tint" value="0.011 0.0086 0.007 1" />
+  <parameter name="roughness" type="Float" value="0.9" />
+  <parameter name="metalness" type="Float" value="0.2" />
   <parameter name="alpha_cut" type="Float" value="0" />
   <parameter name="emission" value="0 0 0" />
   <parameter name="uTime" type="Float" value="10" />
@@ -13,8 +13,8 @@
   <parameter name="uCliffK" type="Float" value="0.17396421441356202" />
   <parameter name="uBrick" value="1 0.01 0.1 0" />
   <parameter name="uBrickWH" value="1 1 2" />
-  <parameter name="uColor2" value="0.0056 0.0056 0.0056" />
-  <parameter name="uMortar" value="0.0056 0.0056 0.0056" />
+  <parameter name="uColor2" value="0.011 0.0086 0.007" />
+  <parameter name="uMortar" value="0.011 0.0086 0.007" />
   <parameter name="uWear" value="0 0" />
   <parameter name="uSoot" value="0 -9 6 0" />
   <parameter name="uSootColor" value="1 1 1" />

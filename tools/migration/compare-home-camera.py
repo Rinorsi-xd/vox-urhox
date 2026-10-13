@@ -8,8 +8,8 @@ sheet = Image.new('RGB', (1920, 576), '#15171b')
 draw = ImageDraw.Draw(sheet)
 font = ImageFont.truetype('C:/Windows/Fonts/arial.ttf', 22)
 for index, (filename, label) in enumerate([
-    ('h5-camera-hangar.png', 'Original H5 - PC 1920 x 1080'),
-    ('pc-camera-hangar.png', 'UrhoX + NanoVG - PC 1920 x 1080'),
+    ('hangar-fixed-source-pc.png', 'Frozen H5 9086244 - PC, source station, t = 10'),
+    ('hangar-fixed-web-pc.png', 'UrhoX Web - same station, t = 10'),
 ]):
     with Image.open(evidence / filename) as picture:
         assert picture.size == (1920, 1080), (filename, picture.size)

@@ -40,6 +40,7 @@ function VehicleView:init(parent, name)
     self.root = parent:CreateChild(name or "Vehicle")
     self.root:SetScale(Config.CELL)
     self.visuals = {}
+    self.livery=require('render.LiveryLayer').New(self)
 end
 
 -- 每个零件稳定的小色差（写进实例色的 alpha，shader 里用作随机数）
@@ -66,6 +67,8 @@ function VehicleView:AddPart(part)
     local vis = {node=node,models={},resources={},variation=Variation(part.id),instanced=def.instanced==true}
     Rig.Build(node,mesh,part,vis)
     self.visuals[part.id] = vis
+    vis.part=part
+    self.livery:PartsChanged()
     self:Repaint(part)
     if self.xray then self.xray:Attach(vis) end
     return vis
@@ -83,6 +86,7 @@ function VehicleView:RemovePart(id)
     vis.models={}
     Assets.Release(vis.resources)
     self.visuals[id] = nil
+    self.livery:PartsChanged()
     if self.weaponEffects then
         self.weaponEffects.items[id]=nil
         local any=false
@@ -111,6 +115,7 @@ end
 -- Deltas keep unaffected joints, materials and model handles alive. A move has
 -- remove/add with the same ID; update its transform without recreating the rig.
 function VehicleView:ApplyEdits(ops,bp)
+    self.livery:PartsChanged()
     local touched={}
     for _,op in ipairs(ops) do touched[op.id or op.data.id]=true end
     for id in pairs(touched) do
@@ -125,6 +130,7 @@ function VehicleView:ApplyEdits(ops,bp)
 end
 
 function VehicleView:Clear()
+    self.livery:Clear()
     if self.weaponEffects then self.weaponEffects:Reset() end
     local ids={}
     for id in pairs(self.visuals) do ids[#ids+1]=id end
@@ -135,6 +141,7 @@ end
 function VehicleView:Dispose()
     if self.weaponEffects then self.weaponEffects:Dispose();self.weaponEffects=nil end
     self:Clear()
+    self.livery:Dispose()
     if self.xray then self.xray:Dispose();self.xray=nil end
     self.root:Dispose()
 end
@@ -153,6 +160,7 @@ end
 function VehicleView:Rebuild(bp)
     self:Clear()
     for _, part in ipairs(bp:List()) do self:AddPart(part) end
+    self.livery:Set(bp.livery);self.livery:Update()
 end
 
 ---@param visible boolean
@@ -162,6 +170,7 @@ function VehicleView:SetVisible(visible)
 end
 
 function VehicleView:UpdateIdle(dt,time)
+    self.livery:Update()
     for _,vis in pairs(self.visuals) do if vis.weaponMotion then require('render.WeaponPresentation').Update(vis,dt,time) end end
 end
 

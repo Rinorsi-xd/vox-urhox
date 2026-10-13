@@ -18,7 +18,7 @@ function Popover:SetOpen(open)
                 nvgRestore(vg)
             end)
         end
-        self.entry=Tween(0);self.layer.ready=false;self:SetStyle({translateY=10})
+        self.entry=Tween(0);self.layer.ready=false;self:SetStyle({translateY=self.props.sourceEntryOffset or 10})
     else
         self.entry=nil;self:SetStyle({translateY=0})
         if self.layer then self.layer:ReleaseTexture() end
@@ -27,7 +27,7 @@ end
 function Popover:Update(dt)
     if not self.entry then return end
     Motion.Step(self.entry,1,self.props.sourceEntryDuration or .2,dt,false)
-    self:SetStyle({translateY=10*(1-self.entry.value)})
+    self:SetStyle({translateY=(self.props.sourceEntryOffset or 10)*(1-self.entry.value)})
     if self.entry.value==1 then self.entry=nil;self.layer:ReleaseTexture() end
 end
 function Popover:PrepareLayer()
@@ -51,8 +51,9 @@ function Popover:PrepareLayer()
     self.childVisuals=self.childVisuals or {}
     for i,child in ipairs(self.children) do
         local hover=child.hoverMotion and child.hoverMotion.value or 0;local old=self.childVisuals[i]
-        if not old or old.hover~=hover or old.hovered~=child.state.hovered or old.selected~=child.props.selected then
-            dirty=true;self.childVisuals[i]={hover=hover,hovered=child.state.hovered,selected=child.props.selected}
+        local bar=child.barMotion and child.barMotion.value or 0;local arrow=child.arrowMotion and child.arrowMotion.value or 0
+        if not old or old.hover~=hover or old.bar~=bar or old.arrow~=arrow or old.hovered~=child.state.hovered or old.selected~=child.props.selected then
+            dirty=true;self.childVisuals[i]={hover=hover,bar=bar,arrow=arrow,hovered=child.state.hovered,selected=child.props.selected}
         end
     end
     -- Entry translation/opacity changes only the composite. Repaint the

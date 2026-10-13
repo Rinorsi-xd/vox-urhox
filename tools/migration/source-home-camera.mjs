@@ -1,16 +1,29 @@
 // Execute original station/center method bodies and CameraRig, source read-only.
 import fs from 'node:fs';
 import crypto from 'node:crypto';
-import {CameraRig} from 'file:///D:/Rino_Project/Vox/shared/controls/cameraRig.js';
-import {Vector3} from 'file:///D:/Rino_Project/Vox/shared/core/math.js';
-import {CELL} from 'file:///D:/Rino_Project/Vox/shared/config.js';
-import {Blueprint} from 'file:///D:/Rino_Project/Vox/shared/build/blueprint.js';
-import {buildRaceCar,buildTank} from 'file:///D:/Rino_Project/Vox/shared/build/prefab.js';
+import path from 'node:path';
+import {pathToFileURL} from 'node:url';
+const baseline=JSON.parse(fs.readFileSync(new URL('../../docs/migration/outgame-baseline.json',import.meta.url)));
+const source=baseline.snapshot;
 const hashes={};
-hashes['shared/controls/cameraRig.js']=crypto.createHash('sha256').update(fs.readFileSync('D:/Rino_Project/Vox/shared/controls/cameraRig.js')).digest('hex');
+async function load(file){
+ const bytes=fs.readFileSync(path.join(source,file));
+ const hash=crypto.createHash('sha256').update(bytes).digest('hex');
+ const expected=baseline.files[file];
+ if(!expected||expected.sha256!==hash)throw Error('Frozen source changed: '+file);
+ hashes[file]=hash;
+ return import(pathToFileURL(path.join(source,file)).href);
+}
+const {CameraRig}=await load('shared/controls/cameraRig.js');
+const {Vector3}=await load('shared/core/math.js');
+const {CELL}=await load('shared/config.js');
+const {Blueprint}=await load('shared/build/blueprint.js');
+const {buildRaceCar,buildDrillTank}=await load('shared/build/prefab.js');
 function method(file,name){
- const text=fs.readFileSync('D:/Rino_Project/Vox/'+file,'utf8');
- hashes[file]=crypto.createHash('sha256').update(text).digest('hex');
+ const bytes=fs.readFileSync(path.join(source,file));
+ const text=bytes.toString('utf8').replace(/\r\n/g,'\n');
+ hashes[file]=crypto.createHash('sha256').update(bytes).digest('hex');
+ if(baseline.files[file]?.sha256!==hashes[file])throw Error('Frozen source changed: '+file);
  const start=text.indexOf('\n\t'+name+'('),end=text.indexOf('\n\t}\n',start);
  if(start<0||end<0)throw Error('Source method not found '+name);
  return new Function('Vector3','CELL','return class {'+text.slice(start,end+4)+'}')(Vector3,CELL).prototype[name];
@@ -18,7 +31,7 @@ function method(file,name){
 const center=method('shared/build/editor.js','_carCenter');
 const station=method('shared/ui/shell.js','_station');
 const limit={x:28.5,z0:-32.5,z1:34.5,y0:.3,y1:30};
-const variants=[['race',buildRaceCar(new Blueprint())],['tank',buildTank(new Blueprint())],['empty',new Blueprint()]];
+const variants=[['race',buildRaceCar(new Blueprint())],['tianyuan',buildDrillTank(new Blueprint())],['empty',new Blueprint()]];
 const cases=[];
 for(const [name,bp] of variants){
  const stats=bp.stats(),input={mouse:[0,0],consumeMouse(){const m=this.mouse;this.mouse=[0,0];return m;}};
@@ -30,7 +43,7 @@ for(const [name,bp] of variants){
     yaw:180-rig.orbit.cur.theta*180/Math.PI,pitch:90-rig.orbit.cur.phi*180/Math.PI,dist:rig.orbit.cur.dist,
     forward:rig.forward.toArray(),spin:rig.autoSpin,flight:!!rig.flight});
  }
- for(const tab of ['hangar','battle','workshop','shop','hangar']){
+ for(const tab of ['hangar','battle','livery','workshop','shop','hangar']){
   station.call({editor:ed},tab);
   record('tab',.016,{tab});
   for(const dt of [.049,.13,.13,.13,.13,.065,.05,.1])record('step',dt);
@@ -54,5 +67,5 @@ for(const [name,bp] of variants){
  input.mouse=[20,20];record('rotate',.1,{dx:20,dy:20,shift:true});rig.endDrag();record('step',.1);
  cases.push({name,stats,frames});
 }
-fs.writeFileSync(new URL('source-home-camera.json',import.meta.url),JSON.stringify({hashes,limit,cases},null,2));
+fs.writeFileSync(new URL('source-home-camera.json',import.meta.url),JSON.stringify({baseline:{branch:baseline.branch,commit:baseline.commit},hashes,limit,cases},null,2));
 console.log('Original H5 station and orbit frames: '+cases.reduce((n,c)=>n+c.frames.length,0));

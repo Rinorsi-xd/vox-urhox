@@ -11,11 +11,19 @@ function M.New(app)
     self.controls=Controls.New(self);self.ghost=Ghost.New(app.scene);self.camera.autoSpin=false
     self.inspection=require('app.BuildInspection').New(self)
     self.buildCamera=require('controls.BuildCamera').New(self)
+    self.flyStep=app.buildFlyStep or 3;self.flyScale=({.5,.75,1,1.5,2})[self.flyStep]
     app.inventory=app.inventory or require('construction.Inventory').New(app.store:LoadBuildSettings())
     self.inventory=app.inventory
     self:ApplyHotbar()
     self.car.root.position=Vector3.ZERO
-    if self.buildCamera.touch then self.buildCamera:Focus() end
+    if not app.buildCameraState then
+        if not self.buildCamera.touch then
+            local st=self.editor.bp:Stats()
+            local lift=math.min(4-st.bb.minY,self.editor.bounds.maxY-st.bb.maxY)
+            if st.count>0 and lift>0 then self.editor:Lift(lift) end
+        end
+        self.buildCamera:Focus()
+    end
     self.car:SetXray(app.buildXray==true)
     self.hud=Hud.Create(self);self:Refresh();return self
 end
@@ -47,12 +55,13 @@ function M:ToggleXray()
 end
 function M:Escape()
     self.controls:Cancel()
-    if self.buildCamera.captured then self.buildCamera:Release();self:Refresh();return end
+    if self.buildCamera.captured or self.buildCamera.pending then self.buildCamera:Release();self:Refresh();return end
     if self.dialog then self.dialog:Close()
     elseif self.inventoryPanel then self.inventoryPanel:Close()
     elseif self.hud.colorOpen then self.hud.SetColor(false)
     elseif self.editor.pasting then self.editor.pasting=false;self.editor.preview=nil
     elseif next(self.editor.selection) then self.editor.selection={}
+    elseif self.selecting or self.editor.tool~='build' then self.selecting=false;self.editor:SetTool('build')
     else self:OpenPause() end
     self:Refresh()
 end
@@ -69,13 +78,24 @@ function M:MoveSelection(forward,right,up)
     local axis=require('core.Rotations').SnapDir(-f.x,0,f.z);local x,z=axis[1],axis[3]
     return self.editor:MoveSelection({x*forward-z*right,up,z*forward+x*right})
 end
+function M:CyclePaintColor(direction)
+    local e=self.editor;local index=0
+    if not e.autoColor then for i,c in ipairs(Config.PALETTE) do if c.hex==e.color then index=i;break end end end
+    index=(index+direction)%(#Config.PALETTE+1)
+    e.autoColor=index==0;if index>0 then e.color=Config.PALETTE[index].hex end
+    e.dirty=true
+end
 function M:Wheel(delta)
     if self.dialog or self.inventoryPanel then return end
     if input:GetKeyDown(KEY_SHIFT) or input:GetKeyDown(KEY_CTRL) then
-        if self.buildCamera.mode=='orbit' then self.camera.dist=math.max(self.camera.minDist,math.min(self.camera.maxDist,self.camera.dist*(1-delta*.1))) end
-    elseif self.editor.tool=='paint' then self.editor.paintChannel=self.editor.paintChannel=='shell' and 'accent' or 'shell'
+        if self.buildCamera.mode=='orbit' then self.camera.dist=require('controls.Wheel').Zoom(self.camera.dist,delta,self.camera.minDist,self.camera.maxDist) end
+        return
+    end
+    self.wheelAcc=(self.wheelAcc or 0)+require('controls.Wheel').Pixels(delta)
+    if math.abs(self.wheelAcc)<50 then return end
+    local direction=self.wheelAcc>0 and 1 or -1;self.wheelAcc=0
+    if self.editor.tool=='paint' or input:GetKeyDown(KEY_ALT) then self:CyclePaintColor(direction)
     else
-        local direction=delta>0 and -1 or 1
         for i=1,10 do local slot=(self.inventory.active-1+direction*i)%10+1
             if self.inventory.hotbar[slot] then self:SelectHotbar(slot);break end
         end
@@ -87,7 +107,8 @@ function M:Refresh()
     if not self.editor.emptySlot and self.editor.type~=self.inventory:Current() then self.inventory:Pick(self.editor.type);self:SaveSettings() end
     if self.inventoryPanel or self.dialog then self.controls:Cancel() end
     if self.controls.inside then self:Trace(self.controls.x,self.controls.y) end
-    self.ghost:Refresh(self.editor,self.controls.inside and not self.selecting)
+    if self.controls.dragSelection then self.editor:DragPreview(self.controls.dragSelection) end
+    self.ghost:Refresh(self.editor,self.controls.inside,self.selecting and not self.editor.pasting,self.controls.dragSelection)
     self.hud.Refresh();self.editor.dirty=false
 end
 function M:BoxSelect(rect)
@@ -101,6 +122,9 @@ function M:BoxSelect(rect)
 end
 function M:Act()
     if self.dialog or self.inventoryPanel or self.hud.colorOpen then return false end
+    if self.editor.tool=='build' and not self.ghost:Warm(self.editor,true) then
+        self:Notify(self.ghost.gate.state=='failed' and self.ghost.gate.failure or '零件正在加载…','info');return false
+    end
     local ok,err=self.editor:Act()
     if not ok and err then self:Notify(err,'bad') elseif ok then self.message='' end
     self:Refresh();return ok
@@ -114,9 +138,11 @@ function M:SaveSlot()
     return ok,err
 end
 function M:LoadSlot()
-    local ok,err=self.app.bays:Restore(self.slot)
-    require('ui.DialogHost').Notify(self,ok and ('已读取车位 '..self.slot) or err)
-    return ok,err
+    local slot=self.slot;local data=self.app.store:LoadSlot(slot)
+    if not data then return false,'这个车位没有战车' end
+    return self.app:WithVehicle(data,function() return self.app.bays:Restore(slot) end,function(ok,err)
+        require('ui.DialogHost').Notify(self,ok and ('已读取车位 '..slot) or err)
+    end)
 end
 function M:Keys()
     if self.dialog then if input:GetKeyPress(KEY_ESCAPE) then self:Escape() end;return end
@@ -124,25 +150,40 @@ function M:Keys()
     local focus=UI.GetFocus();if focus and focus.OnTextInput and focus~=self.hud.playfield then return end
     local e=self.editor;local ctrl=input:GetKeyDown(KEY_CTRL);local shift=input:GetKeyDown(KEY_SHIFT)
     local function Press(k) return input:GetKeyPress(k) end
+    if Press(KEY_TAB) then
+        self.controls:Cancel();self.wheelAcc=0
+        self.selecting=false
+        if e.tool=='paint' then e.paintChannel=e.paintChannel=='shell' and 'accent' or 'shell' else e:SetTool('paint') end
+        self:Refresh();return
+    end
     if ctrl then
         if Press(KEY_Z) then if shift then e:Redo() else e:Undo() end end
         if Press(KEY_Y) then e:Redo() end
         if Press(KEY_A) then e:SelectAll() end
         if Press(KEY_C) then e:Copy() end
-        if Press(KEY_V) then e:StartPaste() end
+        if Press(KEY_V) then self.controls:Cancel();e:StartPaste() end
         if Press(KEY_S) then self:SaveSlot() end
     else
-        for i,k in ipairs({KEY_1,KEY_2,KEY_3,KEY_4,KEY_5,KEY_6,KEY_7,KEY_8,KEY_9,KEY_0}) do if Press(k) then self:SelectHotbar(i) end end
-        if Press(KEY_TAB) then self.hud.SetColor(false);self.buildCamera:Toggle();self:Refresh();return end
+        for i,k in ipairs({KEY_1,KEY_2,KEY_3,KEY_4,KEY_5,KEY_6,KEY_7,KEY_8,KEY_9,KEY_0}) do if Press(k) then
+            if input:GetKeyDown(KEY_ALT) then e.autoColor=false;e.color=Config.PALETTE[i].hex;e.dirty=true else self:SelectHotbar(i) end
+        end end
+        if input:GetKeyDown(KEY_ALT) and Press(KEY_BACKQUOTE) then e.autoColor=true;e.dirty=true end
+        local speeds={.5,.75,1,1.5,2}
+        local speedDelta=(Press(KEY_EQUALS) or Press(KEY_RIGHTBRACKET)) and 1 or (Press(KEY_MINUS) or Press(KEY_LEFTBRACKET)) and -1 or 0
+        if speedDelta~=0 then self.flyStep=math.max(1,math.min(#speeds,self.flyStep+speedDelta));self.flyScale=speeds[self.flyStep];self.app.buildFlyStep=self.flyStep end
         if Press(KEY_F) then self:Notify('连块功能尚未迁移','bad') end
         if Press(KEY_L) then self.buildCamera:Focus() end
         if Press(KEY_V) then self:ToggleXray() end
         if Press(KEY_R) then if input:GetKeyDown(KEY_ALT) then e:Tilt(shift and -1 or 1) else e:Rotate(shift and -1 or 1) end end
         if Press(KEY_M) then e.mirror=not e.mirror end
-        if Press(KEY_P) then self.controls:Cancel();e:SetTool(e.tool=='paint' and 'build' or 'paint') end
-        if Press(KEY_X) then self.controls:Cancel();e:SetTool(e.tool=='erase' and 'build' or 'erase') end
+        if Press(KEY_P) then self.controls:Cancel();self.selecting=false;e:SetTool(e.tool=='paint' and 'build' or 'paint') end
+        if Press(KEY_X) then self.controls:Cancel();self.selecting=false;e:SetTool(e.tool=='erase' and 'build' or 'erase') end
         if Press(KEY_Q) then self.controls:Cancel();self.selecting=not self.selecting;e:SetTool('build') end
-        if Press(KEY_C) and e:Eyedrop(e.hit) then self.controls:Cancel();e:SetTool('paint') end
+        if Press(KEY_K) and self.selecting then
+            local ok,err=e:SelectCorner()
+            self:Notify(ok and ('已选中 A、B 之间的方块，共 '..#e:Selected()..' 个（含镜像）') or err,'info')
+        end
+        if Press(KEY_C) and e:Eyedrop(e.hit) then self.controls:Cancel();e.dirty=true end
         if Press(KEY_B) then self:OpenInventory();return end
         if Press(KEY_H) or Press(KEY_F1) then require('ui.GarageDialogs').Help(self);return end
         if Press(KEY_G) and self.inventory:CycleBlock() then self:ApplyHotbar();self:SaveSettings() end
@@ -193,6 +234,7 @@ function M:Update(dt)
 end
 function M:Dispose()
     if self.disposed then return end;self.disposed=true
+    self.app.vehicleGate:Cancel()
     require('ui.DialogHost').Dispose(self)
     if self.inventoryPanel then self.inventoryPanel:Close() end
     require('ui.VoxTheme').TrimThumbnails({})

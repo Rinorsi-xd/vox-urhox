@@ -93,10 +93,18 @@ end
 
 function OrbitCamera:Apply()
     local c = self.cur
-    local rot = Quaternion(c.pitch, c.yaw, 0)
-    local p=c.target+rot*Vector3(0,0,-c.dist)
+    -- Match the H5 CameraRig spherical-coordinate position exactly.
+    -- H5 uses +X for the authored scene while UrhoX mirrors that axis at
+    -- the presentation boundary, so the horizontal X offset is negated.
+    -- Keeping this calculation explicit avoids Euler-order differences from
+    -- Quaternion(pitch, yaw, 0) changing the initial framing.
+    local theta=math.rad(180-c.yaw)
+    local phi=math.rad(90-c.pitch)
+    local sp=math.sin(phi)
+    local p=c.target+Vector3(-c.dist*sp*math.sin(theta),c.dist*math.cos(phi),c.dist*sp*math.cos(theta))
     local limit=self.roomLimit
-    if limit then p=Vector3(math.max(-limit.x,math.min(limit.x,p.x)),math.max(limit.y0,math.min(limit.y1,p.y)),math.max(limit.z0,math.min(limit.z1,p.z))) end
+    if self.safety then p=self.safety:Resolve(c.target,p)
+    elseif limit then p=Vector3(math.max(-limit.x,math.min(limit.x,p.x)),math.max(limit.y0,math.min(limit.y1,p.y)),math.max(limit.z0,math.min(limit.z1,p.z))) end
     self.node.position=p
     self.node:LookAt(c.target)
 end
@@ -132,8 +140,7 @@ function OrbitCamera:Update(dt, blockMouse, viewOnly)
     local wheel = input.mouseMoveWheel
     if not blockMouse and wheel ~= 0 then
         self.flight=false;self.autoSpin=false
-        -- Native wheel steps normalize to the browser's 100px wheel notch.
-        self.dist = math.max(self.minDist, math.min(self.maxDist, self.dist * 1.0012^(-wheel*100)))
+        self.dist = require('controls.Wheel').Zoom(self.dist,wheel,self.minDist,self.maxDist)
     end
 
     self:Step(dt)

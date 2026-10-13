@@ -14,7 +14,7 @@ function M.Delete(s)
     if s.app.vehicleSwitch:IsBusy() then return end
     local slot=s.app.bays.active;if not slot then return end
     M.Confirm(s,'删除当前战车？','删除车位 '..slot..' 中的“'..s.app.blueprint.name..'”，此操作无法撤销。',function()
-        s.Run(function() return s.app.bays:Delete(slot) end,function() s.message:Push('已删除战车','ok') end)
+        s.Run(function() return s.app.bays:Delete(slot) end,function() s.message:Push('已删除战车','ok') end,s.app.bays:ReplacementAfterDelete(slot))
     end)
 end
 function M.Code(s,importing)
@@ -24,8 +24,9 @@ function M.Code(s,importing)
         if s.editor then
             local function Replace()
                 M.Close(s)
-                local loaded,err=s.app.bays:Import(data)
-                Host.Notify(s,loaded and '已导入为未入车位的草稿，原车位保留。' or err,loaded and 'ok' or 'bad')
+                s.app:WithVehicle(data,function() return s.app.bays:Import(data) end,function(loaded,err)
+                    Host.Notify(s,loaded and '已导入为未入车位的草稿，原车位保留。' or err,loaded and 'ok' or 'bad')
+                end)
             end
             if s.editor.bp:Size()>1 then
                 Host.Confirm(s,'替换当前草稿？','未保存的改动将丢失，已有车位的存档保留。',Replace)
@@ -36,7 +37,7 @@ function M.Code(s,importing)
                 local loaded,err,reason=s.app.bays:CreateVehicle(data,nil,discard)
                 if loaded then s.SetTab('hangar') end
                 return loaded,err,reason
-            end)
+            end,nil,data)
         end
     end
     return require('ui.SourceBlueprintDialog').Open(s,{importing=importing,name=s.app.blueprint.name,

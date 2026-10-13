@@ -58,7 +58,7 @@ document.querySelector('#export').onclick=async()=>{try{
     for(let k=0;k<2;k++){d.uv.push(read(a.uv,i,k,0));d.uv2.push(a.aSun?(k===0?a.aSun.getX(i):0):read(a.uv1,i,k,0))}
    }d.idx.push(remap.get(i));
   }
-  const name='mesh-'+manifest.geometryCount+++'.mdl';await post(name,d);geos.set(key,'Crater/'+name);return 'Crater/'+name;
+  const name='mesh-'+manifest.geometryCount+++'.bin';await post(name,d);geos.set(key,'Crater/'+name);return 'Crater/'+name;
  }
  async function node(o){
   const d={name:o.name,p:o.position.toArray(),q:o.quaternion.toArray(),s:o.scale.toArray(),dyn:o.userData.dyn,children:[],meshes:[]};

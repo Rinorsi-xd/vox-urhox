@@ -19,6 +19,7 @@ end
 -- Shader rotation must remain inside the CPU culling/shadow bounds. Enlarge
 -- the shared model once, before attaching it; geometry and collision stay exact.
 function M.Model(layer)
+    assert(cache:Exists(layer.model),'Model requested before download readiness: '..layer.model)
     local model=assert(cache:GetResource('Model',layer.model),layer.model)
     local prepared=swept[model]
     if not prepared or model.boundingBox~=prepared then

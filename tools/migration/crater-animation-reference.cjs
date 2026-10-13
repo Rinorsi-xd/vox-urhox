@@ -1,7 +1,7 @@
 // Execute the original H5 animation function on original GLB rest transforms.
 // No source writes, rendering, network or player-save access.
 const fs=require('node:fs'),path=require('node:path');
-const root=path.resolve(__dirname,'../..'),source='D:/Rino_Project/Vox';
+const root=path.resolve(__dirname,'../..'),source=JSON.parse(fs.readFileSync(path.join(root,'docs/migration/outgame-baseline.json'),'utf8')).snapshot;
 (async()=>{
  const THREE=await import('file:///'+source+'/three/vendor/three/build/three.module.js');
  const code=fs.readFileSync(source+'/three/src/battle/mapModules.js','utf8');

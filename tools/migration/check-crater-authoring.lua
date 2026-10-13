@@ -5,7 +5,9 @@ function M.Check(p)
     local f=File('tools/migration/crater-source-animation.json',FILE_READ)
     local reference=cjson.decode(f:ReadString());f:Dispose()
     local env=p.environment
-    local strip=cache:GetResource('Material','Crater/material-30.xml')
+    local materials=require('core.ResourceData').Read('Crater/Materials.json');local strip=nil ---@type Material|nil
+    for i,material in ipairs(materials) do if material.kind=='glow' then strip=cache:GetResource('Material','Crater/material-'..i..'.xml');break end end
+    assert(strip,'authored glow material is required')
     V.assert(Near(strip.depthBias.slopeScaledBias,-2) and math.abs(strip.depthBias.constantBias+4/2^24)<1e-9,'source glow depth bias loads from authored material')
     local byName={};for _,d in ipairs(env.dynamics) do byName[d.node.name]=d.node end
     for _,sample in ipairs(reference.samples) do

@@ -14,7 +14,7 @@ function M:Step(dt,c)
     local sy,cy=math.sin(self.yaw),math.cos(self.yaw)
     local f,r=c.forward or 0,c.right or 0
     local want={-sy*f+cy*r,c.up or 0,-cy*f-sy*r}
-    want=Math.Scale(Math.Normalize(want),c.fast and 11 or 4.5)
+    want=Math.Scale(Math.Normalize(want),(c.fast and 11 or 4.5)*(c.speed or 1))
     self.vel=Math.Mix(self.vel,want,1-math.exp(-dt*10))
     local p=Math.Add(self.pos,Math.Scale(self.vel,dt));local b=self.limit
     self.pos={Math.Clamp(p[1],-b.x,b.x),Math.Clamp(p[2],b.y0,b.y1),Math.Clamp(p[3],b.z0,b.z1)}

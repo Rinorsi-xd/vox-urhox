@@ -6,11 +6,14 @@ function Chrome:Render(vg)
     if s.tab=='salvage' or s.tab=='story' then return end
     nvgSave(vg)
     if s.tab~='hangar' then nvgGlobalAlpha(vg,0) end
-    -- Same three edge fades as .home-shade; all widths are source CSS pixels.
+    -- CSS paints the first listed gradient last; preserve that alpha layering.
     nvgBeginPath(vg);nvgRect(vg,0,0,w,130);D.Gradient(vg,0,0,w,130,{8,15,28,204},{8,15,28,0})
     nvgBeginPath(vg);nvgRect(vg,0,h-355,w,175);D.Gradient(vg,0,h-355,w,175,{8,15,28,0},{8,15,28,163})
     nvgBeginPath(vg);nvgRect(vg,0,h-180,w,180);D.Gradient(vg,0,h-180,w,180,{8,15,28,163},{8,15,28,242})
-    nvgBeginPath(vg);nvgRect(vg,0,0,575,h);D.Gradient(vg,0,0,575,h,{8,15,28,71},{8,15,28,0},true)
+    nvgBeginPath(vg);nvgRect(vg,w-420,0,230,h);D.Gradient(vg,w-420,0,230,h,{8,15,28,0},{8,15,28,107},true)
+    nvgBeginPath(vg);nvgRect(vg,w-190,0,190,h);D.Gradient(vg,w-190,0,190,h,{8,15,28,107},{8,15,28,184},true)
+    nvgBeginPath(vg);nvgRect(vg,0,0,230,h);D.Gradient(vg,0,0,230,h,{8,15,28,199},{8,15,28,143},true)
+    nvgBeginPath(vg);nvgRect(vg,230,0,280,h);D.Gradient(vg,230,0,280,h,{8,15,28,143},{8,15,28,0},true)
     nvgRestore(vg)
     if w>=h then
     local home=s.tab=='hangar';local dx=home and 6 or 0;local dy=home and 2 or 0

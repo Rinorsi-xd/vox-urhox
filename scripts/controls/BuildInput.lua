@@ -2,7 +2,7 @@
 -- cancellation, leaving the field, focus loss and scene switches release holds.
 local M={};M.__index=M
 function M.New(session) return setmetatable({session=session,pointer=nil,inside=false,dirty=true},M) end
-function M:Cancel() self.pointer=nil;self.inside=false;self.dirty=true;self.selectionBox=nil end
+function M:Cancel() self.pointer=nil;self.inside=false;self.dirty=true;self.selectionBox=nil;self.dragSelection=nil end
 function M:Position(e)
     if self.session.dialog or self.session.inventoryPanel then self:Cancel();return end
     self.x,self.y=e.x,e.y;self.inside=true;self.dirty=true
@@ -64,23 +64,42 @@ function M:FirstPerson(dt)
     local fly=self.session.buildCamera;local e=self.session.editor
     local UI=require 'urhox-libs/UI';local w,h=UI.GetViewportSize()
     self.x,self.y=w*.5,h*.5;self.inside=fly.captured
-    if not fly.captured or fly.touch then return end
+    if not fly.captured or fly.touch then self:Cancel();return end
     if not fly.buttonsReady then
         fly.buttonsReady=not (input:GetMouseButtonDown(MOUSEB_LEFT) or input:GetMouseButtonDown(MOUSEB_RIGHT) or input:GetMouseButtonDown(MOUSEB_MIDDLE));return
     end
     self.session:Trace(self.x,self.y)
     local left,right=input:GetMouseButtonDown(MOUSEB_LEFT),input:GetMouseButtonDown(MOUSEB_RIGHT)
-    if input:GetMouseButtonPress(MOUSEB_MIDDLE) then e:Pick(e.hit) end
+    local selecting=self.session.selecting and not e.pasting
+    if input:GetMouseButtonPress(MOUSEB_MIDDLE) then
+        if e:Pick(e.hit) then self.session.selecting=false;self:Cancel();e.dirty=true end
+        return
+    end
+    if self.dragSelection and not left then
+        e:AddSelection(self.dragSelection.parts);self.dragSelection=nil
+        self.session:Notify('框选：已选 '..#e:Selected()..' 个零件','info')
+    end
     local kind=left and 'left' or right and e.tool~='paint' and 'right' or nil
     if not kind then self.pointer=nil;return end
-    local function Act() if kind=='right' then e:Remove() else self.session:Act() end end
+    local function Act()
+        if selecting then e:SweepSelect(false)
+        elseif kind=='right' then e:Remove() else self.session:Act() end
+    end
     if not self.pointer or self.pointer.kind~=kind then
         self.pointer={kind=kind,held=0,nextRepeat=.3}
-        if left and (input:GetKeyDown(KEY_SHIFT) or self.session.selecting) then if e.hit then e:ToggleSelect(e.hit.partId) end;self.pointer.select=true else Act() end
+        if selecting then
+            self.pointer.select=true;self.pointer.nextRepeat=.03
+            if kind=='left' then
+                local on=e:ToggleSelectTarget()
+                if on and e.hit.cell then self.dragSelection={anchor={table.unpack(e.hit.cell)},parts={}} end
+                if on==false then self.pointer.action='deselect' end
+            else self.pointer.action='deselect';Act() end
+        else Act() end
     else
         local p=self.pointer;p.held=p.held+dt
-        if not p.select and p.held>=p.nextRepeat then p.nextRepeat=p.held+.1;Act() end
+        if not self.dragSelection and (not p.select or p.action=='deselect') and p.held>=p.nextRepeat then p.nextRepeat=p.held+(p.select and .03 or .1);Act() end
     end
+    if self.dragSelection then e:DragPreview(self.dragSelection) end
 end
 function M:Update(dt)
     if not input.focus or input.minimized then self:Cancel();return end

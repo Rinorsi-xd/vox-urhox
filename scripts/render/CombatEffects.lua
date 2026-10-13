@@ -33,11 +33,13 @@ function M.New(scene,groundAt)
     self.batches={Ribbon=Batch.New(self.root,"Ribbon",mobile and 640 or 2400),
         Streak=Batch.New(self.root,"Streak",mobile and 240 or 1000),Glow=Batch.New(self.root,"Glow",mobile and 640 or 2200),
         Ring=Batch.New(self.root,"Ring",40),Smoke=Batch.New(self.root,"Smoke",self.maxSmoke)}
+    self.missiles=require('render.MissileEffects').New(self)
     self:Clear();return self
 end
 function M:Clear()
     self.light:Clear()
     self.chips:Clear()
+    self.missiles:Clear()
     self.beams={};self.flares={};self.rings={};self.particles={};self.smoke={};self.flashes={};self.zaps={};self.trails={}
     for _,b in pairs(self.batches) do b.count=0;b.mesh.enabled=false end
 end
@@ -98,6 +100,7 @@ function M:Shot(e)
             self:Ring(At(p,e.dir,.25),e.dir,.1,.6+(t-4)*.2,.2,LASER.glow,.9,.2,.02)
             self:Burst(p,8,12,LASER.spark,e.dir,.05,.14,0)
         end
+    elseif e.kind=='missile' then self.missiles:Shot(e)
     else
         self:Flash(At(p,e.dir,.2),.6+t*.18,.1,{.72,.86,1})
         self.light:Emit(p,40+t*15,0x9fd4ff)
@@ -142,6 +145,7 @@ function M:Consume(events)
     for _,e in ipairs(events) do
         self.events=self.events+1
         if e.type=="shot" then self:Shot(e)
+        elseif e.type=='blast' and e.kind=='missile' then self.missiles:Blast(e)
         elseif e.type=="beam" then self:Beam(e)
         elseif e.type=="impact" then
             local t=e.tier or 3;local n=e.normal or V.Scale(e.dir,-1);local p=At(e.pos,n,.03)
@@ -205,6 +209,7 @@ function M:Update(dt,projectiles,camera)
             for _,off in ipairs({0,math.pi}) do Glow(At(At(Back(.12),u,math.cos(ph+off)*r),v,math.sin(ph+off)*r),.05+t*.006,BOLT.mote) end
         end
     end
+    self.missiles:Update(dt,projectiles,Glow)
     Advance(self.flares,dt,function(f)
         local k=f.age/f.life;b.Streak:Segment(f.tip,f.base,f.width*(1-.3*k),f.color,1-k*k,.45,0,1,true)
     end)
@@ -278,6 +283,7 @@ function M:Dispose()
     if self.disposed then return end
     self.disposed=true;self:Clear()
     self.chips:Dispose()
+    self.missiles:Dispose()
     self.light:Dispose()
     for _,batch in pairs(self.batches) do batch:Dispose() end
     self.root:Dispose()

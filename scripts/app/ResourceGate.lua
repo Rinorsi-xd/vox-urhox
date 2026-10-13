@@ -4,7 +4,7 @@ local M={};M.__index=M
 local legacyPending={}
 function M.UpdatePending(dt)
     for gate,job in pairs(legacyPending) do
-        job.elapsed=job.elapsed+dt;job.interval=job.interval+dt
+        job.idle=job.idle+dt;job.interval=job.interval+dt
         if job.interval>=.1 then
             job.interval=0;local done,failed=0,0
             for _,path in ipairs(job.paths) do
@@ -12,9 +12,11 @@ function M.UpdatePending(dt)
                 if state==DOWNLOAD_COMPLETED and gate.backend:Exists(path) then done=done+1
                 elseif state==DOWNLOAD_FAILED or state==DOWNLOAD_CANCELLED then failed=failed+1 end
             end
+            if done>gate.completed then job.idle=0 end
             gate.completed=done
-            if failed>0 or job.elapsed>90 then job.finish(false,math.max(1,failed))
-            elseif done==#job.paths then job.finish(true,0) end
+            if failed>0 then job.finish(false,failed)
+            elseif done==#job.paths then job.finish(true,0)
+            elseif job.idle>90 then job.finish(false,1) end
         end
     end
 end
@@ -58,7 +60,7 @@ function M:Start(paths,callback)
         -- but no completion callback. Poll only pending groups across frames.
         self.legacyManager=GetDownloadManager()
         if not self.legacyManager then Finish(false,#missing);return end
-        legacyPending[self]={paths=missing,finish=Finish,elapsed=0,interval=0}
+        legacyPending[self]={paths=missing,finish=Finish,idle=0,interval=0}
         self.group=self.legacyManager:DownloadResources(missing)
         return
     end

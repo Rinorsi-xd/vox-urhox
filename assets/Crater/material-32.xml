@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <material>
   <surfaceshader name="Shaders/BLGL/Crater/Glow.shader" />
-  <parameter name="tint" value="1.9291922325653277 1.4671506928659317 0.9246618370685615 1" />
+  <parameter name="tint" value="1.3883261911200215 0.20005780414039512 0.019991897152128308 1" />
   <parameter name="roughness" type="Float" value="1" />
   <parameter name="metalness" type="Float" value="0" />
   <parameter name="alpha_cut" type="Float" value="0" />

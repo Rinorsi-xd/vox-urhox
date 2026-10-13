@@ -11,7 +11,19 @@ function Hover:Sync()
     if s.dialog or s.inventoryPanel or s.hud.colorOpen or not c.inside or fly.mode=='fp' and not fly.captured or fly.mode=='orbit' and drag or not e.hit then self.info=nil;return end
     local target=e.hit.partId and e.bp.parts[e.hit.partId];local pv=e.preview;local bad=false;local paragraphs={};local title={}
     local function Run(text,bold,muted) title[#title+1]={text=text,bold=bold,muted=muted} end
-    if e.pasting and pv and pv.paste then
+    local selectionSub
+    if s.selecting and not e.pasting then
+        local d=c.dragSelection
+        if d and d.lo then
+            Run('框选 ');Run((d.hi[1]-d.lo[1]+1)..' × '..(d.hi[2]-d.lo[2]+1)..' × '..(d.hi[3]-d.lo[3]+1),true)
+            Run(' 格 · 新增 ');Run(tostring(#d.parts),true);Run(' 个')
+            selectionSub='松开左键选上 · 已选 '..#e:Selected()..' 个'
+        elseif target then
+            local on=e.selection[target.id];Run(on and '已选中 ' or '选择 ');Run(Defs[target.type].name,true)
+            selectionSub=on and '右键取消' or '左键点选，按住拖到另一块 = 框选'
+            selectionSub=selectionSub..' · 已选 '..#e:Selected()..' 个'
+        end
+    elseif e.pasting and pv and pv.paste then
         bad=not pv.ok
         if bad then
             for _,item in ipairs(pv.paste) do if not item.res.ok then Run('无法粘贴：'..item.res.reason);break end end
@@ -34,7 +46,9 @@ function Hover:Sync()
         end
         paragraphs[#paragraphs+1]=title
     end
-    if target and not e.pasting then
+    if selectionSub then
+        paragraphs[#paragraphs+1]={{text=selectionSub,size=12,font='vox-body',color=D.muted}}
+    elseif target and not e.pasting then
         local def=Defs[target.type];local hex=target.color;local conn=s.inspection:Get().conn
         local sub={{swatch={hex>>16&255,hex>>8&255,hex&255,255}},
             {text=def.name..' · 耐久 '..def.hp..' · '..def.mass..' kg',size=12,font='vox-body',color=D.muted}}

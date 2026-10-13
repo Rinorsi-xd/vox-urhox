@@ -1,13 +1,19 @@
 """Translate source shader hooks and author an editor-visible UrhoX scene.
 Input is the explicit browser export; the H5 checkout remains read-only.
 """
-import json,re,struct,math,xml.etree.ElementTree as E
+import json,re,struct,math,sys,copy,xml.etree.ElementTree as E
 from pathlib import Path
 from PIL import Image
 ROOT=Path(__file__).resolve().parents[2];OUT=ROOT/'assets/Crater';SH=ROOT/'assets/Shaders/BLGL/Crater';SH.mkdir(parents=True,exist_ok=True)
 SOURCE=ROOT/'tools/migration/crater-source'
+CONTENT_ONLY='--content-only' in sys.argv
+preserved_environment=None
+if CONTENT_ONLY:
+ existing_scene=E.parse(ROOT/'assets/Scenes/Crater.xml').getroot()
+ preserved_environment=copy.deepcopy(next(n for n in existing_scene.findall('node') if any(a.get('name')=='Name' and a.get('value')=='Environment' for a in n.findall('attribute'))))
 S=json.loads((SOURCE/'ShaderSources.json').read_text('utf8'));M=json.loads((SOURCE/'Manifest.json').read_text('utf8'))
-def write(name,s): (SH/name).write_text(s,encoding='utf8')
+def write(name,s):
+ if not CONTENT_ONLY or not (SH/name).exists():(SH/name).write_text(s,encoding='utf8')
 def clean(s):
  s=re.sub(r'#include <common>','',s);s=s.replace('uniform highp ','uniform ').replace('texture2D(','texture(').replace('texture2D( ','texture( ')
  return s.replace('cameraPosition','sourceCamera').replace('saturate( ','clamp01( ')
@@ -169,7 +175,8 @@ def build(parent,d):
  n=node(parent,d['name'] or 'Mesh');transform(n,d)
  if d.get('dyn'):dyn.append({'id':nid,'kind':d['dyn'],'name':d['name']})
  for mesh in d['meshes']:
-  sm=comp(n,'StaticModelGroup' if mesh.get('instances') else 'StaticModel');attr(sm,'Model','Model;'+mesh['model']);attr(sm,'Material','Material;Crater/material-'+str(mesh['material'])+'.xml');attr(sm,'Cast Shadows',str(mesh['shadow']).lower());attr(sm,'Shadow Distance',90)
+  model_path=mesh['model'].removesuffix('.mdl')+'.bin' if mesh['model'].endswith('.mdl') else mesh['model']
+  sm=comp(n,'StaticModelGroup' if mesh.get('instances') else 'StaticModel');attr(sm,'Model','Model;'+model_path);attr(sm,'Material','Material;Crater/material-'+str(mesh['material'])+'.xml');attr(sm,'Cast Shadows',str(mesh['shadow']).lower());attr(sm,'Shadow Distance',90)
   if mesh.get('instances'):
    # Serialize engine's actual node-ID vector so instances also appear in editor.
    instanceIds=[]
@@ -178,6 +185,8 @@ def build(parent,d):
    ids=E.SubElement(sm,'attribute',name='Instance Nodes');E.SubElement(ids,'variant',type='Int',value=str(len(instanceIds)))
    for value in instanceIds:E.SubElement(ids,'variant',type='Int',value=value)
  for c in d['children']:build(n,c)
+if preserved_environment is not None:
+ scene.remove(env);scene.insert(1,preserved_environment)
 for root in M['roots']:build(scene,json.loads((SOURCE/Path(root['file']).name).read_text('utf8')))
 sk=node(scene,'CraterSky');sm=comp(sk,'Skybox');attr(sm,'Model','Model;Models/Box.mdl');attr(sm,'Material','Material;Crater/sky.xml');attr(sm,'Cast Shadows','false')
 camera=node(scene,'Camera');attr(camera,'Position','-350 220 -380');comp(camera,'Camera')
@@ -189,7 +198,7 @@ print(json.dumps({'models':M['geometryCount'],'materials':len(M['materials']),'n
 from crater_height import build as build_visual_height
 build_visual_height(ROOT)
 paths={'Scenes/Crater.xml','Crater/Layout.json','Crater/Dynamics.json','Crater/Materials.json','Crater/Boulders.json','Crater/Sky.hdr','Crater/sky.xml','Models/Box.mdl'}
-paths.update('Crater/'+p.name for p in OUT.iterdir() if p.suffix in ('.mdl','.png','.xml','.cube','.bin') and not (p.suffix=='.xml' and p.with_suffix('.png').exists()))
+paths.update('Crater/'+p.name for p in OUT.iterdir() if p.suffix in ('.png','.xml','.cube','.bin') and not (p.suffix=='.xml' and p.with_suffix('.png').exists()))
 paths.update(p.relative_to(ROOT/'assets').as_posix() for p in (OUT/'Layout').glob('*.json'))
 paths.update('Shaders/BLGL/Crater/'+p.name for p in SH.iterdir() if p.suffix in ('.shader','.shaderinc'))
 paths.update('Shaders/BLGL/CraterPost/'+p.name for p in (SH.parent/'CraterPost').iterdir() if p.suffix=='.shader')

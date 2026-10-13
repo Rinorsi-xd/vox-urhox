@@ -1,0 +1,135 @@
+{
+  "baseline": {
+    "commit": "90862445074e7e146da900037979ad97899ecf6c",
+    "branch": "2026-10-13"
+  },
+  "files": [
+    {
+      "source": "shared/assets/audio/music/runtime/hangar-01-workshop-floor.mp3",
+      "target": "assets/Sounds/Music/hangar-01-workshop-floor.mp3",
+      "sha256": "998393edc554bcb64d81dff3b2d11c6c43cb31f57c1ffe25f6451d013f5479dc",
+      "bytes": 4364163
+    },
+    {
+      "source": "shared/assets/audio/music/runtime/hangar-02-circuit-ready.mp3",
+      "target": "assets/Sounds/Music/hangar-02-circuit-ready.mp3",
+      "sha256": "26b0118d467aed7ae9a9b8846cedec0eb9ede5dc5c21a0fc63bfbf45e123c54b",
+      "bytes": 4014959
+    },
+    {
+      "source": "shared/assets/audio/music/runtime/hangar-03-service-interval.mp3",
+      "target": "assets/Sounds/Music/hangar-03-service-interval.mp3",
+      "sha256": "cfc25bdf2eb6dcd1086f511bd07635a6fac9f55c3eb77550951a28e1cabbf0d2",
+      "bytes": 3122198
+    },
+    {
+      "source": "shared/assets/audio/music/runtime/drive-combat-01-vector-run.mp3",
+      "target": "assets/Sounds/Music/drive-combat-01-vector-run.mp3",
+      "sha256": "3fda8123ebac0562cbd57116216e57a1518a463da04c2912e233796b05631a39",
+      "bytes": 4389868
+    },
+    {
+      "source": "shared/assets/audio/music/runtime/training-01-low-gear-cruise.mp3",
+      "target": "assets/Sounds/Music/training-01-low-gear-cruise.mp3",
+      "sha256": "c1ba77712f69847dd160c99918f0de0e5f8084a62f176c69187afd86c05b95c8",
+      "bytes": 4408676
+    },
+    {
+      "source": "shared/assets/audio/music/runtime/drive-combat-03-offset-maneuver.mp3",
+      "target": "assets/Sounds/Music/drive-combat-03-offset-maneuver.mp3",
+      "sha256": "269260f5c2abd4467ddd255819c79e3e51139dbbe1c6bb2ebee5e7e70e40f85a",
+      "bytes": 3524692
+    },
+    {
+      "source": "shared/assets/audio/music/runtime/drive-combat-04-final-vector.mp3",
+      "target": "assets/Sounds/Music/drive-combat-04-final-vector.mp3",
+      "sha256": "5676165d8a7d1fb6857871cedba928375e20f2ded2b47ae0e2d46fe8e83c3202",
+      "bytes": 4389868
+    },
+    {
+      "source": "shared/assets/audio/music/runtime/salvage-01-distant-signal.mp3",
+      "target": "assets/Sounds/Music/salvage-01-distant-signal.mp3",
+      "sha256": "a6e85353a949944d5fa303610d69afacf436b8eb9992a5ab226a359770aeef52",
+      "bytes": 3063892
+    },
+    {
+      "source": "shared/assets/audio/music/runtime/salvage-02-contact.mp3",
+      "target": "assets/Sounds/Music/salvage-02-contact.mp3",
+      "sha256": "b9d2ed93f95a26cca214983088ebdced8ad09da5021477a5474c65d6b5f33e3a",
+      "bytes": 4014959
+    },
+    {
+      "source": "shared/assets/audio/music/runtime/salvage-03-unlatched-cargo.mp3",
+      "target": "assets/Sounds/Music/salvage-03-unlatched-cargo.mp3",
+      "sha256": "a1e60f2b016edabd31e62a62a7cac59ff965a37b16e12040c1510639904728bf",
+      "bytes": 3305264
+    },
+    {
+      "source": "shared/assets/audio/music/runtime/hangar-04-lost-mining-belt.mp3",
+      "target": "assets/Sounds/Music/hangar-04-lost-mining-belt.mp3",
+      "sha256": "259fd042182e5cffc80ce3598eb6d47a13a0f03592bcb48afac5a3d68ffe3675",
+      "bytes": 2625662
+    },
+    {
+      "source": "shared/assets/audio/music/runtime/drive-combat-05-wreck-siege.mp3",
+      "target": "assets/Sounds/Music/drive-combat-05-wreck-siege.mp3",
+      "sha256": "954a27d7585387f9cc69d14d3c4e1ef90f3ede316c7a15469368d655247c4361",
+      "bytes": 3064519
+    },
+    {
+      "source": "shared/assets/audio/music/runtime/hangar-05-homebound-orbit.mp3",
+      "target": "assets/Sounds/Music/hangar-05-homebound-orbit.mp3",
+      "sha256": "f3c3ea26b56c0c46b203a4c010adaf7f5b7852b7ed0a458f84a6005bf1cfb3b2",
+      "bytes": 3361688
+    },
+    {
+      "source": "shared/assets/ui/music-box/archive-cartridge.webp",
+      "source_sha256": "5106cc92726aefd5ee800ca9fe511fcbcc8533c3d9b7ce9ff741332bb4576f48",
+      "target": "assets/UI/Music/archive-cartridge.png",
+      "sha256": "b88619e76bcd862fd2dda70a01384b2eb2ab1ecb27cfabbd41e6e4f0821624c2",
+      "background": null
+    },
+    {
+      "source": "shared/assets/ui/new-ui/relief-side.svg",
+      "source_sha256": "5a720634d2c8aa779fe562716001c8f35b7287e4a79e28a6730be035917d6f60",
+      "target": "assets/UI/Music/header.png",
+      "sha256": "f2c3f0f5918af33e3a07e88fc99cc85b6c044c6174c1cfe12ce27e6bdd1ce9ea",
+      "background": "#35434b"
+    },
+    {
+      "source": "shared/assets/ui/new-ui/relief-side.svg",
+      "source_sha256": "5a720634d2c8aa779fe562716001c8f35b7287e4a79e28a6730be035917d6f60",
+      "target": "assets/UI/Music/transport.png",
+      "sha256": "8fca30f9e8cd1f7fcbe4649ea0a77ff7d1264eabb82ec3985514a4cd4e85d09f",
+      "background": "#303d44"
+    }
+  ],
+  "sourceFiles": {
+    "shared/assets/audio/music/runtime/hangar-01-workshop-floor.mp3": "998393edc554bcb64d81dff3b2d11c6c43cb31f57c1ffe25f6451d013f5479dc",
+    "shared/assets/audio/music/runtime/hangar-02-circuit-ready.mp3": "26b0118d467aed7ae9a9b8846cedec0eb9ede5dc5c21a0fc63bfbf45e123c54b",
+    "shared/assets/audio/music/runtime/hangar-03-service-interval.mp3": "cfc25bdf2eb6dcd1086f511bd07635a6fac9f55c3eb77550951a28e1cabbf0d2",
+    "shared/assets/audio/music/runtime/drive-combat-01-vector-run.mp3": "3fda8123ebac0562cbd57116216e57a1518a463da04c2912e233796b05631a39",
+    "shared/assets/audio/music/runtime/training-01-low-gear-cruise.mp3": "c1ba77712f69847dd160c99918f0de0e5f8084a62f176c69187afd86c05b95c8",
+    "shared/assets/audio/music/runtime/drive-combat-03-offset-maneuver.mp3": "269260f5c2abd4467ddd255819c79e3e51139dbbe1c6bb2ebee5e7e70e40f85a",
+    "shared/assets/audio/music/runtime/drive-combat-04-final-vector.mp3": "5676165d8a7d1fb6857871cedba928375e20f2ded2b47ae0e2d46fe8e83c3202",
+    "shared/assets/audio/music/runtime/salvage-01-distant-signal.mp3": "a6e85353a949944d5fa303610d69afacf436b8eb9992a5ab226a359770aeef52",
+    "shared/assets/audio/music/runtime/salvage-02-contact.mp3": "b9d2ed93f95a26cca214983088ebdced8ad09da5021477a5474c65d6b5f33e3a",
+    "shared/assets/audio/music/runtime/salvage-03-unlatched-cargo.mp3": "a1e60f2b016edabd31e62a62a7cac59ff965a37b16e12040c1510639904728bf",
+    "shared/assets/audio/music/runtime/hangar-04-lost-mining-belt.mp3": "259fd042182e5cffc80ce3598eb6d47a13a0f03592bcb48afac5a3d68ffe3675",
+    "shared/assets/audio/music/runtime/drive-combat-05-wreck-siege.mp3": "954a27d7585387f9cc69d14d3c4e1ef90f3ede316c7a15469368d655247c4361",
+    "shared/assets/audio/music/runtime/hangar-05-homebound-orbit.mp3": "f3c3ea26b56c0c46b203a4c010adaf7f5b7852b7ed0a458f84a6005bf1cfb3b2",
+    "shared/assets/ui/music-box/archive-cartridge.webp": "5106cc92726aefd5ee800ca9fe511fcbcc8533c3d9b7ce9ff741332bb4576f48",
+    "shared/assets/ui/new-ui/relief-side.svg": "5a720634d2c8aa779fe562716001c8f35b7287e4a79e28a6730be035917d6f60",
+    "shared/ui/musicBox.js": "ae36cda25723d8a5903b166a87ac8b5a6e55741bac7e2eaa4391385366882eb5",
+    "shared/css/music-box.css": "9dc204a78eecf22b4bd8695eb050ec42a0572f94017e2527fe76ee04919bbbe4",
+    "shared/audio/musicBoxCatalog.js": "bb2ddae745e83ac6f76f287d427c595206a1f04b1fc09cc5f5cf8289dd05eb27",
+    "shared/audio/musicLibrary.js": "106ee439eb9913c40a7a32a7d07b8951bb7a4f2f9cbbd174c0793f2dbb6c4742",
+    "shared/audio/musicQueue.js": "10bfc765d84d4c13e07f3f1ccc2de10d9a72f07446f60142ba95c149211791ca",
+    "shared/audio/musicPlayer.js": "6de1321dd041e707eea4920da45aaf0c2444e4a0e0ce1e324e1c61d9e52e994c",
+    "shared/audio/levels.js": "b9f13f39476a5bf07e47e674212ca6da7a2ec3ade6962250d4af27d169000795"
+  },
+  "catalog": {
+    "path": "assets/UI/Music/Catalog.json",
+    "sha256": "a4a7b4c56dbbbd711744441f9e855109681d00c404f57120d85514acc549c242"
+  }
+}

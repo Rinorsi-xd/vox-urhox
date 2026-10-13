@@ -121,7 +121,7 @@ local function Poll()
         oldSession=nil;work=nil;stage='unload'
     elseif stage=='unload' and not app.pendingAssetRelease then
         V.assert(require('render.RenderTargetLifetime').PendingCount()==0,'map switch drains retired render targets without retaining old buffers')
-        V.assert(cache:GetExistingResource('Model','Crater/mesh-0.mdl')==nil,'unused crater geometry unloads on return')
+        V.assert(cache:GetExistingResource('Model','Crater/mesh-0.bin')==nil,'unused crater geometry unloads on return')
         V.assert(app:EnterTrial('trial'),'original trial remains enterable');stage='trial'
     elseif stage=='trial' and app.trial then
         V.assert(app.trial.map.id=='trial','original trial map is independent of debug selection');stage='done';V.finish()

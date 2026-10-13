@@ -68,12 +68,12 @@ V.atFrame(135,function()
     V.assert(app.blueprint==original and app.car~=nil,"return preserves blueprint and rebuilds visible car")
     V.assert(cache:GetExistingResource("Model","Track/model-0.mdl")==nil,"unused trial ground model released")
     previous=nil
-    app.blueprint=require("construction.Prefab").BuildTank(require("construction.Blueprint").New())
+    app.blueprint=require("construction.Prefab").Create(require("construction.Blueprint").New(),'fuyuan')
     V.assert(app:EnterTrial(),"second entry loads selected tank")
 end)
 V.atFrame(180,function()
     local t=assert(app.trial);previous=t
-    V.assert(t.vehicle.tracked and #t.view.tracks==2,"tank binds two moving tracks")
+    V.assert(t.vehicle.tracked and #t.view.tracks==2,"source Fuyuan tank binds both authored track5 parts")
     t.Update=function() end
     exercise=coroutine.create(function() Exercise(t,"tank");app.blueprint=original;app:Reload() end);ResumeExercise()
 end)

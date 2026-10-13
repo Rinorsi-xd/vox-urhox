@@ -2,6 +2,7 @@ local Motion=require 'render.WeaponMotion'
 local Presentation=require 'render.WeaponPresentation'
 local VehicleView=require 'render.VehicleView'
 local WeaponView=require 'render.WeaponView'
+local Rig=require 'render.PartRig'
 local Rot=require 'core.Rotations'
 local Data=require 'core.ResourceData'
 local profiles=Data.Read('Parts/WeaponMotion.json')
@@ -18,6 +19,13 @@ V.atFrame(55,function()
         local part={id=1,type=case.type,pos={7,3,-9},rot=Rot.IDENTITY,color=0xffcc22}
         local vis=view:AddPart(part);vis.weaponMotion=Motion.New(case.type,vis.data,profiles[case.type],function()return .5 end)
         local motion=vis.weaponMotion
+        V.assert(#vis.rig.parts==case.partCount and #motion.petals==case.petals and #(motion.parts.round or {})==case.rounds,case.type..' authored GLB part/petal/round counts')
+        if case.rounds>0 then
+            V.assert(vis.rig.pod~=nil and #motion.barrelShotT==case.rounds,case.type..' missile tilt joint and per-tube shot state')
+            for _,p in ipairs(vis.rig.parts) do if p.definition.name=='petal' or p.definition.name=='round' then
+                V.assert(p.node.parent==vis.rig.pod,case.type..' '..p.definition.name..' is attached to pod')
+            end end
+        end
         local baseCount=0
         for _,model in ipairs(vis.models) do
             if model.node==vis.node then local origin=model.instanceCustomData;baseCount=baseCount+1
@@ -26,10 +34,16 @@ V.atFrame(55,function()
         end
         V.assert(baseCount>0,case.type..' authored base geometry exists')
         for i,s in ipairs(case.steps) do
-            motion:SetState(s.state,s.time,{offline=s.offline});motion:Update(s.time,s.dt);Presentation.Apply(vis)
+            motion:SetState(s.state,s.time,{offline=s.offline});motion:Update(s.time,s.dt)
+            Rig.SetWeapon(vis,s.yaw,s.pitch,s.state.spinAngle,motion.recoil,motion.kick)
+            Presentation.Apply(vis)
             local ok=Near(motion.recoil,s.recoil) and Near(motion.kick,s.kick) and Near(motion.load,s.load) and Near(motion.power,s.power) and Near(motion.flowPhase,s.flowPhase)
             local label='state'
-            for j,p in ipairs(vis.rig.parts) do if not MatrixNear(p.node,s.matrices[j]) then ok=false;label=p.definition.name..'/'..j;break end end
+            if not MatrixNear(vis.rig.head,s.head) or vis.rig.pod and not MatrixNear(vis.rig.pod,s.pod) then ok=false;label='yaw/tilt hierarchy' end
+            for j,p in ipairs(vis.rig.parts) do if not MatrixNear(p.node,s.matrices[j]) or s.visible and p.node.enabled~=s.visible[j] then
+                ok=false;label=p.definition.name..'/'..j
+                print('[WeaponMotionQA] '..cjson.encode({type=case.type,step=i,part=j,actual={-p.node.position.x,p.node.position.y,p.node.position.z},expected={s.matrices[j][13],s.matrices[j][14],s.matrices[j][15]},shown=p.node.enabled,wanted=s.visible[j],time=s.time,barrel=s.state.barrel,shots=motion.barrelShotT,refill=motion.refillT}));break
+            end end
             if vis.rig.spin and not MatrixNear(vis.rig.spin,s.spin) then ok=false;label='spin' end
             for slot,material in pairs(vis.weaponMaterials) do
                 local expected=s.mats[slot];local color=material:GetShaderParameter('emission_color'):GetColor()

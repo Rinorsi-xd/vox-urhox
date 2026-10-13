@@ -44,6 +44,13 @@ function M:Trade(id,qty,sell)
     if not ok then self.data.credits=previous.credits;self.data.items[id]=previous.count end
     return ok,err
 end
+function M.VehicleData(app,mode)
+    if (app.lobby or 'arena')==mode then return app.blueprint:ToTable() end
+    local context=app.lobbies and app.lobbies[mode]
+    if context then return context.data end
+    app.salvageLobby=app.salvageLobby or M.New(app)
+    return app.salvageLobby.store:Read('draft') or require('core.ResourceData').Read('Warehouse/Manifest.json').starter
+end
 function M.Switch(app,mode)
     if (app.lobby or 'arena')==mode then return true end
     local ok,err=app.bays:KeepCurrent(false);if not ok then return false,err end

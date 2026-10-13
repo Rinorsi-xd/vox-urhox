@@ -43,12 +43,40 @@ V.atFrame(20,function()
     gate:Start({'sync.png'},Complete);gate:Cancel()
     V.assert(calls==3 and #backend.cancelled==1,'synchronous completion does not leave stale group to cancel')
     gate:Start({'cached.png'},Complete);V.assert(calls==4 and gate.total==0,'local readiness completes without download request')
+
+    local slow=Loader.New();slow.state='loading';slow.phase='download';slow.gate.total=4
+    for i=1,3 do slow.gate.completed=i;slow:Update(40) end
+    V.assert(slow.state=='loading','downloads progressing over 90 seconds are not failed by total duration')
+    slow:Update(91);V.assert(slow.state=='failed','download with no further progress retains 90 second timeout')
+    slow=Loader.New();slow.state='loading';slow.phase='download';slow.gate.total=1
+    for i=1,3 do slow.gate.bytes=i*100;slow:Update(40) end
+    V.assert(slow.state=='loading','modern byte progress keeps large individual download alive');slow:Cancel()
+    slow=Loader.New();slow.state='loading';slow.phase='resources';slow:Update(91)
+    V.assert(slow.state=='failed','native preparation phases retain original timeout')
+
+    local originalManager=GetDownloadManager;local completed=0;local legacyCalls=0
+    local manager={}
+    function manager:DownloadResources() return 7 end
+    function manager:CancelGroup() end
+    function manager:GetResourceTaskState(path) return tonumber(path)<=completed and DOWNLOAD_COMPLETED or DOWNLOAD_DOWNLOADING end
+    local legacyBackend={}
+    function legacyBackend:Exists(path) return tonumber(path)<=completed end
+    GetDownloadManager=function() return manager end
+    local legacy=Gate.New(legacyBackend)
+    legacy:Start({'1','2','3','4'},function() legacyCalls=legacyCalls+1 end)
+    for i=1,3 do completed=i;Gate.UpdatePending(40) end
+    V.assert(legacy.state=='loading' and legacy.completed==3,'legacy WASM polling uses idle time across progressing downloads')
+    completed=4;Gate.UpdatePending(40)
+    V.assert(legacy.state=='ready' and legacyCalls==1,'legacy WASM batch can complete after 160 seconds')
+    completed=0;legacy:Start({'1','2','3','4'},function() legacyCalls=legacyCalls+1 end);Gate.UpdatePending(91)
+    V.assert(legacy.state=='failed' and legacyCalls==2,'legacy stalled batch still fails exactly once')
+    GetDownloadManager=originalManager
     gateChecked=true
 end)
 local function Poll()
     if stage=='boot' and VOX_HANGAR then
         app=VOX_HANGAR.app;oldScene=app.scene
-        V.assert(cache:GetExistingResource('Model','Crater/mesh-0.mdl')==nil,'boot does not load unselected crater models')
+        V.assert(cache:GetExistingResource('Model','Crater/mesh-0.bin')==nil,'boot does not load unselected crater models')
         local worldModule=require('drive.CraterWorld');local new=worldModule.New
         restoreNew=function() worldModule.New=new end
         worldModule.New=function(...)
@@ -74,7 +102,7 @@ local function Poll()
         ticks=ticks+1
         if ticks==5 then
             collectgarbage('collect');cache:ReleaseAllResources(false)
-            V.assert(cache:GetExistingResource('Model','Crater/mesh-0.mdl')==nil,'cancelled map model no longer retained')
+            V.assert(cache:GetExistingResource('Model','Crater/mesh-0.bin')==nil,'cancelled map model no longer retained')
             V.assert(cache:GetExistingResource('Texture2D','Crater/Sky.hdr')==nil,'cancelled map sky bake no longer retained')
             preparedWorld=nil;app:EnterTrial('crater');stage=cancelCount<2 and 'cancel' or 'retry'
         end

@@ -25,7 +25,7 @@ V.atFrame(45,function()
 end)
 V.atFrame(90,function()
     trial=assert(app.trial);local t=trial;local world=t.world;local target=world.targets[1]
-    local kinds={};for kind in pairs(Defs.STATS) do kinds[#kinds+1]=kind end;table.sort(kinds)
+    local kinds={};for kind,stats in pairs(Defs.STATS) do if not stats.homing then kinds[#kinds+1]=kind end end;table.sort(kinds)
     for _,kind in ipairs(kinds) do
         Fresh(target,world);t.effects:Clear()
         local ws=Weapons.New(Mount(kind),function() return .5 end)

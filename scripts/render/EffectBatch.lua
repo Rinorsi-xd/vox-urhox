@@ -7,6 +7,7 @@ function M.New(root,kind,limit,shaderDirectory)
     local self=setmetatable({},M)
     self.node=root:CreateChild(kind);self.mesh=self.node:CreateComponent("CustomGeometry")
     self.mesh.dynamic=true;self.mesh.castShadows=false
+    self.mesh.enabled=false
     self.material=Material:new();assert(self.material:SetSurfaceShader((shaderDirectory or "Shaders/BLGL/Combat/")..kind..".shader"))
     self.material.renderOrder=142;self.mesh.material=self.material
     self.limit=limit;self.count=0;return self

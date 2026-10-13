@@ -22,15 +22,16 @@ V.atFrame(50,function()
     store=require('storage.BlueprintStore').New('vox-preview-cache-check')
     for i=1,20 do store:DeleteSlot(i) end
     store:SaveSlot(1,Prefab.BuildEmpty(Blueprint.New()))
+    local ref=Data(1).preview;if fileSystem:FileExists(ref.path) then fileSystem:Delete(ref.path) end
     Request(1,'empty')
 end)
 V.atFrame(85,function()
     V.assert(delivered.empty,'empty preset captured')
     V.assert(not service.scene and not service.job,'idle capture scene is released')
-    local before=service.captures;Request(1,'cached');delivered.before=before
+    local before=service.captures;delivered.beforeHits=service.cacheHits;Request(1,'cached');delivered.before=before
 end)
 V.atFrame(95,function()
-    V.assert(delivered.cached and service.captures==delivered.before and service.cacheHits==1,'persistent image reload skips 3D capture')
+    V.assert(delivered.cached and service.captures==delivered.before and service.cacheHits==delivered.beforeHits+1,'persistent image reload skips 3D capture')
     V.assert(not service.scene,'cached-only reads allocate no scene')
     store:SaveSlot(2,Prefab.BuildRaceCar(Blueprint.New()));Request(2,'race')
 end)
