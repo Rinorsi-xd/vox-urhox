@@ -126,6 +126,7 @@ function M:UnitTick(entry,dt)
     local u=entry.unit;local rule=self.battle.rules
     if self.id=='conquest' then
         local home=Shield.Contains(self.bases[u.team].zone,u:Position())
+        u.repairing=home and (u:Health()<.995 or u:Integrity()<.995)
         if home then u:Heal(.15*dt);entry.repair=entry.repair+dt;if entry.repair>=.4 then entry.repair=entry.repair-.4;u:RestoreMissing(1) end else entry.repair=0 end
         if rule.shield[Other(u.team)] and Shield.Contains(self.bases[Other(u.team)].zone,u:Position()) then
             local core=u.bp:CoreParts()[1];if core then u:Damage(core.id,require('parts.Defs').PARTS.core.hp*u.partScale*.04*dt,u:Position()) end

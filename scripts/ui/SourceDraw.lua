@@ -21,6 +21,16 @@ function M.Begin(vg)
     nvgAddFallbackFontId(vg,tabular,title);nvgAddFallbackFontId(vg,tabular,body)
     contexts[vg]={codeAdvance=fonts.codeAdvance,bodyMetrics=fonts.bodyMetrics}
 end
+function M.HudFont(vg)
+    M.Begin(vg);local ctx=contexts[vg]
+    if ctx.hud then return end
+    local face=nvgCreateFont(vg,'vox-hud','Fonts/ChakraPetch-Bold.ttf')
+    local medium=nvgCreateFont(vg,'vox-hud-medium','Fonts/ChakraPetch-Medium.ttf')
+    assert(face>=0 and medium>=0,'Source HUD font failed to load')
+    nvgAddFallbackFont(vg,'vox-hud','vox-title');nvgAddFallbackFont(vg,'vox-hud','vox-body')
+    nvgAddFallbackFont(vg,'vox-hud-medium','vox-title');nvgAddFallbackFont(vg,'vox-hud-medium','vox-body')
+    ctx.hud=true
+end
 function M.Color(c) return nvgRGBA(c[1],c[2],c[3],c[4] or 255) end
 function M.Rect(vg,x,y,w,h,c)
     nvgBeginPath(vg);nvgRect(vg,x,y,w,h);nvgFillColor(vg,M.Color(c));nvgFill(vg)

@@ -6,8 +6,13 @@ function M.New(session,root,vitals)
     local self=setmetatable({session=session,pops={},tags={},index=0,vitals=vitals},M)
     self.layer=require('ui.DriveFeedback'){position='absolute',width='100%',height='100%',pointerEvents='none'};self.layer.owner=self;root:AddChild(self.layer)
     self.aim={visible=false}
+    self.feedback=require('ui.CombatFeedbackMotion').New()
+    self.partCounts=setmetatable({},{__mode='k'})
     for _=1,40 do self.pops[#self.pops+1]={t=1} end
-    for _,unit in ipairs(session.world.units) do if not unit.externalView then self.tags[#self.tags+1]={unit=unit,visible=false} end end
+    for _,unit in ipairs(session.world.units) do
+        self.partCounts[unit]=unit.bp:Size()
+        if not unit.externalView then self.tags[#self.tags+1]={unit=unit,visible=false} end
+    end
     return self
 end
 function M:Project(point)
@@ -40,10 +45,24 @@ function M:AimMarker()
 end
 function M:Update(dt)
     local s=self.session;local metrics=s.world.metrics
+    self.feedback:Update(dt,s.combat and s.combat.player:Health() or 1)
     for target,p in pairs(metrics.pending) do
         if p.seenAmount~=p.amount or p.seenKilled~=p.killed then
-            self.vitals.hit=p.killed and .35 or .18;self.vitals.killed=p.killed;p.seenAmount=p.amount;p.seenKilled=p.killed
+            local killed=p.killed or target.alive==false;local previous=self.partCounts[target]
+            local broken=target.bp and previous and target.bp:Size()<previous
+            if s.feedbackAudio then s.feedbackAudio:Hit(killed and 'kill' or broken and 'break' or 'hit') end
+            if killed and p.seenKilled~=p.killed and target.spec then
+                local x,y=self:Project(target:Position());local w,h=UI.GetViewportSize()
+                self.feedback:Kill(target.name,target.kill=='核心被摧毁',x,y,require('ui.ReticleState').Layout(w,h))
+            end
+            if killed or broken or (self.vitals.strongUntil or 0)<=(self.vitals.clock or 0) then
+                self.vitals.hitDuration=killed and .55 or broken and .4 or .3
+                self.vitals.hit=self.vitals.hitDuration;self.vitals.killed=killed;self.vitals.broken=broken
+                if killed or broken then self.vitals.strongUntil=(self.vitals.clock or 0)+.26 end
+            end
+            p.seenAmount=p.amount;p.seenKilled=p.killed
         end
+        if target.bp then self.partCounts[target]=target.bp:Size() end
         p.age=p.age+dt
         if p.age>=.25 or p.killed then self:Pop(p.point,p.amount,p.killed);metrics.pending[target]=nil end
     end
@@ -64,9 +83,29 @@ function M:Update(dt)
         end
     end
     self.aimState=self:AimMarker()
+    require('ui.ReticleTarget').Update(self,dt)
+end
+function M:Consume(events)
+    for _,e in ipairs(events) do
+        if e.type=='unitSpawn' and e.unit then self.partCounts[e.unit]=e.unit.bp:Size() end
+    end
+    local s=self.session;local me=s.combat and s.combat.player;if not me then return end
+    local healed=false
+    for _,e in ipairs(events) do if e.unit==me then
+        if e.type=='unitHealed' or e.type=='partRestored' then healed=true
+        elseif e.type=='unitDamaged' and e.amount>0 then
+            local from=e.source and e.source:Position() or e.point
+            if from then
+                local localPoint=s.camera:GetNode():WorldToLocal(Coord.Vec(table.unpack(from)))
+                self.feedback:Hit(math.atan(localPoint.x,localPoint.z),e.amount/math.max(1,me.rawHpMax*me.partScale)*4)
+            end
+        elseif e.type=='unitSpawn' then self.feedback:Clear() end
+    end end
+    if healed and me.alive then self.feedback:Heal(me:Health()>=.995 and me:Integrity()>=.99999) end
 end
 function M:Clear()
     for _,p in ipairs(self.pops) do p.t=1 end
     self.vitals.hit=0
+    self.feedback:Clear()
 end
 return M

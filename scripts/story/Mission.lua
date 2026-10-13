@@ -55,10 +55,12 @@ function M:Environment(unit)
         hit=function(hit,damage,dir,impulse,pierce)
             if self.rules.finished then return end
             if hit.owner and hit.owner.ref and hit.owner.ref.team==unit.team then return end
-            world:Hit(hit,damage*scale,dir,impulse,pierce)
+            world.attacker=unit;world:Hit(hit,damage*scale,dir,impulse,pierce);world.attacker=nil
         end,
         explode=function(point,radius,damage,body)
-            if not self.rules.finished then world:Explode(point,radius,damage*scale,body,function(u) return u.team~=unit.team end) end
+            if not self.rules.finished then
+                world.attacker=unit;world:Explode(point,radius,damage*scale,body,function(u) return u.team~=unit.team end);world.attacker=nil
+            end
         end}
 end
 function M:Place(at)

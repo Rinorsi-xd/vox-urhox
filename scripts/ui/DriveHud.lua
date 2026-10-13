@@ -25,7 +25,7 @@ function M.Create(session)
     state.stats=Add('stats',{right=12,top=top+44,width=206,height=51})
     state.meter=require('ui.DriveMeter'){position='absolute',left=12,bottom=50,width=400,height=110,pointerEvents='none'};state.meter.session=session;root:AddChild(state.meter)
     state.detailPanel=require('ui.DriveDetails'){position='absolute',left=12,top=72,width=280,height=260,pointerEvents='none',visible=session.details};state.detailPanel.session=session;root:AddChild(state.detailPanel)
-    state.vitals=require('ui.DriveVitals'){position='absolute',left=width/2-125,top=height/2-125,width=250,height=250,pointerEvents='none'};state.vitals.session=session;root:AddChild(state.vitals)
+    state.vitals=require('ui.MechReticle'){position='absolute',left=0,top=0,width='100%',height='100%',pointerEvents='none'};state.vitals.session=session;root:AddChild(state.vitals)
     state.overlay=require('ui.DriveOverlay').New(session,root,state.vitals)
     state.missile=require('ui.MissileHud'){position='absolute',width='100%',height='100%',pointerEvents='none'}
     state.missile.session=session;state.missile.overlay=state.overlay;root:AddChild(state.missile)
@@ -53,8 +53,13 @@ function M.Create(session)
         state.buttons['return']:SetStyle({right=edge,top=12,width=112,height=48})
         state.stats:SetVisible(false);state.keys:SetVisible(false);state.timer:SetVisible(false);state.meter:SetVisible(false)
         local cardWidth=math.min(190,(width-edge*2-(#state.cards-1)*6)/#state.cards)
-        for i,card in ipairs(state.cards) do card.widget:SetStyle({right=session.salvage and 'auto' or edge+(i-1)*(cardWidth+6),left=session.salvage and edge+(i-1)*(cardWidth+6) or 'auto',top=72,bottom='auto',width=cardWidth,height=52}) end
+        for i,card in ipairs(state.cards) do
+            local left=session.salvage and edge+(i-1)*(cardWidth+6) or width-edge-cardWidth-(i-1)*(cardWidth+6)
+            card.widget:SetStyle({left=left,right=width-left-cardWidth,top=72,bottom=height-124,width=cardWidth,height=52})
+        end
     end
+    -- The frozen reticle owns weapon slots and speed; retain real touch buttons.
+    if not session.touch then for _,card in ipairs(state.cards) do card.widget:SetVisible(false) end end
     local modes={};for _,child in ipairs(root.children) do modes[child]=child.props.pointerEvents or 'auto' end
     state.Clear=controls.Clear
     function state.Update(s,dt)
@@ -79,11 +84,13 @@ function M.Create(session)
             end
             for _,card in ipairs(state.cards) do card.widget:SetVisible(not blocked) end
         end
-        state.meter:SetVisible(alive and not s.touch and not s.story);state.playfield:SetVisible(not over)
+        state.meter:SetVisible(false);state.playfield:SetVisible(not over)
         if state.match then state.match.Update() end
         if state.story then state.story.Update(dt) end
         if state.salvage then state.salvage.Update(dt) end
-        state.vitals:SetEnergy(weapons.energy/weapons.energyMax,weapons.offline,#weapons.groups>0,dt);state.overlay:Update(dt)
+        state.vitals.hit=math.max(0,(state.vitals.hit or 0)-dt)
+        state.overlay:Update(dt);state.vitals.aimState=state.overlay.aimState
+        require('ui.ReticleState').Update(state.vitals,dt)
         for i,card in ipairs(state.cards) do card.widget.group=weapons.groups[i];card.widget.readiness=weapons.groups[i] and math.max(0,math.min(1,weapons:Readiness(weapons.groups[i]))) or 0 end
         local group=weapons:Group()
         state.vitals.hint=group and group.kind=='missile' and '' or s.firing and group and weapons.blocked>=#group.weapons and '目标在射界外' or s.firing and state.overlay.aimState=='blocked' and '炮口被挡住' or ''

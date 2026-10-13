@@ -35,13 +35,15 @@ function M:Render(vg)
         or info.locked and not info.energyOk and ('能量不足 · 需要 '..math.ceil(info.cost))
         or info.locked and 'LOCK ON · 可以发射' or info.progress>0 and string.format('LOCKING %d%%',math.floor(info.progress*100+.5)) or 'SEEK · 目标进框 2 秒锁定'
     local font=math.max(11,13*scale)
-    D.Text(vg,'MSL · SEEKER',cx-box,cy-box-22*scale,math.max(10,12*scale),color,'vox-code')
-    D.Text(vg,text,cx,cy+box+5*scale,font,color,'vox-body',NVG_ALIGN_CENTER)
+    if s.story then
+        D.Text(vg,'MSL · SEEKER',cx-box,cy-box-22*scale,math.max(10,12*scale),color,'vox-code')
+        D.Text(vg,text,cx,cy+box+5*scale,font,color,'vox-body',NVG_ALIGN_CENTER)
+    end
     local fill=info.phase=='reload' and info.reload or info.firing and 0 or info.locked and 1 or info.progress
     D.Rect(vg,cx-box,cy+box+26*scale,box*2,3*scale,{242,246,248,30});D.Rect(vg,cx-box,cy+box+26*scale,box*2*fill,3*scale,color)
-    D.Text(vg,string.format('齐射 %d/%d 枚',info.count,info.tubes),cx,cy+box+33*scale,font,{242,246,248,176},'vox-body',NVG_ALIGN_CENTER)
+    if s.story then D.Text(vg,string.format('齐射 %d/%d 枚',info.count,info.tubes),cx,cy+box+33*scale,font,{242,246,248,176},'vox-body',NVG_ALIGN_CENTER) end
     local target=info.ref
-    if target and target.pos then
+    if target and target.pos and not self.overlay.focus then
         local x,y=self.overlay:Project(target.pos)
         if x then
             local progress=info.locked and 1 or 1-(1-info.progress)^3

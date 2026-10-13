@@ -27,7 +27,15 @@ function M.New(env,source,config)
     self.externalControl=config.externalControl==true;self.combat=config.combat==true;self.externalView=config.externalView==true
     self:Spawn();return self
 end
-function M:Event(kind,id) self.env.viewEvents[#self.env.viewEvents+1]={type=kind,unit=self,id=id} end
+function M:Event(kind,id,extra)
+    local event={type=kind,unit=self,id=id}
+    if extra then for key,value in pairs(extra) do event[key]=value end end
+    self.env.viewEvents[#self.env.viewEvents+1]=event
+end
+function M:RecordDamage(amount,point)
+    self.env:RecordDamage(self,amount,point)
+    self:Event('unitDamaged',nil,{amount=amount,point=point,source=self.env.attacker})
+end
 function M:DisposeVehicle()
     if self.vehicle then self.vehicle:Dispose();self.vehicle=nil end
 end
@@ -60,6 +68,7 @@ function M:Spawn()
     self.bodyHpMax=self.hull and math.max(self.hull.min,math.min(self.hull.max,self.rawHpMax*self.hull.scale)) or self.rawHpMax
     self.bodyHpMax=self.bodyHpMax*self.hpMultiplier
     self.bodyHp=self.bodyHpMax;self.structMax=self.structure and self.bodyHpMax*self.structure.base or 0;self.struct=self.structMax
+    self.structBrokenAt=-math.huge;self.hullBreachAt=-math.huge
     self.weapons=self.combat and require('combat.WeaponSystem').New(spec) or nil
     self.budget0=self:Budget();self.alive=spec.ok;self.deadAt=-1;self.dirty=false;self.kill=nil
     self.lastDir={0,0,0};self.hitAt=-1
@@ -88,8 +97,14 @@ function M:ShieldOf(id)
 end
 function M:Heal(fraction)
     if not self.alive or fraction<=0 then return end
+    local before=self.bodyHp;local healed=0
     self.bodyHp=math.min(self.bodyHpMax,self.bodyHp+self.bodyHpMax*fraction);self.struct=self.structMax
-    for id,p in pairs(self.bp.parts) do self.hp[id]=math.min(Defs[p.type].hp*self.partScale,self.hp[id]+Defs[p.type].hp*self.partScale*fraction) end
+    for id,p in pairs(self.bp.parts) do
+        local hp=self.hp[id];self.hp[id]=math.min(Defs[p.type].hp*self.partScale,hp+Defs[p.type].hp*self.partScale*fraction)
+        healed=healed+self.hp[id]-hp
+    end
+    local amount=self.hull and self.bodyHp-before or healed
+    if amount>0 then self:Event('unitHealed',nil,{amount=amount}) end
 end
 function M:RegenerateStructure(dt)
     local cfg=self.structure
@@ -201,39 +216,55 @@ function M:Damage(id,amount,point)
     if self.combat then
         self.hitAt=self.env.time;local s=self.shields[id]
         if s then local value=self:ShieldOf(id);s.hit=self.env.time
-            if value>0 then local a=math.min(value,amount);s.v=value-a;s.broken=s.v<=.001;self.env:RecordDamage(self,a,point);return a end
+            if value>0 then
+                local a=math.min(value,amount);s.v=value-a;s.broken=s.v<=.001
+                if s.broken then self:Event('shieldDown',id,{point=point,strength=.7})
+                elseif self.env.time-(self.shieldSoundAt or -1)>=.15 then
+                    self.shieldSoundAt=self.env.time;self:Event('shieldHit',id,{point=point,strength=.45})
+                end
+                self:RecordDamage(a,point);return a
+            end
         end
         local part=self.bp.parts[id]
         if part and not Defs[part.type].plate then
             local absorbed=math.min(amount,self.struct);self.struct=self.struct-absorbed;amount=amount-absorbed
-            if absorbed>0 then self.env:RecordDamage(self,absorbed,point) end
+            if absorbed>0 then
+                self:RecordDamage(absorbed,point)
+                if self.struct<=0 then self.structBrokenAt=self.env.time end
+            end
             if amount<=0 then return absorbed end
             local before=self.bodyHp;local a=math.min(amount,before)
-            self.bodyHp=math.max(0,before-a)
+            self:HurtHull(a,point)
             local localDamage=math.max(0,a-math.max(0,before-self.bodyHpMax*self.hull.shatterAt))
-            self.env:RecordDamage(self,a,point)
-            if self.bodyHp<=0 then self.kill='车体耐久归零';self.dirty=true
-            elseif localDamage>0 then self.hp[id]=math.max(0,hp-localDamage);if self.hp[id]<=.001 then self:Destroy(id) end end
+            self:RecordDamage(a,point)
+            if not self.kill and localDamage>0 then self.hp[id]=math.max(0,hp-localDamage);if self.hp[id]<=.001 then self:Destroy(id) end end
             return absorbed+a
         end
     end
-    local a=math.min(hp,amount);self.hp[id]=hp-a;self.hitAt=self.env.time;self.env:RecordDamage(self,a,point)
+    local a=math.min(hp,amount);self.hp[id]=hp-a;self.hitAt=self.env.time;self:RecordDamage(a,point)
     if hp-a<=.001 then self:Destroy(id) end
     return a
+end
+function M:HurtHull(amount,point)
+    if not self.hull or amount<=0 then return end
+    local before=self.bodyHp;self.bodyHp=math.max(0,before-amount)
+    local threshold=self.bodyHpMax*self.hull.shatterAt
+    if before>=threshold and self.bodyHp<threshold then
+        self.hullBreachAt=self.env.time
+        self:Event('hullBreach',nil,{point=point or self:Position(),strength=self.hull.breachFlash})
+    end
+    if self.bodyHp<=0 then self.kill=self.kill or '车体HP归零';self.dirty=true end
 end
 function M:Destroy(id)
     local part=self.bp.parts[id];if not part then return end
     local b=self.vehicle.body;local p=b.translation();local q=b.rotation();local c={0,0,0}
     for _,cell in ipairs(part._cells) do c=V.Add(c,{cell[1]*CELL,(cell[2]+.5)*CELL,cell[3]*CELL}) end
     local w=V.Add(V.Rotate(q,V.Scale(c,1/#part._cells)),{p.x,p.y,p.z})
-    self.bp:Remove(id);self.hp[id]=nil;self.dirty=true
-    if self.hull then
-        self.bodyHp=math.max(0,self.bodyHp-Defs[part.type].hp*self.hull.lossOnBreak)
-        if self.bodyHp<=0 then self.kill='车体耐久归零' end
-    end
+    if self.hull then self:HurtHull((self.hp[id] or 0)*self.hull.lossOnBreak) end
+    self.bp:Remove(id);self.hp[id]=nil;self.shields[id]=nil;self.dirty=true
     if part.type=="core" then self.kill="核心被摧毁" end
     self.env.fx[#self.env.fx+1]={type="break",pos=w,color=part.color,cells=#part._cells,dir=self.lastDir}
-    self:Event("partRemoved",id)
+    self:Event("partRemoved",id,{reason='damage'})
 end
 function M:Flush()
     if not self.dirty or not self.alive then return end
@@ -244,7 +275,11 @@ function M:Flush()
         local adj=self.bp:Graph();local floating=self.bp:Connectivity(adj).floating
         for _,group in ipairs(Components(Sorted(floating),adj)) do
             local parts={}
-            for _,id in ipairs(group) do parts[#parts+1]=self.bp:Remove(id);self.hp[id]=nil;self:Event("partRemoved",id) end
+            for _,id in ipairs(group) do
+                parts[#parts+1]=self.bp:Remove(id)
+                if self.hull then self:HurtHull((self.hp[id] or 0)*self.hull.lossOnBreak) end
+                self.hp[id]=nil;self.shields[id]=nil;self:Event("partRemoved",id,{reason='disconnect'})
+            end
             self.env.debris:Spawn(parts,pose,Velocity,kick)
         end
         if self:Budget()<self.budget0*(self.combat and .15 or M.WRECK_RATIO) then self.kill="瘫痪" end

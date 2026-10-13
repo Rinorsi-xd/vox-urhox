@@ -27,6 +27,13 @@ local function DumpTrial(app)
         widgets={},performance=ResourceStats(),frames=FrameStats()}
     data.performance.batches=renderer.numBatches;data.performance.primitives=renderer.numPrimitives
     if s.drivingAudio then data.drivingAudio=s.drivingAudio:Snapshot() end
+    if s.feedbackAudio then data.feedbackAudio=s.feedbackAudio:Snapshot() end
+    local rt=s.hud.vitals
+    data.reticle={hp=rt.hp,structure=rt.structure,fire=rt.fire,clock=rt.clock,hit=rt.hit,repair=rt.repair,
+        scope=s.scope,fov=s.camera:GetCamera().fov,selected=s.weapons.current,groups=#s.weapons.groups,
+        layout=require('ui.ReticleState').Layout(w,h),legacyMeter=s.hud.meter:IsVisible()}
+    local feedback=s.hud.overlay.feedback
+    data.combatFeedback={hits=#feedback.hits,cubes=#feedback.cubes,repairAge=feedback.repairAge,repairFull=feedback.repairFull,score=feedback.score and feedback.score.shown or false}
     data.performance.fixedSteps=s.fixedSteps;data.performance.droppedSeconds=s.droppedTime
     data.performance.effects={particles=#s.effects.particles,smoke=#s.effects.smoke,beams=#s.effects.beams,flashes=#s.effects.flashes}
     local mouse=input.mousePosition;local hit=UI.FindWidgetAt(mouse.x/UI.GetScale(),mouse.y/UI.GetScale())
@@ -285,6 +292,10 @@ function HandleUpdate(et,ed)
         end
         local story=app.trial.story
         if story then
+            if input:GetKeyPress(KEY_F3) and story.player.alive then
+                local u=story.player;u.struct=0
+                u:Damage(u.bp:CoreParts()[1].id,u.bodyHpMax*.2,u:Position());u:Flush()
+            end
             if story.rules.cap and input:GetKeyPress(KEY_F10) then
                 for i=2,#story.entries do local entry=story.entries[i];local u=entry.unit
                     if entry.flee then for _,p in ipairs(u.bp:List()) do if p.type~='core' and u:Integrity()>=.59 then u:Destroy(p.id) end end end

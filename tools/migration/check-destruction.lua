@@ -22,7 +22,8 @@ local function Snapshot(u,env)
     local ids,hp,events={},{},{}
     for _,p in ipairs(u.bp:List()) do ids[#ids+1]=p.id end
     for id,value in pairs(u.hp) do hp[tostring(id)]=value end
-    for _,e in ipairs(env.viewEvents) do events[#events+1]={type=e.type,id=e.id or false} end
+    -- Damage observations replace the source's separate sim.events channel.
+    for _,e in ipairs(env.viewEvents) do if e.type~='unitDamaged' then events[#events+1]={type=e.type,id=e.id or false} end end
     return {ids=ids,hp=hp,budget=u:Budget(),integrity=u:Integrity(),alive=u.alive,kill=u.kill or false,
         damage=env.damage,kills=env.kills,rebuilds=env.rebuilds,pieces=env.pieces,events=events,fx=env.fx}
 end
@@ -43,7 +44,7 @@ local function SourceReplays()
                 Dispose=function() end,Step=function() end,Place=function() end,
                 GetState=function() return state end,SetState=function(_,s) state=s end}
         end
-        local u=Unit.New(env,case.source,{name=case.name,spawn={pos={10,2,-4},yaw=0}})
+        local u=Unit.New(env,case.source,{name=case.name,spawn={pos={10,2,-4},yaw=0},combat=true})
         local ok,why=Compare(Snapshot(u,env),case.samples[1],case.name..' spawn');V.assert(ok,why)
         for i,a in ipairs(case.actions) do
             if a.kind=='hit' then u:HitRay({point=a.point,owner={partId=a.id}},a.damage,a.dir,a.pierce)

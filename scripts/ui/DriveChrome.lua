@@ -56,6 +56,9 @@ function Chrome:Render(vg)
         if a~='' then Draw.Text(vg,a,x+w/2,cy,24,D.white,1,'vox-tabular',NVG_ALIGN_CENTER);cy=cy+31 end
         if b~='' then Draw.Text(vg,b,x+w/2,cy,13,D.white,1,nil,NVG_ALIGN_CENTER) end
     elseif kind=='keys' then
+        if not s.story and not s.details and (s.hud.vitals.clock or 0)>10.8 then return end
+        nvgSave(vg)
+        if not s.story and not s.details then nvgGlobalAlpha(vg,math.max(0,math.min(1,(10.8-(s.hud.vitals.clock or 0))/.8))) end
         if not self.tokens then
             self.tokens={};self.total=30
             for _,key in ipairs(keys) do
@@ -69,6 +72,7 @@ function Chrome:Render(vg)
             else D.Text(vg,item.value,cx,y+9,12,D.muted,'vox-body') end
             cx=cx+item.width
         end
+        nvgRestore(vg)
     elseif kind=='pause' then
         D.Rect(vg,x,y,w,h,{2,6,10,89});local text='点击画面继续驾驶';local bw=Draw.Width(vg,text,20,3)+62;local bx,by=(w-bw)/2,(h-90)/2
         self.box={x=bx,y=by,w=bw,h=90};Draw.Panel(vg,bx,by,bw,90,{86,93,104,255})

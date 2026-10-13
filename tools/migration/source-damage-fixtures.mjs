@@ -2,8 +2,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {pathToFileURL,fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
-const source='D:/Rino_Project/Vox';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
+const source=JSON.parse(fs.readFileSync(path.join(root,'docs/migration/outgame-baseline.json'),'utf8')).snapshot;
 const load=p=>import(pathToFileURL(path.join(source,p)));
 const {CarUnit}=await load('shared/combat/carUnit.js');
 const {Blueprint}=await load('shared/build/blueprint.js');
@@ -18,12 +18,12 @@ function run(name,parts,actions){
   recordDamage(u,a){this.damage+=a;},recordKill(){this.kills++;}};
  env.debris={spawn(parts,pose,velocity,kick){env.pieces.push({ids:parts.map(p=>p.id).sort((a,b)=>a-b),kick});}};
  const u=Object.create(CarUnit.prototype);
- Object.assign(u,{env,source:json,name,spawnAt:{pos:[10,2,-4],yaw:0},vehicle:null});
+ Object.assign(u,{env,source:json,name,spawnAt:{pos:[10,2,-4],yaw:0},vehicle:null,hpMultiplier:1,incomingDamageMultiplier:1,autoRespawn:true});
  u._build=function(spec){
   env.rebuilds++;this.spec=spec;
   let state={p:{x:10,y:2,z:-4},q:identity,lv:{x:1,y:2,z:3},av:{x:0,y:0,z:0},steer:0};
-  this.vehicle={colliders:[],body:{translation:()=>state.p,rotation:()=>state.q,worldCom:()=>state.p,velocityAtPoint:()=>state.lv},
-   place(){},dispose(){},step(){},getState:()=>state,setState(s){state=s;}};
+  this.vehicle={spec,colliders:[],body:{translation:()=>state.p,rotation:()=>state.q,worldCom:()=>state.p,velocityAtPoint:()=>state.lv,linvel:()=>state.lv},
+   place(){},dispose(){},step(){},stepRotors(){},getState:()=>state,setState(s){state=s;}};
  };
  const old=Math.random;Math.random=()=>.5;
  const samples=[];

@@ -79,7 +79,7 @@ function M.New(session,bp)
         if attacker and attacker.team~=unit.team then
             self.stats[attacker].kills=self.stats[attacker].kills+1
             if self.mode=='conquest' then self.rules:Kill(attacker.team) end
-            if attacker==self.player then self.baseKill(world,unit,pos);self.sounds:Play('kill_confirm') else world.fx[#world.fx+1]={type='explode',pos=pos,radius=3} end
+            if attacker==self.player then self.baseKill(world,unit,pos) else world.fx[#world.fx+1]={type='explode',pos=pos,radius=3} end
         else world.fx[#world.fx+1]={type='explode',pos=pos,radius=3} end
     end
     for _,entry in ipairs(self.entries) do entry.unit.guardUntil=entry.guardUntil end
@@ -118,11 +118,13 @@ function M:BeforeStep(dt,command,aim)
         if u.alive then
             local cmd={throttle=0,steer=0,handbrake=true};local target=aim;local firing=false
             if live then
+                u.repairing=false
                 u:RegenerateStructure(dt)
                 if u==self.player then cmd=command;firing=command.firing==true
                 else cmd,target,firing=entry.driver:Step(dt,self.objectives:Goal(entry,self:Pick(u)),self.rules.sudden or self.mode=='elimination' and self.rules.t>40) end
                 self.objectives:UnitTick(entry,dt)
                 if self.mode=='elimination' and not self.rules.sudden and self.world.time-u.hitAt>=self.rules.cfg.regenDelay then
+                    u.repairing=u:Health()<.995 or u:Integrity()<.995
                     u:Heal(self.rules.cfg.regen*dt);entry.repair=entry.repair+dt
                     if entry.repair>=.5 then entry.repair=entry.repair-.5;u:RestoreMissing(1) end
                 elseif self.mode=='elimination' then entry.repair=0 end

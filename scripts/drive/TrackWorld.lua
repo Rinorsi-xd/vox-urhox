@@ -139,9 +139,11 @@ function M:Explode(point,radius,damage,excluded,accept,cast)
     for _,p in ipairs(self.debris.pieces) do Push(p.body,6*p.mass,p.mass) end
 end
 function M:RecordDamage(unit,amount,point)
+    if self.feedbackPlayer and self.attacker~=self.feedbackPlayer then return end
     self.stats.damage=self.stats.damage+amount;self.metrics:Damage(self.time,unit,amount,point,false)
 end
 function M:RecordKill(unit,pos)
+    if unit==self.feedbackPlayer then self.fx[#self.fx+1]={type='explode',pos=pos,radius=3};return end
     self.stats.kills=self.stats.kills+1;self.fx[#self.fx+1]={type="explode",pos=pos,radius=3}
     local p=self.metrics.pending[unit];if p then p.killed=true end
 end

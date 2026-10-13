@@ -35,9 +35,13 @@ function M:Environment(shooter)
         castRay=function(...) return world:CastRay(...) end,lockables=function(body) return world:Lockables(body,shooter.team) end,
         hit=function(hit,damage,dir,impulse,pierce)
             local victim=hit.owner and hit.owner.ref
-            if not self.rules.finished and (not victim or not victim.team or Accept(victim)) then world:Hit(hit,damage*scale,dir,impulse,pierce) end
+            if not self.rules.finished and (not victim or not victim.team or Accept(victim)) then
+                world.attacker=shooter;world:Hit(hit,damage*scale,dir,impulse,pierce);world.attacker=nil
+            end
         end,
-        explode=function(point,radius,damage,body) if not self.rules.finished then world:Explode(point,radius,damage*scale,body,Accept) end end}
+        explode=function(point,radius,damage,body) if not self.rules.finished then
+            world.attacker=shooter;world:Explode(point,radius,damage*scale,body,Accept);world.attacker=nil
+        end end}
 end
 function M:Begin() if self.begun then return end;self.begun=true;self:Feed('行动开始',self.spawn.name..' · '..self.rules.op.name..' · 15:00') end
 function M:Feed(title,text) self.feed[#self.feed+1]={title=title,text=text,at=self.rules.time,untilAt=self.rules.time+7};if #self.feed>5 then table.remove(self.feed,1) end end

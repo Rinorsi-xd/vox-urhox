@@ -1,24 +1,27 @@
 -- One NanoVG layer for pooled damage, projected unit tags and actual muzzle aim.
 local Panel=require 'urhox-libs/UI/Widgets/Panel'
 local D=require 'ui.SourceDraw'
-local Draw=require 'ui.DriveDraw'
 local Layer=Panel:Extend('VoxDriveFeedback')
 function Layer:Render(vg)
-    D.Begin(vg);local o=self.owner
+    D.HudFont(vg);local o=self.owner
     if o.session.pointer.captured then
-        for _,t in ipairs(o.tags) do if t.visible then
-            local name=t.unit.name;local detail=t.text
-            local width=math.max(120,Draw.Width(vg,name,12,1),D.Width(vg,detail,11,'vox-body'))+18
-            local height=t.unit.alive and 50 or 42;local x,y=t.x-width/2,t.y-height
-            nvgSave(vg);if not t.unit.alive then nvgGlobalAlpha(vg,.8) end
-            D.Rect(vg,x,y,width,height,{6,14,22,184});nvgBeginPath(vg);nvgRect(vg,x+.5,y+.5,width-1,height-1)
-            nvgStrokeWidth(vg,1);nvgStrokeColor(vg,D.Color(o.session.world.time-(t.unit.hitAt or -1)<.16 and {255,176,58,204} or {53,58,66,255}));nvgStroke(vg)
-            Draw.Text(vg,name,t.x,y+5,12,D.white,1,nil,NVG_ALIGN_CENTER)
-            if t.unit.alive then
-                local bx=t.x-60;D.Rect(vg,bx,y+23,120,5,{0,0,0,153});D.Rect(vg,bx,y+23,120*t.integrity,5,t.integrity<.45 and {255,194,26,255} or D.green);D.Rect(vg,bx+36,y+23,2,5,{255,90,70,255})
+        local rect=self:GetAbsoluteLayout();local layout=require('ui.ReticleState').Layout(rect.w,rect.h)
+        local R=require 'ui.ReticleDraw';local k=layout.k
+        require('ui.CombatFeedbackDraw').Render(vg,o.feedback,layout)
+        for _,t in ipairs(o.tags) do if t.visible and t.unit.alive and (not o.focus or o.focus.ref~=t.unit) then
+            local name=t.unit.name
+            local me=o.session.combat and o.session.combat.player;local enemy=not me or me.team~=t.unit.team
+            local color=enemy and {255,138,128,255} or {159,243,226,255}
+            local p=t.unit:Position();local camera=o.session.camera:GetNode().position
+            local distance=math.sqrt((p[1]+camera.x)^2+(p[2]-camera.y)^2+(p[3]-camera.z)^2)
+            if distance<=260 then
+                R.Text(vg,name,t.x-26*k,t.y-7*k,13*k,color)
+                local hp=t.unit:Health()
+                for i=0,9 do D.Line(vg,t.x-26*k+i*5.2*k+1,t.y,t.x-26*k+(i+1)*5.2*k-1,t.y,(i+.5)/10<=hp and (enemy and R.red or R.hp) or {255,255,255,48},3.5*k) end
+                R.Text(vg,math.floor(distance+.5)..' M',t.x-26*k,t.y+20*k,17*k,color)
             end
-            D.Text(vg,detail,t.x,y+height-18,11,t.unit.alive and D.muted or {255,138,112,255},'vox-body',NVG_ALIGN_CENTER);nvgRestore(vg)
         end end
+        require('ui.ReticleTarget').Render(vg,o,layout)
         local aim=o.aim
         if aim.visible then
             local x,y=aim.x,aim.y;nvgSave(vg);nvgTranslate(vg,x,y);nvgStrokeWidth(vg,2)
@@ -37,7 +40,7 @@ function Layer:Render(vg)
         local size=p.killed and 28 or p.amount>=100 and 26 or 18;local color=p.killed and {255,106,80,255} or p.amount>=100 and {255,207,74,255} or {255,243,208,255}
         local y=p.y-p.t*60-size/2;nvgSave(vg);nvgGlobalAlpha(vg,1-p.t*p.t)
         nvgFontBlur(vg,3);D.Text(vg,p.text,p.x,y+1,size,{0,0,0,204},nil,NVG_ALIGN_CENTER);nvgFontBlur(vg,0)
-        D.Text(vg,p.text,p.x,y,size,color,nil,NVG_ALIGN_CENTER);nvgRestore(vg)
+        D.Text(vg,p.text,p.x,y,size,color,'vox-hud',NVG_ALIGN_CENTER);nvgRestore(vg)
     end end
 end
 return Layer

@@ -33,12 +33,14 @@ function M:init(scene,bp,preparedWorld)
         self.battle=require('combat.BattleController').New(self,bp);self.vehicle=self.battle.player.vehicle
     else self.vehicle=Vehicle.New(self.world.space,Spec.Build(bp)) end
     self.combat=self.battle or self.story or self.salvage
+    self.world.feedbackPlayer=self.combat and self.combat.player
     if self.map.environment then self.environment=require(self.map.environment).New(scene,self.world.layout) end
     self.ReleaseAssets=require(self.map.assets).Release
     if #self.world.targets>0 then self.targetFeedback=TargetFeedback.New(self.world.root,self.world.targets) end
     self.weapons=self.combat and self.combat.player.weapons or Weapons.New(self.vehicle.spec);self.effects=Effects.New(scene,function(x,z) return self.world:GroundAt(x,z) end)
     self.weaponAudio=require('audio.WeaponAudio').New(scene)
     self.drivingAudio=require('audio.DrivingAudio').New(scene)
+    self.feedbackAudio=require('audio.CombatFeedbackAudio').New(scene)
     self.combatView=CombatView.New(scene);if not self.combat then self.world:SetUnits(bp) end;self.combatView:Consume(self.world)
     self.view=DriveView.New(scene,bp,self.vehicle);self.target=scene:CreateChild("FollowTarget")
     self.cameraOffset=self.vehicle.legMode and Vector3.ZERO or Vector3(0,math.max(3.8,(self.vehicle.spec.bounds.max[2]-self.vehicle.spec.bounds.min[2])*.65),0)
@@ -68,6 +70,7 @@ function M:StartIntro()
     if self.battle and not self.disposed then
         self.weaponAudio:SetActive(false)
         self.drivingAudio:SetActive(false)
+        self.feedbackAudio:SetActive(false)
         if self.intro then self.intro:Dispose() end
         self.intro=require('app.MatchIntro').New(self)
     end
@@ -80,6 +83,7 @@ function M:Reset()
     -- A teleport cancels shots in flight and transient feedback, not energy/cooldowns.
     self.weapons.projectiles={};self.weapons.wasFiring=false;self.effects:Clear();self.weaponAudio:Stop()
     self.drivingAudio:Stop()
+    self.feedbackAudio:Stop()
 end
 function M:HasFocus() return input.focus and not input.minimized end
 function M:Resume() if (self.story or self.salvage) and self.combat.rules.finished then return false end;return self.pointer:Capture() end
@@ -92,7 +96,7 @@ function M:Zoom(wheel)
     self.camera:SetModeConfig(mode,{distance=self.cameraDistance,offset=self.cameraOffset,fov=48})
     self.camera:SetMode(mode)
 end
-function M:Pause() self.pointer:Release();self.weaponAudio:SetActive(false);self.drivingAudio:SetActive(false) end
+function M:Pause() self.pointer:Release();self.weaponAudio:SetActive(false);self.drivingAudio:SetActive(false);self.feedbackAudio:SetActive(false) end
 function M:Escape()
     if self.dialog then Host.Close(self);self:Pause()
     elseif self.pointer.captured then self:Pause()
@@ -174,6 +178,8 @@ function M:Tick(dt,command)
     self.weaponAudio:SetActive(self.pointer.captured and (not self.battle or self.battle.rules.state=='live') and (not self.story or not self.story.rules.finished) and (not self.salvage or self.salvage.begun and not self.salvage.rules.finished))
     self.weaponAudio:Update(dt,self.weapons,self.camera:GetNode(),self.combat and self.combat.entries,self.combat and self.combat.voice.card~=nil)
     self.drivingAudio:SetActive(self.weaponAudio.active)
+    self.feedbackAudio:SetActive(self.weaponAudio.active)
+    self.feedbackAudio:Update(dt,self.camera:GetNode(),self.combat and self.combat.voice.card~=nil)
     local alive=not self.combat or self.combat.player.alive
     self.drivingAudio:Update(dt,alive and self.vehicle or nil,command,self.camera:GetNode(),self.combat and self.combat.entries,self.combat and self.combat.voice.card~=nil)
     if (self.story or self.salvage) and self.combat.rules.finished then if self.hud then self.hud.Update(self,dt) end;return end
@@ -202,6 +208,8 @@ function M:Tick(dt,command)
             self.view:SavePose();local center=self.vehicle.body.center()
             self.world.metrics:Timing(self.world.time,{center.x,center.y,center.z},self.vehicle.speed,self.prevZ);self.prevZ=center.z
         end
+        self.feedbackAudio:Consume(self.world.viewEvents,self.combat and self.combat.player)
+        if self.hud then self.hud.overlay:Consume(self.world.viewEvents) end
         self.combatView:Consume(self.world);self.combatView:SavePose()
         self.effects:Consume(self.world.fx);self.world.fx={}
         self.accumulator=self.accumulator-1/60;self.fixedSteps=self.fixedSteps+1
@@ -290,7 +298,8 @@ function M:PostUpdate(dt)
     if self.vehicle.legMode then self.target.position=p+root.rotation*Coord.Vec(table.unpack(self.vehicle.com))
     else self.target.position=Vector3(p.x,p.y+self.vehicle.spec.bounds.min[2],p.z) end
     self.camera:Update(dt,self.target,self.yaw,self.pitch)
-    local c=self.camera:GetCamera();local targetFov=self.scope and 24 or 48+math.min(1,math.abs(self.vehicle.speed)/28)*6
+    local group=self.weapons:Group()
+    local c=self.camera:GetCamera();local targetFov=self.scope and require('ui.ReticleState').ScopeFov(48,group and group.kind) or 48+math.min(1,math.abs(self.vehicle.speed)/28)*6
     if not self.scope then
         -- Ceilings shorten the camera boom. Widen the lens only while blocked
         -- so the car remains framed instead of filling/cropping the screen.
@@ -313,6 +322,7 @@ function M:Dispose()
     if self.effects then self.effects:Dispose() end
     if self.weaponAudio then self.weaponAudio:Dispose() end
     if self.drivingAudio then self.drivingAudio:Dispose() end
+    if self.feedbackAudio then self.feedbackAudio:Dispose() end
     if self.combatView then self.combatView:Dispose() end
     self.weapons=nil;self.aimHit=nil
     if self.view then self.view:Dispose() end
