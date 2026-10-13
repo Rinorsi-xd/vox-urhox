@@ -1,7 +1,9 @@
 -- Reversible deltas, stable part IDs, source limit 300. Rendering is an observer.
 local M={};M.__index=M
 function M.Snapshot(p)
-    return {id=p.id,type=p.type,pos={table.unpack(p.pos)},rot=p.rot,color=p.color,shellColor=p.shellColor}
+    local data={id=p.id,type=p.type,pos={table.unpack(p.pos)},rot=p.rot,color=p.color,shellColor=p.shellColor}
+    if p.g and p.g>0 then data.g=p.g end
+    return data
 end
 function M.New(bp,onChange)
     return setmetatable({bp=bp,onChange=onChange,undoStack={},redoStack={},revision=0},M)

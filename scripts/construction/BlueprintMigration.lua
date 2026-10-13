@@ -18,7 +18,7 @@ function M.Load(bp,data)
         elseif (legacyWheel or legacyHover) and bp:Overlaps(type,pos,rot) then
             bp.dropped=bp.dropped+1;if legacyHover then droppedHovers=droppedHovers+1 end
         else
-            local p=bp:Add({type=type,pos=pos,rot=rot,color=row[6],shellColor=row[7]})
+            local p=bp:Add({type=type,pos=pos,rot=rot,color=row[6],shellColor=row[7],g=row[8]})
             if legacyWheel then oldWheels[#oldWheels+1]=p end
             if legacyHover then migratedHovers=migratedHovers+1 end
         end

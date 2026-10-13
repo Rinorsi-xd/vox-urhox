@@ -5,7 +5,7 @@ local Motion=require 'ui.SourceButtonMotion'
 local Config=require 'Config'
 local source=require('core.ResourceData').Read('UI/SourceBuildModeLayout.json')
 local Badge=Panel:Extend('VoxBuildModeBadge')
-local specs={paint={'brush','上色','P'},erase={'erase','删除','X'},select={'select','选择','Q'},paste={'copy','粘贴',''}}
+local specs={paint={'brush','上色','P'},erase={'erase','删除','X'},select={'select','选择','Q'},stretch={'ruler','拉伸','J'},paste={'copy','粘贴',''}}
 local textColor={244,245,247,255}
 local muted={174,196,218,255}
 local brand={155,215,250,255}
@@ -45,6 +45,7 @@ function Badge:Sync()
             Add('text',name,15);Add('key','Tab',11);Add('small','换主色 / 装饰色',12,2)
         elseif mode=='erase' then Add('text','左键 / 右键删一格',15)
         elseif mode=='select' then Add('text',count>0 and ('已选 '..count..' 个') or '点选 · 按住拖动框选',15)
+        elseif mode=='stretch' then Add('text','定起点 → 定长宽 → 定高度',15)
         else Add('text','左键放下 · R 旋转',15) end
         Add('divider','',0,6)
         if spec[3]~='' then Add('exitKey',spec[3],11) end

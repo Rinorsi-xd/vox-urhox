@@ -55,6 +55,7 @@ function M:ToggleXray()
 end
 function M:Escape()
     self.controls:Cancel()
+    if self.editor.stretch then require('construction.BuildStretch').Cancel(self.editor);self:Refresh();return end
     if self.buildCamera.captured or self.buildCamera.pending then self.buildCamera:Release();self:Refresh();return end
     if self.dialog then self.dialog:Close()
     elseif self.inventoryPanel then self.inventoryPanel:Close()
@@ -87,6 +88,14 @@ function M:CyclePaintColor(direction)
 end
 function M:Wheel(delta)
     if self.dialog or self.inventoryPanel then return end
+    if self.editor.stretch then
+        self.wheelAcc=(self.wheelAcc or 0)+require('controls.Wheel').Pixels(delta)
+        if math.abs(self.wheelAcc)>=50 then
+            local direction=self.wheelAcc>0 and 1 or -1;self.wheelAcc=0
+            require('construction.BuildStretch').Adjust(self.editor,direction)
+        end
+        return
+    end
     if input:GetKeyDown(KEY_SHIFT) or input:GetKeyDown(KEY_CTRL) then
         if self.buildCamera.mode=='orbit' then self.camera.dist=require('controls.Wheel').Zoom(self.camera.dist,delta,self.camera.minDist,self.camera.maxDist) end
         return
@@ -122,10 +131,13 @@ function M:BoxSelect(rect)
 end
 function M:Act()
     if self.dialog or self.inventoryPanel or self.hud.colorOpen then return false end
-    if self.editor.tool=='build' and not self.ghost:Warm(self.editor,true) then
+    local stretch=self.editor.stretch
+    local confirming=stretch and stretch.phase~='rect'
+    if (self.editor.tool=='build' or confirming) and not self.ghost:Warm(self.editor,true,stretch and stretch.phase=='selection' and stretch.items or nil) then
         self:Notify(self.ghost.gate.state=='failed' and self.ghost.gate.failure or '零件正在加载…','info');return false
     end
     local ok,err=self.editor:Act()
+    if self.editor.stretchSelected then self.editor.stretchSelected=nil;self.selecting=true end
     if not ok and err then self:Notify(err,'bad') elseif ok then self.message='' end
     self:Refresh();return ok
 end
@@ -163,7 +175,13 @@ function M:Keys()
         if Press(KEY_C) then e:Copy() end
         if Press(KEY_V) then self.controls:Cancel();e:StartPaste() end
         if Press(KEY_S) then self:SaveSlot() end
+        if e.stretch then self.controls:Cancel();self:Refresh();return end
     else
+        if e.stretch then
+            if Press(KEY_ESCAPE) then self:Escape() end
+            if Press(KEY_J) then self.controls:Cancel();self.selecting=false;e:SetTool('build') end
+            return
+        end
         for i,k in ipairs({KEY_1,KEY_2,KEY_3,KEY_4,KEY_5,KEY_6,KEY_7,KEY_8,KEY_9,KEY_0}) do if Press(k) then
             if input:GetKeyDown(KEY_ALT) then e.autoColor=false;e.color=Config.PALETTE[i].hex;e.dirty=true else self:SelectHotbar(i) end
         end end
@@ -179,6 +197,7 @@ function M:Keys()
         if Press(KEY_P) then self.controls:Cancel();self.selecting=false;e:SetTool(e.tool=='paint' and 'build' or 'paint') end
         if Press(KEY_X) then self.controls:Cancel();self.selecting=false;e:SetTool(e.tool=='erase' and 'build' or 'erase') end
         if Press(KEY_Q) then self.controls:Cancel();self.selecting=not self.selecting;e:SetTool('build') end
+        if Press(KEY_J) then self.controls:Cancel();self.selecting=false;e:SetTool(e.tool=='stretch' and 'build' or 'stretch') end
         if Press(KEY_K) and self.selecting then
             local ok,err=e:SelectCorner()
             self:Notify(ok and ('已选中 A、B 之间的方块，共 '..#e:Selected()..' 个（含镜像）') or err,'info')
@@ -199,6 +218,9 @@ function M:Keys()
 end
 function M:Update(dt)
     if self.disposed then return end
+    if self.editor.stretch and (not input.focus or input.minimized or self.dialog or self.inventoryPanel) then
+        require('construction.BuildStretch').Cancel(self.editor)
+    end
     require('controls.TouchMode').Update('build')
     require('ui.DialogHost').Update(self,dt)
     local width,height=UI.GetViewportSize();local safe=UI.GetSafeAreaInsets();local old=self.hud.safe
@@ -241,6 +263,7 @@ function M:Dispose()
     self.buildCamera:Dispose()
     self.car:SetXray(false)
     self.controls:Cancel();self.ghost:Dispose();self.app.store:Flush()
+    require('construction.BuildStretch').Cancel(self.editor)
     self.inspection:Dispose()
     if self.hud then self.hud.Dispose() end
 end

@@ -8,11 +8,23 @@ local red={255,59,48,255}
 function Hover:Sync()
     local s=self.session;local e=s.editor;local c=s.controls;local fly=s.buildCamera;local p=c.pointer
     local drag=p and (p.kind=='right' or p.kind=='middle' or p.orbit or p.select)
-    if s.dialog or s.inventoryPanel or s.hud.colorOpen or not c.inside or fly.mode=='fp' and not fly.captured or fly.mode=='orbit' and drag or not e.hit then self.info=nil;return end
-    local target=e.hit.partId and e.bp.parts[e.hit.partId];local pv=e.preview;local bad=false;local paragraphs={};local title={}
+    if s.dialog or s.inventoryPanel or s.hud.colorOpen or not c.inside or fly.mode=='fp' and not fly.captured or fly.mode=='orbit' and drag or not e.hit and not e.stretch then self.info=nil;return end
+    local target=e.hit and e.hit.partId and e.bp.parts[e.hit.partId];local pv=e.preview;local bad=false;local paragraphs={};local title={}
     local function Run(text,bold,muted) title[#title+1]={text=text,bold=bold,muted=muted} end
     local selectionSub
-    if s.selecting and not e.pasting then
+    if e.stretch then
+        local stretch=e.stretch;bad=stretch.bad~=false
+        if stretch.phase=='selection' then
+            Run('选区拉伸 '..stretch.h..' 层 · 新增 '..#stretch.items..' 格',true)
+            selectionSub=stretch.bad or '滚轮调层数 · 左键确认 · 右键 / Esc 取消 · 保留形状与配色'
+        else
+            local lo,hi=stretch.lo,stretch.hi
+            Run((hi[1]-lo[1]+1)..' × '..(hi[3]-lo[3]+1)..' × '..(hi[2]-lo[2]+1),true)
+            Run(' = '..#stretch.cells..' 格 '..Defs[stretch.type].name)
+            if #stretch.mirrorCells>0 then Run(' （含镜像）',false,true) end
+            selectionSub=stretch.bad and '放不下：'..stretch.bad or stretch.phase=='rect' and '挪准星定长宽 · 左键定下 · 右键取消' or '准星瞄到哪个高度就拉到哪（滚轮微调）· 左键放下 · 右键回去改长宽'
+        end
+    elseif s.selecting and not e.pasting then
         local d=c.dragSelection
         if d and d.lo then
             Run('框选 ');Run((d.hi[1]-d.lo[1]+1)..' × '..(d.hi[2]-d.lo[2]+1)..' × '..(d.hi[3]-d.lo[3]+1),true)

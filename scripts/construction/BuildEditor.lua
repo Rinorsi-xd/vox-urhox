@@ -22,15 +22,18 @@ function M.New(bp,onChange)
 end
 function M:SelectType(type)
     if not Defs[type] then return false end
+    require('construction.BuildStretch').Cancel(self)
     self.emptySlot=false
     self.type=type;self.tool='build';self.spin=0;self.sampledRot=nil;self.sampledFinish=nil;self.pasting=false;self.preview=nil
     return true
 end
 function M:SetTool(tool)
-    assert(tool=='build' or tool=='erase' or tool=='paint')
+    assert(tool=='build' or tool=='erase' or tool=='paint' or tool=='stretch')
+    require('construction.BuildStretch').Cancel(self)
     self.tool=tool;self.preview=nil;if tool~='build' then self.pasting=false end
 end
 function M:Rotate(step)
+    if self.stretch then return end
     if self.tool=='paint' then return end
     if self.pasting then self.pasteSpin=self.pasteSpin+step else self.spin=self.spin+step end
 end
@@ -41,19 +44,23 @@ function M:Tilt(step)
     self.sampledRot=Rot.RotateAroundAxis(rot,normal[2]~=0 and {1,0,0} or {0,1,0},step);self.spin=0
 end
 function M:Trace(origin,direction)
+    self.rayOrigin=origin;self.rayDirection=direction
     local hit=Ray.Cast(origin,direction,self.bp,160,false)
     if not hit.hit and self.bp:Size()==0 and self.type=='core' then hit={hit=true,cell={0,3,0},place={0,4,0},normal={0,1,0},anchor=true} end
-    return self:Preview(hit.hit and hit or nil)
+    local pv=self:Preview(hit.hit and hit or nil)
+    require('construction.BuildStretch').Update(self)
+    return pv
 end
 function M:Preview(hit)
     self.hit=hit;self.preview=nil;if not hit then return nil end
-    if self.emptySlot and self.tool=='build' then return nil end
+    if self.emptySlot and (self.tool=='build' or self.tool=='stretch') then return nil end
+    if self.stretch then return nil end
     if self.pasting then
         local items=self:PasteItems(hit.place);local ok=true
         for _,it in ipairs(items) do ok=ok and it.res.ok end
         self.preview={paste=items,ok=ok};return self.preview
     end
-    if self.tool~='build' then return nil end
+    if self.tool~='build' and self.tool~='stretch' then return nil end
     local type=self.type
     local p=Placement.For(type,hit,hit.place,self.forward,self.spin,self.sampledRot)
     local res=self.bp:Check(type,p.pos,p.rot,self.bounds)
@@ -70,6 +77,12 @@ function M:Preview(hit)
         end
     end
     self.preview=pv;return pv
+end
+function M:FinishFor(type)
+    local finish=self.sampledFinish and self.sampledFinish.type==type and self.sampledFinish or Defs[type]
+    local data={type=type,color=finish.color,shellColor=finish.shellColor}
+    if not self.autoColor then data[Finish.Field(data,self.paintChannel) or 'color']=self.color end
+    return data
 end
 function M:Place()
     local pv=self.preview;if not pv or not pv.type then return false,'没有放置目标' end
@@ -96,6 +109,7 @@ function M:Targets(hit)
     if mirror then list[#list+1]=mirror end;return list
 end
 function M:Remove(hit)
+    if self.stretch then return require('construction.BuildStretch').Right(self) end
     local ops={};for _,p in ipairs(self:Targets(hit or self.hit)) do ops[#ops+1]={op='remove',data=History.Snapshot(p)} end
     return self.history:Commit(ops)
 end
@@ -125,16 +139,24 @@ function M:ToggleSelect(id)
     return self:ToggleSelectTarget({partId=id,cell=self.bp.parts[id] and self.bp.parts[id].pos})
 end
 function M:SelectionParts(parts)
-    local out,seen={},{}
-    for _,p in ipairs(parts) do
-        if not seen[p.id] then out[#out+1]=p;seen[p.id]=true end
-        local mirror=self.mirror and Placement.MirrorPart(self.bp,p)
-        if mirror and not seen[mirror.id] then out[#out+1]=mirror;seen[mirror.id]=true end
+    local out,seen,queue={},{},{}
+    for _,p in ipairs(parts) do queue[#queue+1]=p end
+    while #queue>0 do
+        local p=table.remove(queue)
+        if not seen[p.id] then for _,q in ipairs(p.g and p.g>0 and self.bp:Group(p.g) or {p}) do
+            if not seen[q.id] then
+                out[#out+1]=q;seen[q.id]=true
+                local mirror=self.mirror and Placement.MirrorPart(self.bp,q)
+                if mirror and not seen[mirror.id] then queue[#queue+1]=mirror end
+            end
+        end end
     end
     return out
 end
 function M:SelectionChanged()
     for id in pairs(self.selection) do if not self.bp.parts[id] then self.selection[id]=nil end end
+    local selected={};for _,p in ipairs(self.bp:List()) do if self.selection[p.id] then selected[#selected+1]=p end end
+    for _,p in ipairs(self:SelectionParts(selected)) do self.selection[p.id]=true end
     local corners={}
     for _,c in ipairs(self.selectionCorners or {}) do if self.selection[c.id] then corners[#corners+1]=c end end
     self.selectionCorners=corners;self.selectionVersion=(self.selectionVersion or 0)+1;self.dirty=true
@@ -235,7 +257,7 @@ function M:Copy()
         return a.pos[1]<b.pos[1]
     end)
     local origin=parts[1].pos;self.clipboard={}
-    for _,p in ipairs(parts) do self.clipboard[#self.clipboard+1]={type=p.type,rel={p.pos[1]-origin[1],p.pos[2]-origin[2],p.pos[3]-origin[3]},rot=p.rot,color=p.color,shellColor=p.shellColor} end
+    for _,p in ipairs(parts) do self.clipboard[#self.clipboard+1]={type=p.type,rel={p.pos[1]-origin[1],p.pos[2]-origin[2],p.pos[3]-origin[3]},rot=p.rot,color=p.color,shellColor=p.shellColor,g=p.g} end
     return true
 end
 function M:StartPaste()
@@ -247,18 +269,19 @@ function M:PasteItems(place)
     for _,it in ipairs(self.clipboard) do
         local r=Rot.RotateVecY(it.rel,self.pasteSpin);local pos={place[1]+r[1],place[2]+r[2],place[3]+r[3]}
         local rot=Rot.RotateWorldY(it.rot,self.pasteSpin)
-        items[#items+1]={type=it.type,pos=pos,rot=rot,color=it.color,shellColor=it.shellColor,res=self.bp:Check(it.type,pos,rot,self.bounds,nil,false)}
+        items[#items+1]={type=it.type,pos=pos,rot=rot,color=it.color,shellColor=it.shellColor,g=it.g,res=self.bp:Check(it.type,pos,rot,self.bounds,nil,false)}
     end
     return items
 end
 function M:CommitPaste()
     local pv=self.preview;if not pv or not pv.paste then return false end
     if not pv.ok then return false,'这里放不下' end
-    local ops={};local id=self.bp.nextId
+    local ops,groups={},{};local id=self.bp.nextId;local nextGroup=self.bp.nextGroup
     for _,it in ipairs(pv.paste) do
         local res=self.bp:Check(it.type,it.pos,it.rot,self.bounds,nil,false);if not res.ok then return false,res.reason end
         if not (Defs[it.type].unique and #self.bp:CoreParts()>0) then
-            ops[#ops+1]={op='add',data={id=id,type=it.type,pos=Copy(it.pos),rot=it.rot,color=it.color,shellColor=it.shellColor}};id=id+1
+            if it.g and it.g>0 and not groups[it.g] then groups[it.g]=nextGroup;nextGroup=nextGroup+1 end
+            ops[#ops+1]={op='add',data={id=id,type=it.type,pos=Copy(it.pos),rot=it.rot,color=it.color,shellColor=it.shellColor,g=groups[it.g]}};id=id+1
         end
     end
     local ok=self.history:Commit(ops);self.selection={}
@@ -267,15 +290,18 @@ function M:CommitPaste()
 end
 function M:Act()
     if self.pasting then return self:CommitPaste() end
+    if self.tool=='stretch' then return require('construction.BuildStretch').Click(self) end
     if self.tool=='paint' then return self:Paint() elseif self.tool=='erase' then return self:Remove() end
     return self:Place()
 end
 function M:Undo()
+    require('construction.BuildStretch').Cancel(self)
     local ops=self.history.undoStack[#self.history.undoStack] or {}
     for _,op in ipairs(ops) do if op.op=='add' then self.selection[op.data.id]=nil end end
     return self.history:Undo()
 end
 function M:Redo()
+    require('construction.BuildStretch').Cancel(self)
     local ops=self.history.redoStack[#self.history.redoStack] or {}
     for _,op in ipairs(ops) do if op.op=='remove' then self.selection[op.data.id]=nil end end
     return self.history:Redo()

@@ -18,12 +18,14 @@ function M:Down(e)
     if self.pointer then self:Cancel();return end
     self.session:Trace(e.x,e.y)
     local kind=e:IsTouch() and 'left' or e:IsSecondaryButton() and 'right' or e:IsPrimaryButton() and 'left' or 'middle'
-    self.pointer={id=e.pointerId,kind=kind,x=e.x,y=e.y,startX=e.x,startY=e.y,travel=0,held=0,nextRepeat=.3,touch=e:IsTouch(),select=input:GetKeyDown(KEY_SHIFT) or self.session.selecting,orbit=kind=='left' and input:GetKeyDown(KEY_SPACE)}
+    self.pointer={id=e.pointerId,kind=kind,x=e.x,y=e.y,startX=e.x,startY=e.y,travel=0,held=0,nextRepeat=.3,touch=e:IsTouch(),select=input:GetKeyDown(KEY_SHIFT) or self.session.selecting,orbit=kind=='left' and input:GetKeyDown(KEY_SPACE),stretch=self.session.editor.tool=='stretch'}
     self.pointer.add=input:GetKeyDown(KEY_CTRL)
     if self.pointer.orbit then self.pointer.select=false end
     -- Desktop left paints/builds immediately; touch waits to distinguish a tap
     -- from orbiting. Holding follows source 300 ms then 100 ms repeat cadence.
     if kind=='left' and not e:IsTouch() and not self.pointer.select and not self.pointer.orbit then self.session:Act() end
+    if kind=='right' and self.session.editor.stretch then self.session.editor:Remove();self.pointer.stretch=true end
+    if self.session.editor.tool=='stretch' then self.pointer.stretch=true end
 end
 function M:Move(e)
     if self.session.dialog or self.session.inventoryPanel then self:Cancel();return end
@@ -53,7 +55,7 @@ function M:Up(e)
     elseif p.travel<8 then
         local editor=self.session.editor
         if p.select and p.kind=='left' then if editor.hit then editor:ToggleSelect(editor.hit.partId) end
-        elseif p.kind=='right' and editor.tool~='paint' then editor:Remove()
+        elseif p.kind=='right' and editor.tool~='paint' and not p.stretch then editor:Remove()
         elseif p.kind=='middle' then if editor.tool=='paint' then editor:Eyedrop(editor.hit) else editor:Pick(editor.hit) end
         elseif p.touch then self.session:Act() end
     end
@@ -76,6 +78,11 @@ function M:FirstPerson(dt)
     local left=input:GetMouseButtonDown(MOUSEB_LEFT) or leftPress
     local right=input:GetMouseButtonDown(MOUSEB_RIGHT) or rightPress
     local selecting=self.session.selecting and not e.pasting
+    if e.stretch or e.tool=='stretch' then
+        self.pointer=nil;self.dragSelection=nil
+        if leftPress then self.session:Act() elseif rightPress then e:Remove();self.session:Refresh() end
+        return
+    end
     if input:GetMouseButtonPress(MOUSEB_MIDDLE) then
         if e:Pick(e.hit) then self.session.selecting=false;self:Cancel();e.dirty=true end
         return
@@ -114,7 +121,7 @@ function M:Update(dt)
         return
     end
     local p=self.pointer
-    if p and p.kind=='left' and not p.touch and not p.select and not p.orbit then
+    if p and p.kind=='left' and not p.touch and not p.select and not p.orbit and not p.stretch then
         p.held=p.held+dt
         if p.held>=p.nextRepeat then
             p.nextRepeat=p.held+.1;self.session:Trace(self.x,self.y);self.session:Act()

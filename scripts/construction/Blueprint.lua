@@ -67,6 +67,7 @@ end
 ---@field pos integer[]
 ---@field rot integer
 ---@field color integer
+---@field g integer
 ---@field _cells integer[][]
 ---@field _sockets WorldSocket[]|string
 ---@field _socketSet table<string, boolean>|nil
@@ -98,6 +99,7 @@ function Blueprint:init()
     self.legIds = {}
     self.clearIds = {}
     self.nextId = 1
+    self.nextGroup = 1
     self.name = "未命名战车"
 end
 
@@ -109,6 +111,7 @@ function Blueprint:Clear()
     self.legIds = {}
     self.clearIds = {}
     self.nextId = 1
+    self.nextGroup = 1
 end
 
 ---@return integer
@@ -125,6 +128,12 @@ function Blueprint:List()
     for _, p in pairs(self.parts) do out[#out + 1] = p end
     table.sort(out, function(a, b) return a.id < b.id end)
     return out
+end
+
+function Blueprint:Group(g)
+    local members={}
+    if g and g>0 then for _,p in ipairs(self:List()) do if p.g==g then members[#members+1]=p end end end
+    return members
 end
 
 ---@return BlueprintPart|nil
@@ -248,9 +257,11 @@ function Blueprint:Add(spec)
         rot = spec.rot or Rot.IDENTITY,
         color = spec.color~=cjson.null and spec.color or def.color,
         shellColor = spec.shellColor~=cjson.null and spec.shellColor or nil,
+        g = def.shape and spec.g~=cjson.null and spec.g or 0,
     }
     if spec.id == nil then self.nextId = self.nextId + 1 end
     if part.id >= self.nextId then self.nextId = part.id + 1 end
+    if part.g >= self.nextGroup then self.nextGroup = part.g + 1 end
     self:_Index(part)
     self.parts[part.id] = part
     return part
@@ -436,7 +447,9 @@ end
 function Blueprint:ToTable()
     local parts = {}
     for _, p in ipairs(self:List()) do
-        parts[#parts + 1] = { p.type, p.pos[1], p.pos[2], p.pos[3], p.rot, p.color, p.shellColor }
+        local row={ p.type, p.pos[1], p.pos[2], p.pos[3], p.rot, p.color, p.shellColor }
+        if p.g>0 then row[7]=p.shellColor or cjson.null;row[8]=p.g end
+        parts[#parts + 1] = row
     end
     local out = { v = 1, sizeVersion=1, name = self.name, parts = parts }
     if #self.livery>0 then out.livery=require('construction.LiveryData').Clean(self.livery) end

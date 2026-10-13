@@ -103,6 +103,7 @@ function M.Validate(data)
         for i=2,5 do assert(type(row[i])=='number' and row[i]%1==0 and math.abs(row[i])<=100000,'零件坐标或朝向无效') end
         assert(row[5]>=0 and row[5]<24,'零件朝向无效')
         for i=6,7 do local c=row[i];assert(c==nil or c==cjson.null or type(c)=='number' and c%1==0 and c>=0 and c<=0xffffff,'涂装颜色无效') end
+        local g=row[8];assert(g==nil or g==cjson.null or type(g)=='number' and g%1==0 and g>=0 and g<=1000000000,'连接块组号无效')
     end
     if data.livery~=nil and data.livery~=cjson.null then data.livery=require('construction.LiveryData').Clean(data.livery) end
     return data

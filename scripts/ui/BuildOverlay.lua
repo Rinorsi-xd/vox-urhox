@@ -27,6 +27,11 @@ function Overlay:Render(vg)
     local hints={};local function Hint(text,key,mouse,extra,bold) hints[#hints+1]={text=text,key=key,mouse=mouse,extra=extra,bold=bold} end
     local rot=tostring(((e.pasting and e.pasteSpin or e.spin)%4)*90)..'°'
     if e.pasting then Hint('放下粘贴',nil,'L');Hint('旋转 '..rot,'R');Hint('取消','Esc')
+    elseif e.tool=='stretch' then
+        local phase=e.stretch and e.stretch.phase
+        Hint(phase=='rect' and '定长宽' or phase=='height' and '放下' or phase=='selection' and '确认选区拉伸' or '定起点',nil,'L',nil,true)
+        if phase=='height' or phase=='selection' then Hint('微调层数',nil,'W') end
+        Hint(phase=='height' and '回去改长宽' or '取消',nil,'R');Hint('退出拉伸','J / Esc')
     elseif s.selecting then Hint('选择',nil,'L',nil,true);Hint('全选','Ctrl+A');Hint('清空 / 退出','Esc')
     elseif e.tool=='erase' then Hint('删除零件',nil,'L',nil,true);Hint('删除零件',nil,'R');Hint('退出删除','X / Esc')
     elseif e.tool=='paint' then

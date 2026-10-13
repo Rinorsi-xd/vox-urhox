@@ -92,6 +92,12 @@ local function Dump(app)
         local b=app.build
         data.buildInput={mode=b.buildCamera.mode,captured=b.buildCamera.captured,slot=b.inventory.active,
             tool=b.editor.tool,channel=b.editor.paintChannel,color=b.editor.color,autoColor=b.editor.autoColor}
+        local preview=b.editor.preview
+        data.buildInput.preview=preview and preview.type and {type=preview.type,pos=preview.pos,rot=preview.rot,ok=preview.res.ok,reason=preview.res.reason} or false
+        local stretch=b.editor.stretch
+        data.buildStretch=stretch and {phase=stretch.phase,h=stretch.h,anchor=stretch.anchor,cur=stretch.cur,lo=stretch.lo,hi=stretch.hi,
+            bad=stretch.bad,items=stretch.items and #stretch.items or #stretch.cells,mirror=stretch.mirrorCells and #stretch.mirrorCells or 0,
+            version=stretch.planVersion,ghostModels=#b.ghost.pool} or false
         local ids={};for id in pairs(b.editor.selection) do ids[#ids+1]=id end;table.sort(ids)
         local drag=b.controls.dragSelection
         data.buildSelection={active=b.selecting==true,ids=ids,revision=b.editor.history.revision,

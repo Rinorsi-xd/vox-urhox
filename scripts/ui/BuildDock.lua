@@ -38,7 +38,7 @@ function M.Create(session,state,Action,root,layout)
     for _,t in ipairs(tools) do
         local button=Action(toolRoot,t[1],t[2],t[3],'tool',function()
             if t[1]=='select' then editor:SetTool('build');session.selecting=true
-            elseif t[1]=='stretch' then session:Notify('拉伸功能尚未迁移','bad')
+            elseif t[1]=='stretch' then editor:SetTool('stretch');session.selecting=false
             else editor:SetTool(t[1]);session.selecting=false end
         end,{width=layout.tool,height=52,key=t[4]})
         button.props.tooltip=t[2]
