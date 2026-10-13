@@ -25,12 +25,14 @@ function M:init(scene,bp,preparedWorld)
     self.scene=scene;self.controls=Input.New();self.accumulator=0;self.fixedSteps=0;self.droppedTime=0
     self.pointer=require('controls.DrivePointer').New(self)
     self.world=preparedWorld or require(self.map.world).New(scene)
-    if self.map.storyLevel then
+    if self.map.salvage then
+        self.salvage=require('salvage.Run').New(self,bp);self.vehicle=self.salvage.player.vehicle
+    elseif self.map.storyLevel then
         self.story=require('story.Mission').New(self,bp);self.vehicle=self.story.player.vehicle
     elseif self.map.battleMode then
         self.battle=require('combat.BattleController').New(self,bp);self.vehicle=self.battle.player.vehicle
     else self.vehicle=Vehicle.New(self.world.space,Spec.Build(bp)) end
-    self.combat=self.battle or self.story
+    self.combat=self.battle or self.story or self.salvage
     if self.map.environment then self.environment=require(self.map.environment).New(scene,self.world.layout) end
     self.ReleaseAssets=require(self.map.assets).Release
     if #self.world.targets>0 then self.targetFeedback=TargetFeedback.New(self.world.root,self.world.targets) end
@@ -50,7 +52,7 @@ function M:init(scene,bp,preparedWorld)
     self.camera=ThirdPerson.Create(scene,{modes={normal={distance=self.cameraDistance,offset=self.cameraOffset,fov=48}},collisionMask=1 | require('controls.CameraObstacles').LAYER,collisionPadding=.85,farClip=2600})
     self.fxContext={camera=self.camera:GetNode(),time=0,fov=60}
     self.yaw=0;self.pitch=30;self.teleport=1;self.wantsReturn=false;self.disposed=false;self.hud=nil
-    if self.combat then self.yaw=self.story and -self.story.player.spawnAt.yaw*180/math.pi or 0;self.view:ResetPose();self.view:Update(1)
+    if self.combat then self.yaw=-self.combat.player.spawnAt.yaw*180/math.pi;self.view:ResetPose();self.view:Update(1)
     else self:Reset() end
     if self.battle then self.battle.objectives:Update(0) end
     self:PostUpdate(1)
@@ -80,7 +82,7 @@ function M:Reset()
     self.drivingAudio:Stop()
 end
 function M:HasFocus() return input.focus and not input.minimized end
-function M:Resume() if self.story and self.story.rules.finished then return false end;return self.pointer:Capture() end
+function M:Resume() if (self.story or self.salvage) and self.combat.rules.finished then return false end;return self.pointer:Capture() end
 function M:Zoom(wheel)
     if wheel==0 then return end
     self.cameraDistance=require('controls.Wheel').Zoom(self.cameraDistance,wheel,self.minCameraDistance,self.maxCameraDistance)
@@ -119,9 +121,11 @@ function M:NextArea()
     self.app.toasts:Push('传送：'..self.world.layout.teleports[self.teleport].name)
 end
 local digitKeys={KEY_1,KEY_2,KEY_3,KEY_4,KEY_5,KEY_6,KEY_7,KEY_8,KEY_9,KEY_0}
-local actionKeys={KEY_ESCAPE,KEY_T,KEY_R,KEY_BACKSPACE,KEY_I,KEY_C,KEY_N}
+local actionKeys={KEY_ESCAPE,KEY_T,KEY_R,KEY_BACKSPACE,KEY_I,KEY_C,KEY_N,KEY_E,KEY_F,KEY_RETURN}
+local resultKeys={KEY_RETURN,KEY_ESCAPE,KEY_T}
 function M:KeyPressed(key) return input:GetKeyPress(key) end
 function M:HandleKey(key)
+    if self.salvage and self.salvage:Key(key) then return end
     if self.story and self.story.rules.finished then
         if key==KEY_R then self.app.restartStory=self.map.id;self.wantsReturn=true
         elseif key==KEY_ESCAPE or key==KEY_RETURN or key==KEY_T then self.wantsReturn=true end
@@ -144,10 +148,18 @@ function M:HandleKey(key)
     else for i,digit in ipairs(digitKeys) do if key==digit then self.weapons:Select(i);break end end end
 end
 function M:PollKeys(typing)
-    if typing or self.dialog or not self:HasFocus() then return end
+    if typing or not self:HasFocus() then return end
+    -- A completed salvage run owns the result overlay. Its exit keys must
+    -- reach the commit gate even while that overlay blocks driving input.
+    if self.salvage and self.salvage.rules.finished then
+        for _,key in ipairs(resultKeys) do
+            if self:KeyPressed(key) then self.wantsReturn=true;break end
+        end
+        return
+    end
+    if self.dialog then return end
     for _,key in ipairs(actionKeys) do if self:KeyPressed(key) then self:HandleKey(key) end end
     for _,key in ipairs(digitKeys) do if self:KeyPressed(key) then self:HandleKey(key) end end
-    if self.story and self:KeyPressed(KEY_RETURN) then self:HandleKey(KEY_RETURN) end
 end
 function M:Aim()
     if self.combat and not self.combat.player.alive then return self.aimPoint or self.combat.player:Position() end
@@ -159,12 +171,12 @@ function M:Aim()
     return hit and hit.point or {origin[1]+direction[1]*500,origin[2]+direction[2]*500,origin[3]+direction[3]*500}
 end
 function M:Tick(dt,command)
-    self.weaponAudio:SetActive(self.pointer.captured and (not self.battle or self.battle.rules.state=='live') and (not self.story or not self.story.rules.finished))
+    self.weaponAudio:SetActive(self.pointer.captured and (not self.battle or self.battle.rules.state=='live') and (not self.story or not self.story.rules.finished) and (not self.salvage or self.salvage.begun and not self.salvage.rules.finished))
     self.weaponAudio:Update(dt,self.weapons,self.camera:GetNode(),self.combat and self.combat.entries,self.combat and self.combat.voice.card~=nil)
     self.drivingAudio:SetActive(self.weaponAudio.active)
     local alive=not self.combat or self.combat.player.alive
     self.drivingAudio:Update(dt,alive and self.vehicle or nil,command,self.camera:GetNode(),self.combat and self.combat.entries,self.combat and self.combat.voice.card~=nil)
-    if self.story and self.story.rules.finished then if self.hud then self.hud.Update(self,dt) end;return end
+    if (self.story or self.salvage) and self.combat.rules.finished then if self.hud then self.hud.Update(self,dt) end;return end
     -- Fixed 60 Hz on both desktop and 30 Hz mobile. Bound catch-up after pauses.
     local elapsed=math.min(math.max(dt,0),.1);self.droppedTime=self.droppedTime+math.max(0,dt-elapsed)
     self.accumulator=self.accumulator+elapsed
@@ -193,7 +205,7 @@ function M:Tick(dt,command)
         self.combatView:Consume(self.world);self.combatView:SavePose()
         self.effects:Consume(self.world.fx);self.world.fx={}
         self.accumulator=self.accumulator-1/60;self.fixedSteps=self.fixedSteps+1
-        if self.story and self.story.rules.finished then self.accumulator=0;break end
+        if (self.story or self.salvage) and self.combat.rules.finished then self.accumulator=0;break end
     end
     self.fxContext.time=self.world.time
     local alive=not self.combat or self.combat.player.alive
@@ -229,7 +241,10 @@ function M:Update(dt)
     if self.dialogTick then self.dialogTick(dt) end
     local focus=UI.GetFocus();local typing=focus and focus.OnTextInput~=nil
     self:PollKeys(typing)
-    if self.wantsReturn then self.wantsReturn=false;self:Pause();self.onReturn();return end
+    if self.wantsReturn then
+        self.wantsReturn=false
+        if not self.salvage or self.salvage:Return() then self:Pause();self.onReturn();return end
+    end
     if self.dialog or typing or not self:HasFocus() then self:Pause() end
     self.pointer:Poll(dt)
     if not self.touch and not self.pointer.captured and not self.dialog and not typing and self:HasFocus() then
@@ -240,6 +255,7 @@ function M:Update(dt)
     end
     local blocked=self.dialog~=nil or typing or not self.pointer.captured
     if blocked then
+        if self.salvage then self.salvage.tapE=false;self.salvage.tapF=false end
         if self.hud then self.hud.Clear() else self.controls:Clear() end
         -- Source pointer-unlocked mode keeps world physics alive with neutral
         -- commands; menus never propel the vehicle or fire held weapons.

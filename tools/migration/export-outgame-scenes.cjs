@@ -24,6 +24,9 @@ function model(g){
 (async()=>{
  const server=http.createServer(async(req,res)=>{
   const url=new URL(req.url,'http://local');
+  if(url.pathname==='/migration/salvage-export.js'){
+   res.setHeader('Content-Type','text/javascript');fs.createReadStream(path.join(__dirname,'salvage-export.mjs')).pipe(res);return;
+  }
   if(url.pathname==='/migration.html'){
    res.setHeader('Content-Type','text/html');res.end('<script type="importmap">{"imports":{"three":"/three/vendor/three/build/three.module.js","three/addons/":"/three/vendor/three/addons/","@shared/":"/shared/"}}</script>');return;
   }
@@ -32,7 +35,7 @@ function model(g){
     const buffers=[];for await(const b of req)buffers.push(b);const g=JSON.parse(Buffer.concat(buffers));
     if(!['Warehouse','Salvage','Story'].includes(g.folder))throw Error('Invalid output');
     const out=path.join(root,'assets',g.folder);fs.mkdirSync(out,{recursive:true});
-    const name='model-'+g.index+'.bin',bytes=model(g);fs.writeFileSync(path.join(out,name),bytes);
+    const name=(g.name||(g.folder==='Salvage'?'run-model-':'model-')+g.index)+'.bin',bytes=model(g);fs.writeFileSync(path.join(out,name),bytes);
     res.end(JSON.stringify({model:g.folder+'/'+name,material:g.material,shadow:g.shadow,triangles:g.idx.length/3,bytes:bytes.length}));
    }catch(e){res.writeHead(500);res.end(String(e));}return;
   }
@@ -53,11 +56,7 @@ function model(g){
    scenes.Warehouse={group:wh.group,lights:[],limit:wh.cameraLimit,starter:{...STARTER_CAR.source,name:STARTER_CAR.name},stashCells:STASH_CELLS};
    }
    if(!selected||selected==='Salvage'){
-   const {loadSalvageTerrain}=await import('/shared/salvage/terrainBake.js');
-   const map=await loadSalvageTerrain();
-   const {buildSalvageWorld}=await import('/three/src/review/salvageTerrain/world.js');
-   const canyon=buildSalvageWorld(map,{terrainStep:2,log:console.log});canyon.group.rotation.y=Math.PI;canyon.group.updateMatrixWorld(true);
-   scenes.Salvage={group:canyon.group,lights:[],terrain:{size:map.size,cell:map.cell,res:map.V}};
+   scenes.Salvage=await (await import('/migration/salvage-export.js')).build();
    }
    if(selected==='Story'){
     const {StoryHolo,prepareTerrain}=await import('/three/src/ui/storyHolo.js');
@@ -140,12 +139,22 @@ function model(g){
      g.index=index++;const response=await fetch('/convert',{method:'POST',body:JSON.stringify(g)});if(!response.ok)throw Error(await response.text());models.push({...await response.json(),level:g.level});
     }
     output[folder]={materials,textures,models,lights:scene.lights,limit:scene.limit,terrain:scene.terrain,levels:scene.levels,starter:scene.starter,stashCells:scene.stashCells};console.log(folder+' converted '+models.length+' batches');
+    if(scene.salvage)output[folder].salvage=await scene.salvage(material);
    }return output;
   },process.env.VOX_EXPORT_SCENE||'');
+  fs.writeFileSync(path.join(root,'.tmp/outgame-scenes-export.json'),JSON.stringify(result));
   for(const [folder,data] of Object.entries(result)){
    const out=path.join(root,'assets',folder);
    data.textures.forEach((t,i)=>fs.writeFileSync(path.join(out,'texture-'+i+'.png'),Buffer.from(t.split(',')[1],'base64')));delete data.textures;
-   fs.writeFileSync(path.join(out,'Manifest.json'),JSON.stringify(data));
+   if(data.salvage){
+    const s=data.salvage;const height=Buffer.alloc(20+s.heights.length*4);height.write('VHF1');height.writeUInt32LE(s.n,4);
+    [-s.size/2,-s.size/2,s.size/s.n].forEach((v,i)=>height.writeFloatLE(v,8+i*4));s.heights.forEach((v,i)=>height.writeFloatLE(v,20+i*4));
+    fs.writeFileSync(path.join(out,'Height.bin'),height);delete s.heights;
+    fs.writeFileSync(path.join(out,'Gameplay.json'),JSON.stringify(s.gameplay));delete s.gameplay;
+    fs.writeFileSync(path.join(out,'RunData.json'),JSON.stringify(s.rules));delete s.rules;
+    fs.writeFileSync(path.join(out,'Physics.json'),JSON.stringify(s));delete data.salvage;
+   }
+   fs.writeFileSync(path.join(out,folder==='Salvage'?'RunManifest.json':'Manifest.json'),JSON.stringify(data));
    console.log(folder,JSON.stringify({models:data.models.length,materials:data.materials.length,triangles:data.models.reduce((n,m)=>n+m.triangles,0),MB:data.models.reduce((n,m)=>n+m.bytes,0)/1024/1024}));
   }
  }finally{await browser.close();server.close();}

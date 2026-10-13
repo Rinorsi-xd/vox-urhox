@@ -229,6 +229,19 @@ function App:EnterTrial(mapId,battleMode,roster,reuseLoading)
     self.vehicleGate:Cancel()
     if self.build then self.build.buildCamera:Release() end
     local map=assert(require('app.DriveMaps')[mapId or 'trial'],'Unknown drive map')
+    if map.salvage then
+        if self.lobby~='salvage' then return false end
+        local spec=require('drive.VehicleSpec').Build(self.blueprint)
+        if not spec.ok then self.toasts:Push(spec.reason or '战车无法出发，请先整备','bad');return false end
+        local items=require('core.ResourceData').Read('UI/Outgame.json')
+        local value=0
+        for _,p in ipairs(self.blueprint:List()) do local it=items.items['part:'..p.type];if it then value=value+it.price end end
+        local op=items.ops[self.salvageLobby.data.op or 1]
+        if value<op.minValue then self.toasts:Push('带入价值不足 '..tostring(op.minValue),'bad');return false end
+        for id,n in pairs(self.salvageLobby:Usage()) do
+            if n>self.salvageLobby:Owned(id) then self.toasts:Push('仓库缺少 '..(items.items[id] and items.items[id].name or id),'bad');return false end
+        end
+    end
     if battleMode then
         local copy={};for key,value in pairs(map) do copy[key]=value end;map=copy
         local cfg=require('combat.ArenaData').modes[battleMode]
@@ -245,6 +258,12 @@ function App:EnterTrial(mapId,battleMode,roster,reuseLoading)
     end
     local options={resources=map.resources and require('core.ResourceData').Read(map.resources) or {map.scene},webWarmup=map.webWarmup,cancel=ClearLoading,
         cleanup=function() if preparedWorld then preparedWorld:Dispose();preparedWorld=nil end end}
+    if map.salvage then
+        options.webWarmup={{type='Texture2D',name='Salvage/GroundBaked.png'}}
+        for _,path in ipairs(options.resources) do
+            if path:match('^Salvage/run%-model%-.*%.bin$') then options.webWarmup[#options.webWarmup+1]={type='Model',name=path} end
+        end
+    end
     local parts=self.blueprint:List()
     for _,part in ipairs(Prefab.BuildRaceCar(Blueprint.New()):List()) do parts[#parts+1]=part end
     for _,path in ipairs(require('parts.Dependencies').For(parts)) do options.resources[#options.resources+1]=path end

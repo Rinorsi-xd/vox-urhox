@@ -69,11 +69,15 @@ function M.Create(session,root)
         root:AddChild(b);buttons[id]=b
     end
     Tap('flip','翻正',0,function() session:Flip() end)
-    if session.story then Hold('interact','安装',{'interact'},72,190,64)
+    if session.salvage then
+        Hold('interact','搜刮',{'interact'},72,190,64)
+        buttons.interact.props.onClick=function() if Ready() then session.salvage.tapE=true end end
+        Tap('swap','换入',144,function() session.salvage.tapF=true end)
+    elseif session.story then Hold('interact','安装',{'interact'},72,190,64)
     elseif not session.battle then Tap('area','传送',72,function() session:NextArea() end) end
-    Tap('scope','瞄准',144,function() session.scope=not session.scope end)
+    if not session.salvage then Tap('scope','瞄准',144,function() session.scope=not session.scope end) end
     for i,item in ipairs({{'zoomIn','拉近',1},{'zoomOut','拉远',-1}}) do
-        local b=Button{text=item[2],sourceKind='flat',position='absolute',right=right+(i-1)*72,top=132,width=64,height=44,
+        local b=Button{text=item[2],sourceKind='flat',position='absolute',right=right+(i-1)*72,top=session.salvage and 68 or 132,width=64,height=44,
             onClick=function() if Ready() then session:Zoom(item[3]*(require('urhox-libs.Platform.PlatformUtils').IsWebPlatform() and 100 or 1)) end end}
         root:AddChild(b);buttons[item[1]]=b
     end

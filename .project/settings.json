@@ -18,7 +18,10 @@
       "../assets",
       "../scripts"
     ],
-    "asset_ignores": []
+    "asset_ignores": [
+      "assets/Salvage/model-*",
+      "assets/Salvage/collision-hull-?.bin*"
+    ]
   },
   "@runtime": {
     "multiplayer": {

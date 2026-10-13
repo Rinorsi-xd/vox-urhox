@@ -1,5 +1,8 @@
 -- One session/controller/HUD; each map supplies an authored scene and world.
 local maps={
+    salvage={id='salvage',name='断坝峡谷',salvage=true,scene='Scenes/Salvage.xml',world='drive.SalvageWorld',assets='scene.SalvageAssets',resources='Salvage/Resources.json',prepareWorld='drive.SalvagePhysics',
+        loadingArt='UI/Salvage/operations.png',loadingBrand='打捞行动',loadingSub='断坝峡谷 · 搜打撤 · 独立仓库',
+        loadingTips={'按 E 搜箱子，按住 E 拆残骸','装得越重车越慢，撤离成功才带得回仓库','战车被击毁会失去零件；放弃行动保留战车'}},
     trial={id='trial',name='试车场',scene='Scenes/TrialTrack.xml',world='drive.TrackWorld',assets='scene.TrackAssets',resources='Track/Resources.json',
         loadingArt='UI/Modes/test.jpg',loadingBrand='试车场',loadingSub='100 米加速道 · 坡道 · 靶场',
         loadingTips={'自由驾驶，熟悉操控和武器','靶车会逐块被打坏，看看你的火力','可以选任意档位'}},

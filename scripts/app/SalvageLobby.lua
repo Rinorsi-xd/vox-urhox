@@ -20,6 +20,18 @@ function M:Usage()
 end
 function M:Loose(id,usage) return math.max(0,self:Owned(id)-((usage or self:Usage())[id] or 0)) end
 function M:Save() return self.store:Write('stash',self.data,Valid) end
+function M:CommitRun(runId,result,originalParts)
+    if self.data.lastRun==runId then return true end
+    local previous=self.data;local nextData={};for k,v in pairs(previous) do nextData[k]=v end
+    nextData.items={};for id,n in pairs(previous.items) do nextData.items[id]=n end
+    local stats=previous.stats or {};nextData.stats={raids=(stats.raids or 0)+1,extracted=(stats.extracted or 0)+(result.ok and 1 or 0),lost=(stats.lost or 0)+(result.ok and 0 or 1)}
+    if result.ok then for id,n in pairs(result.cargo) do nextData.items[id]=(nextData.items[id] or 0)+n end
+    elseif not result.keepCar then
+        for _,p in ipairs(originalParts) do if p[1]~='core' then local id='part:'..p[1];nextData.items[id]=math.max(0,(nextData.items[id] or 0)-1) end end
+    end
+    nextData.lastRun=runId;self.data=nextData
+    local ok,err=self:Save();if not ok then self.data=previous end;return ok,err
+end
 function M:Cells(usage)
     local count=0;for id in pairs(Data.items) do local n=self:Loose(id,usage);if n>0 then count=count+math.ceil(n/(Rules.stack[id] or 1)) end end;return count
 end

@@ -120,7 +120,8 @@ function M:Close()
     if wasActive then
         self.app.graphicsSettings:SetSceneVisible(true)
         local trial=self.app.trial
-        if trial and trial.story and self.finished and not self.cancelled and not self.failed then trial.story:Begin();if trial.touch then trial:Resume() end
+        if trial and trial.salvage and self.finished and not self.cancelled and not self.failed then trial.salvage:Begin();if trial.touch then trial:Resume() end
+        elseif trial and trial.story and self.finished and not self.cancelled and not self.failed then trial.story:Begin();if trial.touch then trial:Resume() end
         elseif trial and self.match and self.finished and not self.cancelled and not self.failed then trial:StartIntro()
         elseif trial and trial.touch then trial:Resume() end
         print('[LoadingFlow] Closed')

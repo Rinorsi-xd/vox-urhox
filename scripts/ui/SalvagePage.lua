@@ -11,6 +11,7 @@ local marketRank={};for i,id in ipairs(Rules.marketOrder) do marketRank[id]=i en
 local Theme=require 'ui.VoxTheme'
 local M={}
 local tabs={{'loadout','整备',86},{'ops','行动',86},{'market','商人',86},{'garage','车库',86},{'workshop','创意工坊',154}}
+function M.Deploy(s) return s.app:EnterTrial('salvage') end
 function M.Tab(s,id)
     local sv=s.salvage;if sv.tab=='workshop' then require('ui.Workshop').Leave(s) end
     sv.tab=id;sv.selected=false;sv.qty=1;s.revision=-1;s.app:HomeView('salvage')
@@ -31,7 +32,7 @@ function M.Key(s)
     elseif input:GetKeyPress(KEY_TAB) and sv.tab=='loadout' then M.Toggle(s)
     elseif input:GetKeyPress(KEY_RETURN) then
         if sv.tab=='market' then M.Trade(s) elseif sv.tab=='ops' then M.Tab(s,'loadout')
-        elseif sv.tab=='loadout' then s.app.toasts:Push('打捞战斗尚未迁移','warn') end
+        elseif sv.tab=='loadout' then M.Deploy(s) end
     else
         for i,key in ipairs({KEY_1,KEY_2,KEY_3,KEY_4,KEY_5}) do if input:GetKeyPress(key) then M.Tab(s,tabs[i][1]);return end end
     end
@@ -144,7 +145,7 @@ function M.Create(s)
             for i,sort in ipairs({{'rarity','稀有度'},{'value','价值'},{'count','数量'}}) do Add(sort[2],'button',dx+274+(i-1)*92,248,92,38,function() sv.sort=sort[1];s.revision=-1 end,{selected=sv.sort==sort[1]}) end
             if sv.selected then Box('inspect',w-994,108,400,h-278) end
         end
-        Add('出发','primary',w-496,h-150,440,80,function() s.app.toasts:Push('打捞战斗尚未迁移','warn') end,{subtitle='断坝峡谷 · '..Data.ops[lobby.data.op or 1].name..' · 带入价值 '..D.Number(Paint.Value(s)),key='Enter'})
+        Add('出发','primary',w-496,h-150,440,80,function() M.Deploy(s) end,{subtitle='断坝峡谷 · '..Data.ops[lobby.data.op or 1].name..' · 带入价值 '..D.Number(Paint.Value(s)),key='Enter'})
         if sv.gearPop then
             local list={};for _,it in pairs(Data.items) do if it.cat=='gear' then local equipped=false;for _,id in ipairs(sv.gear) do if id==it.id then equipped=true end end;if not equipped then list[#list+1]=it end end end
             local rank={};for i,id in ipairs(Rules.itemOrder) do rank[id]=i end;table.sort(list,function(a,b) return rank[a.id]<rank[b.id] end)

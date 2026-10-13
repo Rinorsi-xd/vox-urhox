@@ -6,7 +6,9 @@ local Button=Base:Extend('VoxSourceButton')
 local Motion=require 'ui.SourceButtonMotion'
 local function Flat(kind) return kind=='dialog' or kind=='primary' or kind=='flat' end
 function Button:Update(dt)
-    if Flat(self.props.sourceKind) then Motion.Update(self,dt) end
+    local kind=self.props.sourceKind or 'action'
+    if Flat(kind) then Motion.Update(self,dt)
+    elseif kind:sub(1,4)=='cta-' then Motion.UpdateCTA(self,dt) end
 end
 function Button:Render(vg)
     D.Begin(vg);local r=self:GetAbsoluteLayout();local p=self.props;local x,y,w,h=r.x,r.y,r.w,r.h
@@ -18,6 +20,9 @@ function Button:Render(vg)
     if Flat(kind) then
         local scale=self.sourceMotion and self.sourceMotion.scale.value or 1
         nvgTranslate(vg,x+w*.5,y+h*.5);nvgScale(vg,scale,scale);nvgTranslate(vg,-x-w*.5,-y-h*.5)
+    elseif kind:sub(1,4)=='cta-' then
+        local motion=self.sourceMotion
+        if motion then nvgTranslate(vg,motion.x.value,motion.y.value) end
     elseif pressed then nvgTranslate(vg,x+w*.5,y+h*.5+1);nvgScale(vg,.97,.97);nvgTranslate(vg,-x-w*.5,-y-h*.5) end
     if kind=='tab' then
         color=p.selected and D.white or D.muted
@@ -62,7 +67,12 @@ function Button:Render(vg)
         local main=kind=='cta-main';color=D.white
         local points=main and {x+18,y,x+w-18,y,x+w,y+h,x,y+h} or kind=='cta-left' and {x+w*.17,y,x+w,y,x+w-18,y+h,x+w*.07,y+h,x,y+h*.79} or {x,y,x+w*.855,y,x+w,y+h*.79,x+w*.93,y+h,x+18,y+h}
         Relief.Draw(vg,x,y,w,h,main,false,points)
-        if hover then D.Path(vg,points);nvgFillColor(vg,nvgRGBA(255,255,255,main and 51 or 26));nvgFill(vg) end
+        local sweep=self.sourceMotion and self.sourceMotion.hover.value or 0
+        -- The frozen primary removes ::before; side buttons retain its sweep.
+        if not main and sweep>0 then
+            nvgSave(vg);nvgIntersectScissor(vg,x,y,w*sweep,h);D.Path(vg,points)
+            nvgFillColor(vg,nvgRGBA(255,255,255,26));nvgFill(vg);nvgRestore(vg)
+        end
         local kw=D.Width(vg,p.key or '',12,nil,.5)+12
         local iconSize=main and 33 or 24;local titleSize=main and 36 or 25;local subSize=main and 11 or 10
         local tracking=main and 3 or 0
@@ -85,15 +95,13 @@ function Button:Render(vg)
         D.Text(vg,p.subtitle or '',x+72,y+38,12.5,D.muted,'vox-body')
     elseif Flat(kind) then
         local primary=kind=='primary'
-        local cut=primary and 12 or 0
+        local cut=kind=='flat' and 0 or 14
         local points={x,y,x+w-cut,y,x+w,y+cut,x+w,y+h,x,y+h}
-        D.Path(vg,points)
         local selected=kind=='flat' and p.selected
-        nvgFillColor(vg,D.Color(selected and D.orange or primary and D.blue or {33,59,85,255}));nvgFill(vg)
-        -- CSS clips the rectangular border; it does not stroke the cut edge.
-        local edge=selected and D.orange or hover and not p.disabled and {105,137,167,255} or primary and D.orange or {61,88,114,255}
-        D.Rect(vg,x,y,w-cut,1,edge);D.Rect(vg,x,y,1,h,edge)
-        D.Rect(vg,x+w-1,y+cut,1,h-cut,edge);D.Rect(vg,x,y+h-1,w,1,edge)
+        if selected then
+            D.Path(vg,points);nvgFillColor(vg,D.Color(D.orange));nvgFill(vg)
+            D.Rect(vg,x,y,w,1.5,{219,238,255,128});D.Rect(vg,x,y+h-1.5,w,1.5,{11,36,75,128})
+        else Relief.Draw(vg,x,y,w,h,primary,true,points) end
         local sweep=self.sourceMotion and self.sourceMotion.hover.value or 0
         if sweep>0 then
             nvgSave(vg);nvgIntersectScissor(vg,x,y,w*sweep,h);D.Path(vg,points)

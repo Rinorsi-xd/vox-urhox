@@ -1,0 +1,5070 @@
+{
+  "build": "D:\\Rino_Project\\maker\\Vox\\VoxelCraft\\.tmp\\outgame-cached-1791917644988",
+  "manifest": "manifest-5c828fb4.json",
+  "viewport": {
+    "name": "phone-landscape",
+    "width": 840,
+    "height": 378,
+    "dpr": 3,
+    "touch": true
+  },
+  "checks": [
+    "warehouse GPU dust uploaded once",
+    "warehouse animation advances without geometry rebuild",
+    "actual salvage clock advances",
+    "spawn supported by terrain",
+    "touch search button opens production crate",
+    "production search fills cargo",
+    "actual extraction commits cargo",
+    "result releases driving input",
+    "result overlay released after return",
+    "returns to correct lobby",
+    "no unexpected runtime errors"
+  ],
+  "errors": [],
+  "httpFailures": [
+    {
+      "status": 404,
+      "url": "http://127.0.0.1:4204/cached-engine-source/src/engine-res/1.1.925/assets@windows.7z"
+    },
+    {
+      "status": 404,
+      "url": "http://127.0.0.1:4204/cached-engine-source/src/urhox-libs/1.0.47/assets@windows.7z"
+    },
+    {
+      "status": 404,
+      "url": "http://127.0.0.1:4204/cached-engine-source/src/engine-res/assets@windows.7z?v=1.1.925"
+    },
+    {
+      "status": 404,
+      "url": "http://127.0.0.1:4204/cached-engine-source/src/urhox-libs/assets@windows.7z?v=1.0.47"
+    }
+  ],
+  "samples": [
+    {
+      "anchors": [
+        [
+          0.4896276593208313,
+          0.6775005459785461
+        ],
+        [
+          0.489016592502594,
+          0.5071579217910767
+        ],
+        [
+          0.6246899962425232,
+          0.8545609712600708
+        ],
+        [
+          0.40530791878700256,
+          0.5669612884521484
+        ],
+        [
+          0.3319970369338989,
+          0.8222209215164185
+        ],
+        [
+          0.5952873229980469,
+          0.5804946422576904
+        ]
+      ],
+      "frames": {
+        "p95": 23.60299974679947,
+        "count": 208,
+        "p99": 100.00000149011612,
+        "p50": 16.495000571012497,
+        "max": 100.00000149011612
+      },
+      "physical": [
+        2520,
+        1134
+      ],
+      "mouse": {
+        "overlay": false,
+        "hit": "other",
+        "x": 0,
+        "scale": 1.05,
+        "y": 0
+      },
+      "blueprint": "赤焰 GT",
+      "quality": "mobile",
+      "width": 2400,
+      "sceneVisible": true,
+      "carVisuals": 209,
+      "tab": "hangar",
+      "vehicleLoading": {
+        "busy": false,
+        "draft": "idle",
+        "ready": false,
+        "state": "idle"
+      },
+      "build": false,
+      "lobby": "arena",
+      "parts": 209,
+      "mapPreview": false,
+      "mode": "hangar",
+      "loading": {
+        "progress": 1,
+        "completed": 30,
+        "downloads": 30,
+        "state": "ready",
+        "phase": "ready"
+      },
+      "height": 1080,
+      "touch": true,
+      "loadingFlow": {
+        "steps": {},
+        "visible": false,
+        "active": false,
+        "phase": "closed"
+      },
+      "homeRects": {
+        "edit": [
+          863.8095703125,
+          855.2381591796875,
+          174.2857666015625,
+          73.33331298828125
+        ],
+        "mode": [
+          982.857177734375,
+          800.952392578125,
+          434.2857666015625,
+          51.4285888671875
+        ],
+        "music": [
+          27.619049072265625,
+          818.0952758789062,
+          336.19049072265625,
+          98.09521484375
+        ],
+        "nav": [
+          0,
+          0,
+          2400,
+          63.80952835083008
+        ],
+        "new": [
+          310.4761962890625,
+          964.761962890625,
+          101.90478515625,
+          100
+        ],
+        "battle": [
+          1023.8095703125,
+          855.2381591796875,
+          352.3809814453125,
+          73.33331298828125
+        ],
+        "strip": [
+          74.28572082519531,
+          964.761962890625,
+          189.52381896972656,
+          100
+        ],
+        "save": [
+          132.380961894989,
+          977.1429162025452,
+          110.4761962890625,
+          27.61907958984375
+        ],
+        "loadout": [
+          2118.09521484375,
+          87.61904907226562,
+          254.285888671875,
+          168.57144165039062
+        ],
+        "info": [
+          27.619049072265625,
+          87.61904907226562,
+          292.3809509277344,
+          333.3333435058594
+        ],
+        "trial": [
+          1361.9048461914062,
+          855.2381591796875,
+          174.2857666015625,
+          73.33331298828125
+        ],
+        "card": [
+          77.14286375045776,
+          969.5238680839539,
+          183.80953979492188,
+          89.52374267578125
+        ],
+        "cta": [
+          863.8095703125,
+          855.2381591796875,
+          672.3809814453125,
+          73.33331298828125
+        ]
+      },
+      "hangar": {
+        "lights": [
+          {
+            "type": 1,
+            "brightness": 1650,
+            "name": "HangarLight_spot",
+            "shadow": true
+          },
+          {
+            "type": 3,
+            "brightness": 99,
+            "name": "HangarLight_rect",
+            "shadow": false
+          },
+          {
+            "type": 3,
+            "brightness": 99,
+            "name": "HangarLight_rect",
+            "shadow": false
+          },
+          {
+            "type": 3,
+            "brightness": 633.5999755859375,
+            "name": "HangarLight_rect",
+            "shadow": false
+          },
+          {
+            "type": 3,
+            "brightness": 147.1999969482422,
+            "name": "HangarLight_rect",
+            "shadow": false
+          }
+        ],
+        "panelIsolation": false,
+        "scan": false,
+        "materialUpdates": {
+          "animated": 22,
+          "total": 98
+        },
+        "frame": 0.8000000000472263,
+        "gridTarget": 0.3,
+        "grid": 0.30000000016529194,
+        "shadows": true,
+        "time": 4.066606497392058,
+        "frameTarget": 0.8
+      },
+      "tutorial": {
+        "running": false,
+        "path": "intro",
+        "buttons": {},
+        "record": {},
+        "visible": false,
+        "voicePlaying": false,
+        "voicePlayed": 0,
+        "id": "hello",
+        "lineAge": 0,
+        "replay": false,
+        "total": 4,
+        "index": 1,
+        "line": 1
+      },
+      "camera": {
+        "fov": 48,
+        "pitch": 20.099148994039567,
+        "dist": 17.804151806934904,
+        "forward": [
+          0.7143354415893555,
+          -0.34364569187164307,
+          -0.6096163988113403
+        ],
+        "desiredDist": 17.804151806934904,
+        "target": [
+          0,
+          3,
+          -0.5
+        ],
+        "yaw": 130.47756138086498,
+        "position": [
+          -12.718138694763184,
+          9.11832046508789,
+          10.353706359863281
+        ]
+      },
+      "performance": {
+        "arrayBytes": 0,
+        "modelBytes": 16309957,
+        "batches": 1224,
+        "luaKiB": 26772.296875,
+        "primitives": 1787676,
+        "retiredTargets": 0,
+        "resourceBytes": 52233746
+      },
+      "dpr": 3,
+      "inventory": false,
+      "dialog": false,
+      "craterModelResident": false,
+      "garage": {
+        "active": false,
+        "used": 0,
+        "slots": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ]
+      },
+      "widgets": [
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "hangar",
+          "pressed": false,
+          "kind": "tab",
+          "text": "机库",
+          "selected": true,
+          "hovered": false,
+          "rect": [
+            200.952392578125,
+            0,
+            120.952392578125,
+            63.80952835083008
+          ],
+          "styleWidth": 121,
+          "styleHeight": 64
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "livery",
+          "pressed": false,
+          "kind": "tab",
+          "text": "涂装",
+          "selected": false,
+          "hovered": false,
+          "rect": [
+            321.90478515625,
+            0,
+            120.952392578125,
+            63.80952835083008
+          ],
+          "styleWidth": 121,
+          "styleHeight": 64
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "workshop",
+          "pressed": false,
+          "kind": "tab",
+          "text": "创意工坊",
+          "selected": false,
+          "hovered": false,
+          "rect": [
+            442.857177734375,
+            0,
+            162.85711669921875,
+            63.80952835083008
+          ],
+          "styleWidth": 163,
+          "styleHeight": 64
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "shop",
+          "pressed": false,
+          "kind": "tab",
+          "text": "商店",
+          "selected": false,
+          "hovered": false,
+          "rect": [
+            605.7142944335938,
+            0,
+            120.952392578125,
+            63.80952835083008
+          ],
+          "styleWidth": 121,
+          "styleHeight": 64
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "play",
+          "pressed": false,
+          "kind": "intro",
+          "text": "开场动画",
+          "hovered": false,
+          "rect": [
+            2126.666748046875,
+            12.380952835083008,
+            151.4287109375,
+            40
+          ],
+          "styleWidth": 151,
+          "styleHeight": 40
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "help",
+          "pressed": false,
+          "kind": "icon",
+          "text": "",
+          "hovered": false,
+          "rect": [
+            2283.8095703125,
+            12.380952835083008,
+            40,
+            40
+          ],
+          "styleWidth": 40,
+          "styleHeight": 40
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "gear",
+          "pressed": false,
+          "kind": "icon",
+          "text": "",
+          "hovered": false,
+          "rect": [
+            2329.52392578125,
+            12.380952835083008,
+            40,
+            40
+          ],
+          "styleWidth": 40,
+          "styleHeight": 40
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "plus",
+          "pressed": false,
+          "kind": "details",
+          "text": "车辆详情",
+          "hovered": false,
+          "rect": [
+            27.619049072265625,
+            360,
+            284.7619323730469,
+            51.428558349609375
+          ],
+          "styleWidth": 284,
+          "styleHeight": 51
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "gear",
+          "pressed": false,
+          "kind": "manage",
+          "text": "车辆管理",
+          "hovered": false,
+          "rect": [
+            2241.90478515625,
+            930.4762573242188,
+            121.90478515625,
+            31.42852783203125
+          ],
+          "styleWidth": 122,
+          "styleHeight": 32
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "",
+          "text": "",
+          "rect": [
+            77.14286375045776,
+            969.5238680839539,
+            183.80953979492188,
+            89.52374267578125
+          ],
+          "styleWidth": 184,
+          "styleHeight": 90
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "save",
+          "pressed": false,
+          "kind": "save",
+          "text": "保存到车位",
+          "hovered": false,
+          "rect": [
+            132.380961894989,
+            977.1429162025452,
+            110.4761962890625,
+            27.61907958984375
+          ],
+          "styleWidth": 110.5,
+          "styleHeight": 28
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "back",
+          "pressed": false,
+          "kind": "arrow",
+          "text": "",
+          "hovered": false,
+          "rect": [
+            36.19047927856445,
+            964.761962890625,
+            31.428569793701172,
+            100
+          ],
+          "styleWidth": 30,
+          "styleHeight": 100
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "back",
+          "pressed": false,
+          "kind": "arrow",
+          "text": "",
+          "hovered": false,
+          "rect": [
+            272.3809509277344,
+            964.761962890625,
+            31.4285888671875,
+            100
+          ],
+          "styleWidth": 30,
+          "styleHeight": 100
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "plus",
+          "pressed": false,
+          "kind": "new",
+          "text": "新战车",
+          "hovered": false,
+          "rect": [
+            310.4761962890625,
+            964.761962890625,
+            101.90478515625,
+            100
+          ],
+          "styleWidth": 102,
+          "disabled": false,
+          "styleHeight": 100
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "wrench",
+          "sourceMotion": {
+            "x": {
+              "duration": 0,
+              "start": 0,
+              "elapsed": 0,
+              "target": 0,
+              "value": 0
+            },
+            "hover": {
+              "duration": 0,
+              "start": 0,
+              "elapsed": 0,
+              "target": 0,
+              "value": 0
+            },
+            "y": {
+              "duration": 0,
+              "start": 0,
+              "elapsed": 0,
+              "target": 0,
+              "value": 0
+            }
+          },
+          "pressed": false,
+          "kind": "cta-left",
+          "text": "改装",
+          "hovered": false,
+          "rect": [
+            863.8095703125,
+            855.2381591796875,
+            174.2857666015625,
+            73.33331298828125
+          ],
+          "styleWidth": 174,
+          "styleHeight": 74
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "wheel",
+          "sourceMotion": {
+            "x": {
+              "duration": 0,
+              "start": 0,
+              "elapsed": 0,
+              "target": 0,
+              "value": 0
+            },
+            "hover": {
+              "duration": 0,
+              "start": 0,
+              "elapsed": 0,
+              "target": 0,
+              "value": 0
+            },
+            "y": {
+              "duration": 0,
+              "start": 0,
+              "elapsed": 0,
+              "target": 0,
+              "value": 0
+            }
+          },
+          "pressed": false,
+          "kind": "cta-right",
+          "text": "试车",
+          "hovered": false,
+          "rect": [
+            1361.9048461914062,
+            855.2381591796875,
+            174.2857666015625,
+            73.33331298828125
+          ],
+          "styleWidth": 174,
+          "styleHeight": 74
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "battle",
+          "sourceMotion": {
+            "x": {
+              "duration": 0,
+              "start": 0,
+              "elapsed": 0,
+              "target": 0,
+              "value": 0
+            },
+            "hover": {
+              "duration": 0,
+              "start": 0,
+              "elapsed": 0,
+              "target": 0,
+              "value": 0
+            },
+            "y": {
+              "duration": 0,
+              "start": 0,
+              "elapsed": 0,
+              "target": 0,
+              "value": 0
+            }
+          },
+          "pressed": false,
+          "kind": "cta-main",
+          "text": "出战",
+          "hovered": false,
+          "rect": [
+            1023.8095703125,
+            855.2381591796875,
+            352.3809814453125,
+            73.33331298828125
+          ],
+          "styleWidth": 352,
+          "styleHeight": 74
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "music",
+          "pressed": false,
+          "text": "音乐盒",
+          "hovered": false,
+          "rect": [
+            27.619049072265625,
+            818.0952758789062,
+            336.19049072265625,
+            98.09521484375
+          ],
+          "styleWidth": 336,
+          "styleHeight": 98
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "battle",
+          "pressed": false,
+          "kind": "mode",
+          "text": "竞技对战",
+          "selected": true,
+          "hovered": false,
+          "rect": [
+            982.857177734375,
+            800.952392578125,
+            215.2381591796875,
+            51.4285888671875
+          ],
+          "styleWidth": 215,
+          "styleHeight": 51
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "hook",
+          "pressed": false,
+          "kind": "mode",
+          "text": "打捞行动",
+          "hovered": false,
+          "rect": [
+            1201.904800415039,
+            800.952392578125,
+            215.2381591796875,
+            51.4285888671875
+          ],
+          "styleWidth": 215,
+          "styleHeight": 51
+        }
+      ]
+    },
+    {
+      "anchors": [
+        [
+          0.5454877018928528,
+          0.6712577939033508
+        ],
+        [
+          0.5488197207450867,
+          0.4442586302757263
+        ],
+        [
+          0.7846728563308716,
+          0.8324252367019653
+        ],
+        [
+          0.39398789405822754,
+          0.5691744089126587
+        ],
+        [
+          0.38922053575515747,
+          0.9431653618812561
+        ],
+        [
+          0.6245514154434204,
+          0.533685564994812
+        ]
+      ],
+      "carVisuals": 78,
+      "tab": "salvage",
+      "physical": [
+        2520,
+        1134
+      ],
+      "mouse": {
+        "overlay": false,
+        "hit": "other",
+        "x": 0,
+        "scale": 1.05,
+        "y": 0
+      },
+      "blueprint": "先锋 · 轮式激光",
+      "quality": "mobile",
+      "width": 2400,
+      "sceneVisible": true,
+      "garage": {
+        "active": 1,
+        "used": 1,
+        "slots": [
+          {
+            "name": "先锋 · 轮式激光",
+            "parts": 78
+          },
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ]
+      },
+      "vehicleLoading": {
+        "busy": false,
+        "draft": "idle",
+        "ready": false,
+        "state": "idle"
+      },
+      "build": false,
+      "warehouse": {
+        "hallVisible": false,
+        "effects": {
+          "particles": 900,
+          "time": 8.327443001791835,
+          "uploads": 1
+        },
+        "ready": true,
+        "cursor": 93
+      },
+      "mode": "hangar",
+      "parts": 78,
+      "mapPreview": false,
+      "loading": {
+        "progress": 1,
+        "completed": 30,
+        "downloads": 30,
+        "state": "ready",
+        "phase": "ready"
+      },
+      "lobby": "salvage",
+      "height": 1080,
+      "touch": true,
+      "loadingFlow": {
+        "steps": {},
+        "visible": false,
+        "active": false,
+        "phase": "closed"
+      },
+      "homeRects": {
+        "edit": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "battle": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "save": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "card": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "trial": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "hangar": {
+        "lights": [
+          {
+            "type": 1,
+            "brightness": 1650,
+            "name": "HangarLight_spot",
+            "shadow": true
+          },
+          {
+            "type": 3,
+            "brightness": 99,
+            "name": "HangarLight_rect",
+            "shadow": false
+          },
+          {
+            "type": 3,
+            "brightness": 99,
+            "name": "HangarLight_rect",
+            "shadow": false
+          },
+          {
+            "type": 3,
+            "brightness": 633.5999755859375,
+            "name": "HangarLight_rect",
+            "shadow": false
+          },
+          {
+            "type": 3,
+            "brightness": 147.1999969482422,
+            "name": "HangarLight_rect",
+            "shadow": false
+          },
+          {
+            "type": 1,
+            "brightness": 380,
+            "name": "SpotLight",
+            "shadow": false
+          },
+          {
+            "type": 1,
+            "brightness": 2600,
+            "name": "SpotLight",
+            "shadow": true
+          },
+          {
+            "type": 2,
+            "brightness": 84.4800033569336,
+            "name": "RectAreaLight",
+            "shadow": false
+          },
+          {
+            "type": 1,
+            "brightness": 600,
+            "name": "SpotLight",
+            "shadow": false
+          },
+          {
+            "type": 2,
+            "brightness": 528,
+            "name": "RectAreaLight",
+            "shadow": false
+          },
+          {
+            "type": 2,
+            "brightness": 528,
+            "name": "RectAreaLight",
+            "shadow": false
+          },
+          {
+            "type": 1,
+            "brightness": 700,
+            "name": "SpotLight",
+            "shadow": false
+          }
+        ],
+        "panelIsolation": false,
+        "scan": false,
+        "materialUpdates": {
+          "animated": 22,
+          "total": 98
+        },
+        "frame": 0.8000000000000002,
+        "gridTarget": 0.3,
+        "grid": 0.30000000000000004,
+        "shadows": true,
+        "time": 8.341813001781702,
+        "frameTarget": 0.8
+      },
+      "tutorial": {
+        "running": false,
+        "path": "intro",
+        "buttons": {},
+        "record": {},
+        "visible": false,
+        "voicePlaying": false,
+        "voicePlayed": 0,
+        "id": "hello",
+        "lineAge": 0,
+        "replay": false,
+        "total": 4,
+        "index": 1,
+        "line": 1
+      },
+      "camera": {
+        "fov": 48,
+        "pitch": 18.953233403777915,
+        "dist": 14.458194532220096,
+        "forward": [
+          0.5340298414230347,
+          -0.32479628920555115,
+          -0.7805893421173096
+        ],
+        "desiredDist": 14.458194532220096,
+        "target": [
+          1.5569709539413452,
+          2,
+          0
+        ],
+        "yaw": 145.6225322921506,
+        "position": [
+          -6.164135932922363,
+          6.695967674255371,
+          11.285910606384277
+        ]
+      },
+      "performance": {
+        "arrayBytes": 0,
+        "modelBytes": 18118092,
+        "batches": 769,
+        "luaKiB": 27815.0302734375,
+        "primitives": 741068,
+        "retiredTargets": 0,
+        "resourceBytes": 56005814
+      },
+      "dpr": 3,
+      "inventory": false,
+      "dialog": false,
+      "craterModelResident": false,
+      "salvage": {
+        "selected": false,
+        "loose": {
+          "part:tmVisor": 999,
+          "part:thruster2": 999,
+          "part:fxTail1": 999,
+          "part:radar": 999,
+          "smokePack": 999,
+          "part:scHeadR": 999,
+          "part:fxTail6": 999,
+          "part:neonGentleOutLo": 999,
+          "part:scBarb": 999,
+          "part:node": 999,
+          "part:fxWaistR": 999,
+          "part:roundCorner": 999,
+          "part:armorSkirt": 999,
+          "part:roundEdge": 999,
+          "part:concCorner": 999,
+          "part:trHeadL": 999,
+          "part:trForearmR": 999,
+          "part:corner": 999,
+          "part:trSkirtL": 999,
+          "part:concInner": 999,
+          "part:laser1": 998,
+          "part:steer2": 999,
+          "part:armorGuard": 999,
+          "scrap": 999,
+          "part:drive4": 999,
+          "part:steer5": 999,
+          "part:missile5": 999,
+          "part:plate": 999,
+          "part:scTail5": 999,
+          "part:neonPanelGentleLo": 999,
+          "part:exhaust": 999,
+          "part:rotorSpin": 999,
+          "part:rodDiag3": 999,
+          "part:tetra": 999,
+          "part:neonGentleInLo": 999,
+          "part:scHeadL": 999,
+          "part:neonRoundCorner": 999,
+          "part:strut": 999,
+          "starmap": 999,
+          "part:finsL": 999,
+          "part:neonPanel": 999,
+          "part:glass": 999,
+          "part:glassConcInner": 999,
+          "part:tmChest": 999,
+          "part:trPauldronR": 999,
+          "part:heavyPanelInner": 999,
+          "part:neonCone": 999,
+          "part:grilleL": 999,
+          "part:panelInner": 999,
+          "part:neonHalf": 999,
+          "starcore": 999,
+          "part:glassGentleInLo": 999,
+          "part:mg3": 999,
+          "part:fxHeadFace": 999,
+          "part:neonSlope": 999,
+          "part:thrusterUp1": 999,
+          "part:steer4": 999,
+          "part:trHeadFace": 999,
+          "part:heavySlope": 999,
+          "part:gentleOutLo": 999,
+          "part:heavyCone": 999,
+          "part:rollbar": 999,
+          "part:wing3": 999,
+          "part:horn": 999,
+          "part:scPlate1": 999,
+          "part:scHeadFace": 999,
+          "part:rodCross": 999,
+          "part:glassConcEdge": 999,
+          "part:mechHead": 999,
+          "part:fxHeadChin": 999,
+          "part:heavyPanelGentleLo": 999,
+          "part:drive1": 997,
+          "part:heavyCutCorner": 999,
+          "part:exhaustL": 999,
+          "part:neonPanelGentleHi": 999,
+          "part:hover5": 999,
+          "part:heavyPanelCorner": 999,
+          "part:glassPanelRoundCorner": 999,
+          "part:scTail3": 999,
+          "part:neonGentleLo": 999,
+          "part:scTail1": 999,
+          "part:thruster1": 999,
+          "part:heavyPanelSlope": 999,
+          "part:panelArc": 999,
+          "part:concEdge": 999,
+          "part:fxHub": 999,
+          "part:rodS": 999,
+          "part:track2": 999,
+          "part:cylinder": 999,
+          "circuit": 999,
+          "part:panelGentleLo": 999,
+          "part:sharkFin": 999,
+          "part:half": 999,
+          "part:sharkFinL": 999,
+          "part:heavyCorner": 999,
+          "part:trCollar": 999,
+          "part:glassGentleLo": 999,
+          "part:neonCylinder": 999,
+          "part:neonConcInner": 999,
+          "part:hover3": 999,
+          "part:scClawL": 999,
+          "part:panelCorner": 999,
+          "wire": 999,
+          "part:wing5": 999,
+          "part:heavyPanel": 999,
+          "part:glassPanelSlope": 999,
+          "part:trRibL": 999,
+          "part:neonPanelArc": 999,
+          "part:fxTail3": 999,
+          "part:sniper5": 999,
+          "part:mech4": 999,
+          "part:rotor": 999,
+          "part:rodL": 999,
+          "part:inner": 999,
+          "part:heavyGentleHi": 999,
+          "part:glassSlope": 996,
+          "part:scArmL": 999,
+          "part:neonPanelSlope": 999,
+          "part:trArmL": 999,
+          "part:gentleInLo": 999,
+          "part:fxPlate3": 999,
+          "part:plateStep": 999,
+          "part:leg5": 999,
+          "part:glassPanelArc": 999,
+          "part:glassConcCorner": 999,
+          "part:armorWing": 999,
+          "part:glassRoundEdge": 999,
+          "part:fxHaunchR": 999,
+          "part:heavyGentleOutLo": 999,
+          "part:trHeadChin": 999,
+          "part:antenna": 998,
+          "part:trChest": 999,
+          "part:heavyRoundInner": 999,
+          "part:panelGentleHi": 999,
+          "part:fxHeadR": 999,
+          "part:neonTetra": 999,
+          "part:panelRoundCorner": 999,
+          "part:neonCube": 999,
+          "part:fxPlate2": 999,
+          "cell": 999,
+          "part:wing4": 999,
+          "part:scArmR": 999,
+          "part:neonCorner": 999,
+          "part:fxHead": 999,
+          "part:trGuardFL": 999,
+          "part:roundInner": 999,
+          "part:neonPanelInner": 999,
+          "part:light": 999,
+          "part:trSkirtF": 999,
+          "part:neonRoundEdge": 999,
+          "part:plateHook": 999,
+          "part:rodDiag": 999,
+          "part:neonCutCorner": 999,
+          "part:plateRamp": 999,
+          "part:glassPanelGentleLo": 999,
+          "blackbox": 999,
+          "part:scHead": 999,
+          "part:scHeadChin": 999,
+          "part:glassCone": 999,
+          "part:rodArc": 999,
+          "part:scTail2": 999,
+          "part:heavyCylinder": 999,
+          "part:heavyInner": 999,
+          "part:fxHeadL": 999,
+          "part:fxHaunchL": 999,
+          "part:neonInner": 999,
+          "part:heavyGentleLo": 999,
+          "part:heavyGentleOutHi": 999,
+          "part:heavyGentleInHi": 999,
+          "part:glassGentleInHi": 999,
+          "part:armorPauldron": 999,
+          "part:trGuardFR": 999,
+          "part:heavyGentleInLo": 999,
+          "part:rudder3": 999,
+          "part:glassInner": 999,
+          "part:neonGentleOutHi": 999,
+          "part:fxShoulderR": 999,
+          "part:heavyHalf": 999,
+          "part:trGuardBL": 999,
+          "part:lightStripL": 999,
+          "part:glassGentleOutLo": 999,
+          "part:gentleLo": 999,
+          "part:flag": 999,
+          "part:gentleOutHi": 999,
+          "part:fxTail5": 999,
+          "part:neonPanelCorner": 999,
+          "part:heavyRoundEdge": 999,
+          "part:glassTetra": 999,
+          "part:neonPanelRoundCorner": 999,
+          "part:thruster5": 999,
+          "part:trHead": 999,
+          "part:cone": 999,
+          "shieldCell": 999,
+          "part:neonConcCorner": 999,
+          "part:heavy": 999,
+          "part:neonGentleInHi": 999,
+          "part:hover2": 999,
+          "reactor": 999,
+          "part:rodTee": 999,
+          "part:trAbsL": 999,
+          "part:armorBack": 999,
+          "part:gentleInHi": 999,
+          "part:fxPlate1": 999,
+          "part:strutRamp": 999,
+          "part:trAbsR": 999,
+          "part:plateLip": 999,
+          "part:laser4": 999,
+          "part:trPauldronL": 999,
+          "part:hover1": 999,
+          "part:drive3": 999,
+          "part:glassCylinder": 999,
+          "part:glassPanelCorner": 999,
+          "part:rotorStep": 999,
+          "part:drive2": 999,
+          "part:glassPanelGentleHi": 999,
+          "part:trSkirtR": 999,
+          "part:laser5": 999,
+          "part:tmPack": 999,
+          "part:panelSlope": 999,
+          "part:cube": 940,
+          "part:heavyConcEdge": 999,
+          "part:fxTail9": 999,
+          "part:panel": 999,
+          "part:fxTail4": 999,
+          "part:trSkirtB": 999,
+          "part:strutCross": 999,
+          "part:scPlate3": 999,
+          "part:mech5": 999,
+          "part:heavyPanelGentleHi": 999,
+          "part:holoBadgeL": 999,
+          "part:thruster4": 999,
+          "part:heavyConcCorner": 999,
+          "part:gentleHi": 999,
+          "repair": 999,
+          "part:thrusterUp3": 999,
+          "part:holoBadge": 999,
+          "part:heavyPanelRoundCorner": 999,
+          "part:drive5": 999,
+          "part:thrusterUp5": 999,
+          "part:smoke": 999,
+          "crystal": 999,
+          "ration": 999,
+          "part:glassHalf": 999,
+          "part:cutCorner": 999,
+          "part:heavyTetra": 999,
+          "part:mg5": 999,
+          "part:glassCutCorner": 999,
+          "part:laser3": 999,
+          "part:steer1": 997,
+          "drive": 999,
+          "part:glassGentleHi": 999,
+          "part:track3": 999,
+          "part:slope": 993,
+          "part:sniper2": 999,
+          "part:track5": 999,
+          "part:heavyConcInner": 999,
+          "part:thruster3": 999,
+          "part:armorChest": 999,
+          "part:trPack": 999,
+          "part:missile3": 999,
+          "part:tianyuanDrill": 999,
+          "part:tmSkirt": 999,
+          "part:hover4": 999,
+          "part:glassPanel": 999,
+          "part:fuyuanDrill": 999,
+          "part:leg3": 999,
+          "ore": 999,
+          "part:leg4": 999,
+          "part:plateLong": 999,
+          "part:trGuardBR": 999,
+          "part:missile4": 999,
+          "part:neonRoundInner": 999,
+          "part:mech3": 999,
+          "part:steer3": 999,
+          "part:plateBlade": 999,
+          "part:plateDelta": 999,
+          "part:sniper4": 999,
+          "part:trClawL": 999,
+          "part:glassCorner": 999,
+          "part:plateShell": 999,
+          "part:fxTail2": 999,
+          "part:neonGentleHi": 999,
+          "part:lightStrip": 996,
+          "part:scTail4": 999,
+          "part:tmShoulderR": 999,
+          "part:strutArc": 999,
+          "part:spoiler": 999,
+          "part:fins": 999,
+          "part:grille": 999,
+          "part:wing2": 999,
+          "part:scSting": 999,
+          "part:shield": 999,
+          "part:trClawR": 999,
+          "part:glassGentleOutHi": 999,
+          "part:scClawR": 999,
+          "part:fxWaistL": 999,
+          "part:trArmR": 999,
+          "part:rod": 999,
+          "part:sniper3": 999,
+          "part:trLumbar": 999,
+          "part:glassRoundCorner": 999,
+          "part:trRibR": 999,
+          "part:thrusterUp2": 999,
+          "part:trAbs": 999,
+          "part:laser2": 999,
+          "part:bumper": 999,
+          "part:trHeadR": 999,
+          "part:glassRoundInner": 999,
+          "part:fxTail8": 999,
+          "part:trForearmL": 999,
+          "scanner": 999,
+          "part:heavyPanelArc": 999,
+          "part:neonConcEdge": 999,
+          "part:radarL": 999,
+          "part:scPlate2": 999,
+          "part:fxTail7": 999,
+          "alloy": 999,
+          "part:fxShoulderL": 999,
+          "part:thrusterUp4": 999,
+          "part:fxChest": 999,
+          "part:mg4": 999,
+          "part:tmShoulderL": 999,
+          "part:glassPanelInner": 999,
+          "part:rudder4": 999,
+          "part:track4": 999,
+          "part:tmAntenna": 999,
+          "part:heavyRoundCorner": 999
+        },
+        "market": "buy",
+        "tab": "loadout",
+        "stash": false,
+        "gear": {},
+        "qty": 1,
+        "category": "all",
+        "sort": "rarity",
+        "query": "",
+        "shopCategory": "part"
+      },
+      "widgets": [
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "",
+          "pressed": false,
+          "kind": "tab",
+          "text": "整备",
+          "selected": true,
+          "hovered": false,
+          "rect": [
+            295.23809814453125,
+            0,
+            85.71429443359375,
+            87.61904907226562
+          ],
+          "styleWidth": 86,
+          "styleHeight": 88
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "",
+          "pressed": false,
+          "kind": "tab",
+          "text": "行动",
+          "selected": false,
+          "hovered": false,
+          "rect": [
+            397.14288330078125,
+            0,
+            85.71429443359375,
+            87.61904907226562
+          ],
+          "styleWidth": 86,
+          "styleHeight": 88
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "",
+          "pressed": false,
+          "kind": "tab",
+          "text": "商人",
+          "selected": false,
+          "hovered": false,
+          "rect": [
+            499.0476379394531,
+            0,
+            85.71426391601562,
+            87.61904907226562
+          ],
+          "styleWidth": 86,
+          "styleHeight": 88
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "",
+          "pressed": false,
+          "kind": "tab",
+          "text": "车库",
+          "selected": false,
+          "hovered": false,
+          "rect": [
+            600.952392578125,
+            0,
+            85.71429443359375,
+            87.61904907226562
+          ],
+          "styleWidth": 86,
+          "styleHeight": 88
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "",
+          "pressed": false,
+          "kind": "tab",
+          "text": "创意工坊",
+          "selected": false,
+          "hovered": false,
+          "rect": [
+            702.857177734375,
+            0,
+            154.28570556640625,
+            87.61904907226562
+          ],
+          "styleWidth": 154,
+          "styleHeight": 88
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "gear",
+          "pressed": false,
+          "kind": "button",
+          "text": "",
+          "hovered": false,
+          "rect": [
+            2300,
+            21.904762268066406,
+            43.8095703125,
+            43.80952453613281
+          ],
+          "styleWidth": 44,
+          "styleHeight": 44
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "battle",
+          "pressed": false,
+          "kind": "mode",
+          "text": "竞技对战",
+          "hovered": false,
+          "rect": [
+            1907.619140625,
+            867.6190795898438,
+            214.28564453125,
+            50.4761962890625
+          ],
+          "styleWidth": 214,
+          "styleHeight": 50
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "hook",
+          "pressed": false,
+          "kind": "mode",
+          "text": "打捞行动",
+          "selected": true,
+          "hovered": false,
+          "rect": [
+            2125.71435546875,
+            867.6190795898438,
+            214.28564453125,
+            50.4761962890625
+          ],
+          "styleWidth": 214,
+          "styleHeight": 50
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "",
+          "pressed": false,
+          "text": "激光枪 T1",
+          "hovered": false,
+          "rect": [
+            56.19047927856445,
+            305.7142906188965,
+            71.42857360839844,
+            71.4285888671875
+          ],
+          "styleWidth": 72,
+          "styleHeight": 72
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "",
+          "pressed": false,
+          "kind": "slot",
+          "text": "",
+          "hovered": false,
+          "rect": [
+            132.38096237182617,
+            305.7142906188965,
+            71.4285888671875,
+            71.4285888671875
+          ],
+          "styleWidth": 72,
+          "styleHeight": 72
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "",
+          "pressed": false,
+          "kind": "slot",
+          "text": "",
+          "hovered": false,
+          "rect": [
+            208.5714454650879,
+            305.7142906188965,
+            72.38093566894531,
+            71.4285888671875
+          ],
+          "styleWidth": 72,
+          "styleHeight": 72
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "",
+          "pressed": false,
+          "kind": "slot",
+          "text": "",
+          "hovered": false,
+          "rect": [
+            283.80954360961914,
+            305.7142906188965,
+            72.38095092773438,
+            71.4285888671875
+          ],
+          "styleWidth": 72,
+          "styleHeight": 72
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "",
+          "pressed": false,
+          "text": "转向轮 T1",
+          "hovered": false,
+          "rect": [
+            56.19047927856445,
+            439.0476379394531,
+            71.42857360839844,
+            72.3809814453125
+          ],
+          "styleWidth": 72,
+          "styleHeight": 72
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "",
+          "pressed": false,
+          "text": "动力轮 T1",
+          "hovered": false,
+          "rect": [
+            132.38096237182617,
+            439.0476379394531,
+            71.4285888671875,
+            72.3809814453125
+          ],
+          "styleWidth": 72,
+          "styleHeight": 72
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "",
+          "pressed": false,
+          "kind": "slot",
+          "text": "",
+          "hovered": false,
+          "rect": [
+            208.5714454650879,
+            439.0476379394531,
+            72.38093566894531,
+            72.3809814453125
+          ],
+          "styleWidth": 72,
+          "styleHeight": 72
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "",
+          "pressed": false,
+          "kind": "slot",
+          "text": "",
+          "hovered": false,
+          "rect": [
+            283.80954360961914,
+            439.0476379394531,
+            72.38095092773438,
+            72.3809814453125
+          ],
+          "styleWidth": 72,
+          "styleHeight": 72
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "",
+          "pressed": false,
+          "kind": "slot",
+          "text": "",
+          "hovered": false,
+          "rect": [
+            56.19047927856445,
+            671.4285888671875,
+            71.42857360839844,
+            72.3809814453125
+          ],
+          "styleWidth": 72,
+          "styleHeight": 72
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "",
+          "pressed": false,
+          "kind": "slot",
+          "text": "",
+          "hovered": false,
+          "rect": [
+            132.38096237182617,
+            671.4285888671875,
+            71.4285888671875,
+            72.3809814453125
+          ],
+          "styleWidth": 72,
+          "styleHeight": 72
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "",
+          "pressed": false,
+          "kind": "slot",
+          "text": "",
+          "hovered": false,
+          "rect": [
+            208.5714454650879,
+            671.4285888671875,
+            72.38093566894531,
+            72.3809814453125
+          ],
+          "styleWidth": 72,
+          "styleHeight": 72
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "",
+          "pressed": false,
+          "kind": "slot",
+          "text": "",
+          "hovered": false,
+          "rect": [
+            283.80954360961914,
+            671.4285888671875,
+            72.38095092773438,
+            72.3809814453125
+          ],
+          "styleWidth": 72,
+          "styleHeight": 72
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "wrench",
+          "pressed": false,
+          "kind": "button",
+          "text": "改装这辆车",
+          "hovered": false,
+          "rect": [
+            56.19047927856445,
+            958.0952758789062,
+            214.2857208251953,
+            52.3809814453125
+          ],
+          "styleWidth": 214,
+          "styleHeight": 52
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "",
+          "pressed": false,
+          "kind": "handle",
+          "text": "仓库",
+          "hovered": false,
+          "rect": [
+            2338.095458984375,
+            343.8095397949219,
+            61.904541015625,
+            260.0000305175781
+          ],
+          "styleWidth": 62,
+          "styleHeight": 260
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "",
+          "pressed": false,
+          "kind": "primary",
+          "text": "出发",
+          "hovered": false,
+          "rect": [
+            1903.8095703125,
+            930.4762573242188,
+            440,
+            80
+          ],
+          "styleWidth": 440,
+          "styleHeight": 80
+        }
+      ]
+    },
+    {
+      "map": "salvage",
+      "mouse": {
+        "overlay": false,
+        "hit": "other",
+        "x": 0,
+        "scale": 2.1,
+        "y": 0
+      },
+      "performance": {
+        "retiredTargets": 0,
+        "droppedSeconds": 0,
+        "resourceBytes": 303371801,
+        "fixedSteps": 12,
+        "arrayBytes": 0,
+        "modelBytes": 261222404,
+        "batches": 446,
+        "effects": {
+          "beams": 0,
+          "smoke": 0,
+          "particles": 0,
+          "flashes": 0
+        },
+        "primitives": 7093370,
+        "luaKiB": 47835.7509765625
+      },
+      "width": 1200,
+      "sceneVisible": true,
+      "intro": false,
+      "weaponAudio": {
+        "active": true,
+        "voices": 0,
+        "counts": {},
+        "loops": {}
+      },
+      "weapons": {
+        "hits": 0,
+        "turning": 0,
+        "shots": 0,
+        "energy": 100,
+        "blocked": 1,
+        "kills": 0
+      },
+      "salvageRun": {
+        "extracts": [
+          {
+            "rule": "随时开放 · 等 10 秒",
+            "radius": 16,
+            "id": "E1",
+            "wait": 10,
+            "note": "要先下到峡谷底",
+            "name": "西峡口",
+            "cls": "std",
+            "x": -980,
+            "g": [
+              980,
+              -53.16999816894531,
+              316
+            ],
+            "z": 316,
+            "y": -53.16999816894531
+          },
+          {
+            "rule": "交一块能量电池 · 等 5 秒",
+            "radius": 14,
+            "id": "E2",
+            "wait": 5,
+            "z": 840,
+            "note": "在山顶，上去只有盘山路",
+            "name": "北岭索道站",
+            "cls": "std",
+            "x": 842,
+            "g": [
+              -842,
+              71.05000305175781,
+              840
+            ],
+            "needs": "cell",
+            "y": 71.05000305175781
+          },
+          {
+            "rule": "随时开放 · 等 10 秒",
+            "radius": 20,
+            "id": "E3",
+            "wait": 10,
+            "note": "从湖床或断铁路桥下来",
+            "name": "东河谷",
+            "cls": "giant",
+            "x": 985,
+            "g": [
+              -985,
+              -14.579999923706056,
+              128
+            ],
+            "z": 128,
+            "y": -14.579999923706056
+          },
+          {
+            "rule": "等 20 秒 · 电梯铃声全图可闻",
+            "radius": 16,
+            "id": "E4",
+            "wait": 20,
+            "loud": true,
+            "note": "螺旋道盘到坑底",
+            "name": "矿坑运矿电梯",
+            "cls": "std",
+            "x": -560,
+            "g": [
+              560,
+              -55.779998779296875,
+              -420
+            ],
+            "z": -420,
+            "y": -55.779998779296875
+          },
+          {
+            "rule": "只有车宽 ≤ 4 米的车能过",
+            "radius": 10,
+            "id": "E5",
+            "wait": 8,
+            "z": 96,
+            "note": "在涡轮机房里",
+            "name": "坝内检修口",
+            "cls": "small",
+            "x": 40,
+            "g": [
+              -40,
+              -35.5,
+              96
+            ],
+            "maxWidth": 4,
+            "y": -35.5
+          },
+          {
+            "rule": "开局 10 分钟后开放",
+            "note": "离出生区近，所以开得晚",
+            "id": "E6",
+            "wait": 10,
+            "radius": 20,
+            "openAt": 600,
+            "name": "南公路检查站",
+            "cls": "giant",
+            "x": 300,
+            "g": [
+              -300,
+              0.2800000011920929,
+              -890
+            ],
+            "z": -890,
+            "y": 0.2800000011920929
+          }
+        ],
+        "mass": 0,
+        "used": 0,
+        "time": 0.19999999999999998,
+        "value": 0,
+        "cargo": {},
+        "opened": 0,
+        "flights": 0,
+        "enemies": 0,
+        "heat": 0,
+        "kills": 0
+      },
+      "height": 540,
+      "mode": "trial",
+      "loadingFlow": {
+        "progress": 1,
+        "steps": [
+          {
+            "note": "28.4s",
+            "elapsed": 28.42898874077946,
+            "label": "下载场地与战车资源",
+            "id": "download",
+            "state": "done"
+          },
+          {
+            "note": "22.6s",
+            "elapsed": 22.597338541410863,
+            "label": "准备贴图",
+            "id": "resources",
+            "state": "done"
+          },
+          {
+            "note": "0.1s",
+            "elapsed": 0.10056949779391289,
+            "label": "载入场景",
+            "id": "scene",
+            "state": "done"
+          },
+          {
+            "note": "0.1s",
+            "elapsed": 0.05519749969244003,
+            "label": "搭建碰撞体",
+            "id": "prepare",
+            "state": "done"
+          },
+          {
+            "note": "0.0s",
+            "elapsed": 0,
+            "label": "准备环境",
+            "id": "environment",
+            "state": "done"
+          },
+          {
+            "note": "0.1s",
+            "elapsed": 0.06413000077009201,
+            "label": "装配战车与渲染",
+            "id": "activate",
+            "state": "done"
+          }
+        ],
+        "warmFrames": 95,
+        "visible": false,
+        "active": false,
+        "failed": false,
+        "map": "salvage",
+        "error": "",
+        "phase": "closed"
+      },
+      "missile": {
+        "models": 0,
+        "projectiles": 0,
+        "energy": 100,
+        "group": "laser",
+        "visible": 0
+      },
+      "touchRects": {
+        "fire": [
+          1094.2857666015625,
+          436.19049072265625,
+          87.6190185546875,
+          87.61907958984375
+        ],
+        "brake": [
+          1007.6190795898438,
+          452.3809814453125,
+          72.38092041015625,
+          71.4285888671875
+        ],
+        "swap": [
+          974.2857666015625,
+          285.71429443359375,
+          63.8095703125,
+          48.571441650390625
+        ],
+        "interact": [
+          1045.71435546875,
+          270.4761962890625,
+          64.7618408203125,
+          63.809539794921875
+        ],
+        "flip": [
+          1118.0953369140625,
+          285.71429443359375,
+          63.8094482421875,
+          48.571441650390625
+        ],
+        "zoomOut": [
+          1045.71435546875,
+          67.61904907226562,
+          64.7618408203125,
+          44.76190948486328
+        ],
+        "zoomIn": [
+          1118.0953369140625,
+          67.61904907226562,
+          63.8094482421875,
+          44.76190948486328
+        ],
+        "stick": [
+          18.095239639282227,
+          343.8095397949219,
+          180,
+          180.00003051757812
+        ]
+      },
+      "vehicle": {
+        "speed": 0,
+        "position": [
+          870,
+          -5.373287677764893,
+          -250
+        ]
+      },
+      "touch": true,
+      "pointer": {
+        "captured": true,
+        "ready": false,
+        "skip": true,
+        "pending": false,
+        "left": false
+      },
+      "drivingAudio": {
+        "active": true,
+        "voices": 0,
+        "counts": {
+          "drive_idle": 1
+        },
+        "loops": {
+          "drive_idle": {
+            "playing": true,
+            "pan": 0,
+            "frequency": 43200,
+            "gain": 0.07786695659160614
+          }
+        }
+      },
+      "camera": {
+        "dist": 24,
+        "pitch": 30,
+        "yaw": 38.062518064296064,
+        "position": [
+          -882.8141479492188,
+          10.982980728149414,
+          -266.3645324707031
+        ]
+      },
+      "widgets": [
+        {
+          "text": "翻正",
+          "rect": [
+            1118.0953369140625,
+            285.71429443359375,
+            63.8094482421875,
+            48.571441650390625
+          ]
+        },
+        {
+          "text": "搜刮",
+          "rect": [
+            1045.71435546875,
+            270.4761962890625,
+            64.7618408203125,
+            63.809539794921875
+          ]
+        },
+        {
+          "text": "换入",
+          "rect": [
+            974.2857666015625,
+            285.71429443359375,
+            63.8095703125,
+            48.571441650390625
+          ]
+        },
+        {
+          "text": "拉近",
+          "rect": [
+            1118.0953369140625,
+            67.61904907226562,
+            63.8094482421875,
+            44.76190948486328
+          ]
+        },
+        {
+          "text": "拉远",
+          "rect": [
+            1045.71435546875,
+            67.61904907226562,
+            64.7618408203125,
+            44.76190948486328
+          ]
+        },
+        {
+          "text": "",
+          "rect": [
+            1070.4761962890625,
+            12.380952835083008,
+            111.4285888671875,
+            47.619049072265625
+          ],
+          "kind": "exit"
+        },
+        {
+          "text": "",
+          "rect": [
+            18.095239639282227,
+            72.3809585571289,
+            189.52381896972656,
+            51.42857360839844
+          ],
+          "kind": "weapon"
+        }
+      ]
+    },
+    {
+      "map": "salvage",
+      "mouse": {
+        "overlay": false,
+        "hit": "other",
+        "x": 0,
+        "scale": 2.1,
+        "y": 0
+      },
+      "performance": {
+        "retiredTargets": 0,
+        "droppedSeconds": 0,
+        "resourceBytes": 306485042,
+        "fixedSteps": 190,
+        "arrayBytes": 0,
+        "modelBytes": 264151211,
+        "batches": 553,
+        "effects": {
+          "beams": 0,
+          "smoke": 0,
+          "particles": 0,
+          "flashes": 0
+        },
+        "primitives": 7429792,
+        "luaKiB": 48051.7626953125
+      },
+      "width": 1200,
+      "sceneVisible": true,
+      "intro": false,
+      "weaponAudio": {
+        "active": true,
+        "voices": 0,
+        "counts": {},
+        "loops": {}
+      },
+      "weapons": {
+        "hits": 0,
+        "turning": 0,
+        "shots": 0,
+        "energy": 100,
+        "blocked": 1,
+        "kills": 0
+      },
+      "salvageRun": {
+        "extracts": [
+          {
+            "rule": "随时开放 · 等 10 秒",
+            "radius": 16,
+            "id": "E1",
+            "wait": 10,
+            "note": "要先下到峡谷底",
+            "name": "西峡口",
+            "cls": "std",
+            "x": -980,
+            "g": [
+              980,
+              -53.16999816894531,
+              316
+            ],
+            "z": 316,
+            "y": -53.16999816894531
+          },
+          {
+            "rule": "交一块能量电池 · 等 5 秒",
+            "radius": 14,
+            "id": "E2",
+            "wait": 5,
+            "z": 840,
+            "note": "在山顶，上去只有盘山路",
+            "name": "北岭索道站",
+            "cls": "std",
+            "x": 842,
+            "g": [
+              -842,
+              71.05000305175781,
+              840
+            ],
+            "needs": "cell",
+            "y": 71.05000305175781
+          },
+          {
+            "rule": "随时开放 · 等 10 秒",
+            "radius": 20,
+            "id": "E3",
+            "wait": 10,
+            "note": "从湖床或断铁路桥下来",
+            "name": "东河谷",
+            "cls": "giant",
+            "x": 985,
+            "g": [
+              -985,
+              -14.579999923706056,
+              128
+            ],
+            "z": 128,
+            "y": -14.579999923706056
+          },
+          {
+            "rule": "等 20 秒 · 电梯铃声全图可闻",
+            "radius": 16,
+            "id": "E4",
+            "wait": 20,
+            "loud": true,
+            "note": "螺旋道盘到坑底",
+            "name": "矿坑运矿电梯",
+            "cls": "std",
+            "x": -560,
+            "g": [
+              560,
+              -55.779998779296875,
+              -420
+            ],
+            "z": -420,
+            "y": -55.779998779296875
+          },
+          {
+            "rule": "只有车宽 ≤ 4 米的车能过",
+            "radius": 10,
+            "id": "E5",
+            "wait": 8,
+            "z": 96,
+            "note": "在涡轮机房里",
+            "name": "坝内检修口",
+            "cls": "small",
+            "x": 40,
+            "g": [
+              -40,
+              -35.5,
+              96
+            ],
+            "maxWidth": 4,
+            "y": -35.5
+          },
+          {
+            "rule": "开局 10 分钟后开放",
+            "note": "离出生区近，所以开得晚",
+            "id": "E6",
+            "wait": 10,
+            "radius": 20,
+            "openAt": 600,
+            "name": "南公路检查站",
+            "cls": "giant",
+            "x": 300,
+            "g": [
+              -300,
+              0.2800000011920929,
+              -890
+            ],
+            "z": -890,
+            "y": 0.2800000011920929
+          }
+        ],
+        "mass": 0,
+        "used": 0,
+        "time": 3.1666666666666603,
+        "value": 0,
+        "cargo": {},
+        "opened": 0,
+        "flights": 0,
+        "enemies": 3,
+        "heat": 0,
+        "kills": 0
+      },
+      "height": 540,
+      "mode": "trial",
+      "loadingFlow": {
+        "progress": 1,
+        "steps": [
+          {
+            "note": "28.4s",
+            "elapsed": 28.42898874077946,
+            "label": "下载场地与战车资源",
+            "id": "download",
+            "state": "done"
+          },
+          {
+            "note": "22.6s",
+            "elapsed": 22.597338541410863,
+            "label": "准备贴图",
+            "id": "resources",
+            "state": "done"
+          },
+          {
+            "note": "0.1s",
+            "elapsed": 0.10056949779391289,
+            "label": "载入场景",
+            "id": "scene",
+            "state": "done"
+          },
+          {
+            "note": "0.1s",
+            "elapsed": 0.05519749969244003,
+            "label": "搭建碰撞体",
+            "id": "prepare",
+            "state": "done"
+          },
+          {
+            "note": "0.0s",
+            "elapsed": 0,
+            "label": "准备环境",
+            "id": "environment",
+            "state": "done"
+          },
+          {
+            "note": "0.1s",
+            "elapsed": 0.06413000077009201,
+            "label": "装配战车与渲染",
+            "id": "activate",
+            "state": "done"
+          }
+        ],
+        "warmFrames": 95,
+        "visible": false,
+        "active": false,
+        "failed": false,
+        "map": "salvage",
+        "error": "",
+        "phase": "closed"
+      },
+      "missile": {
+        "models": 0,
+        "projectiles": 0,
+        "energy": 100,
+        "group": "laser",
+        "visible": 0
+      },
+      "touchRects": {
+        "fire": [
+          1094.2857666015625,
+          436.19049072265625,
+          87.6190185546875,
+          87.61907958984375
+        ],
+        "brake": [
+          1007.6190795898438,
+          452.3809814453125,
+          72.38092041015625,
+          71.4285888671875
+        ],
+        "swap": [
+          974.2857666015625,
+          285.71429443359375,
+          63.8095703125,
+          48.571441650390625
+        ],
+        "interact": [
+          1045.71435546875,
+          270.4761962890625,
+          64.7618408203125,
+          63.809539794921875
+        ],
+        "flip": [
+          1118.0953369140625,
+          285.71429443359375,
+          63.8094482421875,
+          48.571441650390625
+        ],
+        "zoomOut": [
+          1045.71435546875,
+          67.61904907226562,
+          64.7618408203125,
+          44.76190948486328
+        ],
+        "zoomIn": [
+          1118.0953369140625,
+          67.61904907226562,
+          63.8094482421875,
+          44.76190948486328
+        ],
+        "stick": [
+          18.095239639282227,
+          343.8095397949219,
+          180,
+          180.00003051757812
+        ]
+      },
+      "vehicle": {
+        "speed": -0.00017879264651137302,
+        "position": [
+          870.0014038085938,
+          -5.909147262573242,
+          -250.000244140625
+        ]
+      },
+      "touch": true,
+      "pointer": {
+        "captured": true,
+        "ready": false,
+        "skip": true,
+        "pending": false,
+        "left": false
+      },
+      "drivingAudio": {
+        "active": true,
+        "voices": 0,
+        "counts": {
+          "drive_load": 1,
+          "drive_idle": 1
+        },
+        "loops": {
+          "drive_idle": {
+            "playing": true,
+            "pan": 0,
+            "frequency": 43200.0859375,
+            "gain": 0.08449947088956833
+          },
+          "drive_load": {
+            "playing": false,
+            "pan": 0,
+            "frequency": 36000.3203125,
+            "gain": 0
+          }
+        }
+      },
+      "camera": {
+        "dist": 24,
+        "pitch": 30,
+        "yaw": 38.062518064296064,
+        "position": [
+          -882.8155517578125,
+          10.390852928161621,
+          -266.36474609375
+        ]
+      },
+      "widgets": [
+        {
+          "text": "翻正",
+          "rect": [
+            1118.0953369140625,
+            285.71429443359375,
+            63.8094482421875,
+            48.571441650390625
+          ]
+        },
+        {
+          "text": "搜刮",
+          "rect": [
+            1045.71435546875,
+            270.4761962890625,
+            64.7618408203125,
+            63.809539794921875
+          ]
+        },
+        {
+          "text": "换入",
+          "rect": [
+            974.2857666015625,
+            285.71429443359375,
+            63.8095703125,
+            48.571441650390625
+          ]
+        },
+        {
+          "text": "拉近",
+          "rect": [
+            1118.0953369140625,
+            67.61904907226562,
+            63.8094482421875,
+            44.76190948486328
+          ]
+        },
+        {
+          "text": "拉远",
+          "rect": [
+            1045.71435546875,
+            67.61904907226562,
+            64.7618408203125,
+            44.76190948486328
+          ]
+        },
+        {
+          "text": "",
+          "rect": [
+            1070.4761962890625,
+            12.380952835083008,
+            111.4285888671875,
+            47.619049072265625
+          ],
+          "kind": "exit"
+        },
+        {
+          "text": "",
+          "rect": [
+            18.095239639282227,
+            72.3809585571289,
+            189.52381896972656,
+            51.42857360839844
+          ],
+          "kind": "weapon"
+        }
+      ]
+    },
+    {
+      "map": "salvage",
+      "mouse": {
+        "overlay": false,
+        "hit": "other",
+        "x": 0,
+        "scale": 2.1,
+        "y": 0
+      },
+      "performance": {
+        "retiredTargets": 0,
+        "droppedSeconds": 4.4703483415009515e-9,
+        "resourceBytes": 311300139,
+        "fixedSteps": 308,
+        "arrayBytes": 0,
+        "modelBytes": 267028302,
+        "batches": 1133,
+        "effects": {
+          "beams": 0,
+          "smoke": 0,
+          "particles": 0,
+          "flashes": 0
+        },
+        "primitives": 8546832,
+        "luaKiB": 55756.75390625
+      },
+      "width": 1200,
+      "sceneVisible": true,
+      "intro": false,
+      "weaponAudio": {
+        "active": true,
+        "voices": 0,
+        "counts": {},
+        "loops": {}
+      },
+      "weapons": {
+        "hits": 0,
+        "turning": 0,
+        "shots": 0,
+        "energy": 100,
+        "blocked": 0,
+        "kills": 0
+      },
+      "salvageRun": {
+        "extracts": [
+          {
+            "rule": "随时开放 · 等 10 秒",
+            "radius": 16,
+            "id": "E1",
+            "wait": 10,
+            "note": "要先下到峡谷底",
+            "name": "西峡口",
+            "cls": "std",
+            "x": -980,
+            "g": [
+              980,
+              -53.16999816894531,
+              316
+            ],
+            "z": 316,
+            "y": -53.16999816894531
+          },
+          {
+            "rule": "交一块能量电池 · 等 5 秒",
+            "radius": 14,
+            "id": "E2",
+            "wait": 5,
+            "z": 840,
+            "note": "在山顶，上去只有盘山路",
+            "name": "北岭索道站",
+            "cls": "std",
+            "x": 842,
+            "g": [
+              -842,
+              71.05000305175781,
+              840
+            ],
+            "needs": "cell",
+            "y": 71.05000305175781
+          },
+          {
+            "rule": "随时开放 · 等 10 秒",
+            "radius": 20,
+            "id": "E3",
+            "wait": 10,
+            "note": "从湖床或断铁路桥下来",
+            "name": "东河谷",
+            "cls": "giant",
+            "x": 985,
+            "g": [
+              -985,
+              -14.579999923706056,
+              128
+            ],
+            "z": 128,
+            "y": -14.579999923706056
+          },
+          {
+            "rule": "等 20 秒 · 电梯铃声全图可闻",
+            "radius": 16,
+            "id": "E4",
+            "wait": 20,
+            "loud": true,
+            "note": "螺旋道盘到坑底",
+            "name": "矿坑运矿电梯",
+            "cls": "std",
+            "x": -560,
+            "g": [
+              560,
+              -55.779998779296875,
+              -420
+            ],
+            "z": -420,
+            "y": -55.779998779296875
+          },
+          {
+            "rule": "只有车宽 ≤ 4 米的车能过",
+            "radius": 10,
+            "id": "E5",
+            "wait": 8,
+            "z": 96,
+            "note": "在涡轮机房里",
+            "name": "坝内检修口",
+            "cls": "small",
+            "x": 40,
+            "g": [
+              -40,
+              -35.5,
+              96
+            ],
+            "maxWidth": 4,
+            "y": -35.5
+          },
+          {
+            "rule": "开局 10 分钟后开放",
+            "note": "离出生区近，所以开得晚",
+            "id": "E6",
+            "wait": 10,
+            "radius": 20,
+            "openAt": 600,
+            "name": "南公路检查站",
+            "cls": "giant",
+            "x": 300,
+            "g": [
+              -300,
+              0.2800000011920929,
+              -890
+            ],
+            "z": -890,
+            "y": 0.2800000011920929
+          }
+        ],
+        "mass": 50,
+        "used": 2,
+        "time": 5.13333333333332,
+        "value": 114,
+        "cargo": {
+          "smokePack": 1,
+          "scrap": 6
+        },
+        "search": {
+          "done": false,
+          "items": [
+            {
+              "t": 0.4,
+              "n": 6,
+              "left": 0,
+              "r": 0,
+              "state": "shown",
+              "id": "scrap",
+              "order": 2
+            },
+            {
+              "t": 0.4,
+              "n": 1,
+              "left": 0,
+              "r": 0,
+              "state": "shown",
+              "id": "smokePack",
+              "order": 3
+            },
+            {
+              "t": 0.6,
+              "n": 1,
+              "r": 1,
+              "state": "scan",
+              "id": "repair",
+              "order": 1
+            }
+          ],
+          "title": "补给箱"
+        },
+        "opened": 0,
+        "flights": 2,
+        "enemies": 10,
+        "heat": 4.311666666666664,
+        "kills": 0
+      },
+      "height": 540,
+      "mode": "trial",
+      "loadingFlow": {
+        "progress": 1,
+        "steps": [
+          {
+            "note": "28.4s",
+            "elapsed": 28.42898874077946,
+            "label": "下载场地与战车资源",
+            "id": "download",
+            "state": "done"
+          },
+          {
+            "note": "22.6s",
+            "elapsed": 22.597338541410863,
+            "label": "准备贴图",
+            "id": "resources",
+            "state": "done"
+          },
+          {
+            "note": "0.1s",
+            "elapsed": 0.10056949779391289,
+            "label": "载入场景",
+            "id": "scene",
+            "state": "done"
+          },
+          {
+            "note": "0.1s",
+            "elapsed": 0.05519749969244003,
+            "label": "搭建碰撞体",
+            "id": "prepare",
+            "state": "done"
+          },
+          {
+            "note": "0.0s",
+            "elapsed": 0,
+            "label": "准备环境",
+            "id": "environment",
+            "state": "done"
+          },
+          {
+            "note": "0.1s",
+            "elapsed": 0.06413000077009201,
+            "label": "装配战车与渲染",
+            "id": "activate",
+            "state": "done"
+          }
+        ],
+        "warmFrames": 95,
+        "visible": false,
+        "active": false,
+        "failed": false,
+        "map": "salvage",
+        "error": "",
+        "phase": "closed"
+      },
+      "missile": {
+        "models": 0,
+        "projectiles": 0,
+        "energy": 100,
+        "group": "laser",
+        "visible": 0
+      },
+      "touchRects": {
+        "fire": [
+          1094.2857666015625,
+          436.19049072265625,
+          87.6190185546875,
+          87.61907958984375
+        ],
+        "brake": [
+          1007.6190795898438,
+          452.3809814453125,
+          72.38092041015625,
+          71.4285888671875
+        ],
+        "swap": [
+          974.2857666015625,
+          285.71429443359375,
+          63.8095703125,
+          48.571441650390625
+        ],
+        "interact": [
+          1045.71435546875,
+          270.4761962890625,
+          64.7618408203125,
+          63.809539794921875
+        ],
+        "flip": [
+          1118.0953369140625,
+          285.71429443359375,
+          63.8094482421875,
+          48.571441650390625
+        ],
+        "zoomOut": [
+          1045.71435546875,
+          67.61904907226562,
+          64.7618408203125,
+          44.76190948486328
+        ],
+        "zoomIn": [
+          1118.0953369140625,
+          67.61904907226562,
+          63.8094482421875,
+          44.76190948486328
+        ],
+        "stick": [
+          18.095239639282227,
+          343.8095397949219,
+          180,
+          180.00003051757812
+        ]
+      },
+      "vehicle": {
+        "speed": -0.00683872616017856,
+        "position": [
+          -22.419775009155273,
+          -36.894081115722656,
+          79.71467590332031
+        ]
+      },
+      "touch": true,
+      "pointer": {
+        "captured": true,
+        "ready": false,
+        "skip": true,
+        "pending": false,
+        "left": false
+      },
+      "drivingAudio": {
+        "active": true,
+        "voices": 0,
+        "counts": {
+          "hover_loop": 1,
+          "drive_load": 5,
+          "track_loop": 2,
+          "drive_idle": 2,
+          "thruster_loop": 1
+        },
+        "loops": {
+          "remote:hover_loop": {
+            "playing": false,
+            "pan": 0.002223676536232233,
+            "frequency": 47919.04296875,
+            "gain": 0
+          },
+          "drive_load": {
+            "playing": false,
+            "pan": 0,
+            "frequency": 36020.71875,
+            "gain": 0
+          },
+          "remote:track_loop": {
+            "playing": false,
+            "pan": -0.014264650642871857,
+            "frequency": 47554.32421875,
+            "gain": 0
+          },
+          "remote:drive_idle": {
+            "playing": true,
+            "pan": -0.8499886989593506,
+            "frequency": 43298.078125,
+            "gain": 0.011388685554265976
+          },
+          "remote:thruster_loop": {
+            "playing": true,
+            "pan": 0.32384541630744934,
+            "frequency": 46579.01953125,
+            "gain": 0.005930204875767231
+          },
+          "drive_idle": {
+            "playing": true,
+            "pan": 0,
+            "frequency": 43205.65234375,
+            "gain": 0.08446533232927322
+          },
+          "remote:drive_load": {
+            "playing": true,
+            "pan": -0.598051905632019,
+            "frequency": 39003.69921875,
+            "gain": 0.0011401273077353835
+          }
+        }
+      },
+      "camera": {
+        "dist": 24,
+        "pitch": 30,
+        "yaw": 38.062518064296064,
+        "position": [
+          15.89352798461914,
+          -26.4835262298584,
+          71.3800277709961
+        ]
+      },
+      "widgets": [
+        {
+          "text": "翻正",
+          "rect": [
+            1118.0953369140625,
+            285.71429443359375,
+            63.8094482421875,
+            48.571441650390625
+          ]
+        },
+        {
+          "text": "搜刮",
+          "rect": [
+            1045.71435546875,
+            270.4761962890625,
+            64.7618408203125,
+            63.809539794921875
+          ]
+        },
+        {
+          "text": "换入",
+          "rect": [
+            974.2857666015625,
+            285.71429443359375,
+            63.8095703125,
+            48.571441650390625
+          ]
+        },
+        {
+          "text": "拉近",
+          "rect": [
+            1118.0953369140625,
+            67.61904907226562,
+            63.8094482421875,
+            44.76190948486328
+          ]
+        },
+        {
+          "text": "拉远",
+          "rect": [
+            1045.71435546875,
+            67.61904907226562,
+            64.7618408203125,
+            44.76190948486328
+          ]
+        },
+        {
+          "text": "",
+          "rect": [
+            1070.4761962890625,
+            12.380952835083008,
+            111.4285888671875,
+            47.619049072265625
+          ],
+          "kind": "exit"
+        },
+        {
+          "text": "",
+          "rect": [
+            18.095239639282227,
+            72.3809585571289,
+            189.52381896972656,
+            51.42857360839844
+          ],
+          "kind": "weapon"
+        }
+      ]
+    },
+    {
+      "map": "salvage",
+      "mouse": {
+        "overlay": false,
+        "hit": "other",
+        "x": 0,
+        "scale": 2.1,
+        "y": 0
+      },
+      "performance": {
+        "retiredTargets": 0,
+        "droppedSeconds": 4.4703483415009515e-9,
+        "resourceBytes": 311300139,
+        "fixedSteps": 480,
+        "arrayBytes": 0,
+        "modelBytes": 267028302,
+        "batches": 1139,
+        "effects": {
+          "beams": 0,
+          "smoke": 0,
+          "particles": 0,
+          "flashes": 0
+        },
+        "primitives": 8546904,
+        "luaKiB": 62023.9482421875
+      },
+      "width": 1200,
+      "sceneVisible": true,
+      "intro": false,
+      "weaponAudio": {
+        "active": true,
+        "voices": 0,
+        "counts": {},
+        "loops": {}
+      },
+      "weapons": {
+        "hits": 0,
+        "turning": 0,
+        "shots": 0,
+        "energy": 100,
+        "blocked": 0,
+        "kills": 0
+      },
+      "salvageRun": {
+        "extracts": [
+          {
+            "rule": "随时开放 · 等 10 秒",
+            "radius": 16,
+            "id": "E1",
+            "wait": 10,
+            "note": "要先下到峡谷底",
+            "name": "西峡口",
+            "cls": "std",
+            "x": -980,
+            "g": [
+              980,
+              -53.16999816894531,
+              316
+            ],
+            "z": 316,
+            "y": -53.16999816894531
+          },
+          {
+            "rule": "交一块能量电池 · 等 5 秒",
+            "radius": 14,
+            "id": "E2",
+            "wait": 5,
+            "z": 840,
+            "note": "在山顶，上去只有盘山路",
+            "name": "北岭索道站",
+            "cls": "std",
+            "x": 842,
+            "g": [
+              -842,
+              71.05000305175781,
+              840
+            ],
+            "needs": "cell",
+            "y": 71.05000305175781
+          },
+          {
+            "rule": "随时开放 · 等 10 秒",
+            "radius": 20,
+            "id": "E3",
+            "wait": 10,
+            "note": "从湖床或断铁路桥下来",
+            "name": "东河谷",
+            "cls": "giant",
+            "x": 985,
+            "g": [
+              -985,
+              -14.579999923706056,
+              128
+            ],
+            "z": 128,
+            "y": -14.579999923706056
+          },
+          {
+            "rule": "等 20 秒 · 电梯铃声全图可闻",
+            "radius": 16,
+            "id": "E4",
+            "wait": 20,
+            "loud": true,
+            "note": "螺旋道盘到坑底",
+            "name": "矿坑运矿电梯",
+            "cls": "std",
+            "x": -560,
+            "g": [
+              560,
+              -55.779998779296875,
+              -420
+            ],
+            "z": -420,
+            "y": -55.779998779296875
+          },
+          {
+            "rule": "只有车宽 ≤ 4 米的车能过",
+            "radius": 10,
+            "id": "E5",
+            "wait": 8,
+            "z": 96,
+            "note": "在涡轮机房里",
+            "name": "坝内检修口",
+            "cls": "small",
+            "x": 40,
+            "g": [
+              -40,
+              -35.5,
+              96
+            ],
+            "maxWidth": 4,
+            "y": -35.5
+          },
+          {
+            "rule": "开局 10 分钟后开放",
+            "note": "离出生区近，所以开得晚",
+            "id": "E6",
+            "wait": 10,
+            "radius": 20,
+            "openAt": 600,
+            "name": "南公路检查站",
+            "cls": "giant",
+            "x": 300,
+            "g": [
+              -300,
+              0.2800000011920929,
+              -890
+            ],
+            "z": -890,
+            "y": 0.2800000011920929
+          }
+        ],
+        "mass": 103,
+        "lootPulse": {
+          "id": "part:steer5",
+          "at": 7.233333333333313,
+          "rarity": 4
+        },
+        "used": 4,
+        "time": 7.999999999999977,
+        "value": 668,
+        "cargo": {
+          "part:steer5": 1,
+          "smokePack": 1,
+          "repair": 1,
+          "scrap": 6
+        },
+        "search": {
+          "done": true,
+          "items": [
+            {
+              "t": 1,
+              "n": 1,
+              "r": 4,
+              "state": "shown",
+              "id": "part:steer5",
+              "left": 0
+            }
+          ],
+          "title": "补给箱"
+        },
+        "opened": 2,
+        "flights": 0,
+        "enemies": 10,
+        "heat": 2.304999999999989,
+        "kills": 0
+      },
+      "height": 540,
+      "mode": "trial",
+      "loadingFlow": {
+        "progress": 1,
+        "steps": [
+          {
+            "note": "28.4s",
+            "elapsed": 28.42898874077946,
+            "label": "下载场地与战车资源",
+            "id": "download",
+            "state": "done"
+          },
+          {
+            "note": "22.6s",
+            "elapsed": 22.597338541410863,
+            "label": "准备贴图",
+            "id": "resources",
+            "state": "done"
+          },
+          {
+            "note": "0.1s",
+            "elapsed": 0.10056949779391289,
+            "label": "载入场景",
+            "id": "scene",
+            "state": "done"
+          },
+          {
+            "note": "0.1s",
+            "elapsed": 0.05519749969244003,
+            "label": "搭建碰撞体",
+            "id": "prepare",
+            "state": "done"
+          },
+          {
+            "note": "0.0s",
+            "elapsed": 0,
+            "label": "准备环境",
+            "id": "environment",
+            "state": "done"
+          },
+          {
+            "note": "0.1s",
+            "elapsed": 0.06413000077009201,
+            "label": "装配战车与渲染",
+            "id": "activate",
+            "state": "done"
+          }
+        ],
+        "warmFrames": 95,
+        "visible": false,
+        "active": false,
+        "failed": false,
+        "map": "salvage",
+        "error": "",
+        "phase": "closed"
+      },
+      "missile": {
+        "models": 0,
+        "projectiles": 0,
+        "energy": 100,
+        "group": "laser",
+        "visible": 0
+      },
+      "touchRects": {
+        "fire": [
+          1094.2857666015625,
+          436.19049072265625,
+          87.6190185546875,
+          87.61907958984375
+        ],
+        "brake": [
+          1007.6190795898438,
+          452.3809814453125,
+          72.38092041015625,
+          71.4285888671875
+        ],
+        "swap": [
+          974.2857666015625,
+          285.71429443359375,
+          63.8095703125,
+          48.571441650390625
+        ],
+        "interact": [
+          1045.71435546875,
+          270.4761962890625,
+          64.7618408203125,
+          63.809539794921875
+        ],
+        "flip": [
+          1118.0953369140625,
+          285.71429443359375,
+          63.8094482421875,
+          48.571441650390625
+        ],
+        "zoomOut": [
+          1045.71435546875,
+          67.61904907226562,
+          64.7618408203125,
+          44.76190948486328
+        ],
+        "zoomIn": [
+          1118.0953369140625,
+          67.61904907226562,
+          63.8094482421875,
+          44.76190948486328
+        ],
+        "stick": [
+          18.095239639282227,
+          343.8095397949219,
+          180,
+          180.00003051757812
+        ]
+      },
+      "vehicle": {
+        "speed": -0.0002770805681851779,
+        "position": [
+          -22.41193199157715,
+          -36.907257080078125,
+          79.71283721923828
+        ]
+      },
+      "touch": true,
+      "pointer": {
+        "captured": true,
+        "ready": false,
+        "skip": true,
+        "pending": false,
+        "left": false
+      },
+      "drivingAudio": {
+        "active": true,
+        "voices": 0,
+        "counts": {
+          "hover_loop": 2,
+          "drive_load": 5,
+          "track_loop": 2,
+          "drive_idle": 2,
+          "thruster_loop": 1
+        },
+        "loops": {
+          "remote:hover_loop": {
+            "playing": true,
+            "pan": 0.325194388628006,
+            "frequency": 45656.6796875,
+            "gain": 0.0022364638280123472
+          },
+          "drive_load": {
+            "playing": false,
+            "pan": 0,
+            "frequency": 36001.11328125,
+            "gain": 0
+          },
+          "remote:track_loop": {
+            "playing": false,
+            "pan": -3.525746105214892e-18,
+            "frequency": 48000,
+            "gain": 0
+          },
+          "remote:drive_idle": {
+            "playing": true,
+            "pan": -0.8500000238418579,
+            "frequency": 43200.33984375,
+            "gain": 0.011456557549536228
+          },
+          "remote:thruster_loop": {
+            "playing": true,
+            "pan": 0.3251945674419403,
+            "frequency": 46579.19140625,
+            "gain": 0.005915521178394556
+          },
+          "drive_idle": {
+            "playing": true,
+            "pan": 0,
+            "frequency": 43200.3046875,
+            "gain": 0.08449847996234894
+          },
+          "remote:drive_load": {
+            "playing": false,
+            "pan": -0.6698691248893738,
+            "frequency": 36417.58984375,
+            "gain": 0
+          }
+        }
+      },
+      "camera": {
+        "dist": 24,
+        "pitch": 30,
+        "yaw": 38.062518064296064,
+        "position": [
+          15.886722564697266,
+          -26.496509552001953,
+          71.37957763671875
+        ]
+      },
+      "widgets": [
+        {
+          "text": "翻正",
+          "rect": [
+            1118.0953369140625,
+            285.71429443359375,
+            63.8094482421875,
+            48.571441650390625
+          ]
+        },
+        {
+          "text": "搜刮",
+          "rect": [
+            1045.71435546875,
+            270.4761962890625,
+            64.7618408203125,
+            63.809539794921875
+          ]
+        },
+        {
+          "text": "换入",
+          "rect": [
+            974.2857666015625,
+            285.71429443359375,
+            63.8095703125,
+            48.571441650390625
+          ]
+        },
+        {
+          "text": "拉近",
+          "rect": [
+            1118.0953369140625,
+            67.61904907226562,
+            63.8094482421875,
+            44.76190948486328
+          ]
+        },
+        {
+          "text": "拉远",
+          "rect": [
+            1045.71435546875,
+            67.61904907226562,
+            64.7618408203125,
+            44.76190948486328
+          ]
+        },
+        {
+          "text": "",
+          "rect": [
+            1070.4761962890625,
+            12.380952835083008,
+            111.4285888671875,
+            47.619049072265625
+          ],
+          "kind": "exit"
+        },
+        {
+          "text": "",
+          "rect": [
+            18.095239639282227,
+            72.3809585571289,
+            189.52381896972656,
+            51.42857360839844
+          ],
+          "kind": "weapon"
+        }
+      ]
+    },
+    {
+      "map": "salvage",
+      "mouse": {
+        "overlay": true,
+        "hit": "other",
+        "x": 0,
+        "scale": 2.1,
+        "y": 0
+      },
+      "performance": {
+        "retiredTargets": 0,
+        "droppedSeconds": 4.4703483415009515e-9,
+        "resourceBytes": 311968862,
+        "fixedSteps": 1109,
+        "arrayBytes": 0,
+        "modelBytes": 267663611,
+        "batches": 755,
+        "effects": {
+          "beams": 0,
+          "smoke": 0,
+          "particles": 0,
+          "flashes": 0
+        },
+        "primitives": 7760840,
+        "luaKiB": 62713.828125
+      },
+      "width": 1200,
+      "sceneVisible": true,
+      "intro": false,
+      "weaponAudio": {
+        "active": false,
+        "voices": 0,
+        "counts": {},
+        "loops": {}
+      },
+      "weapons": {
+        "hits": 0,
+        "turning": 0,
+        "shots": 0,
+        "energy": 100,
+        "blocked": 1,
+        "kills": 0
+      },
+      "salvageRun": {
+        "extracts": [
+          {
+            "rule": "随时开放 · 等 10 秒",
+            "radius": 16,
+            "id": "E1",
+            "wait": 10,
+            "note": "要先下到峡谷底",
+            "name": "西峡口",
+            "cls": "std",
+            "x": -980,
+            "g": [
+              980,
+              -53.16999816894531,
+              316
+            ],
+            "z": 316,
+            "y": -53.16999816894531
+          },
+          {
+            "rule": "交一块能量电池 · 等 5 秒",
+            "radius": 14,
+            "id": "E2",
+            "wait": 5,
+            "z": 840,
+            "note": "在山顶，上去只有盘山路",
+            "name": "北岭索道站",
+            "cls": "std",
+            "x": 842,
+            "g": [
+              -842,
+              71.05000305175781,
+              840
+            ],
+            "needs": "cell",
+            "y": 71.05000305175781
+          },
+          {
+            "rule": "随时开放 · 等 10 秒",
+            "radius": 20,
+            "id": "E3",
+            "wait": 10,
+            "note": "从湖床或断铁路桥下来",
+            "name": "东河谷",
+            "cls": "giant",
+            "x": 985,
+            "g": [
+              -985,
+              -14.579999923706056,
+              128
+            ],
+            "z": 128,
+            "y": -14.579999923706056
+          },
+          {
+            "rule": "等 20 秒 · 电梯铃声全图可闻",
+            "radius": 16,
+            "id": "E4",
+            "wait": 20,
+            "loud": true,
+            "note": "螺旋道盘到坑底",
+            "name": "矿坑运矿电梯",
+            "cls": "std",
+            "x": -560,
+            "g": [
+              560,
+              -55.779998779296875,
+              -420
+            ],
+            "z": -420,
+            "y": -55.779998779296875
+          },
+          {
+            "rule": "只有车宽 ≤ 4 米的车能过",
+            "radius": 10,
+            "id": "E5",
+            "wait": 8,
+            "z": 96,
+            "note": "在涡轮机房里",
+            "name": "坝内检修口",
+            "cls": "small",
+            "x": 40,
+            "g": [
+              -40,
+              -35.5,
+              96
+            ],
+            "maxWidth": 4,
+            "y": -35.5
+          },
+          {
+            "rule": "开局 10 分钟后开放",
+            "note": "离出生区近，所以开得晚",
+            "id": "E6",
+            "wait": 10,
+            "radius": 20,
+            "openAt": 600,
+            "name": "南公路检查站",
+            "cls": "giant",
+            "x": 300,
+            "g": [
+              -300,
+              0.2800000011920929,
+              -890
+            ],
+            "z": -890,
+            "y": 0.2800000011920929
+          }
+        ],
+        "mass": 103,
+        "lootPulse": {
+          "id": "part:steer5",
+          "at": 7.233333333333313,
+          "rarity": 4
+        },
+        "used": 4,
+        "time": 18.483333333333565,
+        "value": 668,
+        "cargo": {
+          "part:steer5": 1,
+          "smokePack": 1,
+          "repair": 1,
+          "scrap": 6
+        },
+        "opened": 2,
+        "flights": 0,
+        "enemies": 9,
+        "heat": 0,
+        "result": {
+          "cargo": {
+            "part:steer5": 1,
+            "smokePack": 1,
+            "scrap": 6,
+            "repair": 1
+          },
+          "keepCar": false,
+          "opened": 2,
+          "ok": true,
+          "lost": 0,
+          "kills": 0,
+          "title": "从「西峡口」撤离",
+          "time": 18.483333333333565,
+          "value": 668
+        },
+        "committed": true,
+        "kills": 0
+      },
+      "height": 540,
+      "mode": "trial",
+      "loadingFlow": {
+        "progress": 1,
+        "steps": [
+          {
+            "note": "28.4s",
+            "elapsed": 28.42898874077946,
+            "label": "下载场地与战车资源",
+            "id": "download",
+            "state": "done"
+          },
+          {
+            "note": "22.6s",
+            "elapsed": 22.597338541410863,
+            "label": "准备贴图",
+            "id": "resources",
+            "state": "done"
+          },
+          {
+            "note": "0.1s",
+            "elapsed": 0.10056949779391289,
+            "label": "载入场景",
+            "id": "scene",
+            "state": "done"
+          },
+          {
+            "note": "0.1s",
+            "elapsed": 0.05519749969244003,
+            "label": "搭建碰撞体",
+            "id": "prepare",
+            "state": "done"
+          },
+          {
+            "note": "0.0s",
+            "elapsed": 0,
+            "label": "准备环境",
+            "id": "environment",
+            "state": "done"
+          },
+          {
+            "note": "0.1s",
+            "elapsed": 0.06413000077009201,
+            "label": "装配战车与渲染",
+            "id": "activate",
+            "state": "done"
+          }
+        ],
+        "warmFrames": 95,
+        "visible": false,
+        "active": false,
+        "failed": false,
+        "map": "salvage",
+        "error": "",
+        "phase": "closed"
+      },
+      "missile": {
+        "models": 0,
+        "projectiles": 0,
+        "energy": 100,
+        "group": "laser",
+        "visible": 0
+      },
+      "touchRects": {
+        "fire": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "brake": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "swap": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "interact": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "flip": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "zoomOut": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "zoomIn": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "stick": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "vehicle": {
+        "speed": -2.0878633686603936e-7,
+        "position": [
+          979.984375,
+          -53.09654998779297,
+          316.0078430175781
+        ]
+      },
+      "touch": true,
+      "pointer": {
+        "captured": false,
+        "ready": false,
+        "skip": true,
+        "pending": false,
+        "left": false
+      },
+      "drivingAudio": {
+        "active": false,
+        "voices": 0,
+        "counts": {
+          "hover_loop": 2,
+          "drive_load": 6,
+          "track_loop": 2,
+          "drive_idle": 2,
+          "thruster_loop": 1
+        },
+        "loops": {
+          "remote:hover_loop": {
+            "playing": false,
+            "pan": 0,
+            "frequency": 48000,
+            "gain": 0
+          },
+          "drive_load": {
+            "playing": false,
+            "pan": 0,
+            "frequency": 36000,
+            "gain": 0
+          },
+          "remote:track_loop": {
+            "playing": false,
+            "pan": 0,
+            "frequency": 48000,
+            "gain": 0
+          },
+          "remote:drive_idle": {
+            "playing": false,
+            "pan": 0,
+            "frequency": 48000,
+            "gain": 0
+          },
+          "remote:thruster_loop": {
+            "playing": false,
+            "pan": 0,
+            "frequency": 48000,
+            "gain": 0
+          },
+          "drive_idle": {
+            "playing": false,
+            "pan": 0,
+            "frequency": 43200,
+            "gain": 0
+          },
+          "remote:drive_load": {
+            "playing": false,
+            "pan": 0,
+            "frequency": 48000,
+            "gain": 0
+          }
+        }
+      },
+      "camera": {
+        "dist": 24,
+        "pitch": 30,
+        "yaw": 38.062518064296064,
+        "position": [
+          -992.7985229492188,
+          -36.79655456542969,
+          299.643310546875
+        ]
+      },
+      "widgets": [
+        {
+          "text": "",
+          "rect": [
+            1070.4761962890625,
+            12.380952835083008,
+            111.4285888671875,
+            47.619049072265625
+          ],
+          "kind": "exit"
+        },
+        {
+          "text": "回大厅",
+          "rect": [
+            841.8095703125,
+            375.03689750460865,
+            120,
+            40
+          ]
+        }
+      ]
+    },
+    {
+      "anchors": [
+        [
+          0.522671639919281,
+          0.6394588351249695
+        ],
+        [
+          0.5245603919029236,
+          0.3786432147026062
+        ],
+        [
+          0.7922223210334778,
+          0.8361220359802246
+        ],
+        [
+          0.36855652928352356,
+          0.5270169973373413
+        ],
+        [
+          0.30929845571517944,
+          0.9290530681610107
+        ],
+        [
+          0.6241346597671509,
+          0.501751184463501
+        ]
+      ],
+      "physical": [
+        2520,
+        1134
+      ],
+      "mouse": {
+        "overlay": false,
+        "hit": "other",
+        "x": 0,
+        "scale": 1.05,
+        "y": 0
+      },
+      "blueprint": "先锋 · 轮式激光",
+      "quality": "mobile",
+      "warehouse": {
+        "hallVisible": true,
+        "ready": false,
+        "cursor": 49
+      },
+      "mapPreview": false,
+      "build": false,
+      "mode": "hangar",
+      "tutorial": {
+        "running": false,
+        "path": "intro",
+        "buttons": {},
+        "record": {},
+        "visible": false,
+        "voicePlaying": false,
+        "voicePlayed": 0,
+        "id": "hello",
+        "lineAge": 0,
+        "replay": false,
+        "total": 4,
+        "index": 1,
+        "line": 1
+      },
+      "hangar": {
+        "lights": [
+          {
+            "type": 1,
+            "brightness": 1650,
+            "name": "HangarLight_spot",
+            "shadow": true
+          },
+          {
+            "type": 3,
+            "brightness": 99,
+            "name": "HangarLight_rect",
+            "shadow": false
+          },
+          {
+            "type": 3,
+            "brightness": 99,
+            "name": "HangarLight_rect",
+            "shadow": false
+          },
+          {
+            "type": 3,
+            "brightness": 633.5999755859375,
+            "name": "HangarLight_rect",
+            "shadow": false
+          },
+          {
+            "type": 3,
+            "brightness": 147.1999969482422,
+            "name": "HangarLight_rect",
+            "shadow": false
+          }
+        ],
+        "panelIsolation": false,
+        "scan": true,
+        "materialUpdates": {
+          "animated": 22,
+          "total": 98
+        },
+        "frame": 0.8359559874605731,
+        "gridTarget": 0.3,
+        "grid": 0.4258459561120058,
+        "shadows": true,
+        "time": 0.31609249487519264,
+        "frameTarget": 0.8
+      },
+      "craterModelResident": false,
+      "lobby": "salvage",
+      "tab": "salvage",
+      "width": 2400,
+      "sceneVisible": true,
+      "parts": 78,
+      "frames": {
+        "p95": 49.0494966506958,
+        "count": 12,
+        "p99": 49.0494966506958,
+        "p50": 23.141998797655106,
+        "max": 49.0494966506958
+      },
+      "widgets": [
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "",
+          "pressed": false,
+          "kind": "tab",
+          "text": "整备",
+          "selected": true,
+          "hovered": false,
+          "rect": [
+            295.23809814453125,
+            0,
+            85.71429443359375,
+            87.61904907226562
+          ],
+          "styleWidth": 86,
+          "styleHeight": 88
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "",
+          "pressed": false,
+          "kind": "tab",
+          "text": "行动",
+          "selected": false,
+          "hovered": false,
+          "rect": [
+            397.14288330078125,
+            0,
+            85.71429443359375,
+            87.61904907226562
+          ],
+          "styleWidth": 86,
+          "styleHeight": 88
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "",
+          "pressed": false,
+          "kind": "tab",
+          "text": "商人",
+          "selected": false,
+          "hovered": false,
+          "rect": [
+            499.0476379394531,
+            0,
+            85.71426391601562,
+            87.61904907226562
+          ],
+          "styleWidth": 86,
+          "styleHeight": 88
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "",
+          "pressed": false,
+          "kind": "tab",
+          "text": "车库",
+          "selected": false,
+          "hovered": false,
+          "rect": [
+            600.952392578125,
+            0,
+            85.71429443359375,
+            87.61904907226562
+          ],
+          "styleWidth": 86,
+          "styleHeight": 88
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "",
+          "pressed": false,
+          "kind": "tab",
+          "text": "创意工坊",
+          "selected": false,
+          "hovered": false,
+          "rect": [
+            702.857177734375,
+            0,
+            154.28570556640625,
+            87.61904907226562
+          ],
+          "styleWidth": 154,
+          "styleHeight": 88
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "gear",
+          "pressed": false,
+          "kind": "button",
+          "text": "",
+          "hovered": false,
+          "rect": [
+            2300,
+            21.904762268066406,
+            43.8095703125,
+            43.80952453613281
+          ],
+          "styleWidth": 44,
+          "styleHeight": 44
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "battle",
+          "pressed": false,
+          "kind": "mode",
+          "text": "竞技对战",
+          "hovered": false,
+          "rect": [
+            1907.619140625,
+            867.6190795898438,
+            214.28564453125,
+            50.4761962890625
+          ],
+          "styleWidth": 214,
+          "styleHeight": 50
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "hook",
+          "pressed": false,
+          "kind": "mode",
+          "text": "打捞行动",
+          "selected": true,
+          "hovered": false,
+          "rect": [
+            2125.71435546875,
+            867.6190795898438,
+            214.28564453125,
+            50.4761962890625
+          ],
+          "styleWidth": 214,
+          "styleHeight": 50
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "",
+          "pressed": false,
+          "text": "激光枪 T1",
+          "hovered": false,
+          "rect": [
+            56.19047927856445,
+            305.7142906188965,
+            71.42857360839844,
+            71.4285888671875
+          ],
+          "styleWidth": 72,
+          "styleHeight": 72
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "",
+          "pressed": false,
+          "kind": "slot",
+          "text": "",
+          "hovered": false,
+          "rect": [
+            132.38096237182617,
+            305.7142906188965,
+            71.4285888671875,
+            71.4285888671875
+          ],
+          "styleWidth": 72,
+          "styleHeight": 72
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "",
+          "pressed": false,
+          "kind": "slot",
+          "text": "",
+          "hovered": false,
+          "rect": [
+            208.5714454650879,
+            305.7142906188965,
+            72.38093566894531,
+            71.4285888671875
+          ],
+          "styleWidth": 72,
+          "styleHeight": 72
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "",
+          "pressed": false,
+          "kind": "slot",
+          "text": "",
+          "hovered": false,
+          "rect": [
+            283.80954360961914,
+            305.7142906188965,
+            72.38095092773438,
+            71.4285888671875
+          ],
+          "styleWidth": 72,
+          "styleHeight": 72
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "",
+          "pressed": false,
+          "text": "转向轮 T1",
+          "hovered": false,
+          "rect": [
+            56.19047927856445,
+            439.0476379394531,
+            71.42857360839844,
+            72.3809814453125
+          ],
+          "styleWidth": 72,
+          "styleHeight": 72
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "",
+          "pressed": false,
+          "text": "动力轮 T1",
+          "hovered": false,
+          "rect": [
+            132.38096237182617,
+            439.0476379394531,
+            71.4285888671875,
+            72.3809814453125
+          ],
+          "styleWidth": 72,
+          "styleHeight": 72
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "",
+          "pressed": false,
+          "kind": "slot",
+          "text": "",
+          "hovered": false,
+          "rect": [
+            208.5714454650879,
+            439.0476379394531,
+            72.38093566894531,
+            72.3809814453125
+          ],
+          "styleWidth": 72,
+          "styleHeight": 72
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "",
+          "pressed": false,
+          "kind": "slot",
+          "text": "",
+          "hovered": false,
+          "rect": [
+            283.80954360961914,
+            439.0476379394531,
+            72.38095092773438,
+            72.3809814453125
+          ],
+          "styleWidth": 72,
+          "styleHeight": 72
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "",
+          "pressed": false,
+          "kind": "slot",
+          "text": "",
+          "hovered": false,
+          "rect": [
+            56.19047927856445,
+            671.4285888671875,
+            71.42857360839844,
+            72.3809814453125
+          ],
+          "styleWidth": 72,
+          "styleHeight": 72
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "",
+          "pressed": false,
+          "kind": "slot",
+          "text": "",
+          "hovered": false,
+          "rect": [
+            132.38096237182617,
+            671.4285888671875,
+            71.4285888671875,
+            72.3809814453125
+          ],
+          "styleWidth": 72,
+          "styleHeight": 72
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "",
+          "pressed": false,
+          "kind": "slot",
+          "text": "",
+          "hovered": false,
+          "rect": [
+            208.5714454650879,
+            671.4285888671875,
+            72.38093566894531,
+            72.3809814453125
+          ],
+          "styleWidth": 72,
+          "styleHeight": 72
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "",
+          "pressed": false,
+          "kind": "slot",
+          "text": "",
+          "hovered": false,
+          "rect": [
+            283.80954360961914,
+            671.4285888671875,
+            72.38095092773438,
+            72.3809814453125
+          ],
+          "styleWidth": 72,
+          "styleHeight": 72
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "wrench",
+          "pressed": false,
+          "kind": "button",
+          "text": "改装这辆车",
+          "hovered": false,
+          "rect": [
+            56.19047927856445,
+            958.0952758789062,
+            214.2857208251953,
+            52.3809814453125
+          ],
+          "styleWidth": 214,
+          "styleHeight": 52
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "",
+          "pressed": false,
+          "kind": "handle",
+          "text": "仓库",
+          "hovered": false,
+          "rect": [
+            2338.095458984375,
+            343.8095397949219,
+            61.904541015625,
+            260.0000305175781
+          ],
+          "styleWidth": 62,
+          "styleHeight": 260
+        },
+        {
+          "entrance": {
+            "translateY": 0,
+            "translateX": 0,
+            "opacity": 1
+          },
+          "icon": "",
+          "pressed": false,
+          "kind": "primary",
+          "text": "出发",
+          "hovered": false,
+          "rect": [
+            1903.8095703125,
+            930.4762573242188,
+            440,
+            80
+          ],
+          "styleWidth": 440,
+          "styleHeight": 80
+        }
+      ],
+      "dialog": false,
+      "carVisuals": 78,
+      "loadingFlow": {
+        "progress": 1,
+        "steps": [
+          {
+            "note": "0.0s",
+            "elapsed": 0,
+            "label": "下载场地与战车资源",
+            "id": "download",
+            "state": "done"
+          },
+          {
+            "note": "0.0s",
+            "elapsed": 0,
+            "label": "准备贴图",
+            "id": "resources",
+            "state": "done"
+          },
+          {
+            "note": "0.2s",
+            "elapsed": 0.18598750419914722,
+            "label": "载入场景",
+            "id": "scene",
+            "state": "done"
+          },
+          {
+            "note": "0.0s",
+            "elapsed": 0,
+            "label": "搭建碰撞体",
+            "id": "prepare",
+            "state": "done"
+          },
+          {
+            "note": "0.1s",
+            "elapsed": 0.14634000044316053,
+            "label": "准备环境",
+            "id": "environment",
+            "state": "done"
+          },
+          {
+            "note": "0.0s",
+            "elapsed": 0.014440000057220459,
+            "label": "装配战车与渲染",
+            "id": "activate",
+            "state": "done"
+          }
+        ],
+        "warmFrames": 134,
+        "visible": false,
+        "active": false,
+        "failed": false,
+        "map": "hangar",
+        "error": "",
+        "phase": "closed"
+      },
+      "salvage": {
+        "selected": false,
+        "loose": {
+          "part:tmVisor": 999,
+          "part:thruster2": 999,
+          "part:fxTail1": 999,
+          "part:radar": 999,
+          "smokePack": 1000,
+          "part:scHeadR": 999,
+          "part:fxTail6": 999,
+          "part:neonGentleOutLo": 999,
+          "part:scBarb": 999,
+          "part:node": 999,
+          "part:fxWaistR": 999,
+          "part:roundCorner": 999,
+          "part:armorSkirt": 999,
+          "part:roundEdge": 999,
+          "part:concCorner": 999,
+          "part:trHeadL": 999,
+          "part:trForearmR": 999,
+          "part:corner": 999,
+          "part:trSkirtL": 999,
+          "part:concInner": 999,
+          "part:laser1": 998,
+          "part:steer2": 999,
+          "part:armorGuard": 999,
+          "scrap": 1005,
+          "part:drive4": 999,
+          "part:steer5": 1000,
+          "part:missile5": 999,
+          "part:plate": 999,
+          "part:scTail5": 999,
+          "part:neonPanelGentleLo": 999,
+          "part:exhaust": 999,
+          "part:rotorSpin": 999,
+          "part:rodDiag3": 999,
+          "part:tetra": 999,
+          "part:neonGentleInLo": 999,
+          "part:scHeadL": 999,
+          "part:neonRoundCorner": 999,
+          "part:strut": 999,
+          "starmap": 999,
+          "part:finsL": 999,
+          "part:neonPanel": 999,
+          "part:glass": 999,
+          "part:glassConcInner": 999,
+          "part:tmChest": 999,
+          "part:trPauldronR": 999,
+          "part:heavyPanelInner": 999,
+          "part:neonCone": 999,
+          "part:grilleL": 999,
+          "part:panelInner": 999,
+          "part:neonHalf": 999,
+          "starcore": 999,
+          "part:glassGentleInLo": 999,
+          "part:mg3": 999,
+          "part:fxHeadFace": 999,
+          "part:neonSlope": 999,
+          "part:thrusterUp1": 999,
+          "part:steer4": 999,
+          "part:trHeadFace": 999,
+          "part:heavySlope": 999,
+          "part:gentleOutLo": 999,
+          "part:heavyCone": 999,
+          "part:rollbar": 999,
+          "part:wing3": 999,
+          "part:horn": 999,
+          "part:scPlate1": 999,
+          "part:scHeadFace": 999,
+          "part:rodCross": 999,
+          "part:glassConcEdge": 999,
+          "part:mechHead": 999,
+          "part:fxHeadChin": 999,
+          "part:heavyPanelGentleLo": 999,
+          "part:drive1": 997,
+          "part:heavyCutCorner": 999,
+          "part:exhaustL": 999,
+          "part:neonPanelGentleHi": 999,
+          "part:hover5": 999,
+          "part:heavyPanelCorner": 999,
+          "part:glassPanelRoundCorner": 999,
+          "part:scTail3": 999,
+          "part:neonGentleLo": 999,
+          "part:scTail1": 999,
+          "part:thruster1": 999,
+          "part:heavyPanelSlope": 999,
+          "part:panelArc": 999,
+          "part:concEdge": 999,
+          "part:fxHub": 999,
+          "part:rodS": 999,
+          "part:track2": 999,
+          "part:cylinder": 999,
+          "circuit": 999,
+          "part:panelGentleLo": 999,
+          "part:sharkFin": 999,
+          "part:half": 999,
+          "part:sharkFinL": 999,
+          "part:heavyCorner": 999,
+          "part:trCollar": 999,
+          "part:glassGentleLo": 999,
+          "part:neonCylinder": 999,
+          "part:neonConcInner": 999,
+          "part:hover3": 999,
+          "part:scClawL": 999,
+          "part:panelCorner": 999,
+          "wire": 999,
+          "part:wing5": 999,
+          "part:heavyPanel": 999,
+          "part:glassPanelSlope": 999,
+          "part:trRibL": 999,
+          "part:neonPanelArc": 999,
+          "part:fxTail3": 999,
+          "part:sniper5": 999,
+          "part:mech4": 999,
+          "part:rotor": 999,
+          "part:rodL": 999,
+          "part:inner": 999,
+          "part:heavyGentleHi": 999,
+          "part:glassSlope": 996,
+          "part:scArmL": 999,
+          "part:neonPanelSlope": 999,
+          "part:trArmL": 999,
+          "part:gentleInLo": 999,
+          "part:fxPlate3": 999,
+          "part:plateStep": 999,
+          "part:leg5": 999,
+          "part:glassPanelArc": 999,
+          "part:glassConcCorner": 999,
+          "part:armorWing": 999,
+          "part:glassRoundEdge": 999,
+          "part:fxHaunchR": 999,
+          "part:heavyGentleOutLo": 999,
+          "part:trHeadChin": 999,
+          "part:antenna": 998,
+          "part:trChest": 999,
+          "part:heavyRoundInner": 999,
+          "part:panelGentleHi": 999,
+          "part:fxHeadR": 999,
+          "part:neonTetra": 999,
+          "part:panelRoundCorner": 999,
+          "part:neonCube": 999,
+          "part:fxPlate2": 999,
+          "cell": 999,
+          "part:wing4": 999,
+          "part:scArmR": 999,
+          "part:neonCorner": 999,
+          "part:fxHead": 999,
+          "part:trGuardFL": 999,
+          "part:roundInner": 999,
+          "part:neonPanelInner": 999,
+          "part:light": 999,
+          "part:trSkirtF": 999,
+          "part:neonRoundEdge": 999,
+          "part:plateHook": 999,
+          "part:rodDiag": 999,
+          "part:neonCutCorner": 999,
+          "part:plateRamp": 999,
+          "part:glassPanelGentleLo": 999,
+          "blackbox": 999,
+          "part:scHead": 999,
+          "part:scHeadChin": 999,
+          "part:glassCone": 999,
+          "part:rodArc": 999,
+          "part:scTail2": 999,
+          "part:heavyCylinder": 999,
+          "part:heavyInner": 999,
+          "part:fxHeadL": 999,
+          "part:fxHaunchL": 999,
+          "part:neonInner": 999,
+          "part:heavyGentleLo": 999,
+          "part:heavyGentleOutHi": 999,
+          "part:heavyGentleInHi": 999,
+          "part:glassGentleInHi": 999,
+          "part:armorPauldron": 999,
+          "part:trGuardFR": 999,
+          "part:heavyGentleInLo": 999,
+          "part:rudder3": 999,
+          "part:glassInner": 999,
+          "part:neonGentleOutHi": 999,
+          "part:fxShoulderR": 999,
+          "part:heavyHalf": 999,
+          "part:trGuardBL": 999,
+          "part:lightStripL": 999,
+          "part:glassGentleOutLo": 999,
+          "part:gentleLo": 999,
+          "part:flag": 999,
+          "part:gentleOutHi": 999,
+          "part:fxTail5": 999,
+          "part:neonPanelCorner": 999,
+          "part:heavyRoundEdge": 999,
+          "part:glassTetra": 999,
+          "part:neonPanelRoundCorner": 999,
+          "part:thruster5": 999,
+          "part:trHead": 999,
+          "part:cone": 999,
+          "shieldCell": 999,
+          "part:neonConcCorner": 999,
+          "part:heavy": 999,
+          "part:neonGentleInHi": 999,
+          "part:hover2": 999,
+          "reactor": 999,
+          "part:rodTee": 999,
+          "part:trAbsL": 999,
+          "part:armorBack": 999,
+          "part:gentleInHi": 999,
+          "part:fxPlate1": 999,
+          "part:strutRamp": 999,
+          "part:trAbsR": 999,
+          "part:plateLip": 999,
+          "part:laser4": 999,
+          "part:trPauldronL": 999,
+          "part:hover1": 999,
+          "part:drive3": 999,
+          "part:glassCylinder": 999,
+          "part:glassPanelCorner": 999,
+          "part:rotorStep": 999,
+          "part:drive2": 999,
+          "part:glassPanelGentleHi": 999,
+          "part:trSkirtR": 999,
+          "part:laser5": 999,
+          "part:tmPack": 999,
+          "part:panelSlope": 999,
+          "part:cube": 940,
+          "part:heavyConcEdge": 999,
+          "part:fxTail9": 999,
+          "part:panel": 999,
+          "part:fxTail4": 999,
+          "part:trSkirtB": 999,
+          "part:strutCross": 999,
+          "part:scPlate3": 999,
+          "part:mech5": 999,
+          "part:heavyPanelGentleHi": 999,
+          "part:holoBadgeL": 999,
+          "part:thruster4": 999,
+          "part:heavyConcCorner": 999,
+          "part:gentleHi": 999,
+          "repair": 1000,
+          "part:thrusterUp3": 999,
+          "part:holoBadge": 999,
+          "part:heavyPanelRoundCorner": 999,
+          "part:drive5": 999,
+          "part:thrusterUp5": 999,
+          "part:smoke": 999,
+          "crystal": 999,
+          "ration": 999,
+          "part:glassHalf": 999,
+          "part:cutCorner": 999,
+          "part:heavyTetra": 999,
+          "part:mg5": 999,
+          "part:glassCutCorner": 999,
+          "part:laser3": 999,
+          "part:steer1": 997,
+          "drive": 999,
+          "part:glassGentleHi": 999,
+          "part:track3": 999,
+          "part:slope": 993,
+          "part:sniper2": 999,
+          "part:track5": 999,
+          "part:heavyConcInner": 999,
+          "part:thruster3": 999,
+          "part:armorChest": 999,
+          "part:trPack": 999,
+          "part:missile3": 999,
+          "part:tianyuanDrill": 999,
+          "part:tmSkirt": 999,
+          "part:hover4": 999,
+          "part:glassPanel": 999,
+          "part:fuyuanDrill": 999,
+          "part:leg3": 999,
+          "ore": 999,
+          "part:leg4": 999,
+          "part:plateLong": 999,
+          "part:trGuardBR": 999,
+          "part:missile4": 999,
+          "part:neonRoundInner": 999,
+          "part:mech3": 999,
+          "part:steer3": 999,
+          "part:plateBlade": 999,
+          "part:plateDelta": 999,
+          "part:sniper4": 999,
+          "part:trClawL": 999,
+          "part:glassCorner": 999,
+          "part:plateShell": 999,
+          "part:fxTail2": 999,
+          "part:neonGentleHi": 999,
+          "part:lightStrip": 996,
+          "part:scTail4": 999,
+          "part:tmShoulderR": 999,
+          "part:strutArc": 999,
+          "part:spoiler": 999,
+          "part:fins": 999,
+          "part:grille": 999,
+          "part:wing2": 999,
+          "part:scSting": 999,
+          "part:shield": 999,
+          "part:trClawR": 999,
+          "part:glassGentleOutHi": 999,
+          "part:scClawR": 999,
+          "part:fxWaistL": 999,
+          "part:trArmR": 999,
+          "part:rod": 999,
+          "part:sniper3": 999,
+          "part:trLumbar": 999,
+          "part:glassRoundCorner": 999,
+          "part:trRibR": 999,
+          "part:thrusterUp2": 999,
+          "part:trAbs": 999,
+          "part:laser2": 999,
+          "part:bumper": 999,
+          "part:trHeadR": 999,
+          "part:glassRoundInner": 999,
+          "part:fxTail8": 999,
+          "part:trForearmL": 999,
+          "scanner": 999,
+          "part:heavyPanelArc": 999,
+          "part:neonConcEdge": 999,
+          "part:radarL": 999,
+          "part:scPlate2": 999,
+          "part:fxTail7": 999,
+          "alloy": 999,
+          "part:fxShoulderL": 999,
+          "part:thrusterUp4": 999,
+          "part:fxChest": 999,
+          "part:mg4": 999,
+          "part:tmShoulderL": 999,
+          "part:glassPanelInner": 999,
+          "part:rudder4": 999,
+          "part:track4": 999,
+          "part:tmAntenna": 999,
+          "part:heavyRoundCorner": 999
+        },
+        "market": "buy",
+        "tab": "loadout",
+        "stash": false,
+        "gear": {},
+        "qty": 1,
+        "category": "all",
+        "sort": "rarity",
+        "query": "",
+        "shopCategory": "part"
+      },
+      "touch": true,
+      "homeRects": {
+        "trial": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "card": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "edit": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "battle": [
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "performance": {
+        "arrayBytes": 0,
+        "modelBytes": 22152543,
+        "batches": 859,
+        "luaKiB": 36833.1494140625,
+        "primitives": 1086340,
+        "retiredTargets": 0,
+        "resourceBytes": 67151835
+      },
+      "camera": {
+        "fov": 48,
+        "pitch": 18.953233403777915,
+        "dist": 12.590786490436436,
+        "forward": [
+          0.5753822922706604,
+          -0.32479625940322876,
+          -0.7506281137466431
+        ],
+        "desiredDist": 12.590786490436436,
+        "target": [
+          0.7162142992019653,
+          1.5140044689178467,
+          0
+        ],
+        "yaw": 142.52858837355026,
+        "position": [
+          -6.528302192687988,
+          5.603445053100586,
+          9.450998306274414
+        ]
+      },
+      "dpr": 3,
+      "inventory": false,
+      "height": 1080,
+      "vehicleLoading": {
+        "busy": false,
+        "draft": "idle",
+        "ready": false,
+        "state": "idle"
+      },
+      "garage": {
+        "active": 1,
+        "used": 1,
+        "slots": [
+          {
+            "name": "先锋 · 轮式激光",
+            "parts": 78
+          },
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ]
+      },
+      "loading": {
+        "progress": 1,
+        "completed": 0,
+        "downloads": 0,
+        "state": "ready",
+        "phase": "ready"
+      }
+    }
+  ],
+  "fixtures": [
+    "F4 relocates to a source supply crate",
+    "F11 supplies one rarity-4 item to production search rules",
+    "F7 relocates to an eligible source extraction"
+  ],
+  "result": "PASS"
+}

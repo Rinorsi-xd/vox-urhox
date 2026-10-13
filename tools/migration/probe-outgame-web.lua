@@ -50,7 +50,13 @@ local function DumpTrial(app)
         for _,child in ipairs(widget.children or {}) do Walk(child) end
     end
     local root=UI.GetRoot();if root then Walk(root) end
+    local overlay=UI.GetTopOverlay();if overlay then
+        Walk(overlay)
+        if overlay.contentContainer_ then Walk(overlay.contentContainer_) end
+        if overlay.footerWidget_ then Walk(overlay.footerWidget_) end
+    end
     if s.battle then data.battle=s.battle:Snapshot() end
+    if s.salvage then data.salvageRun=s.salvage:Snapshot() end
     if s.story then
         data.story=s.story:Snapshot()
         data.story.collectorModels=#s.story.view.collectors
@@ -200,12 +206,15 @@ local function Dump(app)
         local ghost=app.build.ghost
         data.ghost={ready=ghost.ready,state=ghost.gate.state,type=app.editor.type,warmKey=ghost.warmKey,pool=#ghost.pool}
     end
-    if app.warehouse then data.warehouse={ready=app.warehouse.ready,cursor=app.warehouse.cursor,hallVisible=app.hangar.root.enabled} end
+    if app.warehouse then data.warehouse={ready=app.warehouse.ready,cursor=app.warehouse.cursor,hallVisible=app.hangar.root.enabled,
+        effects=app.warehouse.effects and {time=app.warehouse.effects.time,uploads=app.warehouse.effects.uploads,particles=#app.warehouse.effectData.dust.positions}} end
     local scale=app.graphicsSettings.sceneScale
     if scale then data.render={scale.graph.width,scale.graph.height} end
     local preview=home and home.workshopPreview
     if home and home.storyHolo then data.story={ready=home.storyHolo.ready,cursor=home.storyHolo.cursor,gate=home.storyHolo.gate.state,completed=home.storyHolo.gate.completed,total=home.storyHolo.gate.total,level=home.storyHolo.level,az=home.storyHolo.view.az,el=home.storyHolo.view.el,zoom=home.storyHolo.view.zoom} end
     if preview then data.preview={ready=preview.ready,cursor=preview.cursor,total=#preview.parts,complete=preview.ready and preview.cursor>#preview.parts} end
+    local mouse=input.mousePosition;local hit=UI.FindWidgetAt(mouse.x/UI.GetScale(),mouse.y/UI.GetScale())
+    data.mouse={x=mouse.x,y=mouse.y,scale=UI.GetScale(),hit=hit and hit.props.text or 'other',overlay=UI.GetTopOverlay()~=nil}
     local function Walk(widget,shown)
         shown=shown and widget:IsVisible()
         if not shown then return end
@@ -218,6 +227,7 @@ local function Dump(app)
                     entrance={opacity=p.opacity or 1,translateX=p.translateX or 0,translateY=p.translateY or 0},
                     card=motion and {hovered=widget.state.hovered or false,lift=motion.lift.value,image=motion.image.value,reveal=motion.reveal.value,opacity=motion.opacity.value},
                     heroTitleSize=widget.heroTitleSize,
+                    sourceMotion=widget.sourceMotion,hovered=widget.state.hovered,pressed=widget.state.pressed,
                     tabContent=widget.GetTabContent and widget:GetTabContent(UI.GetNVGContext()),
                     shelfContent=widget.GetShelfContent and widget:GetShelfContent(UI.GetNVGContext())}
             end
@@ -251,6 +261,28 @@ function HandleUpdate(et,ed)
     if mode~=sampleMode or app.loadingFlow.active then samples={};sampleMode=mode
     else local dt=ed:GetFloat('TimeStep');if dt>0 then samples[#samples+1]=dt end end
     if app.trial then
+        local salvage=app.trial.salvage
+        if salvage and not salvage.rules.finished then
+            local session=app.trial
+            if input:GetKeyPress(KEY_F4) then
+                for _,o in ipairs(salvage.rules.objects) do if o.ctype=='supply' and not salvage.rules.opened[o.id] then
+                    salvage.qaCrate=o
+                    session.vehicle:Place({o.g[1],o.g[2]+2,o.g[3]},0);session.view:ResetPose();session:PostUpdate(.1);break
+                end end
+            end
+            if input:GetKeyPress(KEY_F11) and salvage.qaCrate then
+                -- Deterministic rare reveal fixture; production SearchStep owns pickup.
+                local id;for key,item in pairs(require('core.ResourceData').Read('UI/Outgame.json').items) do if item.rarity==4 then id=key;break end end
+                salvage.rules:Open(salvage.qaCrate)
+                local search=salvage.rules.search;search.items={{id=id,n=1,r=4,t=1,state='hidden'}};search.i=1;search.p=0;search.wait=0;search.held=false;search.done=false
+            end
+            if input:GetKeyPress(KEY_F7) then
+                for _,e in ipairs(salvage.rules.extracts) do if not e.needs and not e.maxWidth and not e.loud then
+                    salvage.rules.time=math.max(salvage.rules.time,(e.openAt or 0)+1)
+                    session.vehicle:Place({e.g[1],e.g[2]+2,e.g[3]},0);session.view:ResetPose();session:PostUpdate(.1);break
+                end end
+            end
+        end
         local story=app.trial.story
         if story then
             if story.rules.cap and input:GetKeyPress(KEY_F10) then

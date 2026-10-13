@@ -7,7 +7,7 @@ function M:init(app)
     self.app=app;self.root=app.scene:CreateChild('SalvageWarehouse');self.root.enabled=false
     self.cursor=1;self.ready=false;self.materials={};self.disposed=false
     self.gate=require('app.ResourceGate').New()
-    local paths={'Shaders/BLGL/Warehouse/Surface.shader','Shaders/BLGL/Warehouse/Decal.shader','Shaders/BLGL/Hangar/Deck.shader','Shaders/BLGL/Hangar/Beam.shader'}
+    local paths={'Warehouse/Effects.json','Shaders/BLGL/Warehouse/Dust.shader','Shaders/BLGL/Warehouse/Holo.shader','Shaders/BLGL/Warehouse/Surface.shader','Shaders/BLGL/Warehouse/Decal.shader','Shaders/BLGL/Hangar/Deck.shader','Shaders/BLGL/Hangar/Beam.shader'}
     for _,m in ipairs(Data.models) do paths[#paths+1]=m.model end
     for _,m in ipairs(Data.materials) do if m.map then paths[#paths+1]='Warehouse/texture-'..m.map..'.png' end end
     self.gate:Start(paths,function(ok,message) if not self.disposed then self.downloaded=ok;if not ok then app.toasts:Push(message,'bad') end end end)
@@ -24,7 +24,8 @@ function M:Material(index)
         m:SetShaderParameter('uColor',Variant(Vector3(table.unpack(d.color))));m:SetShaderParameter('uStrength',Variant(.016));m:SetShaderParameter('uPow',Variant(2.0))
         self.materials[index]=m;return m
     end
-    assert(m:SetSurfaceShader('Shaders/BLGL/Warehouse/'..(d.unlit and 'Decal' or 'Surface')..'.shader'))
+    local effect=self.effectData.materials[index]
+    assert(m:SetSurfaceShader('Shaders/BLGL/Warehouse/'..(effect.additive and 'Holo' or d.unlit and 'Decal' or 'Surface')..'.shader'))
     m:SetShaderParameter('tint',Variant(Vector4(d.color[1],d.color[2],d.color[3],d.opacity)))
     m:SetShaderParameter('emission_color',Variant(Vector3(table.unpack(d.emission))))
     m:SetShaderParameter('roughness_value',Variant(d.roughness));m:SetShaderParameter('metallic_value',Variant(d.metallic))
@@ -33,6 +34,8 @@ function M:Material(index)
     self.materials[index]=m;return m
 end
 function M:Activate()
+    self.effects=require('render.WarehouseEffects').New(self.root,self.effectData,self.materials)
+    self.effects:Update(self.app.hangar.time)
     for _,d in ipairs(Data.lights) do if d.type~='HemisphereLight' then
         local node=self.root:CreateChild(d.type);node.position=V(d.position)
         local light=node:CreateComponent('Light');light.color=Color(table.unpack(d.color));light.range=d.range;light.castShadows=d.shadow
@@ -59,9 +62,11 @@ function M:Update()
     if self.disposed or not self.downloaded then return end
     if self.ready then
         for _,m in pairs(self.materials) do m:SetShaderParameter('hangar_time',Variant(self.app.hangar.time)) end
+        self.effects:Update(self.app.hangar.time)
         require('scene.HangarAtmosphere').Update(self.app.hangar,self.app.camera.node,self.app.camera.camera,self.app.hangar.time)
         return
     end
+    self.effectData=self.effectData or require('core.ResourceData').Read('Warehouse/Effects.json')
     for _=1,4 do
         local index=self.cursor;local d=Data.models[index];if not d then self:Activate();break end
         local node=self.root:CreateChild('Batch'..index);local mesh=node:CreateComponent('StaticModel')
@@ -76,6 +81,7 @@ function M:Dispose()
         local hall=self.app.hangar;hall.padMat=self.previousPad;table.remove(hall.reflMats)
         hall.root:ResetDeepEnabled();for _,entry in ipairs(self.oldLights) do entry.light.enabled=entry.enabled end;self.app.camera.roomLimit=self.previousLimit
     end
-    self.root:Dispose();for _,m in pairs(self.materials) do m:Dispose() end;self.materials={}
+    if self.effects then self.effects:Dispose();self.effects=nil end
+    self.root:Dispose();for _,m in pairs(self.materials) do m:Dispose() end;self.materials={};self.effectData=nil
 end
 return M

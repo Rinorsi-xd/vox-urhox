@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<material>
+  <surfaceshader name="Shaders/BLGL/Outgame/Ground.shader" />
+  <parameter name="tint" value="1 1 1 1" />
+  <parameter name="glow" value="0 0 0" />
+  <parameter name="roughness" type="Float" value="0.95" />
+  <parameter name="metallic" type="Float" value="0" />
+  <surfacetexture name="uMat" texture="Salvage/texture-0.png" type="Texture2D" />
+  <surfacetexture name="groundBaked" texture="Salvage/GroundBaked.png" type="Texture2D" />
+</material>

@@ -1,0 +1,90 @@
+{
+    "version": 2,
+    "script": "main.lua",
+    "result": "PASS",
+    "duration_ms": 108305,
+    "frames_completed": 1000,
+    "phases": {
+        "load": {
+            "result": "PASS",
+            "errors": []
+        },
+        "init": {
+            "result": "PASS",
+            "errors": []
+        },
+        "run": {
+            "result": "PASS",
+            "errors": []
+        },
+        "scene": {
+            "result": "PASS",
+            "errors": [],
+            "node_count": 720,
+            "component_count": 681,
+            "scene_exists": true
+        }
+    },
+    "state_snapshots": [
+        {
+            "frame": 1,
+            "phase": "init",
+            "nodes": 0,
+            "components": 0,
+            "hash": 0,
+            "frame_time_ms": 380.74310302734377
+        },
+        {
+            "frame": 10,
+            "phase": "run",
+            "nodes": 0,
+            "components": 0,
+            "hash": 0,
+            "frame_time_ms": 99.45590209960938
+        },
+        {
+            "frame": 500,
+            "phase": "run",
+            "nodes": 179,
+            "components": 242,
+            "hash": 1702031940,
+            "frame_time_ms": 99.9395980834961
+        },
+        {
+            "frame": 1000,
+            "phase": "run",
+            "nodes": 118,
+            "components": 111,
+            "hash": 345173220,
+            "frame_time_ms": 99.94640350341797
+        }
+    ],
+    "scene_stalled": false,
+    "max_frame_time_ms": 2596.481201171875,
+    "update_defined": false,
+    "component_census": {
+        "Octree": 1,
+        "DebugRenderer": 1,
+        "Zone": 1,
+        "StaticModel": 661,
+        "Light": 12,
+        "CustomGeometry": 2,
+        "Camera": 2,
+        "LuaScriptInstance": 1
+    },
+    "test_result": "PASSED",
+    "test_assertions": {
+        "total": 1107,
+        "passed": 1107,
+        "failed": 0
+    },
+    "test_issues": [],
+    "missing_resources": [],
+    "missing_engine_resources": [],
+    "summary": {
+        "lua_errors": 0,
+        "resource_errors": 0,
+        "engine_errors": 0,
+        "total_errors": 0
+    }
+}

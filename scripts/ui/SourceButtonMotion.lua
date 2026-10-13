@@ -6,6 +6,7 @@ local function Ease(x,back)
     if x<=0 then return 0 elseif x>=1 then return 1 end
     local x1,x2,y1= .16,.3,1
     if back=='ease' then x1,x2,y1=.25,.25,.1
+    elseif back=='fly' then x1,x2,y1=.5,.8,0
     elseif back=='css-ease-out' then x1,x2,y1=0,.58,0
     elseif back then x1,x2,y1=.34,.64,1.56 end
     local lo,hi=0,1
@@ -38,5 +39,19 @@ function M.Update(button,dt)
     local pressed=enabled and button.state.pressed
     Step(motion.hover,enabled and button.state.hovered and 1 or 0,.2,dt,false)
     Step(motion.scale,pressed and .95 or 1,pressed and .05 or .24,dt,true)
+end
+function M.UpdateCTA(button,dt)
+    if not button.sourceMotion then
+        button.sourceMotion={x={value=0,start=0,target=0,elapsed=0,duration=0},
+            y={value=0,start=0,target=0,elapsed=0,duration=0},
+            hover={value=0,start=0,target=0,elapsed=0,duration=0}}
+    end
+    local motion=button.sourceMotion
+    local enabled=not button.props.disabled
+    local pressed=enabled and button.state.pressed
+    local hover=enabled and button.state.hovered
+    Step(motion.x,pressed and 3 or hover and -2 or 0,pressed and .06 or .18,dt,true)
+    Step(motion.y,pressed and 4 or hover and -3 or 0,pressed and .06 or .18,dt,true)
+    Step(motion.hover,hover and 1 or 0,.22,dt,false)
 end
 return M

@@ -43,13 +43,17 @@ function M.Create(session)
     elseif session.story then
         for _,widget in ipairs({state.timer,state.stats,state.keys}) do widget:SetVisible(false) end
         state.story=require('ui.MissionHud').Attach(session,root)
+    elseif session.salvage then
+        for _,widget in ipairs({state.title,state.timer,state.stats,state.keys}) do widget:SetVisible(false) end
+        for _,card in ipairs(state.cards) do card.widget:SetStyle({bottom=220+(#state.cards-card.widget.index)*50}) end
+        state.salvage=require('ui.SalvageRunHud').Attach(session,root)
     end
     if session.touch then
         local safe=UI.GetSafeAreaInsets();local edge=math.max(18,safe.right or 0)
         state.buttons['return']:SetStyle({right=edge,top=12,width=112,height=48})
         state.stats:SetVisible(false);state.keys:SetVisible(false);state.timer:SetVisible(false);state.meter:SetVisible(false)
         local cardWidth=math.min(190,(width-edge*2-(#state.cards-1)*6)/#state.cards)
-        for i,card in ipairs(state.cards) do card.widget:SetStyle({right=edge+(i-1)*(cardWidth+6),top=72,bottom='auto',width=cardWidth,height=52}) end
+        for i,card in ipairs(state.cards) do card.widget:SetStyle({right=session.salvage and 'auto' or edge+(i-1)*(cardWidth+6),left=session.salvage and edge+(i-1)*(cardWidth+6) or 'auto',top=72,bottom='auto',width=cardWidth,height=52}) end
     end
     local modes={};for _,child in ipairs(root.children) do modes[child]=child.props.pointerEvents or 'auto' end
     state.Clear=controls.Clear
@@ -62,7 +66,7 @@ function M.Create(session)
             root:SetStyle({pointerEvents=active and 'none' or 'box-none'})
             for child,mode in pairs(modes) do child:SetStyle({pointerEvents=active and 'none' or mode}) end
         end
-        local alive=not s.combat or s.combat.player.alive;local over=s.battle and s.battle.rules.state=='over' or s.story and s.story.rules.finished
+        local alive=not s.combat or s.combat.player.alive;local over=s.battle and s.battle.rules.state=='over' or s.story and s.story.rules.finished or s.salvage and s.salvage.rules.finished
         local choosing=s.story and s.story.rules.choice~=nil
         state.pause:SetVisible(not active and not s.touch and not over and not choosing);state.vitals:SetVisible(active and alive);state.detailPanel:SetVisible(s.details and alive)
         if state.touchControls then
@@ -78,6 +82,7 @@ function M.Create(session)
         state.meter:SetVisible(alive and not s.touch and not s.story);state.playfield:SetVisible(not over)
         if state.match then state.match.Update() end
         if state.story then state.story.Update(dt) end
+        if state.salvage then state.salvage.Update(dt) end
         state.vitals:SetEnergy(weapons.energy/weapons.energyMax,weapons.offline,#weapons.groups>0,dt);state.overlay:Update(dt)
         for i,card in ipairs(state.cards) do card.widget.group=weapons.groups[i];card.widget.readiness=weapons.groups[i] and math.max(0,math.min(1,weapons:Readiness(weapons.groups[i]))) or 0 end
         local group=weapons:Group()

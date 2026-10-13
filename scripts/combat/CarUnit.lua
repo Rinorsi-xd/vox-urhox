@@ -23,7 +23,7 @@ local function Components(ids,adj)
 end
 function M.New(env,source,config)
     local self=setmetatable({},M);self.env=env;self.source=source;self.name=config.name;self.spawnAt=config.spawn
-    self.team=config.team or 'neutral';self.autoRespawn=config.autoRespawn~=false
+    self.team=config.team or 'neutral';self.autoRespawn=config.autoRespawn~=false;self.hpMultiplier=config.hpMultiplier or 1
     self.externalControl=config.externalControl==true;self.combat=config.combat==true;self.externalView=config.externalView==true
     self:Spawn();return self
 end
@@ -45,7 +45,7 @@ function M:Spawn()
     self.original={};self.repairOrder={};self.hp={};self.shields={};self.rawHpMax=0
     local data=self.combat and require('combat.ArenaData') or nil
     self.hull=data and data.hull or nil;self.structure=data and data.structure or nil
-    self.partScale=self.hull and self.hull.partScale or 1
+    self.partScale=(self.hull and self.hull.partScale or 1)*self.hpMultiplier
     for _,p in ipairs(self.bp:List()) do
         self.original[p.id]=p;self.hp[p.id]=Defs[p.type].hp*self.partScale;self.rawHpMax=self.rawHpMax+Defs[p.type].hp
         self:FillShield(p)
@@ -58,6 +58,7 @@ function M:Spawn()
         cursor=cursor+1
     end
     self.bodyHpMax=self.hull and math.max(self.hull.min,math.min(self.hull.max,self.rawHpMax*self.hull.scale)) or self.rawHpMax
+    self.bodyHpMax=self.bodyHpMax*self.hpMultiplier
     self.bodyHp=self.bodyHpMax;self.structMax=self.structure and self.bodyHpMax*self.structure.base or 0;self.struct=self.structMax
     self.weapons=self.combat and require('combat.WeaponSystem').New(spec) or nil
     self.budget0=self:Budget();self.alive=spec.ok;self.deadAt=-1;self.dirty=false;self.kill=nil
@@ -74,7 +75,7 @@ end
 function M:Health()
     if not self.alive then return 0 end
     if self.hull then return math.max(0,self.bodyHp/self.bodyHpMax) end
-    local hp=0;for _,v in pairs(self.hp) do hp=hp+v end;return hp/math.max(1,self.rawHpMax)
+    local hp=0;for _,v in pairs(self.hp) do hp=hp+v end;return hp/math.max(1,self.rawHpMax*self.partScale)
 end
 function M:FillShield(part)
     if self.combat and Defs[part.type].shield then self.shields[part.id]={v=Defs[part.type].shield.max,t=self.env.time,hit=-math.huge} end
