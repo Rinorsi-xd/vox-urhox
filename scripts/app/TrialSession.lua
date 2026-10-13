@@ -36,6 +36,7 @@ function M:init(scene,bp,preparedWorld)
     if #self.world.targets>0 then self.targetFeedback=TargetFeedback.New(self.world.root,self.world.targets) end
     self.weapons=self.combat and self.combat.player.weapons or Weapons.New(self.vehicle.spec);self.effects=Effects.New(scene,function(x,z) return self.world:GroundAt(x,z) end)
     self.weaponAudio=require('audio.WeaponAudio').New(scene)
+    self.drivingAudio=require('audio.DrivingAudio').New(scene)
     self.combatView=CombatView.New(scene);if not self.combat then self.world:SetUnits(bp) end;self.combatView:Consume(self.world)
     self.view=DriveView.New(scene,bp,self.vehicle);self.target=scene:CreateChild("FollowTarget")
     self.cameraOffset=self.vehicle.legMode and Vector3.ZERO or Vector3(0,math.max(3.8,(self.vehicle.spec.bounds.max[2]-self.vehicle.spec.bounds.min[2])*.65),0)
@@ -64,6 +65,7 @@ end
 function M:StartIntro()
     if self.battle and not self.disposed then
         self.weaponAudio:SetActive(false)
+        self.drivingAudio:SetActive(false)
         if self.intro then self.intro:Dispose() end
         self.intro=require('app.MatchIntro').New(self)
     end
@@ -75,6 +77,7 @@ function M:Reset()
     self.accumulator=0;self.prevZ=nil;self.view:ResetPose();self.view:Update(1)
     -- A teleport cancels shots in flight and transient feedback, not energy/cooldowns.
     self.weapons.projectiles={};self.weapons.wasFiring=false;self.effects:Clear();self.weaponAudio:Stop()
+    self.drivingAudio:Stop()
 end
 function M:HasFocus() return input.focus and not input.minimized end
 function M:Resume() if self.story and self.story.rules.finished then return false end;return self.pointer:Capture() end
@@ -87,7 +90,7 @@ function M:Zoom(wheel)
     self.camera:SetModeConfig(mode,{distance=self.cameraDistance,offset=self.cameraOffset,fov=48})
     self.camera:SetMode(mode)
 end
-function M:Pause() self.pointer:Release();self.weaponAudio:SetActive(false) end
+function M:Pause() self.pointer:Release();self.weaponAudio:SetActive(false);self.drivingAudio:SetActive(false) end
 function M:Escape()
     if self.dialog then Host.Close(self);self:Pause()
     elseif self.pointer.captured then self:Pause()
@@ -158,6 +161,9 @@ end
 function M:Tick(dt,command)
     self.weaponAudio:SetActive(self.pointer.captured and (not self.battle or self.battle.rules.state=='live') and (not self.story or not self.story.rules.finished))
     self.weaponAudio:Update(dt,self.weapons,self.camera:GetNode(),self.combat and self.combat.entries,self.combat and self.combat.voice.card~=nil)
+    self.drivingAudio:SetActive(self.weaponAudio.active)
+    local alive=not self.combat or self.combat.player.alive
+    self.drivingAudio:Update(dt,alive and self.vehicle or nil,command,self.camera:GetNode(),self.combat and self.combat.entries,self.combat and self.combat.voice.card~=nil)
     if self.story and self.story.rules.finished then if self.hud then self.hud.Update(self,dt) end;return end
     -- Fixed 60 Hz on both desktop and 30 Hz mobile. Bound catch-up after pauses.
     local elapsed=math.min(math.max(dt,0),.1);self.droppedTime=self.droppedTime+math.max(0,dt-elapsed)
@@ -177,6 +183,9 @@ function M:Tick(dt,command)
         if not self.combat then self.effects:Consume(self.weapons.fx);self.weaponAudio:Consume(self.weapons.fx) end
         self.world:Step(1/60)
         if self.combat then self.combat:AfterStep(1/60);self.combat:SyncPlayer() end
+        if self.combat then
+            for _,entry in ipairs(self.combat.entries) do if entry.unit.alive then self.drivingAudio:Observe(entry.unit.vehicle,1/60,entry.unit~=self.combat.player) end end
+        else self.drivingAudio:Observe(self.vehicle,1/60,false) end
         if not self.combat or self.combat.player.alive then
             self.view:SavePose();local center=self.vehicle.body.center()
             self.world.metrics:Timing(self.world.time,{center.x,center.y,center.z},self.vehicle.speed,self.prevZ);self.prevZ=center.z
@@ -287,6 +296,7 @@ function M:Dispose()
     if self.controls then self.controls:Clear() end
     if self.effects then self.effects:Dispose() end
     if self.weaponAudio then self.weaponAudio:Dispose() end
+    if self.drivingAudio then self.drivingAudio:Dispose() end
     if self.combatView then self.combatView:Dispose() end
     self.weapons=nil;self.aimHit=nil
     if self.view then self.view:Dispose() end

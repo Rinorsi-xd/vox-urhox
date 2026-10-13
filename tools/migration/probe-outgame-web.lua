@@ -26,6 +26,7 @@ local function DumpTrial(app)
         weapons={energy=s.weapons.energy,shots=s.world.stats.shots,hits=s.world.stats.hits,kills=s.world.stats.kills,blocked=s.weapons.blocked,turning=s.weapons.turning},
         widgets={},performance=ResourceStats(),frames=FrameStats()}
     data.performance.batches=renderer.numBatches;data.performance.primitives=renderer.numPrimitives
+    if s.drivingAudio then data.drivingAudio=s.drivingAudio:Snapshot() end
     data.performance.fixedSteps=s.fixedSteps;data.performance.droppedSeconds=s.droppedTime
     data.performance.effects={particles=#s.effects.particles,smoke=#s.effects.smoke,beams=#s.effects.beams,flashes=#s.effects.flashes}
     local mouse=input.mousePosition;local hit=UI.FindWidgetAt(mouse.x/UI.GetScale(),mouse.y/UI.GetScale())
@@ -38,6 +39,7 @@ local function DumpTrial(app)
     end
     if s.hud.touchControls then
         data.touchRects={}
+        local r=s.hud.touchControls.stick:GetAbsoluteLayoutForHitTest();data.touchRects.stick={r.x,r.y,r.w,r.h}
         for id,button in pairs(s.hud.touchControls.buttons) do local r=button:GetAbsoluteLayoutForHitTest();data.touchRects[id]={r.x,r.y,r.w,r.h} end
     end
     data.mouse={x=mouse.x,y=mouse.y,scale=UI.GetScale(),hit=hit and hit.props.text or 'other',overlay=UI.GetTopOverlay()~=nil}

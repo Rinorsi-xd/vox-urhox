@@ -13,6 +13,7 @@ const root=path.resolve(__dirname,'../..');
   'ui/MissionChoice.lua','Story/Mission/model-1.bin','Shaders/BLGL/Story/MissionBeam.shader','Shaders/BLGL/Story/MissionFlag.shader','Story/Mission/company.png','Story/Mission/graffiti.png',
   'story/Tutorial.lua','story/TutorialRules.lua','ui/TutorialPage.lua','UI/Tutorial.json'];
  const tutorial=JSON.parse(fs.readFileSync(path.join(root,'assets/UI/Tutorial.json'),'utf8'));files.push(...Object.values(tutorial.voices).map(v=>v.path));
+ const driving=JSON.parse(fs.readFileSync(path.join(root,'assets/Combat/DrivingSounds.json'),'utf8'));files.push('Combat/DrivingSounds.json','audio/DrivingAudio.lua','audio/DrivingMix.lua','audio/DrivingEvents.lua',...Object.values(driving.cues).map(v=>v.path));
  const mission=JSON.parse(fs.readFileSync(path.join(root,'assets/Story/Mission/Level1.json'),'utf8'));files.push(Object.values(mission.voices)[0].path);
  const checked=[];
  for(const name of files){

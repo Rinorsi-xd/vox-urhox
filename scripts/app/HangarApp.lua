@@ -250,6 +250,7 @@ function App:EnterTrial(mapId,battleMode,roster,reuseLoading)
     for _,path in ipairs(require('parts.Dependencies').For(parts)) do options.resources[#options.resources+1]=path end
     for _,path in ipairs(require('render.MissileView').Dependencies()) do options.resources[#options.resources+1]=path end
     for _,path in ipairs(require('audio.WeaponAudio').Dependencies()) do options.resources[#options.resources+1]=path end
+    for _,path in ipairs(require('audio.DrivingAudio').Dependencies()) do options.resources[#options.resources+1]=path end
     if battleMode then for _,path in ipairs(require('combat.BattleController').Dependencies(self.blueprint,roster,battleMode)) do options.resources[#options.resources+1]=path end end
     if map.storyLevel then for _,path in ipairs(require('story.Mission').Dependencies(self.blueprint,map.storyLevel)) do options.resources[#options.resources+1]=path end end
     if map.prepareWorld then options.prepare=function(scene,checkpoint)
