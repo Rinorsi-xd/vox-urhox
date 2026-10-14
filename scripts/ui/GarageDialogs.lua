@@ -6,7 +6,7 @@ M.Confirm=Host.Confirm
 function M.Save(s)
     if not s.editor and s.app.vehicleSwitch:IsBusy() then return end
     local ok,err,reason=s.app.bays:Save()
-    if ok then Host.Notify(s,'已保存');return end
+    if ok then Host.Notify(s,s.app.store:SaveMessage('已保存'));return end
     if reason~='full' then Host.Notify(s,err);return end
     return require('ui.BlueprintLibrary').Open(s,'save')
 end

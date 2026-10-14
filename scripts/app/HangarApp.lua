@@ -434,6 +434,7 @@ end
 function App:Update(dt)
     if self.loadingFlow and not self.stopped then self.loadingFlow:Advance(dt) end
     if self.stopped then return end
+    require('storage.BlueprintStore').UpdateAll(dt)
     require('app.ResourceGate').UpdatePending(dt)
     if input:GetMouseButtonPress(MOUSEB_LEFT) or input:GetKeyPress(KEY_RETURN) or input:GetKeyPress(KEY_SPACE) then self.music:Unlock() end
     self.music:Update(dt,self.mode=='trial' and 'training' or self.lobby=='salvage' and 'salvage' or 'hangar',not input.focus or input.minimized)
@@ -469,7 +470,6 @@ function App:Update(dt)
         local toast=self.mapLoadingToast
         if toast.text~=text then toast.text=text;toast.layoutWidth=nil end
     end
-    self.store:Update(dt)
     self.previews:Update(dt)
     self.graphicsSettings:Update(dt)
     if self.tutorial and self.tutorial:Keys() then return end

@@ -13,6 +13,7 @@ local function Valid(v)
     for id,f in pairs(v.favorites) do if type(id)~='string' or f~=true then return false end end
     return type(v.enabled)=='boolean'
 end
+M.Valid=Valid
 function M.New(store,backend)
     local self=setmetatable({},M);self:init(store,backend);return self
 end

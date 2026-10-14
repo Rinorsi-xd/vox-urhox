@@ -51,7 +51,7 @@ function M.Open(owner,mode)
     body:AddChild(tabs)
     local grid=UI.Panel{width='100%',gap=10,flexShrink=0};body:AddChild(grid)
     local function Save(slot)
-        Host.Close(owner);local ok,err=app.bays:Save(slot);Host.Notify(owner,ok and ('已保存到车位 '..slot) or err)
+        Host.Close(owner);local ok,err=app.bays:Save(slot);Host.Notify(owner,ok and app.store:SaveMessage('已保存到车位 '..slot) or err)
     end
     local function Load(slot)
         Host.Close(owner)

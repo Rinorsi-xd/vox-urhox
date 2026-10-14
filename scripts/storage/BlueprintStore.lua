@@ -3,6 +3,7 @@
 -- WASM memory files are session-only; cloud persistence is a separate adapter.
 local M={};M.__index=M
 local Code=require 'storage.BlueprintCode'
+local stores=setmetatable({},{__mode='k'})
 local function Read(path)
     if not fileSystem:FileExists(path) then return nil end
     local file=File(path,FILE_READ);if not file:IsOpen() then file:Dispose();return nil end
@@ -13,7 +14,8 @@ local function Read(path)
 end
 function M.New(namespace)
     assert(not namespace or namespace:match('^[%w_%-]+$'),'Invalid storage namespace')
-    return setmetatable({prefix=(namespace or 'vox-garage')..'-',pending=nil,delay=0},M)
+    local store=setmetatable({namespace=namespace or 'vox-garage',prefix=(namespace or 'vox-garage')..'-',pending=nil,delay=0},M)
+    stores[store]=true;return store
 end
 function M:Read(key,validator)
     local a,b=Read(self.prefix..key..'-a.json'),Read(self.prefix..key..'-b.json')
@@ -21,7 +23,8 @@ function M:Read(key,validator)
         local ok,result=pcall(validator or Code.Validate,v and v.data)
         return v and v.v==1 and type(v.generation)=='number' and v.generation%1==0 and v.generation>0 and (v.deleted==true or ok and result)
     end
-    if not valid(a) then a=nil end;if not valid(b) then b=nil end
+    if a and not valid(a) then require('storage.CloudStorage').Invalid(self.namespace);a=nil end
+    if b and not valid(b) then require('storage.CloudStorage').Invalid(self.namespace);b=nil end
     local best=a and b and (a.generation>b.generation and a or b) or a or b
     return best and not best.deleted and best.data or nil,best and best.generation or 0,best and best.time or nil,best and best.capture or nil
 end
@@ -34,8 +37,22 @@ function M:Write(key,data,validator,deleted,savedTime,capture)
     file:WriteString(text);file:Flush();file:Dispose()
     local check=Read(path)
     if not check or check.generation~=generation then return false,'存档校验失败，保留上一版' end
+    require('storage.CloudStorage').Queue(self.namespace,key,text)
     return true
 end
+function M.Hydrate(namespace,key,record)
+    local text=cjson.encode(record)
+    for _,suffix in ipairs({'-a.json','-b.json'}) do
+        local path=namespace..'-'..key..suffix;local file=File(path,FILE_WRITE)
+        if not file:IsOpen() then file:Dispose();return false end
+        file:WriteString(text);file:Flush();file:Dispose()
+        local check=Read(path);if not check or check.generation~=record.generation then return false end
+    end
+    return true
+end
+function M.UpdateAll(dt) for store in pairs(stores) do store:Update(dt) end end
+function M.FlushAll() for store in pairs(stores) do store:Flush() end end
+function M:SaveMessage(text) return require('storage.CloudStorage').Message(self.namespace,text) end
 function M:LoadBuildSettings() return self:Read('build-settings',require('construction.Inventory').ValidSettings) end
 function M:SaveBuildSettings(settings) return self:Write('build-settings',settings,require('construction.Inventory').ValidSettings) end
 function M:Queue(bp) self.pending=bp;self.delay=.5 end

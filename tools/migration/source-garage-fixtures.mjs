@@ -2,7 +2,17 @@
 import fs from 'node:fs';
 import {pathToFileURL} from 'node:url';
 import {createHash} from 'node:crypto';
-const root='D:/Rino_Project/Vox';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+const project=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
+const baseline=JSON.parse(fs.readFileSync(path.join(project,'docs/migration/outgame-baseline.json'),'utf8'));
+if(baseline.commit!=='90862445074e7e146da900037979ad97899ecf6c')throw Error('Unexpected garage fixture baseline');
+const root=baseline.snapshot;
+if(!fs.existsSync(root))throw Error('Frozen baseline snapshot is missing');
+for(const name of ['shared/build/editor.js','shared/storage.js']){
+ const hash=createHash('sha256').update(fs.readFileSync(path.join(root,name))).digest('hex');
+ if(hash!==baseline.files[name].sha256)throw Error('Frozen garage source mismatch: '+name);
+}
 globalThis.window={};globalThis.document={pointerLockElement:null};
 const memory=new Map();globalThis.localStorage={getItem:k=>memory.get(k),setItem:(k,v)=>memory.set(k,v)};
 const mod=p=>import(pathToFileURL(root+'/'+p));

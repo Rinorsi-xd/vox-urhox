@@ -4,6 +4,7 @@ local M={};M.__index=M
 local function Valid(d)
     return type(d)=='table' and d.v==1 and type(d.credits)=='number' and d.credits>=0 and type(d.items)=='table'
 end
+M.Valid=Valid
 function M.New(app)
     local self=setmetatable({app=app,store=require('storage.BlueprintStore').New(app.isValidation and 'vox-validation-salvage' or 'vox-salvage')},M)
     self.data=self.store:Read('stash',Valid) or {v=1,credits=8000,items={scrap=36,wire=8,alloy=3,repair=2,smokePack=2,ration=3,drive=1},op=1}

@@ -1,5 +1,6 @@
 local original=HandleUpdate
 VOX_SKIP_TUTORIAL=true
+VOX_CLOUD_VALIDATION=true
 local UI=require 'urhox-libs/UI'
 local frames=0;local previous='';local samples={}
 local sampleMode=''
@@ -85,6 +86,7 @@ local function Dump(app)
         inventory=app.build and app.build.inventoryPanel~=nil or false,dialog=(app.build and app.build.dialog~=nil or home and home.dialog~=nil) or false,blueprint=app.blueprint.name,parts=app.blueprint:Size(),
         widgets={},quality=require('render.Quality').current.name}
     if app.tutorial then data.tutorial=app.tutorial:Snapshot() end
+    data.storage=require('storage.CloudStorage').Snapshot()
     data.performance=ResourceStats();data.performance.batches=renderer.numBatches;data.performance.primitives=renderer.numPrimitives
     local c=app.camera;local p=c.node.position;local t=c.cur.target
     data.camera={position={p.x,p.y,p.z},target={t.x,t.y,t.z},yaw=c.cur.yaw,pitch=c.cur.pitch,dist=c.cur.dist,fov=c.camera.fov}

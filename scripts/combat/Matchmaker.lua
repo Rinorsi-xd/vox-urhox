@@ -2,6 +2,7 @@
 local Data=require 'combat.ArenaData'
 local M={}
 local function Valid(p) return type(p)=='table' and type(p.rating)=='number' and type(p.recent)=='table' end
+M.Valid=Valid
 local function Read(store) return store:Read('match-profile',Valid) or {rating=1000,games=0,wins=0,streak=0,level=1,xp=0,recent={},introSeen={}} end
 local function Rng(seed)
     local state=seed & 0xffffffff;if state==0 then state=1 end

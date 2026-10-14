@@ -19,6 +19,7 @@ local function Legacy(data)
     end
     return true
 end
+function M.ValidSaved(data) return M.Valid(data) or Legacy(data) end
 function M.New(app)
     local saved=not app.isValidation and app.store:Read('graphics',function(d) return M.Valid(d) or Legacy(d) end) or nil
     local data=saved or M.Defaults();local migrate=saved and saved.v==1 or false
