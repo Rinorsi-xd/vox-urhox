@@ -11,6 +11,10 @@ if(motionHash!==baseline.files[motionSource]?.sha256)throw Error('Warehouse sour
 if(process.env.VOX_EXPORT_SCENE==='SalvageCine')for(const file of ['three/src/salvage/salvageCine.js','three/src/review/salvageTerrain/cinematics.js','three/src/review/salvageTerrain/hsKit.js','three/src/salvage/salvageFx.js']){
  if(createHash('sha256').update(fs.readFileSync(path.join(source,file))).digest('hex')!==baseline.files[file]?.sha256)throw Error('Cinematic source differs from frozen baseline: '+file);
 }
+if(process.env.VOX_EXPORT_SCENE==='Mvp'){
+ const file='three/src/battle/mvpShow.js';
+ if(createHash('sha256').update(fs.readFileSync(path.join(source,file))).digest('hex')!==baseline.files[file]?.sha256)throw Error('MVP source differs from frozen baseline');
+}
 function model(g){
  const chunks=[],u=(...v)=>{const b=Buffer.alloc(v.length*4);v.forEach((x,i)=>b.writeUInt32LE(x,i*4));chunks.push(b)},f=(...v)=>{const b=Buffer.alloc(v.length*4);v.forEach((x,i)=>b.writeFloatLE(x,i*4));chunks.push(b)};
  const count=g.p.length/3,lo=[Infinity,Infinity,Infinity],hi=[-Infinity,-Infinity,-Infinity];
@@ -31,8 +35,8 @@ function model(g){
 (async()=>{
  const server=http.createServer(async(req,res)=>{
   const url=new URL(req.url,'http://local');
-  if(['/migration/salvage-export.js','/migration/salvage-cine-export.js'].includes(url.pathname)){
-   res.setHeader('Content-Type','text/javascript');fs.createReadStream(path.join(__dirname,url.pathname.includes('cine')?'salvage-cine-export.mjs':'salvage-export.mjs')).pipe(res);return;
+  if(['/migration/salvage-export.js','/migration/salvage-cine-export.js','/migration/mvp-export.js'].includes(url.pathname)){
+   res.setHeader('Content-Type','text/javascript');fs.createReadStream(path.join(__dirname,url.pathname.includes('mvp')?'mvp-export.mjs':url.pathname.includes('cine')?'salvage-cine-export.mjs':'salvage-export.mjs')).pipe(res);return;
   }
   if(url.pathname==='/migration.html'){
    res.setHeader('Content-Type','text/html');res.end('<script type="importmap">{"imports":{"three":"/three/vendor/three/build/three.module.js","three/addons/":"/three/vendor/three/addons/","@shared/":"/shared/"}}</script>');return;
@@ -40,7 +44,7 @@ function model(g){
   if(req.method==='POST'&&url.pathname==='/convert'){
    try{
     const buffers=[];for await(const b of req)buffers.push(b);const g=JSON.parse(Buffer.concat(buffers));
-    if(!['Warehouse','Salvage','Story','SalvageCine'].includes(g.folder))throw Error('Invalid output');
+    if(!['Warehouse','Salvage','Story','SalvageCine','Mvp'].includes(g.folder))throw Error('Invalid output');
     const out=path.join(root,'assets',g.folder);fs.mkdirSync(out,{recursive:true});
     const name=(g.name||(g.folder==='Salvage'?'run-model-':'model-')+g.index)+'.bin',bytes=model(g);fs.writeFileSync(path.join(out,name),bytes);
     res.end(JSON.stringify({model:g.folder+'/'+name,material:g.material,shadow:g.shadow,triangles:g.idx.length/3,bytes:bytes.length}));
@@ -57,6 +61,7 @@ function model(g){
   const result=await page.evaluate(async(selected)=>{
    const T=await import('three');const scenes={};
    if(selected==='SalvageCine')scenes.SalvageCine=await (await import('/migration/salvage-cine-export.js')).build();
+   if(selected==='Mvp')scenes.Mvp=await (await import('/migration/mvp-export.js')).build();
    if(!selected||selected==='Warehouse'){
    const {Warehouse}=await import('/three/src/scene/warehouse.js');const wh=new Warehouse(new T.Scene());wh.setActive(true);wh.update(0,0);
    const {STARTER_CAR,STASH_CELLS}=await import('/shared/salvage/stash.js');
@@ -98,7 +103,7 @@ function model(g){
     const textures=[],materials=[],matIds=new Map(),texIds=new Map(),batches=new Map();scene.group.updateMatrixWorld(true);
     function texture(t){
      if(!t)return null;if(texIds.has(t.uuid))return texIds.get(t.uuid);
-     const c=document.createElement('canvas'),im=t.image;const max=1024;
+     const c=document.createElement('canvas'),im=t.image;const max=folder==='Mvp'?2048:1024;
      if(!im)return null;
      if(im.data){c.width=im.width;c.height=im.height;const ctx=c.getContext('2d'),pixels=ctx.createImageData(im.width,im.height);for(let i=0;i<pixels.data.length;i++)pixels.data[i]=im.data[i];ctx.putImageData(pixels,0,0);}
      else {const scale=Math.min(1,max/Math.max(im.width,im.height));c.width=Math.max(1,Math.round(im.width*scale));c.height=Math.max(1,Math.round(im.height*scale));c.getContext('2d').drawImage(im,0,0,c.width,c.height);}
@@ -112,12 +117,12 @@ function model(g){
      const color=m.color?.toArray()||beam?.value.toArray()||[.12,.15,.18];
      const fs=m.fragmentShader||'';
      const story=folder!=='Story'?null:fs.includes('float edge =')?'Terrain':fs.includes('float fine =')?'Floor':fs.includes('float rim =')?'Shell':fs.includes('gl_FragColor = vec4( 0.0 )')?'Depth':fs.includes('uLen')?'Dash':fs.includes('vUv.y')?'Beam':'Solid';
-     materials.push({name:m.name||m.type,color,emission:m.emissive?.clone().multiplyScalar(m.emissiveIntensity||0).toArray()||[0,0,0],roughness:m.roughness??.8,metallic:m.metalness||0,opacity:m.opacity??1,unlit:m.isMeshBasicMaterial||m.isShaderMaterial,double:m.side===T.DoubleSide,map:texture(m.map),ground,matTexture:ground?texture(m.userData.uniforms.uMat.value):null,story,len:m.uniforms?.uLen?.value||0,order:m.colorWrite===false?10:0,...(folder==='SalvageCine'?{additive:m.blending===T.AdditiveBlending}:{})});return id;
+     materials.push({name:m.name||m.type,color,emission:m.emissive?.clone().multiplyScalar(m.emissiveIntensity||0).toArray()||[0,0,0],roughness:m.roughness??.8,metallic:m.metalness||0,opacity:m.opacity??1,unlit:m.isMeshBasicMaterial||m.isShaderMaterial,double:m.side===T.DoubleSide,map:texture(m.map),ground,matTexture:ground?texture(m.userData.uniforms.uMat.value):null,story,len:m.uniforms?.uLen?.value||0,order:m.colorWrite===false?10:0,...(['SalvageCine','Mvp'].includes(folder)?{additive:m.blending===T.AdditiveBlending}:{}),...(folder==='Mvp'?{emissiveMap:texture(m.emissiveMap),transparent:m.transparent===true}:{})});return id;
     }
     function add(o,matrix){
      if(!o.geometry.attributes.position)return;
      let motion=null;
-     if(folder==='Warehouse'||folder==='SalvageCine')for(let p=o;p;p=p.parent)if(p.userData.migrationMotion){motion=p.userData.migrationMotion;matrix=new T.Matrix4().copy(p.matrixWorld).invert().multiply(matrix);break;}
+     if(['Warehouse','SalvageCine','Mvp'].includes(folder))for(let p=o;p;p=p.parent)if(p.userData.migrationMotion){motion=p.userData.migrationMotion;matrix=new T.Matrix4().copy(p.matrixWorld).invert().multiply(matrix);break;}
      const groups=o.geometry.groups.length?o.geometry.groups:[{start:0,count:o.geometry.index?.count||o.geometry.attributes.position.count,materialIndex:0}];
      const source=o.geometry;const g=source.clone();g.applyMatrix4(matrix);if(!g.attributes.normal)g.computeVertexNormals();
      const pos=new T.Vector3().setFromMatrixPosition(matrix),bucket=folder==='Warehouse'?16:256;
@@ -158,13 +163,14 @@ function model(g){
     for(const g of batches.values()){
      g.index=index++;const response=await fetch('/convert',{method:'POST',body:JSON.stringify(g)});if(!response.ok)throw Error(await response.text());models.push({...await response.json(),level:g.level,...(g.motion?{motion:g.motion}:{})});
     }
-    output[folder]={materials,textures,models,lights:scene.lights,motion:scene.motion,motionSamples:scene.motionSamples,cineSamples:scene.cineSamples,smokeTextures:scene.smokeTextures,limit:scene.limit,terrain:scene.terrain,levels:scene.levels,starter:scene.starter,stashCells:scene.stashCells};console.log(folder+' converted '+models.length+' batches');
+    output[folder]={materials,textures,models,lights:scene.lights,motion:scene.motion,motionSamples:scene.motionSamples,cineSamples:scene.cineSamples,smokeTextures:scene.smokeTextures,limit:scene.limit,terrain:scene.terrain,levels:scene.levels,starter:scene.starter,stashCells:scene.stashCells,mvpSamples:scene.mvpSamples};console.log(folder+' converted '+models.length+' batches');
     if(scene.salvage)output[folder].salvage=await scene.salvage(material);
    }return output;
   },process.env.VOX_EXPORT_SCENE||'');
   fs.writeFileSync(path.join(root,'.tmp/outgame-scenes-export.json'),JSON.stringify(result));
   for(const [folder,data] of Object.entries(result)){
    const out=path.join(root,'assets',folder);
+   if(data.mvpSamples){fs.writeFileSync(path.join(root,'tools/migration/source-mvp.json'),JSON.stringify({baseline:baseline.commit,samples:data.mvpSamples}));delete data.mvpSamples;}
    if(data.smokeTextures){data.smokeTextures.forEach((t,i)=>fs.writeFileSync(path.join(out,'smoke-'+i+'.png'),Buffer.from(t.split(',')[1],'base64')));delete data.smokeTextures;}
    if(data.cineSamples){fs.writeFileSync(path.join(root,'tools/migration/source-salvage-cine.json'),JSON.stringify({baseline:baseline.commit,samples:data.cineSamples}));delete data.cineSamples;}
    if(data.motionSamples){

@@ -1,0 +1,20 @@
+{
+  "baseline": "90862445074e7e146da900037979ad97899ecf6c",
+  "hashes": {
+    "three/src/battle/mvpShow.js": "52295f89d56b37857b6eb1d5c62c916537b1953c52b3c10e874813df287d0f9b",
+    "shared/audio/mvpMusic.js": "c729916df6306c81a2044015d3cb5bd1f0ebca26c5ee567269932f6f57ac1312",
+    "shared/audio/mvpBeatMap.js": "1144c7468d64cd9febad105868cb658f7d7d7fed84b6c83b780d918e39fb68bf",
+    "shared/assets/audio/mvp/bangyou-dj.mp3": "2408d5cea2c6345ae5798f1d5e5120e8673e1e24b5a0673bfd3ede2592669aec"
+  },
+  "variants": [
+    "VoxDecor.shader",
+    "VoxDecorDouble.shader",
+    "VoxFlag.shader",
+    "VoxGlass.shader",
+    "VoxGlowPaint.shader",
+    "VoxPaint.shader",
+    "VoxPBR.shader",
+    "VoxPBRCoat.shader"
+  ],
+  "beatCount": 401
+}

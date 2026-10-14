@@ -345,6 +345,13 @@ function HandleUpdate(et,ed)
             t:PostUpdate(.1)
         end
         local salvage=app.trial.salvage
+        local battle=app.trial.battle
+        if battle and input:GetKeyPress(KEY_F2) and battle.rules.state~='over' then
+            if app.trial.intro then app.trial.intro:Finish() end
+            battle.stats[battle.player]={kills=12,assists=5,deaths=1,damage=28640}
+            battle.rules.state='over';battle.rules.winner='blue';battle.rules.events={{type='matchOver',winner='blue'}}
+            battle:AfterStep(0)
+        end
         if salvage and not salvage.rules.finished then
             local session=app.trial
             if input:GetKeyPress(KEY_F3) and salvage.player.alive and salvage.landed then

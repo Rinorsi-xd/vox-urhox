@@ -1,0 +1,1110 @@
+{
+  "baseline": "90862445074e7e146da900037979ad97899ecf6c",
+  "fixture": "actual frozen MatchHud.result with production stylesheet cascade and UiScaling",
+  "layouts": [
+    {
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "layout": {
+        ".mh-result": {
+          "rect": [
+            240,
+            120.1015625,
+            1440,
+            839.796875
+          ],
+          "font": "13px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "normal",
+          "background": "rgba(16, 34, 56, 0.96) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "rgba(8, 15, 28, 0.333) 0px 4px 12px 0px",
+          "grid": "none",
+          "padding": "0px"
+        },
+        ".mh-res-head": {
+          "rect": [
+            240,
+            120.1015625,
+            1440,
+            133.796875
+          ],
+          "font": "13px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "normal",
+          "background": "rgb(27, 53, 78) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "none",
+          "grid": "none",
+          "padding": "30px 36px 20px"
+        },
+        ".mh-res-head b": {
+          "rect": [
+            276,
+            150.1015625,
+            204,
+            82.796875
+          ],
+          "font": "700 92px / 82.8px VoxIndustrial, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "10px",
+          "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "none",
+          "grid": "none",
+          "padding": "0px"
+        },
+        ".mh-teams": {
+          "rect": [
+            240,
+            253.8984375,
+            1440,
+            588
+          ],
+          "font": "13px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "normal",
+          "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "none",
+          "grid": "none",
+          "padding": "12px 34px 22px"
+        },
+        ".mh-tsec h3": {
+          "rect": [
+            274,
+            265.8984375,
+            1372,
+            29
+          ],
+          "font": "700 24px VoxIndustrial, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "5px",
+          "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "none",
+          "grid": "none",
+          "padding": "0px"
+        },
+        ".mh-row.hd": {
+          "rect": [
+            274,
+            302.8984375,
+            1372,
+            26
+          ],
+          "font": "12px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "3px",
+          "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "none",
+          "grid": "62px 770px 70px 80px 80px 80px 120px 110px",
+          "padding": "0px"
+        },
+        ".mh-row.me": {
+          "rect": [
+            274,
+            333.8984375,
+            1372,
+            62
+          ],
+          "font": "22px VoxIndustrial, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "normal",
+          "background": "rgba(0, 0, 0, 0) linear-gradient(90deg, rgba(122, 216, 255, 0.25), rgba(122, 216, 255, 0.063)) repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "rgb(122, 216, 255) 4px 0px 0px 0px inset",
+          "grid": "62px 770px 70px 80px 80px 80px 120px 110px",
+          "padding": "0px"
+        },
+        ".mh-row .nm": {
+          "rect": [
+            336,
+            308.3984375,
+            770,
+            15
+          ],
+          "font": "700 12px VoxNum, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "3px",
+          "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "none",
+          "grid": "none",
+          "padding": "0px 0px 0px 16px"
+        },
+        ".mh-res-foot": {
+          "rect": [
+            240,
+            841.8984375,
+            1440,
+            87
+          ],
+          "font": "13px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "normal",
+          "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "none",
+          "grid": "none",
+          "padding": "18px 36px"
+        },
+        ".gain": {
+          "rect": [
+            276,
+            872.8984375,
+            325.34375,
+            26
+          ],
+          "font": "16px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "1px",
+          "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "none",
+          "grid": "none",
+          "padding": "0px"
+        },
+        ".mvpn": {
+          "rect": [
+            619.34375,
+            876.3984375,
+            135.09375,
+            19
+          ],
+          "font": "15px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "2px",
+          "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "none",
+          "grid": "none",
+          "padding": "0px"
+        },
+        ".home": {
+          "rect": [
+            1336,
+            860.8984375,
+            134,
+            50
+          ],
+          "font": "700 18px VoxIndustrial, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "4px",
+          "background": "rgb(25, 62, 110) none repeat-x scroll 50% 50% / auto 100% padding-box border-box",
+          "shadow": "rgba(142, 198, 249, 0.5) 0px 1.5px 0px 0px inset, rgba(11, 36, 75, 0.5) 0px -1.5px 0px 0px inset, rgba(0, 0, 0, 0.15) 0px 1px 3px 0px",
+          "grid": "none",
+          "padding": "14px 34px"
+        },
+        ".again": {
+          "rect": [
+            1488,
+            860.8984375,
+            156,
+            50
+          ],
+          "font": "700 18px VoxIndustrial, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "4px",
+          "background": "rgb(45, 122, 203) url(\"http://127.0.0.1:53672/shared/assets/ui/new-ui/relief-primary-compact.svg\") repeat-x scroll 50% 50% / auto 100% padding-box border-box",
+          "shadow": "rgba(182, 224, 255, 0.6) 0px 1.5px 0px 0px inset, rgba(18, 62, 114, 0.45) 0px -1.5px 0px 0px inset, rgba(0, 0, 0, 0.15) 0px 1px 3px 0px",
+          "grid": "none",
+          "padding": "14px 34px"
+        },
+        ".mh-ai": {
+          "rect": [
+            240,
+            928.8984375,
+            1440,
+            31
+          ],
+          "font": "12px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "2px",
+          "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "none",
+          "grid": "none",
+          "padding": "0px 36px 16px"
+        }
+      },
+      "board": {
+        ".mh-board": {
+          "rect": [
+            240,
+            199,
+            1440,
+            682
+          ],
+          "font": "13px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "text": "歼灭战ELIMINATION · 3V3 · 坠舰陨坑\n\t\t\t1:0第 2 回合 · 决胜时刻0:59蓝队 · 我方3 / 3 存活 · 总伤害 28,640机修师等级击毁助攻阵亡伤害得分\n\t\t\t你你 · 段位 1000\n\t\t\t1125128,6404773\n\t\t\t机修师 1重装 · 段位 1000\n\t\t\t200100\n\t\t\t机修师 2重装 · 段位 1000\n\t\t\t300100红队 · 敌方3 / 3 存活 · 总伤害 0机修师等级击毁助攻阵亡伤害得分\n\t\t\t机修师 3重装 · 段位 1000\n\t\t\t400100\n\t\t\t机修师 4重装 · 段位 1000\n\t\t\t500100\n\t\t\t机修师 5重装 · 段位 1000\n\t\t\t600100"
+        },
+        ".mh-bh": {
+          "rect": [
+            240,
+            199,
+            1440,
+            94
+          ],
+          "font": "13px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "text": "歼灭战ELIMINATION · 3V3 · 坠舰陨坑\n\t\t\t1:0第 2 回合 · 决胜时刻0:59"
+        },
+        ".mh-bh .md": {
+          "rect": [
+            274,
+            221,
+            303.265625,
+            55
+          ],
+          "font": "700 34px / 34px VoxIndustrial, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "text": "歼灭战ELIMINATION · 3V3 · 坠舰陨坑"
+        },
+        ".mh-bh .md small": {
+          "rect": [
+            274,
+            261,
+            303.265625,
+            15
+          ],
+          "font": "12px VoxIndustrial, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "text": "ELIMINATION · 3V3 · 坠舰陨坑"
+        },
+        ".mh-bh .sc": {
+          "rect": [
+            1393.484375,
+            226.5,
+            65.359375,
+            44
+          ],
+          "font": "italic 700 44px / 44px VoxNum, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "text": "1:0"
+        },
+        ".mh-bh .tm": {
+          "rect": [
+            1480.84375,
+            222.5,
+            165.15625,
+            52
+          ],
+          "font": "14px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "text": "第 2 回合 · 决胜时刻0:59"
+        },
+        ".mh-bh .tm b": {
+          "rect": [
+            1480.84375,
+            240.5,
+            165.15625,
+            34
+          ],
+          "font": "italic 700 28px VoxNum, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "text": "0:59"
+        }
+      }
+    },
+    {
+      "viewport": {
+        "width": 840,
+        "height": 378
+      },
+      "layout": {
+        ".mh-result": {
+          "rect": [
+            168,
+            42.035545349121094,
+            504,
+            293.92889404296875
+          ],
+          "font": "13px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "normal",
+          "background": "rgba(16, 34, 56, 0.96) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "rgba(8, 15, 28, 0.333) 0px 4px 12px 0px",
+          "grid": "none",
+          "padding": "0px"
+        },
+        ".mh-res-head": {
+          "rect": [
+            168,
+            42.035545349121094,
+            504,
+            46.82890319824219
+          ],
+          "font": "13px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "normal",
+          "background": "rgb(27, 53, 78) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "none",
+          "grid": "none",
+          "padding": "30px 36px 20px"
+        },
+        ".mh-res-head b": {
+          "rect": [
+            180.59999084472656,
+            52.535545349121094,
+            71.40000915527344,
+            28.978904724121094
+          ],
+          "font": "700 92px / 82.8px VoxIndustrial, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "10px",
+          "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "none",
+          "grid": "none",
+          "padding": "0px"
+        },
+        ".mh-teams": {
+          "rect": [
+            168,
+            88.86444854736328,
+            504,
+            205.80001831054688
+          ],
+          "font": "13px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "normal",
+          "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "none",
+          "grid": "none",
+          "padding": "12px 34px 22px"
+        },
+        ".mh-tsec h3": {
+          "rect": [
+            179.89999389648438,
+            93.064453125,
+            480.1999816894531,
+            10.150001525878906
+          ],
+          "font": "700 24px VoxIndustrial, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "5px",
+          "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "none",
+          "grid": "none",
+          "padding": "0px"
+        },
+        ".mh-row.hd": {
+          "rect": [
+            179.89999389648438,
+            106.01445007324219,
+            480.1999816894531,
+            9.099998474121094
+          ],
+          "font": "12px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "3px",
+          "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "none",
+          "grid": "62px 770px 70px 80px 80px 80px 120px 110px",
+          "padding": "0px"
+        },
+        ".mh-row.me": {
+          "rect": [
+            179.89999389648438,
+            116.86444854736328,
+            480.1999816894531,
+            21.70000457763672
+          ],
+          "font": "22px VoxIndustrial, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "normal",
+          "background": "rgba(0, 0, 0, 0) linear-gradient(90deg, rgba(122, 216, 255, 0.25), rgba(122, 216, 255, 0.063)) repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "rgb(122, 216, 255) 4px 0px 0px 0px inset",
+          "grid": "62px 770px 70px 80px 80px 80px 120px 110px",
+          "padding": "0px"
+        },
+        ".mh-row .nm": {
+          "rect": [
+            201.59999084472656,
+            107.939453125,
+            269.5,
+            5.25
+          ],
+          "font": "700 12px VoxNum, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "3px",
+          "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "none",
+          "grid": "none",
+          "padding": "0px 0px 0px 16px"
+        },
+        ".mh-res-foot": {
+          "rect": [
+            168,
+            294.6644592285156,
+            504,
+            30.449981689453125
+          ],
+          "font": "13px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "normal",
+          "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "none",
+          "grid": "none",
+          "padding": "18px 36px"
+        },
+        ".gain": {
+          "rect": [
+            180.59999084472656,
+            305.5144348144531,
+            113.87031555175781,
+            9.100006103515625
+          ],
+          "font": "16px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "1px",
+          "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "none",
+          "grid": "none",
+          "padding": "0px"
+        },
+        ".mvpn": {
+          "rect": [
+            300.7702941894531,
+            306.73944091796875,
+            47.2828369140625,
+            6.649993896484375
+          ],
+          "font": "15px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "2px",
+          "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "none",
+          "grid": "none",
+          "padding": "0px"
+        },
+        ".home": {
+          "rect": [
+            551.5999755859375,
+            301.314453125,
+            46.9000244140625,
+            17.5
+          ],
+          "font": "700 18px VoxIndustrial, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "4px",
+          "background": "rgb(25, 62, 110) none repeat-x scroll 50% 50% / auto 100% padding-box border-box",
+          "shadow": "rgba(142, 198, 249, 0.5) 0px 1.5px 0px 0px inset, rgba(11, 36, 75, 0.5) 0px -1.5px 0px 0px inset, rgba(0, 0, 0, 0.15) 0px 1px 3px 0px",
+          "grid": "none",
+          "padding": "14px 34px"
+        },
+        ".again": {
+          "rect": [
+            604.7999877929688,
+            301.314453125,
+            54.5999755859375,
+            17.5
+          ],
+          "font": "700 18px VoxIndustrial, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "4px",
+          "background": "rgb(45, 122, 203) url(\"http://127.0.0.1:53672/shared/assets/ui/new-ui/relief-primary-compact.svg\") repeat-x scroll 50% 50% / auto 100% padding-box border-box",
+          "shadow": "rgba(182, 224, 255, 0.6) 0px 1.5px 0px 0px inset, rgba(18, 62, 114, 0.45) 0px -1.5px 0px 0px inset, rgba(0, 0, 0, 0.15) 0px 1px 3px 0px",
+          "grid": "none",
+          "padding": "14px 34px"
+        },
+        ".mh-ai": {
+          "rect": [
+            168,
+            325.11444091796875,
+            504,
+            10.850006103515625
+          ],
+          "font": "12px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "2px",
+          "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "none",
+          "grid": "none",
+          "padding": "0px 36px 16px"
+        }
+      },
+      "board": {
+        ".mh-board": {
+          "rect": [
+            168,
+            69.6500015258789,
+            504,
+            238.70001220703125
+          ],
+          "font": "13px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "text": "歼灭战ELIMINATION · 3V3 · 坠舰陨坑\n\t\t\t1:0第 2 回合 · 决胜时刻0:59蓝队 · 我方3 / 3 存活 · 总伤害 28,640机修师等级击毁助攻阵亡伤害得分\n\t\t\t你你 · 段位 1000\n\t\t\t1125128,6404773\n\t\t\t机修师 1重装 · 段位 1000\n\t\t\t200100\n\t\t\t机修师 2重装 · 段位 1000\n\t\t\t300100红队 · 敌方3 / 3 存活 · 总伤害 0机修师等级击毁助攻阵亡伤害得分\n\t\t\t机修师 3重装 · 段位 1000\n\t\t\t400100\n\t\t\t机修师 4重装 · 段位 1000\n\t\t\t500100\n\t\t\t机修师 5重装 · 段位 1000\n\t\t\t600100"
+        },
+        ".mh-bh": {
+          "rect": [
+            168,
+            69.6500015258789,
+            504,
+            32.899993896484375
+          ],
+          "font": "13px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "text": "歼灭战ELIMINATION · 3V3 · 坠舰陨坑\n\t\t\t1:0第 2 回合 · 决胜时刻0:59"
+        },
+        ".mh-bh .md": {
+          "rect": [
+            179.89999389648438,
+            77.3499984741211,
+            106.14297485351562,
+            19.25
+          ],
+          "font": "700 34px / 34px VoxIndustrial, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "text": "歼灭战ELIMINATION · 3V3 · 坠舰陨坑"
+        },
+        ".mh-bh .md small": {
+          "rect": [
+            179.89999389648438,
+            91.3499984741211,
+            106.14297485351562,
+            5.25
+          ],
+          "font": "12px VoxIndustrial, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "text": "ELIMINATION · 3V3 · 坠舰陨坑"
+        },
+        ".mh-bh .sc": {
+          "rect": [
+            571.7195434570312,
+            79.2750015258789,
+            22.875732421875,
+            15.399993896484375
+          ],
+          "font": "italic 700 44px / 44px VoxNum, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "text": "1:0"
+        },
+        ".mh-bh .tm": {
+          "rect": [
+            602.2952880859375,
+            77.875,
+            57.8046875,
+            18.199996948242188
+          ],
+          "font": "14px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "text": "第 2 回合 · 决胜时刻0:59"
+        },
+        ".mh-bh .tm b": {
+          "rect": [
+            602.2952880859375,
+            84.17499542236328,
+            57.8046875,
+            11.900001525878906
+          ],
+          "font": "italic 700 28px VoxNum, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "text": "0:59"
+        }
+      }
+    },
+    {
+      "viewport": {
+        "width": 800,
+        "height": 450
+      },
+      "layout": {
+        ".mh-result": {
+          "rect": [
+            100,
+            50.04231643676758,
+            600,
+            349.91534423828125
+          ],
+          "font": "13px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "normal",
+          "background": "rgba(16, 34, 56, 0.96) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "rgba(8, 15, 28, 0.333) 0px 4px 12px 0px",
+          "grid": "none",
+          "padding": "0px"
+        },
+        ".mh-res-head": {
+          "rect": [
+            100,
+            50.04231643676758,
+            600,
+            55.74869918823242
+          ],
+          "font": "13px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "normal",
+          "background": "rgb(27, 53, 78) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "none",
+          "grid": "none",
+          "padding": "30px 36px 20px"
+        },
+        ".mh-res-head b": {
+          "rect": [
+            115,
+            62.54231643676758,
+            85,
+            34.49869918823242
+          ],
+          "font": "700 92px / 82.8px VoxIndustrial, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "10px",
+          "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "none",
+          "grid": "none",
+          "padding": "0px"
+        },
+        ".mh-teams": {
+          "rect": [
+            100,
+            105.791015625,
+            600,
+            245
+          ],
+          "font": "13px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "normal",
+          "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "none",
+          "grid": "none",
+          "padding": "12px 34px 22px"
+        },
+        ".mh-tsec h3": {
+          "rect": [
+            114.16666412353516,
+            110.791015625,
+            571.6666259765625,
+            12.083328247070312
+          ],
+          "font": "700 24px VoxIndustrial, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "5px",
+          "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "none",
+          "grid": "none",
+          "padding": "0px"
+        },
+        ".mh-row.hd": {
+          "rect": [
+            114.16666412353516,
+            126.20767974853516,
+            571.6666259765625,
+            10.833335876464844
+          ],
+          "font": "12px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "3px",
+          "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "none",
+          "grid": "62px 770px 70px 80px 80px 80px 120px 110px",
+          "padding": "0px"
+        },
+        ".mh-row.me": {
+          "rect": [
+            114.16666412353516,
+            139.1243438720703,
+            571.6666259765625,
+            25.833328247070312
+          ],
+          "font": "22px VoxIndustrial, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "normal",
+          "background": "rgba(0, 0, 0, 0) linear-gradient(90deg, rgba(122, 216, 255, 0.25), rgba(122, 216, 255, 0.063)) repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "rgb(122, 216, 255) 4px 0px 0px 0px inset",
+          "grid": "62px 770px 70px 80px 80px 80px 120px 110px",
+          "padding": "0px"
+        },
+        ".mh-row .nm": {
+          "rect": [
+            140,
+            128.4993438720703,
+            320.83331298828125,
+            6.25
+          ],
+          "font": "700 12px VoxNum, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "3px",
+          "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "none",
+          "grid": "none",
+          "padding": "0px 0px 0px 16px"
+        },
+        ".mh-res-foot": {
+          "rect": [
+            100,
+            350.791015625,
+            600,
+            36.25
+          ],
+          "font": "13px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "normal",
+          "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "none",
+          "grid": "none",
+          "padding": "18px 36px"
+        },
+        ".gain": {
+          "rect": [
+            115,
+            363.7076721191406,
+            135.5598907470703,
+            10.833343505859375
+          ],
+          "font": "16px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "1px",
+          "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "none",
+          "grid": "none",
+          "padding": "0px"
+        },
+        ".mvpn": {
+          "rect": [
+            258.05987548828125,
+            365.166015625,
+            56.2890625,
+            7.916656494140625
+          ],
+          "font": "15px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "2px",
+          "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "none",
+          "grid": "none",
+          "padding": "0px"
+        },
+        ".home": {
+          "rect": [
+            556.6666259765625,
+            358.7076721191406,
+            55.8333740234375,
+            20.833343505859375
+          ],
+          "font": "700 18px VoxIndustrial, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "4px",
+          "background": "rgb(25, 62, 110) none repeat-x scroll 50% 50% / auto 100% padding-box border-box",
+          "shadow": "rgba(142, 198, 249, 0.5) 0px 1.5px 0px 0px inset, rgba(11, 36, 75, 0.5) 0px -1.5px 0px 0px inset, rgba(0, 0, 0, 0.15) 0px 1px 3px 0px",
+          "grid": "none",
+          "padding": "14px 34px"
+        },
+        ".again": {
+          "rect": [
+            620,
+            358.7076721191406,
+            65,
+            20.833343505859375
+          ],
+          "font": "700 18px VoxIndustrial, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "4px",
+          "background": "rgb(45, 122, 203) url(\"http://127.0.0.1:53672/shared/assets/ui/new-ui/relief-primary-compact.svg\") repeat-x scroll 50% 50% / auto 100% padding-box border-box",
+          "shadow": "rgba(182, 224, 255, 0.6) 0px 1.5px 0px 0px inset, rgba(18, 62, 114, 0.45) 0px -1.5px 0px 0px inset, rgba(0, 0, 0, 0.15) 0px 1px 3px 0px",
+          "grid": "none",
+          "padding": "14px 34px"
+        },
+        ".mh-ai": {
+          "rect": [
+            100,
+            387.041015625,
+            600,
+            12.916656494140625
+          ],
+          "font": "12px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "2px",
+          "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "none",
+          "grid": "none",
+          "padding": "0px 36px 16px"
+        }
+      },
+      "board": {
+        ".mh-board": {
+          "rect": [
+            100,
+            82.91666412353516,
+            600,
+            284.1666564941406
+          ],
+          "font": "13px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "text": "歼灭战ELIMINATION · 3V3 · 坠舰陨坑\n\t\t\t1:0第 2 回合 · 决胜时刻0:59蓝队 · 我方3 / 3 存活 · 总伤害 28,640机修师等级击毁助攻阵亡伤害得分\n\t\t\t你你 · 段位 1000\n\t\t\t1125128,6404773\n\t\t\t机修师 1重装 · 段位 1000\n\t\t\t200100\n\t\t\t机修师 2重装 · 段位 1000\n\t\t\t300100红队 · 敌方3 / 3 存活 · 总伤害 0机修师等级击毁助攻阵亡伤害得分\n\t\t\t机修师 3重装 · 段位 1000\n\t\t\t400100\n\t\t\t机修师 4重装 · 段位 1000\n\t\t\t500100\n\t\t\t机修师 5重装 · 段位 1000\n\t\t\t600100"
+        },
+        ".mh-bh": {
+          "rect": [
+            100,
+            82.91666412353516,
+            600,
+            39.166664123535156
+          ],
+          "font": "13px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "text": "歼灭战ELIMINATION · 3V3 · 坠舰陨坑\n\t\t\t1:0第 2 回合 · 决胜时刻0:59"
+        },
+        ".mh-bh .md": {
+          "rect": [
+            114.16666412353516,
+            92.08332824707031,
+            126.36067962646484,
+            22.916671752929688
+          ],
+          "font": "700 34px / 34px VoxIndustrial, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "text": "歼灭战ELIMINATION · 3V3 · 坠舰陨坑"
+        },
+        ".mh-bh .md small": {
+          "rect": [
+            114.16666412353516,
+            108.75,
+            126.36067962646484,
+            6.25
+          ],
+          "font": "12px VoxIndustrial, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "text": "ELIMINATION · 3V3 · 坠舰陨坑"
+        },
+        ".mh-bh .sc": {
+          "rect": [
+            580.6184692382812,
+            94.375,
+            27.23309326171875,
+            18.333328247070312
+          ],
+          "font": "italic 700 44px / 44px VoxNum, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "text": "1:0"
+        },
+        ".mh-bh .tm": {
+          "rect": [
+            617.0181884765625,
+            92.70832824707031,
+            68.81512451171875,
+            21.666671752929688
+          ],
+          "font": "14px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "text": "第 2 回合 · 决胜时刻0:59"
+        },
+        ".mh-bh .tm b": {
+          "rect": [
+            617.0181884765625,
+            100.20832824707031,
+            68.81512451171875,
+            14.166671752929688
+          ],
+          "font": "italic 700 28px VoxNum, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "text": "0:59"
+        }
+      }
+    },
+    {
+      "viewport": {
+        "width": 1024,
+        "height": 768
+      },
+      "layout": {
+        ".mh-result": {
+          "rect": [
+            128,
+            160.05416870117188,
+            768.0000610351562,
+            447.8916931152344
+          ],
+          "font": "13px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "normal",
+          "background": "rgba(16, 34, 56, 0.96) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "rgba(8, 15, 28, 0.333) 0px 4px 12px 0px",
+          "grid": "none",
+          "padding": "0px"
+        },
+        ".mh-res-head": {
+          "rect": [
+            128,
+            160.05416870117188,
+            768.0000610351562,
+            71.35833740234375
+          ],
+          "font": "13px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "normal",
+          "background": "rgb(27, 53, 78) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "none",
+          "grid": "none",
+          "padding": "30px 36px 20px"
+        },
+        ".mh-res-head b": {
+          "rect": [
+            147.20001220703125,
+            176.05416870117188,
+            108.79998779296875,
+            44.15834045410156
+          ],
+          "font": "700 92px / 82.8px VoxIndustrial, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "10px",
+          "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "none",
+          "grid": "none",
+          "padding": "0px"
+        },
+        ".mh-teams": {
+          "rect": [
+            128,
+            231.41250610351562,
+            768.0000610351562,
+            313.6000061035156
+          ],
+          "font": "13px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "normal",
+          "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "none",
+          "grid": "none",
+          "padding": "12px 34px 22px"
+        },
+        ".mh-tsec h3": {
+          "rect": [
+            146.1333465576172,
+            237.81251525878906,
+            731.7333374023438,
+            15.466659545898438
+          ],
+          "font": "700 24px VoxIndustrial, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "5px",
+          "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "none",
+          "grid": "none",
+          "padding": "0px"
+        },
+        ".mh-row.hd": {
+          "rect": [
+            146.1333465576172,
+            257.54583740234375,
+            731.7333374023438,
+            13.866668701171875
+          ],
+          "font": "12px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "3px",
+          "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "none",
+          "grid": "62px 770px 70px 80px 80px 80px 120px 110px",
+          "padding": "0px"
+        },
+        ".mh-row.me": {
+          "rect": [
+            146.1333465576172,
+            274.0791931152344,
+            731.7333374023438,
+            33.066650390625
+          ],
+          "font": "22px VoxIndustrial, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "normal",
+          "background": "rgba(0, 0, 0, 0) linear-gradient(90deg, rgba(122, 216, 255, 0.25), rgba(122, 216, 255, 0.063)) repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "rgb(122, 216, 255) 4px 0px 0px 0px inset",
+          "grid": "62px 770px 70px 80px 80px 80px 120px 110px",
+          "padding": "0px"
+        },
+        ".mh-row .nm": {
+          "rect": [
+            179.20001220703125,
+            260.47918701171875,
+            410.66668701171875,
+            8
+          ],
+          "font": "700 12px VoxNum, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "3px",
+          "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "none",
+          "grid": "none",
+          "padding": "0px 0px 0px 16px"
+        },
+        ".mh-res-foot": {
+          "rect": [
+            128,
+            545.0125122070312,
+            768.0000610351562,
+            46.4000244140625
+          ],
+          "font": "13px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "normal",
+          "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "none",
+          "grid": "none",
+          "padding": "18px 36px"
+        },
+        ".gain": {
+          "rect": [
+            147.20001220703125,
+            561.5458374023438,
+            173.51666259765625,
+            13.86669921875
+          ],
+          "font": "16px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "1px",
+          "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "none",
+          "grid": "none",
+          "padding": "0px"
+        },
+        ".mvpn": {
+          "rect": [
+            330.3166809082031,
+            563.4125366210938,
+            72.05001831054688,
+            10.13330078125
+          ],
+          "font": "15px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "2px",
+          "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "none",
+          "grid": "none",
+          "padding": "0px"
+        },
+        ".home": {
+          "rect": [
+            712.5333862304688,
+            555.1458740234375,
+            71.4666748046875,
+            26.6666259765625
+          ],
+          "font": "700 18px VoxIndustrial, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "4px",
+          "background": "rgb(25, 62, 110) none repeat-x scroll 50% 50% / auto 100% padding-box border-box",
+          "shadow": "rgba(142, 198, 249, 0.5) 0px 1.5px 0px 0px inset, rgba(11, 36, 75, 0.5) 0px -1.5px 0px 0px inset, rgba(0, 0, 0, 0.15) 0px 1px 3px 0px",
+          "grid": "none",
+          "padding": "14px 34px"
+        },
+        ".again": {
+          "rect": [
+            793.6000366210938,
+            555.1458740234375,
+            83.20001220703125,
+            26.6666259765625
+          ],
+          "font": "700 18px VoxIndustrial, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "4px",
+          "background": "rgb(45, 122, 203) url(\"http://127.0.0.1:53672/shared/assets/ui/new-ui/relief-primary-compact.svg\") repeat-x scroll 50% 50% / auto 100% padding-box border-box",
+          "shadow": "rgba(182, 224, 255, 0.6) 0px 1.5px 0px 0px inset, rgba(18, 62, 114, 0.45) 0px -1.5px 0px 0px inset, rgba(0, 0, 0, 0.15) 0px 1px 3px 0px",
+          "grid": "none",
+          "padding": "14px 34px"
+        },
+        ".mh-ai": {
+          "rect": [
+            128,
+            591.4125366210938,
+            768.0000610351562,
+            16.5333251953125
+          ],
+          "font": "12px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "spacing": "2px",
+          "background": "rgba(0, 0, 0, 0) none repeat scroll 0% 0% / auto padding-box border-box",
+          "shadow": "none",
+          "grid": "none",
+          "padding": "0px 36px 16px"
+        }
+      },
+      "board": {
+        ".mh-board": {
+          "rect": [
+            128,
+            202.1333465576172,
+            768.0000610351562,
+            363.73333740234375
+          ],
+          "font": "13px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "text": "歼灭战ELIMINATION · 3V3 · 坠舰陨坑\n\t\t\t1:0第 2 回合 · 决胜时刻0:59蓝队 · 我方3 / 3 存活 · 总伤害 28,640机修师等级击毁助攻阵亡伤害得分\n\t\t\t你你 · 段位 1000\n\t\t\t1125128,6404773\n\t\t\t机修师 1重装 · 段位 1000\n\t\t\t200100\n\t\t\t机修师 2重装 · 段位 1000\n\t\t\t300100红队 · 敌方3 / 3 存活 · 总伤害 0机修师等级击毁助攻阵亡伤害得分\n\t\t\t机修师 3重装 · 段位 1000\n\t\t\t400100\n\t\t\t机修师 4重装 · 段位 1000\n\t\t\t500100\n\t\t\t机修师 5重装 · 段位 1000\n\t\t\t600100"
+        },
+        ".mh-bh": {
+          "rect": [
+            128,
+            202.1333465576172,
+            768.0000610351562,
+            50.133331298828125
+          ],
+          "font": "13px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "text": "歼灭战ELIMINATION · 3V3 · 坠舰陨坑\n\t\t\t1:0第 2 回合 · 决胜时刻0:59"
+        },
+        ".mh-bh .md": {
+          "rect": [
+            146.1333465576172,
+            213.86668395996094,
+            161.74168395996094,
+            29.333328247070312
+          ],
+          "font": "700 34px / 34px VoxIndustrial, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "text": "歼灭战ELIMINATION · 3V3 · 坠舰陨坑"
+        },
+        ".mh-bh .md small": {
+          "rect": [
+            146.1333465576172,
+            235.20001220703125,
+            161.74168395996094,
+            8
+          ],
+          "font": "12px VoxIndustrial, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "text": "ELIMINATION · 3V3 · 坠舰陨坑"
+        },
+        ".mh-bh .sc": {
+          "rect": [
+            743.1917114257812,
+            216.80001831054688,
+            34.85833740234375,
+            23.466659545898438
+          ],
+          "font": "italic 700 44px / 44px VoxNum, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "text": "1:0"
+        },
+        ".mh-bh .tm": {
+          "rect": [
+            789.7833862304688,
+            214.6666717529297,
+            88.08331298828125,
+            27.73333740234375
+          ],
+          "font": "14px \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "text": "第 2 回合 · 决胜时刻0:59"
+        },
+        ".mh-bh .tm b": {
+          "rect": [
+            789.7833862304688,
+            224.2666778564453,
+            88.08331298828125,
+            18.133331298828125
+          ],
+          "font": "italic 700 28px VoxNum, \"Microsoft YaHei UI\", \"Microsoft YaHei\", \"PingFang SC\", \"Segoe UI\", sans-serif",
+          "text": "0:59"
+        }
+      }
+    }
+  ]
+}

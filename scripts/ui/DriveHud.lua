@@ -40,6 +40,7 @@ function M.Create(session)
     if session.battle then
         for _,widget in ipairs({state.title,state.timer,state.stats,state.keys,state.buttons['return']}) do widget:SetVisible(false) end
         state.match=require('ui.MatchHud').Attach(session,root)
+        state.mvp=require('ui.MvpShow'){position='absolute',width='100%',height='100%',pointerEvents='auto',visible=false};state.mvp.session=session;root:AddChild(state.mvp)
     elseif session.story then
         for _,widget in ipairs({state.timer,state.stats,state.keys}) do widget:SetVisible(false) end
         state.story=require('ui.MissionHud').Attach(session,root)
@@ -70,6 +71,9 @@ function M.Create(session)
         local alive=not s.combat or s.combat.player.alive;local over=s.battle and s.battle.rules.state=='over' or s.story and s.story.rules.finished or s.salvage and s.salvage.result~=nil
         local cinematic=s.salvage and s.salvage.cine.blocking
         local hideHud=cinematic or s.salvage and s.salvage.cine.barsOn
+        local mvp=s.battle and s.battle.mvpShow and not s.battle.mvpShow.done
+        hideHud=hideHud or mvp
+        if state.mvp then state.mvp:SetVisible(mvp==true);state.missile:SetVisible(not mvp);state.overlay.layer:SetVisible(not mvp) end
         local choosing=s.story and s.story.rules.choice~=nil
         state.pause:SetVisible(not active and not s.touch and not over and not choosing and not hideHud);state.vitals:SetVisible(active and alive and not hideHud);state.detailPanel:SetVisible(s.details and alive and not hideHud)
         if s.salvage then state.buttons['return']:SetVisible(not hideHud and not over);state.missile:SetVisible(not hideHud and not over) end
@@ -78,7 +82,7 @@ function M.Create(session)
         end
         state.meter:SetVisible(false)
         if not state.touchControls then state.playfield:SetVisible(not over and not cinematic) end
-        if state.match then state.match.Update() end
+        if state.match then state.match.Update(dt) end
         if state.story then state.story.Update(dt) end
         if state.salvage then state.salvage.Update(dt) end
         state.vitals.hit=math.max(0,(state.vitals.hit or 0)-dt)

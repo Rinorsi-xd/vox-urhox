@@ -90,7 +90,7 @@ function M:Reset()
     self.feedbackAudio:Stop()
 end
 function M:HasFocus() return input.focus and not input.minimized end
-function M:Resume() if (self.story or self.salvage) and self.combat.rules.finished then return false end;return self.pointer:Capture() end
+function M:Resume() if self.battle and self.battle.rules.state=='over' or (self.story or self.salvage) and self.combat.rules.finished then return false end;return self.pointer:Capture() end
 function M:Zoom(wheel)
     self:ZoomPixels(require('controls.Wheel').Pixels(wheel))
 end
@@ -143,6 +143,10 @@ local actionKeys={KEY_ESCAPE,KEY_T,KEY_R,KEY_BACKSPACE,KEY_I,KEY_C,KEY_N,KEY_E,K
 local resultKeys={KEY_RETURN,KEY_ESCAPE,KEY_T}
 function M:KeyPressed(key) return input:GetKeyPress(key) end
 function M:HandleKey(key)
+    if self.battle and self.battle.mvpShow and not self.battle.mvpShow.done then
+        if key==KEY_ESCAPE or key==KEY_RETURN or key==KEY_SPACE then self.battle.mvpShow:Skip() end
+        return
+    end
     if self.salvage and self.salvage:Key(key) then return end
     if self.story and self.story.rules.finished then
         if key==KEY_R then self.app.restartStory=self.map.id;self.wantsReturn=true
@@ -189,6 +193,7 @@ function M:Aim()
     return hit and hit.point or {origin[1]+direction[1]*500,origin[2]+direction[2]*500,origin[3]+direction[3]*500}
 end
 function M:Tick(dt,command)
+    if self.battle and self.battle.rules.state=='over' then if self.hud then self.hud.Update(self,dt) end;return end
     self.weaponAudio:SetActive(self.pointer.captured and (not self.battle or self.battle.rules.state=='live') and (not self.story or not self.story.rules.finished) and (not self.salvage or self.salvage.begun and not self.salvage.rules.finished))
     self.weaponAudio:Update(dt,self.weapons,self.camera:GetNode(),self.combat and self.combat.entries,self.combat and self.combat.voice.card~=nil)
     self.drivingAudio:SetActive(self.weaponAudio.active)
@@ -237,7 +242,7 @@ function M:Tick(dt,command)
         self.combatView:Consume(self.world);self.combatView:SavePose()
         self.effects:Consume(self.world.fx);self.world.fx={}
         self.accumulator=self.accumulator-1/60;self.fixedSteps=self.fixedSteps+1
-        if (self.story or self.salvage) and self.combat.rules.finished then self.accumulator=0;break end
+        if self.battle and self.battle.rules.state=='over' or (self.story or self.salvage) and self.combat.rules.finished then self.accumulator=0;break end
     end
     self.fxContext.time=self.world.time
     local alive=not self.combat or self.combat.player.alive
@@ -258,6 +263,13 @@ function M:Update(dt)
     if self.disposed then return end
     if self.app.loadingFlow and self.app.loadingFlow.active then return end
     if self.battle then self.battle.sounds:Update(dt);self.battle.voice:Update(dt) end
+    if self.battle and self.battle.mvpShow and not self.battle.mvpShow.done then
+        self:Pause()
+        for _,key in ipairs({KEY_SPACE,KEY_RETURN,KEY_ESCAPE}) do if input:GetKeyPress(key) then self.battle.mvpShow:Skip();break end end
+        self.battle.mvpShow:Update(dt)
+        if self.hud then self.hud.Update(self,dt) end
+        return
+    end
     if self.story then self.story:Update(dt) end
     if self.intro and not self.intro.done then
         self.drillSpeed:Clear()
@@ -316,6 +328,7 @@ function M:Update(dt)
 end
 function M:PostUpdate(dt)
     if self.disposed then return end
+    if self.battle and self.battle.mvpShow and not self.battle.mvpShow.done then self.battle.mvpShow:Camera();return end
     if self.intro and not self.intro.done then
         self.intro:Camera();if self.environment then self.environment:Update(dt,self.camera:GetNode()) end;return
     end

@@ -1,0 +1,140 @@
+{
+  "build": "D:\\Rino_Project\\maker\\Vox\\VoxelCraft\\.tmp\\outgame-cached-1791953624997",
+  "manifest": "manifest-6c1e7fbf.json",
+  "viewport": {
+    "name": "tablet",
+    "width": 1024,
+    "height": 768,
+    "dpr": 2,
+    "touch": true
+  },
+  "errors": [],
+  "httpFailures": [
+    {
+      "status": 404,
+      "url": "http://127.0.0.1:4204/cached-engine-source/src/engine-res/1.1.925/assets@windows.7z"
+    },
+    {
+      "status": 404,
+      "url": "http://127.0.0.1:4204/cached-engine-source/src/urhox-libs/1.0.47/assets@windows.7z"
+    },
+    {
+      "status": 404,
+      "url": "http://127.0.0.1:4204/cached-engine-source/src/engine-res/assets@windows.7z?v=1.1.925"
+    },
+    {
+      "status": 404,
+      "url": "http://127.0.0.1:4204/cached-engine-source/src/urhox-libs/assets@windows.7z?v=1.0.47"
+    }
+  ],
+  "checks": [
+    "actual 出战 widget",
+    "actual 歼灭战 widget",
+    "actual 开始匹配 widget",
+    "MVP releases gameplay pointer",
+    "nonblank rise",
+    "nonblank burst",
+    "nonblank title",
+    "real banner and spiral visible",
+    "GPU celebration meshes upload once",
+    "awarded name renders once",
+    "result controls blocked during showcase",
+    "showcase inputs cannot resume combat",
+    "nonblank result",
+    "actual 再来一局 widget",
+    "replay respects released pointer",
+    "first skip reaches showcase",
+    "actual 回机库 widget",
+    "nonblank returned",
+    "return releases battle terrain arrays",
+    "no unexpected runtime shader or Lua errors"
+  ],
+  "shots": [
+    {
+      "name": "rise",
+      "file": "D:\\Rino_Project\\maker\\Vox\\VoxelCraft\\docs\\migration\\evidence\\mvp-web-tablet-rise.png",
+      "stdev": [
+        68.77546907403608,
+        70.0819686235092,
+        69.76357462931841
+      ]
+    },
+    {
+      "name": "burst",
+      "file": "D:\\Rino_Project\\maker\\Vox\\VoxelCraft\\docs\\migration\\evidence\\mvp-web-tablet-burst.png",
+      "stdev": [
+        59.482748411284334,
+        62.929835593021856,
+        66.81622095459988
+      ]
+    },
+    {
+      "name": "title",
+      "file": "D:\\Rino_Project\\maker\\Vox\\VoxelCraft\\docs\\migration\\evidence\\mvp-web-tablet-title.png",
+      "stdev": [
+        40.384858892027474,
+        46.53728184934338,
+        51.293339059820156
+      ]
+    },
+    {
+      "name": "result",
+      "file": "D:\\Rino_Project\\maker\\Vox\\VoxelCraft\\docs\\migration\\evidence\\mvp-web-tablet-result.png",
+      "stdev": [
+        62.56161677550335,
+        46.11470454796527,
+        33.361328063146004
+      ]
+    },
+    {
+      "name": "returned",
+      "file": "D:\\Rino_Project\\maker\\Vox\\VoxelCraft\\docs\\migration\\evidence\\mvp-web-tablet-returned.png",
+      "stdev": [
+        49.01651277745898,
+        47.38926976167276,
+        47.28729801483557
+      ]
+    }
+  ],
+  "shown": {
+    "name": "你",
+    "music": {
+      "playing": true,
+      "beat": 22,
+      "position": 11.093353271484375
+    },
+    "preparing": false,
+    "team": "blue",
+    "failed": false,
+    "active": true,
+    "me": true,
+    "t": 7.764224999886006,
+    "deform": {
+      "lz": 0,
+      "sy": 1.0709184973354855,
+      "bulge": 0,
+      "lx": -0.010790989590342005,
+      "twist": -0.0243792096527924
+    },
+    "stats": {
+      "kills": 12,
+      "damage": 28640,
+      "assists": 5,
+      "deaths": 1
+    },
+    "stage": {
+      "column": true,
+      "h": 3.6682324409484863,
+      "uploads": 1,
+      "bannerRenders": 1,
+      "S": 5,
+      "bannerName": true,
+      "smokeUploads": 1,
+      "smoke": false,
+      "materials": 15,
+      "banner": true
+    },
+    "done": false
+  },
+  "result": "PASS"
+}

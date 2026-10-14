@@ -58,6 +58,12 @@ local function Exercise(s)
     b.rules:Step(5,b:WorldState());b.rules:Drain()
     for _,e in ipairs(b.entries) do if e.unit.team=='red' then local c=e.unit.bp:CoreParts()[1];e.unit.struct=0;e.unit:Damage(c.id,1e9,e.unit:Position()) end end
     Step(367);V.assert(b.rules.state=='over' and b.rules.winner=='blue','real match reaches final result')
+    while b.mvpShow.preparing do coroutine.yield() end
+    V.assert(not b.mvpShow.failed,'final result prepares the production MVP scene')
+    b.mvpShow:Skip();b.mvpShow:Skip()
+    local focus=s.HasFocus;s.HasFocus=function() return true end
+    for _=1,24 do b.mvpShow:Update(1/60) end
+    s.HasFocus=focus
     s.hud.Update(s,.1);coroutine.yield();coroutine.yield();s.hud.Update(s,.1)
     V.assert(s.hud.match.back:IsVisible() and s.hud.match.retry:IsVisible(),'result exposes actual return and replay controls')
     local UI=require 'urhox-libs/UI';local Event=require 'urhox-libs/UI/Core/PointerEvent'

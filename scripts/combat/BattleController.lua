@@ -30,7 +30,7 @@ function M.New(session,bp)
     self.sounds=require('audio.BattleFlow').New();self.sounds:Prepare(false);self.sounds:Play('battle_enter')
     self.objectives=require('combat.BattleObjectives').New(self,self.mode);self.rules=self.objectives:Rules()
     self.voice=require('audio.MatchVoice').New(self)
-    self.tier=(bp:Stats().fitTier or {id=5}).id;self.banner=nil;self.stats={};self.clock=0
+    self.tier=(bp:Stats().fitTier or {id=5}).id;self.banner=nil;self.stats={};self.lastHit={};self.clock=0
     for _,u in ipairs(self.world.units) do u:Dispose() end;self.world.units={}
     self.roster=session.map.battleRoster or require('combat.Matchmaker').Find(session.app.store,Data.modes[self.mode].size,self.tier)
     for _,team in ipairs({'blue','red'}) do for i,member in ipairs(self.roster[team]) do
@@ -41,7 +41,7 @@ function M.New(session,bp)
         self.world.units[#self.world.units+1]=unit
         local entry={unit=unit,member=member,slot=i,guardUntil=self.world.time+3,repair=0}
         if member.player then self.player=unit else entry.driver=Driver.New(self.world,unit,member.role,#self.entries+1,member) end
-        self.entries[#self.entries+1]=entry;self.stats[unit]={damage=0,kills=0,deaths=0}
+        self.entries[#self.entries+1]=entry;self.stats[unit]={damage=0,kills=0,deaths=0,assists=0}
         local shooter=unit
         local function CanDamage(victim)
             return victim.team~=shooter.team and self.world.time>=(victim.guardUntil or 0) and not self.objectives:HomeProtected(victim)
@@ -68,14 +68,18 @@ function M.New(session,bp)
     self.baseDamage=self.world.RecordDamage;self.baseKill=self.world.RecordKill
     self.world.RecordDamage=function(world,unit,amount,point)
         local attacker=world.attacker
-        if attacker then
+        if attacker and attacker~=unit and amount>0 then
             self.stats[attacker].damage=self.stats[attacker].damage+amount;unit.lastHitBy=attacker
+            local hits=self.lastHit[unit] or {};hits[attacker]=world.time;self.lastHit[unit]=hits
             if attacker==self.player then self.baseDamage(world,unit,amount,point) end
         end
     end
     self.world.RecordKill=function(world,unit,pos)
         self.stats[unit].deaths=self.stats[unit].deaths+1
-        local attacker=unit.lastHitBy
+        local hits=self.lastHit[unit] or {};local attacker,latest=false,-math.huge
+        for by,at in pairs(hits) do if world.time-at<10 and at>latest then attacker=by;latest=at end end
+        for by,at in pairs(hits) do if world.time-at<10 and by~=attacker and by.team~=unit.team then self.stats[by].assists=self.stats[by].assists+1 end end
+        self.lastHit[unit]=nil
         self.voice:Kill(unit,attacker)
         if attacker and attacker.team~=unit.team then
             self.stats[attacker].kills=self.stats[attacker].kills+1
@@ -160,6 +164,7 @@ function M:AfterStep(dt)
         self.objectives:Event(event)
         if event.type=='roundPrep' and event.round>1 or event.type=='halfPrep' and event.half>1 then
             self.world.debris:Clear()
+            self.lastHit={}
             for i,e in ipairs(self.entries) do
                 e.unit.spawnAt=self:SpawnAt(e.unit.team,e.slot);e.unit:Spawn();e.repair=0;e.unit.guardUntil=self.world.time+3
                 if e.driver then e.driver=Driver.New(self.world,e.unit,e.member.role,i,e.member) end
@@ -178,8 +183,15 @@ function M:AfterStep(dt)
         elseif event.type=='shieldDown' then self:Banner(event.team=='blue' and '我方护盾熄灭' or '敌方护盾熄灭','SHIELD DOWN')
         elseif event.type=='shieldUp' then self:Banner('基地护盾恢复','SHIELD ONLINE')
         elseif event.type=='matchOver' then
+            self.banner=nil
             self.session:Pause()
-            if not self.result then self.result=require('combat.Matchmaker').Record(self.session.app.store,self.rules.winner,self.roster.rating.red,self.stats[self.player].kills,false) end
+            if not self.result then
+                self.mvp=require('combat.MvpMotion').Winner(self.entries,self.stats)
+                self.result=require('combat.Matchmaker').Record(self.session.app.store,self.rules.winner,self.roster.rating.red,self.stats[self.player].kills,self.mvp and self.mvp.unit==self.player)
+                self.session.weaponAudio:SetActive(false);self.session.drivingAudio:SetActive(false);self.session.feedbackAudio:SetActive(false);self.session.drillSpeed:Clear()
+                self.voice:Reset()
+                self.mvpShow=require('app.MvpShow').New(self.session,self.mvp,self.stats[self.mvp.unit])
+            end
         end
     end
     self.objectives:Update(dt)
@@ -187,9 +199,11 @@ function M:AfterStep(dt)
 end
 function M:Banner(text,tag) self.banner={text=text,tag=tag,age=0} end
 function M:Restart()
+    if self.mvpShow then self.mvpShow:Dispose();self.mvpShow=nil end
+    self.mvp=nil;self.lastHit={}
     self.session:Pause();self.result=nil;self.objectives:Reset();self.rules=self.objectives:Rules();self.voice:Reset();self.world.debris:Clear()
     for i,e in ipairs(self.entries) do
-        e.unit.spawnAt=self:SpawnAt(e.unit.team,e.slot);e.unit:Spawn();e.unit.guardUntil=self.world.time+3;e.repair=0;self.stats[e.unit]={damage=0,kills=0,deaths=0}
+        e.unit.spawnAt=self:SpawnAt(e.unit.team,e.slot);e.unit:Spawn();e.unit.guardUntil=self.world.time+3;e.repair=0;self.stats[e.unit]={damage=0,kills=0,deaths=0,assists=0}
         if e.driver then e.driver=Driver.New(self.world,e.unit,e.member.role,i,e.member) end
     end
     self:SyncPlayer();self.session.combatView:Consume(self.world);self.session.effects:Clear()
@@ -207,9 +221,10 @@ function M:Snapshot()
     return {mode=self.mode,state=self.rules.state,round=self.rules.round,score=self.rules.score,timeLeft=self.rules:TimeLeft(),sudden=self.rules.sudden,points=self.rules.points,
         payload=self.mode=='escort' and {position=self.objectives:At(self.rules.s).pos,distance=self.rules.s,length=self.objectives.length,half=self.rules.half,attack=self.rules.attack,contested=self.rules.contested},
         winner=self.rules.winner,units=units,playerAlive=self.player.alive,playerHealth=self.player:Health(),history=self.rules.history,
-        radio={ready=self.voice.ready,queued=#self.voice.queue,card=self.voice.card}}
+        radio={ready=self.voice.ready,queued=#self.voice.queue,card=self.voice.card},mvp=self.mvpShow and self.mvpShow:Snapshot()}
 end
 function M:Dispose()
+    if self.mvpShow then self.mvpShow:Dispose();self.mvpShow=nil end
     if self.sounds then self.sounds:Dispose() end
     if self.voice then self.voice:Dispose() end
     if self.objectives then self.objectives:Dispose() end
