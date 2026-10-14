@@ -70,6 +70,19 @@ V.atFrame(20,function()
     V.assert(legacy.state=='ready' and legacyCalls==1,'legacy WASM batch can complete after 160 seconds')
     completed=0;legacy:Start({'1','2','3','4'},function() legacyCalls=legacyCalls+1 end);Gate.UpdatePending(91)
     V.assert(legacy.state=='failed' and legacyCalls==2,'legacy stalled batch still fails exactly once')
+    local requests=0;local many={}
+    for i=1,80 do many[i]=tostring(i) end
+    completed=80
+    -- Keep the fake files absent until the manager reports completion.
+    legacyBackend.Exists=function() return false end
+    local oldState=manager.GetResourceTaskState
+    manager.GetResourceTaskState=function(_,path) requests=requests+1;return DOWNLOAD_DOWNLOADING end
+    legacy:Start(many,function() legacyCalls=legacyCalls+1 end);Gate.UpdatePending(.1)
+    V.assert(requests<=8 and legacy.state=='loading','large legacy batch polls at most eight resources per update')
+    manager.GetResourceTaskState=function(_,path) requests=requests+1;return oldState(manager,path) end
+    legacyBackend.Exists=function() return true end
+    for i=1,80 do Gate.UpdatePending(.1) end
+    V.assert(legacy.state=='ready' and legacy.completed==80 and legacyCalls==3,'bounded legacy scan eventually completes all resources once')
     GetDownloadManager=originalManager
     gateChecked=true
 end)
@@ -108,8 +121,11 @@ local function Poll()
         end
     elseif stage=='retry' and app.trial then
         restoreNew()
-        V.assert(app.trial.world.boulderCount==153,'retry installs a complete source collision world')
-        V.assert(#app.trial.world.layout.blocks==2066 and #app.trial.world.layout.terrain.heights==103041,'partitioned layout restores every source collider and height')
+        local expected=0
+        for _,rock in ipairs(data.Read('Crater/Boulders.json')) do if rock.r>=.9 then expected=expected+1 end end
+        V.assert(app.trial.world.boulderCount==expected,'retry installs every qualifying boulder from the current exported data')
+        local layout=app.trial.world.layout
+        V.assert(#layout.blocks==layout.dataParts.blocks and #layout.terrain.heights==layout.dataParts.heights,'partitioned layout restores every collider and height declared in the current manifest')
         V.assert(cache:GetExistingResource('JSONFile','Crater/Layout.json')==nil,'map metadata does not retain duplicate native JSON DOM')
         V.assert(app.loader.prepareFrames>2,'physics preparation is spread over multiple frames')
         V.assert(app.trial.environment.effects.layout==app.trial.world.layout,'physics and rendering share one decoded terrain layout')

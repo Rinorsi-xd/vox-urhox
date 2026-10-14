@@ -24,10 +24,12 @@ function M.Dependencies(bp,roster,mode)
     for _,face in ipairs({'nono_smile','nono_deadpan','nono_talk'}) do paths[#paths+1]='UI/Faces/'..face..'.png' end
     return paths
 end
-function M.New(session,bp)
+function M.New(session,bp,checkpoint)
     local self=setmetatable({},M);self.session=session;self.world=session.world;self.entries={};self.events={}
     self.mode=session.map.battleMode or 'elimination'
-    self.sounds=require('audio.BattleFlow').New();self.sounds:Prepare(false);self.sounds:Play('battle_enter')
+    self.baseDamage=self.world.RecordDamage;self.baseKill=self.world.RecordKill
+    session.battle=self;session.combat=self
+    self.sounds=require('audio.BattleFlow').New();self.sounds:Prepare(false)
     self.objectives=require('combat.BattleObjectives').New(self,self.mode);self.rules=self.objectives:Rules()
     self.voice=require('audio.MatchVoice').New(self)
     self.tier=(bp:Stats().fitTier or {id=5}).id;self.banner=nil;self.stats={};self.lastHit={};self.clock=0
@@ -64,6 +66,7 @@ function M.New(session,bp)
                 if victim and not CanDamage(victim) then return end
                 self.world.attacker=shooter;self.world:Hit(hit,damage,dir,impulse,pierce);self.world.attacker=nil
             end}
+        if checkpoint then checkpoint(#self.entries/(#self.roster.blue+#self.roster.red)) end
     end end
     self.baseDamage=self.world.RecordDamage;self.baseKill=self.world.RecordKill
     self.world.RecordDamage=function(world,unit,amount,point)

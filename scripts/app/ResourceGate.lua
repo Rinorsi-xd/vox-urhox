@@ -6,16 +6,25 @@ function M.UpdatePending(dt)
     for gate,job in pairs(legacyPending) do
         job.idle=job.idle+dt;job.interval=job.interval+dt
         if job.interval>=.1 then
-            job.interval=0;local done,failed=0,0
-            for _,path in ipairs(job.paths) do
+            job.interval=0;local failed=0
+            local started=Time:GetSystemTime();local checked=0
+            -- The legacy binding crosses a native download-manager lock per
+            -- query. Scan a bounded rotating window, never the entire map.
+            while #job.paths>0 and checked<8 do
+                local index=job.cursor;local path=job.paths[index]
                 local state=gate.legacyManager:GetResourceTaskState(path)
-                if state==DOWNLOAD_COMPLETED and gate.backend:Exists(path) then done=done+1
+                local ready=state==DOWNLOAD_COMPLETED and gate.backend:Exists(path)
+                if ready then
+                    job.paths[index]=job.paths[#job.paths];table.remove(job.paths)
+                    gate.completed=gate.completed+1;job.idle=0
                 elseif state==DOWNLOAD_FAILED or state==DOWNLOAD_CANCELLED then failed=failed+1 end
+                if not ready then job.cursor=job.cursor+1 end
+                if job.cursor>#job.paths then job.cursor=1 end
+                checked=checked+1
+                if failed>0 or Time:GetSystemTime()-started>=2 then break end
             end
-            if done>gate.completed then job.idle=0 end
-            gate.completed=done
             if failed>0 then job.finish(false,failed)
-            elseif done==#job.paths then job.finish(true,0)
+            elseif #job.paths==0 then job.finish(true,0)
             elseif job.idle>90 then job.finish(false,1) end
         end
     end
@@ -60,7 +69,7 @@ function M:Start(paths,callback)
         -- but no completion callback. Poll only pending groups across frames.
         self.legacyManager=GetDownloadManager()
         if not self.legacyManager then Finish(false,#missing);return end
-        legacyPending[self]={paths=missing,finish=Finish,idle=0,interval=0}
+        legacyPending[self]={paths=missing,finish=Finish,idle=0,interval=0,cursor=1}
         self.group=self.legacyManager:DownloadResources(missing)
         return
     end

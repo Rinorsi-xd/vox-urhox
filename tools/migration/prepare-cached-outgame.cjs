@@ -1,5 +1,5 @@
 // Local visual QA fixture. Uses Maker's builder and downloaded client manifests.
-const fs=require('node:fs'),path=require('node:path'),http=require('node:http');
+const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),crypto=require('node:crypto');
 const {execFile}=require('node:child_process'),{promisify}=require('node:util');
 const cache=require('./cached-engine-sources.cjs');
 const root=path.resolve(__dirname,'../..');
@@ -32,7 +32,18 @@ async function main(){
   for(const [name,spec] of Object.entries(manifest.sources))spec.base_url='https://tapcode-sce.spark.xd.com/src/'+name+'/';
   fs.writeFileSync(manifestPath,JSON.stringify(manifest));
   if(!manifest.files.some(f=>f.fs_path==='UI/SalvageRules.json'))throw Error('SalvageRules missing from current package');
-  const prepared={ok:true,engineSources:{mode:'downloaded-snapshots',snapshots:cache.snapshots},source_directory:source,manifest_path:manifestPath,log_path:path.join(source,'prepare.log')};
+  const baseline=JSON.parse(fs.readFileSync(path.join(root,'docs/migration/outgame-baseline.json'),'utf8'));
+  const scripts={};
+  for(const item of fs.readdirSync(path.join(source,'scripts'),{recursive:true,withFileTypes:true})){
+   if(!item.isFile()||!item.name.endsWith('.lua'))continue;
+   const file=path.join(item.parentPath,item.name),relative=path.relative(path.join(source,'scripts'),file).replaceAll('\\','/');
+   scripts[relative]=crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
+  }
+  const identity={sourceCommit:baseline.commit,sourceBranch:baseline.branch,sourceContentSha256:baseline.contentSha256,
+   targetCommit:require('node:child_process').execFileSync('git',['rev-parse','HEAD'],{cwd:root,encoding:'utf8',windowsHide:true}).trim(),
+   scripts,scriptFingerprint:crypto.createHash('sha256').update(JSON.stringify(Object.entries(scripts).sort())).digest('hex')};
+  const prepared={ok:true,identity,engineSources:{mode:'downloaded-snapshots',snapshots:cache.snapshots},source_directory:source,manifest_path:manifestPath,log_path:path.join(source,'prepare.log')};
+  fs.writeFileSync(path.join(source,'identity.json'),JSON.stringify(prepared,null,2));
   fs.writeFileSync(path.join(root,'.tmp/outgame-prepare-cached.json'),JSON.stringify(prepared,null,2));
   console.log(JSON.stringify(prepared));
  }finally{await new Promise(resolve=>server.close(resolve));}

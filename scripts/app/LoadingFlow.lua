@@ -49,15 +49,23 @@ function M:QueueBattle(mode,bp)
     return true
 end
 function M:Observe(loader,dt)
-    if not self.active or self.finished or self.failed then return end
+    if not self.active or self.failed then return end
+    for _,step in ipairs(self.steps) do
+        if loader.phaseTimes and loader.phaseTimes[step.id] then
+            local measured=loader.phaseTimes[step.id]
+            step.elapsed=self.finished and step.id=='activate' and math.max(step.elapsed,measured) or measured
+        end
+    end
+    if self.finished then return end
     if self.match and self.match.stage~='roster' then return end
     local index=1
     for i,id in ipairs(phases) do if loader.phase==id then index=i;break end end
     if loader.phase=='ready' then index=#phases end
     for i,step in ipairs(self.steps) do
+        if i==index and not (loader.phaseTimes and loader.phaseTimes[step.id]) then step.elapsed=step.elapsed+math.max(0,dt) end
         if i<index and step.state~='done' then step.state='done';step.note=string.format('%.1fs',step.elapsed) end
         if i==index then
-            step.state='run';step.elapsed=step.elapsed+math.max(0,dt)
+            step.state='run'
             if i==1 and loader.gate.total>0 then step.note=loader.gate.completed..' / '..loader.gate.total
             elseif step.elapsed>15 then step.note='仍在加载…' end
         end
@@ -66,7 +74,7 @@ function M:Observe(loader,dt)
 end
 function M:Finish()
     if not self.active then return end
-    self.finished=true;self.current=#self.steps
+    self.finished=true;self.current=#self.steps;self.installedAt=Time:GetSystemTime()
     self.steps[self.current].state='run'
     for i,step in ipairs(self.steps) do
         if i<#self.steps then step.state='done';step.note=string.format('%.1fs',step.elapsed) end
@@ -91,6 +99,10 @@ end
 function M:Advance(dt)
     if not self.active then return end
     local elapsed=math.max(0,dt);self.time=self.time+elapsed;self.elapsed=self.elapsed+elapsed
+    if self.finished and self.phase=='loading' then
+        local step=self.steps[#self.steps]
+        step.elapsed=math.max(step.elapsed,math.max(0,Time:GetSystemTime()-self.installedAt)/1000)
+    end
     if self.sounds then self.sounds:Update(elapsed) end
     if self.match and self.phase=='loading' and not self.failed then
         local match=self.match;match.age=match.age+elapsed
@@ -104,7 +116,7 @@ function M:Advance(dt)
         self.pageVisible=true;self.phase='reveal';self.time=0
     elseif self.phase=='reveal' and self.time>=.59 then self.phase='loading';self.time=0
     elseif self.phase=='loading' and self.finished and not self.failed and self.warmFrames>=2 and (not self.match or self.match.age>=4) then
-        local step=self.steps[#self.steps];step.elapsed=step.elapsed+elapsed
+        local step=self.steps[#self.steps]
         step.state='done';step.note=string.format('%.1fs',step.elapsed)
         self.progress=1;self.phase='ready';self.time=0
     elseif self.phase=='ready' and self.time>=.45 then self.phase='exit-cover';self.time=0

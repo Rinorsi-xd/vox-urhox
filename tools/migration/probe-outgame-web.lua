@@ -241,7 +241,9 @@ local function Dump(app)
     data.salvage=home and home.salvage;data.lobby=app.lobby or 'arena';data.mapPreview=app.mapPreview~=nil
     data.previewMap=app.mapPreview and app.mapPreview.map.id;data.sceneVisible=renderer:GetViewport(0)~=nil
     data.loading={state=app.loader.state,phase=app.loader.phase,progress=app.loader.progress,
-        pending=app.pendingMap and app.pendingMap.id,downloads=app.loader.gate.total,completed=app.loader.gate.completed}
+        pending=app.pendingMap and app.pendingMap.id,downloads=app.loader.gate.total,completed=app.loader.gate.completed,
+        prepareFrames=app.loader.prepareFrames,prepareStage=app.loader.prepareStage,
+        maxPrepareMs=app.loader.maxPrepareMs,prepareStageMax=app.loader.prepareStageMax,phaseTimes=app.loader.phaseTimes}
     data.mode='hangar';data.loadingFlow=app.loadingFlow:Snapshot()
     data.loadingFlow.backRect=app.loadingFlow.page.backRect
     data.craterModelResident=cache:GetExistingResource('Model','Crater/mesh-0.bin')~=nil

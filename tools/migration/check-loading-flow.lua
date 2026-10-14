@@ -4,6 +4,8 @@ local Event=require 'urhox-libs/UI/Core/PointerEvent'
 local app=nil ---@type HangarApp|nil
 local originalScene=nil ---@type Scene|nil
 local stage='boot';local zoomChecked=false;local phases={}
+local partialSession=nil ---@type table|nil
+local newTrial=require('app.TrialSession').New
 local function Click(x,y)
     local scale=UI.GetScale()
     for _,kind in ipairs({'PointerDown','PointerUp'}) do UI.HandlePointerEvent(Event.new(kind,{x=x*scale,y=y*scale,pointerId=97,pointerType='mouse',button=MOUSEB_LEFT})) end
@@ -23,6 +25,9 @@ local function Rules()
     loader.phase='scene';flow:Observe(loader,.1)
     V.assert(flow.progress==2/6 and flow.steps[1].state=='done' and flow.steps[3].state=='run','checklist advances from actual loader phase')
     flow:Finish();flow:Advance(.1);V.assert(flow.phase=='loading' and flow.progress<1,'scene installation alone cannot announce rendered readiness')
+    flow.steps[#flow.steps].elapsed=25
+    flow:Observe({phaseTimes={activate=.04}},0)
+    V.assert(flow.steps[#flow.steps].elapsed>=25,'short activation measurement cannot erase a long rendered-frame wait')
     flow:Rendered();flow:Advance(.1);V.assert(flow.phase=='loading','one rendered frame cannot complete warm-up')
     flow:Rendered();flow:Advance(.1);V.assert(flow.phase=='ready' and flow.progress==1,'two rendered frames complete final task')
     flow:Advance(.449);V.assert(flow.phase=='ready','ready remains visible for source 450ms')
@@ -59,6 +64,21 @@ local function Poll()
         stage='failed-return'
     elseif stage=='failed-return' and not flow.active then
         V.assert(app.scene==originalScene and renderer:GetViewport(0)~=nil,'error return restores original viewport')
+        require('app.TrialSession').New=function(scene,bp,owner,map,world,checkpoint,retain)
+            return newTrial(scene,bp,owner,map,world,checkpoint,function(candidate)
+                partialSession=candidate;if retain then retain(candidate) end
+            end)
+        end
+        V.assert(app:EnterTrial('trial'),'partial session retry starts')
+        stage='cancel-session'
+    elseif stage=='cancel-session' and partialSession then
+        V.assert(not partialSession.disposed and app.scene==originalScene and not app.trial,'candidate session stays private while preparation yields')
+        V.assert(app:CancelMapLoad(true),'cancel is accepted after session ownership transfers')
+        V.assert(partialSession.disposed and not app.loader.pending and not app.loader.job,'cancel disposes retained partial session and scene')
+        require('app.TrialSession').New=newTrial
+        flow:Close();stage='cancelled-session'
+    elseif stage=='cancelled-session' then
+        V.assert(app.scene==originalScene and not app.trial,'cancelled partial session preserves original hall')
         V.assert(app:EnterTrial('trial'),'real retry uses same application')
         stage='enter'
     elseif stage=='enter' and app.trial and not flow.active then

@@ -11,6 +11,10 @@ const probe=qa?fs.readFileSync(path.join(__dirname,'probe-outgame-web.lua'),'utf
 const port=Number(process.env.VOX_PREVIEW_PORT||4203);
 const sourceCache=require('./cached-engine-sources.cjs');
 const server=http.createServer((req,res)=>{
+ if(req.url==='/identity.json'){
+  res.setHeader('Content-Type','application/json');res.setHeader('Cache-Control','no-store');
+  res.end(JSON.stringify({...prepared,qa,port,processId:process.pid,servedManifest:path.basename(prepared.manifest_path)}));return;
+ }
  if(req.url.startsWith('/cached-engine-source/')){
   const cached=sourceCache.read('https://tapcode-sce.spark.xd.com/'+req.url.slice('/cached-engine-source/'.length));
   if(!cached){res.writeHead(404);res.end();return;}

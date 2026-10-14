@@ -1,6 +1,7 @@
 -- A candidate scene loads off-screen. The active scene survives load/validation failure.
 ---@class SceneLoader
-local function Now() return os.clock()*1000 end
+-- CPU time and engine TimeStep do not measure a blocked Web main thread.
+local function Now() return Time:GetSystemTime() end
 local Platform=require('urhox-libs.Platform.PlatformUtils')
 local Loader={}
 Loader.__index=Loader
@@ -43,6 +44,7 @@ function Loader:Load(path,onReady,onError,options)
     self.onReady,self.onError=onReady,onError
     self.options=options;self.phase='download';self.prepareFrames=0;self.maxPrepareMs=0
     self.prepareStage='world';self.prepareStageMax={};self.prepareTotalMs=0
+    self.phaseStarted=Now();self.phaseTimes={};self.observedPhase=self.phase
     self.gate:Start(options and options.resources or {path},function(ok,message)
         if self.generation~=token then return end
         if not ok then self:Fail(message);return end
@@ -87,6 +89,7 @@ function Loader:Fail(message)
 end
 function Loader:Update(dt)
     if self.state~="loading" then return end
+    self:MeasurePhase()
     self.elapsed=self.elapsed+dt
     -- Download size is not a deadline. Only stalled downloads use the idle
     -- timeout; scene decoding and preparation retain their bounded phase time.
@@ -143,6 +146,12 @@ function Loader:Update(dt)
     end
     self:Commit()
 end
+function Loader:MeasurePhase()
+    if not self.phaseStarted then return end
+    local now=Now()
+    self.phaseTimes[self.observedPhase]=(self.phaseTimes[self.observedPhase] or 0)+math.max(0,now-self.phaseStarted)/1000
+    self.phaseStarted=now;self.observedPhase=self.phase
+end
 function Loader:Commit()
     local candidate=self.pending
     -- A cache miss after an old scene was released must not expose default
@@ -151,7 +160,9 @@ function Loader:Commit()
     if not self:EnvironmentReady(candidate) then
         self.phase='environment';self.progress=.99;return
     end
+    self:MeasurePhase();self.phase='activate';self.observedPhase='activate'
     local ok,err=pcall(self.onReady,candidate)
+    self:MeasurePhase()
     if ok then
         self.pending=nil;self.options=nil;self.state='ready';self.phase='ready';self.progress=1
         self.onReady=nil;self.onError=nil

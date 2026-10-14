@@ -7,8 +7,8 @@ local M={};M.__index=M
 local function Vec(p) return Coord.Vec(table.unpack(p)) end
 local function Quat(q) return Quaternion(q.w,q.x,-q.y,-q.z) end
 function M.New(scene) return setmetatable({scene=scene,units={},pieces={}},M) end
-function M:Consume(world)
-    for _,e in ipairs(world.viewEvents) do
+function M:Consume(world,checkpoint)
+    for i,e in ipairs(world.viewEvents) do
         local v=self.units[e.unit]
         if not e.unit.externalView and e.type=="unitSpawn" and e.unit.alive and e.unit.vehicle then
             if v then v:Dispose() end
@@ -21,6 +21,7 @@ function M:Consume(world)
         elseif e.type=="unitKilled" or e.type=="unitRemoved" then
             if v then v:Dispose();self.units[e.unit]=nil end
         end
+        if checkpoint then checkpoint(i/math.max(1,#world.viewEvents)) end
     end
     world.viewEvents={}
     for _,e in ipairs(world.debris.events) do

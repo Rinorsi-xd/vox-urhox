@@ -14,27 +14,32 @@ local UI=require 'urhox-libs/UI'
 local Host=require 'ui.DialogHost'
 local TargetFeedback=require 'render.TargetFeedback'
 local M={};M.__index=M
-function M.New(scene,bp,app,map,preparedWorld)
+function M.New(scene,bp,app,map,preparedWorld,checkpoint,retain)
     local self=setmetatable({disposed=false,app=app,name=bp.name,follow=true,lookIdle=0,scope=false,details=false,map=map or require('app.DriveMaps').trial},M)
-    local ok,err=pcall(self.init,self,scene,bp,preparedWorld)
+    if retain then retain(self) end
+    local ok,err=pcall(self.init,self,scene,bp,preparedWorld,checkpoint)
     if not ok then self:Dispose();error(err) end
     return self
 end
-function M:init(scene,bp,preparedWorld)
+function M:init(scene,bp,preparedWorld,checkpoint)
+    local function Progress(p,stage) if checkpoint then checkpoint(p,stage) end end
     self.touch=require('controls.TouchMode').Enabled()
     self.scene=scene;self.controls=Input.New();self.accumulator=0;self.fixedSteps=0;self.droppedTime=0
     self.pointer=require('controls.DrivePointer').New(self)
     self.world=preparedWorld or require(self.map.world).New(scene)
+    Progress(.05,'world')
     if self.map.salvage then
         self.salvage=require('salvage.Run').New(self,bp);self.vehicle=self.salvage.player.vehicle
     elseif self.map.storyLevel then
         self.story=require('story.Mission').New(self,bp);self.vehicle=self.story.player.vehicle
     elseif self.map.battleMode then
-        self.battle=require('combat.BattleController').New(self,bp);self.vehicle=self.battle.player.vehicle
+        self.battle=require('combat.BattleController').New(self,bp,function(p) Progress(.05+p*.4,'units') end);self.vehicle=self.battle.player.vehicle
     else self.vehicle=Vehicle.New(self.world.space,Spec.Build(bp)) end
     self.combat=self.battle or self.story or self.salvage
+    Progress(.45,'units')
     self.world.feedbackPlayer=self.combat and self.combat.player
     if self.map.environment then self.environment=require(self.map.environment).New(scene,self.world.layout) end
+    Progress(.5,'environment')
     self.ReleaseAssets=require(self.map.assets).Release
     if #self.world.targets>0 then self.targetFeedback=TargetFeedback.New(self.world.root,self.world.targets) end
     self.weapons=self.combat and self.combat.player.weapons or Weapons.New(self.vehicle.spec);self.vehicle.drill=self.weapons.drill
@@ -42,8 +47,12 @@ function M:init(scene,bp,preparedWorld)
     self.weaponAudio=require('audio.WeaponAudio').New(scene)
     self.drivingAudio=require('audio.DrivingAudio').New(scene)
     self.feedbackAudio=require('audio.CombatFeedbackAudio').New(scene)
-    self.combatView=CombatView.New(scene);if not self.combat then self.world:SetUnits(bp) end;self.combatView:Consume(self.world)
+    Progress(.6,'audio')
+    self.combatView=CombatView.New(scene);if not self.combat then self.world:SetUnits(bp) end
+    self.combatView:Consume(self.world,function(p) Progress(.6+p*.25,'unit-views') end)
+    Progress(.85,'player-view')
     self.view=DriveView.New(scene,bp,self.vehicle);self.target=scene:CreateChild("FollowTarget")
+    Progress(.95,'camera')
     self.cameraOffset=self.vehicle.legMode and Vector3.ZERO or Vector3(0,math.max(3.8,(self.vehicle.spec.bounds.max[2]-self.vehicle.spec.bounds.min[2])*.65),0)
     self.minCameraDistance=math.max(8,self.vehicle.spec.bounds.radius*1.5)
     self.cameraDistance=math.max(24,self.vehicle.spec.bounds.radius*3.4)
@@ -60,10 +69,12 @@ function M:init(scene,bp,preparedWorld)
     else self:Reset() end
     if self.battle then self.battle.objectives:Update(0) end
     self:PostUpdate(1)
+    Progress(1,'session-ready')
 end
 function M:Activate(onReturn)
     self.onReturn=onReturn;self.enteredTime=0
     self.hud=Hud.Create(self)
+    if self.battle then self.battle.sounds:Play('battle_enter') end
     if self.touch then self:Resume() end
     input.mouseMode=MM_ABSOLUTE
     self.app.graphicsSettings:Show(self.scene,self.camera:GetCamera())

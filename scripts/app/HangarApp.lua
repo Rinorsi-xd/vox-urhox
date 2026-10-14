@@ -252,12 +252,16 @@ function App:EnterTrial(mapId,battleMode,roster,reuseLoading)
     local loadingToast=self.toasts:Push('正在加载'..map.name..'…','info',90000)
     self.pendingMap=map;self.mapLoadingToast=loadingToast
     local preparedWorld=nil ---@type table|nil
+    local preparedSession=nil ---@type table|nil
     local function ClearLoading()
         if loadingToast then loadingToast.age=loadingToast.hold+.4 end
         self.pendingMap=nil;self.mapLoadingToast=nil
     end
     local options={resources=map.resources and require('core.ResourceData').Read(map.resources) or {map.scene},webWarmup=map.webWarmup,cancel=ClearLoading,
-        cleanup=function() if preparedWorld then preparedWorld:Dispose();preparedWorld=nil end end}
+        cleanup=function()
+            if preparedSession then preparedSession:Dispose();preparedSession=nil end
+            if preparedWorld then preparedWorld:Dispose();preparedWorld=nil end
+        end}
     if map.salvage then
         options.webWarmup={{type='Texture2D',name='Salvage/GroundBaked.png'}}
         for _,path in ipairs(options.resources) do
@@ -278,15 +282,21 @@ function App:EnterTrial(mapId,battleMode,roster,reuseLoading)
     end
     if battleMode then for _,path in ipairs(require('combat.BattleController').Dependencies(self.blueprint,roster,battleMode)) do options.resources[#options.resources+1]=path end end
     if map.storyLevel then for _,path in ipairs(require('story.Mission').Dependencies(self.blueprint,map.storyLevel)) do options.resources[#options.resources+1]=path end end
-    if map.prepareWorld then options.prepare=function(scene,checkpoint)
-        preparedWorld=require(map.world).New(scene,true)
-        require(map.prepareWorld).Build(preparedWorld,checkpoint)
-    end end
-    self.loader:Load(map.scene,function(scene)
-        local Trial=require "app.TrialSession"
-        -- Ownership transfers even if initialization throws: Trial disposes its world.
+    options.prepare=function(scene,checkpoint)
+        if map.prepareWorld then
+            preparedWorld=require(map.world).New(scene,true)
+            require(map.prepareWorld).Build(preparedWorld,function(progress,stage) checkpoint(progress*.6,stage) end)
+        end
+        checkpoint(.6,'session')
+        -- Retain the partially built session so cancellation can release it
+        -- even when coroutine.close bypasses the constructor's pcall cleanup.
         local world=preparedWorld;preparedWorld=nil
-        local candidate=Trial.New(scene,self.blueprint,self,map,world)
+        preparedSession=require('app.TrialSession').New(scene,self.blueprint,self,map,world,
+            function(progress,stage) checkpoint(.6+.4*progress,stage) end,
+            function(candidate) preparedSession=candidate end)
+    end
+    self.loader:Load(map.scene,function(scene)
+        local candidate=assert(preparedSession,'Trial preparation did not complete')
         self.graphicsSettings:Apply(scene)
         local activated,activationError=pcall(candidate.Activate,candidate,function() self:Reload() end)
         if not activated then candidate:Dispose();error(activationError) end
@@ -301,6 +311,7 @@ function App:EnterTrial(mapId,battleMode,roster,reuseLoading)
         if self.warehouse then self.warehouse:Dispose();self.warehouse=nil end
         if self.hangar then self.hangar:Dispose();self.hangar=nil end
         self.camera=nil;self.galleryOn=false;self.scene=scene;self.trial=candidate;self.mode="trial"
+        preparedSession=nil
         _G.VOX_HANGAR=nil;_G.VOX_TRIAL={session=candidate,app=self}
         if previous then previous:Dispose() end
         self:DeferAssetRelease(function() cache:ReleaseAllResources(false) end)

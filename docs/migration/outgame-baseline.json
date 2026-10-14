@@ -2,10 +2,10 @@
   "schema": 1,
   "source": "D:/Rino_Project/Vox",
   "branch": "2026-10-14",
-  "commit": "0bf472cbae08f8230102f5bac89ca157d52a2d90",
-  "subject": "refactor(ui): 通讯对话框改成全局单例 comms（剧情关卡 / 新手引导 / 开局介绍 / 片尾共用一张卡，立绘只建一次），片尾不再自己做字幕框",
-  "frozenAt": "2026-10-14T07:04:07.949Z",
-  "snapshot": "D:\\Rino_Project\\maker\\Vox\\VoxelCraft\\.tmp\\outgame-source-2026-10-14T07-04-01-867Z",
+  "commit": "0f7734cf4f72f1c01bc088e2b2927b9762a66a9e",
+  "subject": "style: 正文默认字体换成游戏字体（阿里妈妈数黑体）——--body / --nu-body、输入框继承字体、开场漫画 / 音乐盒 / 打捞 HUD / 无尽 / 调试面板 / 画布贴字里写死的系统字体一并换掉",
+  "frozenAt": "2026-10-14T08:41:32.415Z",
+  "snapshot": "D:\\Rino_Project\\maker\\Vox\\VoxelCraft\\.tmp\\outgame-source-2026-10-14T08-41-23-975Z",
   "workingTree": "M index.html\n M review/performance/PLAN.md\n M review/performance/README.md\n M review/performance/build/crater.png\n M review/performance/build/home.png\n M review/performance/modes/endless.png\n M review/performance/modes/match.png\n M review/performance/modes/mobile-story.png\n M review/performance/modes/results.json\n M review/performance/regression/mobile-hangar.png\n M review/performance/regression/results.json\n M review/performance/regression/test-drive.png\n M review/performance/workflows/damaged-mega.png\n M shared/build/editor.js\n M shared/combat/carUnit.js\n M shared/combat/weapons.js\n M shared/controls/cameraRig.js\n M shared/controls/touchControls.js\n M shared/css/touch-controls.css\n M shared/drive/controls.js\n M shared/story/tutorial.js\n M shared/ui/combatFeedback.js\n M shared/ui/endlessHud.js\n M shared/ui/home.js\n M shared/ui/homeScale.js\n M shared/ui/reticle.js\n M shared/ui/salvageHub.js\n M shared/ui/shell.js\n M shared/ui/storyHud.js\n M shared/ui/storyPage.js\n M shared/ui/tutorial.js\n M shared/ui/ui.js\n M shared/ui/uiScale.js\n M three/index.html\n M three/src/battle/endlessSession.js\n M three/src/battle/matchSession.js\n M three/src/battle/matchView.js\n M three/src/battle/storyKinds.js\n M three/src/debug/debugPanel.js\n M three/src/drive/combatView.js\n M three/src/drive/testDrive.js\n M three/src/main.js\n M three/src/render/pipeline.js\n M three/src/render/warmup.js\n M three/src/salvage/salvageRun.js\n M tools/mobile-input-check.mjs\n M tools/performance-modes-smoke.mjs\n M tools/site-build.mjs\n?? .claude/worktrees/\n?? review/mobile/\n?? review/performance/stutter/\n?? shared/assets/ui/touch/\n?? shared/controls/mobileEditor.js\n?? shared/css/mobile-editor.css\n?? shared/css/mobile.css\n?? shared/ui/perfMeter.js\n?? shared/ui/touchCopy.js\n?? three/manifest.webmanifest\n?? tools/mobile-shot.mjs\n?? tools/mobile-survey.mjs\n?? tools/mobile-touch-check.mjs\n?? tools/performance-first-frame-profile.mjs\n?? tools/performance-physics-warm-check.mjs\n?? tools/performance-ready-check.mjs\n?? tools/performance-repair-check.mjs\n?? tools/performance-soak-check.mjs\n?? tools/performance-stutter-check.mjs\n?? tools/touch-icons-slice.mjs\n?? 策划案/移动端适配方案-2026-10-13.md",
   "scope": [
     "full H5 Git baseline"
@@ -5049,24 +5049,24 @@
       "bytes": 18031
     },
     "shared/css/intro.css": {
-      "sha256": "32a4141fa79f079091348a39215c11ac4388c862a095d03c4b25a79dd8ba7a77",
-      "bytes": 100438
+      "sha256": "0635f0441ee79fff56e5e69024ec696dfa7bc0ada60bffb0c224513dec4d973f",
+      "bytes": 100540
     },
     "shared/css/livery.css": {
       "sha256": "45286d6b5f259d9e37ab24dba3e4f176902417dd8c6866151460127566780085",
       "bytes": 12489
     },
     "shared/css/mobile-editor.css": {
-      "sha256": "e5f2e5d4177e55d1f02ebb787574d2702d34de7914a1c7fdb62d0b222404afbe",
-      "bytes": 13575
+      "sha256": "118486792bf3454c8c01ec84993d95dc1263a69922955e29ca3a9a3f66906132",
+      "bytes": 13592
     },
     "shared/css/mobile.css": {
       "sha256": "b0b0b16275885becdf92a0b67ea9942a4982de0becd21a6787e30a1ec2b746a6",
       "bytes": 3873
     },
     "shared/css/music-box.css": {
-      "sha256": "9dc204a78eecf22b4bd8695eb050ec42a0572f94017e2527fe76ee04919bbbe4",
-      "bytes": 20277
+      "sha256": "74af9de013107ed112da7b83ea3155d13d343564ffa03cf436144b7da206c74b",
+      "bytes": 20481
     },
     "shared/css/new-ui-controls.css": {
       "sha256": "8a49214f33571477d409f8f0d810c48d376d99b20ec2e637b08bc083b33f833d",
@@ -5109,8 +5109,8 @@
       "bytes": 8396
     },
     "shared/css/new-ui-tokens.css": {
-      "sha256": "e607201241fbf8eae32bc5adf81f6a7d8cc89c4f3c448d3b2e55de569b44b399",
-      "bytes": 3455
+      "sha256": "df2e510fed679bc44ce97e693ac7a82acef81d6df4076ffffdf0834d9f2fdf02",
+      "bytes": 3595
     },
     "shared/css/new-ui-utility.css": {
       "sha256": "108ac4b202ca724298a96a4b622f31ea268ce6208ea423cc9818920786f39bc8",
@@ -5137,8 +5137,8 @@
       "bytes": 26512
     },
     "shared/css/style.css": {
-      "sha256": "2d0d1b6bd7427e7472f11d262323c78a81132398b1b91fa4a87f960c766b8006",
-      "bytes": 103366
+      "sha256": "db0d7631ad57e2756f873e6a9d635369d4cbd15730e1784140179f8b153e1ca6",
+      "bytes": 103495
     },
     "shared/css/touch-controls.css": {
       "sha256": "60e3f5dae6baa516083d29b2ced8910d74cafa517f6051d9d83844114ec255a0",
@@ -5581,8 +5581,8 @@
       "bytes": 46193
     },
     "shared/scene/hangarTextures.js": {
-      "sha256": "27533bee0765d3aab66a1eb3403cbe87eb6fc97fb9c105ee574d1491fcad61db",
-      "bytes": 7890
+      "sha256": "c65d2d235aaac56819f26e968f055f6feb9f3b6868a45b2e22f82745d4c6953b",
+      "bytes": 7907
     },
     "shared/scene/holoPanels.js": {
       "sha256": "541b3b2e3386f0231666075a43413173cf7a8fcd4a5801a7d64f0dfa8458c5a8",
@@ -5597,8 +5597,8 @@
       "bytes": 5160
     },
     "shared/story/chapter1.js": {
-      "sha256": "fcee8bc411eec7e2e3f5fdd71128f2f8903ebd5e3405635c16d97105be7f8aea",
-      "bytes": 6815
+      "sha256": "038ae7c287e59908d38af89932cdc97398ffe3c3122a57f241cc166740095de1",
+      "bytes": 6757
     },
     "shared/story/huhuPortraits.js": {
       "sha256": "99ec3096d2c84c1d1e843c0ea1b517394ae54674f379e1e00c9b4a8e2118d29c",
@@ -5621,8 +5621,8 @@
       "bytes": 7719
     },
     "shared/story/level5.js": {
-      "sha256": "a01ab44ba254e2c359a7fab37ddfe2c63b0e2042cc90e7ba43307657fa256104",
-      "bytes": 21876
+      "sha256": "5673f40f68cd1b57fdcb052e37a01827883d90bd52f229abc189594ce7a9934e",
+      "bytes": 10735
     },
     "shared/story/progress.js": {
       "sha256": "d2f40d9f9a6b36696ee62305f069ae2da53ab3c130f57f3fe5f26556616f9f03",
@@ -5645,8 +5645,8 @@
       "bytes": 31951
     },
     "shared/ui/endlessHud.js": {
-      "sha256": "2637f12d823a2ca2be4ed1c70e37e3486d90365eabdb727d1dce4a7709f9eca3",
-      "bytes": 10017
+      "sha256": "0195b02673594e4c63e8d91c01ebea50da415a44d50a1f34c022d960c5167a9a",
+      "bytes": 10033
     },
     "shared/ui/home.js": {
       "sha256": "11f65d400f9a3787d5514eaa0c4f0c2ae5191d6cceed75c89707ba73d47cb058",
@@ -5705,8 +5705,8 @@
       "bytes": 19237
     },
     "shared/ui/nonoComms.js": {
-      "sha256": "1413cb1993dcb36bb5ceee452e671c0e43b3c7d441a10c9da1f890a951c113c9",
-      "bytes": 13956
+      "sha256": "814b32c7f66b188ebd58a834908d70d31d19dc586e5da43be0a22a66a8c7b3ba",
+      "bytes": 13920
     },
     "shared/ui/perfMeter.js": {
       "sha256": "3b5f2f3abe9666f0cd6349d74d8bc11acf38a244035cd67dde42b4e6f8142be3",
@@ -5725,8 +5725,8 @@
       "bytes": 41853
     },
     "shared/ui/salvageRunHud.js": {
-      "sha256": "b3e5502b2e033188f8978fa29f572ccaa08edf769721512f4221e9a5415b1147",
-      "bytes": 31134
+      "sha256": "1d1389dff4eead903c85ac471c65b1dc8d698e6270473319a01e813448ba2f51",
+      "bytes": 31185
     },
     "shared/ui/shell.js": {
       "sha256": "2e5c8c4b1c70c15288c956cba82c739383de35b22f10e3df1e913a6df0466837",
@@ -5833,8 +5833,8 @@
       "bytes": 8776
     },
     "three/src/battle/endlessEdit.js": {
-      "sha256": "946ba5ddda69a1241095b657441a590cc6f6594f27f79c49362f6f67b53ac186",
-      "bytes": 13783
+      "sha256": "d915973577ba5210d5ace66811ec12cea44cead6ce691638557f59df4dc8629b",
+      "bytes": 13815
     },
     "three/src/battle/endlessLoot.js": {
       "sha256": "0c9b3407d18c890cde9d53bbf6bdb94f046b343d6a0745619a040c3f71f1811c",
@@ -5865,8 +5865,8 @@
       "bytes": 7204
     },
     "three/src/battle/matchIntro.js": {
-      "sha256": "a26b40d2b9e2f5b98d147b9e2a47ba42888e04c220cdca1ad9a3db3e4669bf04",
-      "bytes": 20787
+      "sha256": "187552534f5222c2204407183f5210ca010467eb6351affed3d4caf128864f97",
+      "bytes": 20803
     },
     "three/src/battle/matchSession.js": {
       "sha256": "7e06e1d264af2f4294a7b8f38aff4647c1a00376f53459f1315f33897c87efc4",
@@ -5893,12 +5893,12 @@
       "bytes": 6963
     },
     "three/src/battle/storyBoss.js": {
-      "sha256": "f2e53a451aaeb74c4f18e8e47626b6274d621c54edf2a7d239e57b788e7053b2",
-      "bytes": 88996
+      "sha256": "6bc7a822b0eba9112d505ef69bf22be955e7ff6007d9d16824d55db46991b4cb",
+      "bytes": 87926
     },
     "three/src/battle/storyEpilogue.js": {
-      "sha256": "0e7d76a578d3dd092cc74e926ac8033899b08ec6a2dd3549db3a02f6428c51f8",
-      "bytes": 14436
+      "sha256": "fd082457e061957f83df9e2c251b819d4e6b3aec9114481aacf445bab79b165b",
+      "bytes": 15236
     },
     "three/src/battle/storyKinds.js": {
       "sha256": "38f222d7f28e195c0dd8ee7dc1f4c9ba995f1f9bdf45cee9cbaecabe35a8a66d",
@@ -5909,8 +5909,8 @@
       "bytes": 30305
     },
     "three/src/battle/storyView.js": {
-      "sha256": "5b8f4ce47c1d215bee628b4cb8b060092c625ac6e73581fd0b8f895d5b3cb4df",
-      "bytes": 25500
+      "sha256": "488f3cb9413085738bf7624637d85bfcc5801809d4c1b4d82abd8d5bc3c5f524",
+      "bytes": 25534
     },
     "three/src/build/ghost.js": {
       "sha256": "68adeea24dd526079d59ff5f8d68af36166e53d6bd3f1b715dfbc06888db3c92",
@@ -5937,8 +5937,8 @@
       "bytes": 9671
     },
     "three/src/debug/debugPanel.js": {
-      "sha256": "13702f8812775df0512a649c8ca466d0424a1d640bd70fb97b9e11345a1203ee",
-      "bytes": 31613
+      "sha256": "e5aadc381b3710e3c600392abc7d273a82a0757f85ce72eb70601a3239826fbf",
+      "bytes": 31984
     },
     "three/src/debug/hudChecks.js": {
       "sha256": "2923ba772f340f57aa28a9b6a5ac474c283a1887efc4390f1951e1aff239f6e4",
@@ -6113,8 +6113,8 @@
       "bytes": 603
     },
     "three/src/render/warmup.js": {
-      "sha256": "46ef5a3d342f066eee37d290e9642692925296d0e582dd93b3eb8d1edb814979",
-      "bytes": 4885
+      "sha256": "9559d89c01fb9ba4dc532f34fc2ec46441aaaa6264f7047ddbb4a99f1e9ff8d1",
+      "bytes": 5338
     },
     "three/src/render/worldResources.js": {
       "sha256": "db92b72e1884aaf855c0cbc9006dc096a1510fe63f6d8b4994f57c62b19fe5d1",
@@ -6313,8 +6313,8 @@
       "bytes": 8729
     },
     "three/src/scene/warehouse.js": {
-      "sha256": "27797ca1967213e1052b6b6fa87735310ecfdee75ba7ea6af7f9bd25e7bb7296",
-      "bytes": 23415
+      "sha256": "14db14558b54c5d60932c857414a36f59f7609b62c61ac4fbc5eb6b1f09c6ad6",
+      "bytes": 23432
     },
     "three/src/terrain/airFx.js": {
       "sha256": "9154f761e9fd9b8835a92f98a4a5019f3deb6ce91a9201b5e0fb78d74e7a0d96",
@@ -8425,8 +8425,8 @@
       "bytes": 9516
     },
     "策划案/剧情第5关-v2方案-2026-10-14.md": {
-      "sha256": "c2a40757c5f44a191184e760438c9d43a5bbf2152575e626b3afc0ca6938060b",
-      "bytes": 7893
+      "sha256": "dc816ac8e179c068331483cf4e55b4c51229c06527ec124b8095e60bec7ee9ca",
+      "bytes": 9422
     },
     "策划案/原作规格对齐.md": {
       "sha256": "1a3b930a760c58e3f35e311a1b954669edcb5418e99b80209bd75c90b19f8d2e",
@@ -8639,5 +8639,5 @@
   },
   "sourceMode": "git-commit",
   "includesWorkingTreeChanges": false,
-  "contentSha256": "4803828db372da882d755329a36bb55d016d63cefd61a423ed53032effeb547e"
+  "contentSha256": "6f7022f5d49d74e00f88ed57e745b1cbafe7f97246ebeb5dd9f5cd6955f8bd35"
 }
