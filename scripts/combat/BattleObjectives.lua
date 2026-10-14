@@ -95,8 +95,7 @@ end
 function M:Ignore(unit)
     return self:HomeProtected(unit)
 end
-function M:Cast(unit,from,dir,length,excluded)
-    local hit=self.world:CastRay(from,dir,length,excluded)
+function M:VolumeHit(unit,from,dir,length,hit)
     if self.id~='conquest' then return hit end
     local team=Other(unit.team);local base=self.bases[team];local rule=self.battle.rules
     if rule.shield[team] then
@@ -108,6 +107,13 @@ function M:Cast(unit,from,dir,length,excluded)
         if t>=0 and t<=(hit and hit.dist or length) then return {dist=t,point=V.Add(from,V.Scale(dir,t)),owner={type='reactor',team=team}} end
     end
     return hit
+end
+function M:Cast(unit,from,dir,length,excluded)
+    return self:VolumeHit(unit,from,dir,length,self.world:CastRay(from,dir,length,excluded))
+end
+function M:SweepDrill(unit,from,dir,length,excluded,cutters)
+    local hit=self.world:SweepDrill(from,dir,length,excluded,cutters)
+    return self:VolumeHit(unit,from,dir,length,hit)
 end
 function M:Hit(unit,hit,damage)
     local o=hit.owner;if self.id~='conquest' or not o then return false end

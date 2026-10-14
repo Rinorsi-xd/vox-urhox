@@ -37,7 +37,8 @@ function M:init(scene,bp,preparedWorld)
     if self.map.environment then self.environment=require(self.map.environment).New(scene,self.world.layout) end
     self.ReleaseAssets=require(self.map.assets).Release
     if #self.world.targets>0 then self.targetFeedback=TargetFeedback.New(self.world.root,self.world.targets) end
-    self.weapons=self.combat and self.combat.player.weapons or Weapons.New(self.vehicle.spec);self.effects=Effects.New(scene,function(x,z) return self.world:GroundAt(x,z) end)
+    self.weapons=self.combat and self.combat.player.weapons or Weapons.New(self.vehicle.spec);self.vehicle.drill=self.weapons.drill
+    self.effects=Effects.New(scene,function(x,z) return self.world:GroundAt(x,z) end)
     self.weaponAudio=require('audio.WeaponAudio').New(scene)
     self.drivingAudio=require('audio.DrivingAudio').New(scene)
     self.feedbackAudio=require('audio.CombatFeedbackAudio').New(scene)
@@ -53,6 +54,7 @@ function M:init(scene,bp,preparedWorld)
     -- the screen). Keep the near plane in front of trim at grazing angles too.
     self.camera=ThirdPerson.Create(scene,{modes={normal={distance=self.cameraDistance,offset=self.cameraOffset,fov=48}},collisionMask=1 | require('controls.CameraObstacles').LAYER,collisionPadding=.85,farClip=2600})
     self.fxContext={camera=self.camera:GetNode(),time=0,fov=60}
+    self.drillSpeed=require('render.DrillSpeed').New()
     self.yaw=0;self.pitch=30;self.teleport=1;self.wantsReturn=false;self.disposed=false;self.hud=nil
     if self.combat then self.yaw=-self.combat.player.spawnAt.yaw*180/math.pi;self.view:ResetPose();self.view:Update(1)
     else self:Reset() end
@@ -76,6 +78,8 @@ function M:StartIntro()
     end
 end
 function M:Reset()
+    self.weapons.drill:Cancel()
+    if self.drillSpeed then self.drillSpeed:Clear() end
     local spawn=self.world.layout.teleports[self.teleport]
     self.vehicle:Place(spawn.pos,spawn.yaw);self.yaw=-spawn.yaw*180/math.pi
     self.controls:Clear();if self.hud then self.hud.Clear() end
@@ -97,6 +101,8 @@ function M:Zoom(wheel)
     self.camera:SetMode(mode)
 end
 function M:Pause()
+    if self.weapons then self.weapons.drill:Cancel() end
+    if self.drillSpeed then self.drillSpeed:Clear() end
     self.pendingRotorStep=false;self.pointer:Release();self.weaponAudio:SetActive(false);self.drivingAudio:SetActive(false);self.feedbackAudio:SetActive(false)
     if self.salvage and self.salvage.audio then self.salvage.audio:SetActive(false) end
 end
@@ -111,6 +117,8 @@ function M:GoTo(name)
 end
 function M:Flip()
     if self.combat and not self.combat.player.alive then return end
+    self.weapons.drill:Cancel()
+    self.drillSpeed:Clear()
     local p=self.vehicle.body.translation();local yaw=self.vehicle:Yaw()
     self.vehicle:Place({p.x,p.y+self.vehicle.spec.bounds.radius*.6,p.z},yaw)
     self.controls:Clear();if self.hud then self.hud.Clear() end
@@ -217,6 +225,7 @@ function M:Tick(dt,command)
             for _,entry in ipairs(self.combat.entries) do if entry.unit.alive then self.drivingAudio:Observe(entry.unit.vehicle,1/60,entry.unit~=self.combat.player) end end
         else self.drivingAudio:Observe(self.vehicle,1/60,false) end
         if not self.combat or self.combat.player.alive then
+            if self.weapons.drill:ControlsBody() then self.vehicle:SyncDrillPose() end
             self.view:SavePose();local center=self.vehicle.body.center()
             self.world.metrics:Timing(self.world.time,{center.x,center.y,center.z},self.vehicle.speed,self.prevZ);self.prevZ=center.z
         end
@@ -229,7 +238,7 @@ function M:Tick(dt,command)
     end
     self.fxContext.time=self.world.time
     local alive=not self.combat or self.combat.player.alive
-    if alive then self.view:Update(self.accumulator*60,elapsed,self.fxContext) end
+    if alive then self.view:Update(self.weapons.drill:Latched() and 1 or self.accumulator*60,elapsed,self.fxContext) end
     if self.targetFeedback then self.targetFeedback:Update(self.world.targets,self.world.time,self.camera:GetNode(),elapsed) end
     if alive then
         WeaponView.Update(self.view.view,self.weapons,self.accumulator*60,elapsed,self.world.time,self.effects)
@@ -248,6 +257,7 @@ function M:Update(dt)
     if self.battle then self.battle.sounds:Update(dt);self.battle.voice:Update(dt) end
     if self.story then self.story:Update(dt) end
     if self.intro and not self.intro.done then
+        self.drillSpeed:Clear()
         if input:GetKeyPress(KEY_SPACE) or input:GetKeyPress(KEY_RETURN) or input:GetKeyPress(KEY_ESCAPE) then self.intro:Finish()
         else self.intro:Update(dt) end
         return
@@ -308,6 +318,7 @@ function M:PostUpdate(dt)
     end
     local root=self.view.view.root;local p=root.position
     if self.combat and not self.combat.player.alive then
+        self.drillSpeed:Clear()
         local watched=false
         for _,entry in ipairs(self.combat.entries) do if entry.unit.team=='blue' and entry.unit.alive then watched=entry.unit;break end end
         if watched then p=Coord.Vec(table.unpack(watched:Position())) end
@@ -321,7 +332,9 @@ function M:PostUpdate(dt)
     else self.target.position=Vector3(p.x,p.y+self.vehicle.spec.bounds.min[2],p.z) end
     self.camera:Update(dt,self.target,self.yaw,self.pitch)
     local group=self.weapons:Group()
+    self.drillSpeed:Update(dt,self.camera:GetCamera(),self.weapons,self.pointer.captured and (not self.combat or self.combat.player.alive))
     local c=self.camera:GetCamera();local targetFov=self.scope and require('ui.ReticleState').ScopeFov(48,group and group.kind) or 48+math.min(1,math.abs(self.vehicle.speed)/28)*6
+    if not self.scope then targetFov=targetFov+self.drillSpeed.rush*28-(self.weapons.drill.held and self.weapons.drill.held.windup or 0)*3 end
     if not self.scope then
         -- Ceilings shorten the camera boom. Widen the lens only while blocked
         -- so the car remains framed instead of filling/cropping the screen.
@@ -342,6 +355,7 @@ function M:Dispose()
     if self.pointer then self.pointer:Release() end
     if self.hud then self.hud.Dispose();self.hud=nil end
     if self.controls then self.controls:Clear() end
+    if self.drillSpeed then self.drillSpeed:Dispose() end
     if self.effects then self.effects:Dispose() end
     if self.weaponAudio then self.weaponAudio:Dispose() end
     if self.drivingAudio then self.drivingAudio:Dispose() end

@@ -34,7 +34,7 @@ function M:Environment(shooter)
     local world=self.world;local scale=shooter.team=='red' and .7 or 1
     local function Accept(victim) return victim.team~=shooter.team and (victim~=self.player or self.rules.time>=8) end
     return {stats=shooter==self.player and world.stats or {shots=0},killHeight=-300,
-        castRay=function(...) return world:CastRay(...) end,lockables=function(body) return world:Lockables(body,shooter.team) end,
+        castRay=function(...) return world:CastRay(...) end,sweepDrill=function(...) return world:SweepDrill(...) end,lockables=function(body) return world:Lockables(body,shooter.team) end,
         hit=function(hit,damage,dir,impulse,pierce)
             local victim=hit.owner and hit.owner.ref
             if not self.rules.finished and (not victim or not victim.team or Accept(victim)) then

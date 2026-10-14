@@ -2,7 +2,7 @@
     "version": 2,
     "script": "main.lua",
     "result": "PASS",
-    "duration_ms": 12607,
+    "duration_ms": 10619,
     "frames_completed": 185,
     "phases": {
         "load": {
@@ -32,7 +32,7 @@
             "nodes": 0,
             "components": 0,
             "hash": 0,
-            "frame_time_ms": 440.8573913574219
+            "frame_time_ms": 448.5237121582031
         },
         {
             "frame": 10,
@@ -40,15 +40,15 @@
             "nodes": 0,
             "components": 0,
             "hash": 0,
-            "frame_time_ms": 36.44879913330078
+            "frame_time_ms": 41.1593017578125
         },
         {
             "frame": 92,
             "phase": "run",
             "nodes": 170,
             "components": 293,
-            "hash": 627260018,
-            "frame_time_ms": 29.471900939941408
+            "hash": 2513829918,
+            "frame_time_ms": 28.59910011291504
         },
         {
             "frame": 185,
@@ -56,11 +56,11 @@
             "nodes": 97,
             "components": 90,
             "hash": 691423328,
-            "frame_time_ms": 21.19659996032715
+            "frame_time_ms": 24.351299285888673
         }
     ],
     "scene_stalled": false,
-    "max_frame_time_ms": 5854.69677734375,
+    "max_frame_time_ms": 4559.64306640625,
     "update_defined": false,
     "component_census": {
         "Octree": 1,

@@ -29,6 +29,13 @@ local function DumpTrial(app)
     data.performance.batches=renderer.numBatches;data.performance.primitives=renderer.numPrimitives
     if s.drivingAudio then data.drivingAudio=s.drivingAudio:Snapshot() end
     data.rotors={}
+    local drill=s.weapons.drill;local dg=s.weapons:Group();local dw=dg and dg.weapons[1]
+    data.drill={kind=dg and dg.kind,phase=drill.active and drill.active.phase,grinding=drill.active and drill.active.grinding,
+        charge=drill.held and drill.held.windup or 0,held=drill.held~=nil,cool=dw and dw.cool,hint=drill:Hint(),
+        rush=s.drillSpeed.rush,visible=s.drillSpeed.visible,meshEnabled=s.drillSpeed.mesh and s.drillSpeed.mesh.enabled,
+        viewports=renderer.numViewports,nativeKinematic=s.vehicle.native.kinematic,
+        queryCasts=s.world.drillSweep and s.world.drillSweep.casts or 0,querySensors=s.world.drillSweep and #s.world.drillSweep.sensors or 0}
+    if not s.combat and s.world.units[1] then data.drill.targetHealth=s.world.units[1]:Health() end
     for _,r in ipairs(s.vehicle.rotors) do data.rotors[#data.rotors+1]={id=r.partId,mode=r.mode,angle=r.angle,target=r.target} end
     if s.feedbackAudio then data.feedbackAudio=s.feedbackAudio:Snapshot() end
     local rt=s.hud.vitals
@@ -306,6 +313,25 @@ function HandleUpdate(et,ed)
     if mode~=sampleMode or app.loadingFlow.active then samples={};sampleMode=mode
     else local dt=ed:GetFloat('TimeStep');if dt>0 then samples[#samples+1]=dt end end
     if app.trial then
+        if input:GetKeyPress(KEY_PAGEUP) and not app.trial.combat then
+            local t=app.trial
+            if t.qaDrillFrozen then
+                t.Update=t.qaDrillFrozen.update;t.PostUpdate=t.qaDrillFrozen.post;t.qaDrillFrozen=nil
+            else
+                t.qaDrillFrozen={update=t.Update,post=t.PostUpdate}
+                t.Update=function() end;t.PostUpdate=function() end
+            end
+        end
+        if input:GetKeyPress(KEY_PAGEDOWN) and app.trial.qaDrillFrozen and app.trial.drillSpeed.mesh then
+            local mesh=app.trial.drillSpeed.mesh;mesh.enabled=not mesh.enabled
+        end
+        if input:GetKeyPress(KEY_END) and not app.trial.combat then
+            local t=app.trial;t.weapons.drill:Cancel()
+            t.vehicle:Place({0,0,0},0);t.view:ResetPose();t.yaw=0;t.pitch=20
+            t.world.units[1].vehicle:Place({0,0,30},math.pi);t.world.units[1]:SavePose()
+            t.world.units[1].previous=t.world.units[1].current
+            t:PostUpdate(.1)
+        end
         local salvage=app.trial.salvage
         if salvage and not salvage.rules.finished then
             local session=app.trial
@@ -412,6 +438,15 @@ function HandleUpdate(et,ed)
         end
     end
     local home=require('ui.GarageHud').GetState()
+    if input:GetKeyPress(KEY_HOME) and home and home.tab=='hangar' and not app.build then
+        app.qaDrillVariant=app.qaDrillVariant=='tianyuan' and 'fuyuan' or 'tianyuan'
+        local bp=require('construction.Prefab').Create(require('construction.Blueprint').New(),app.qaDrillVariant)
+        app.qaDrillGate=require('app.ResourceGate').New();local scene=app.scene
+        app.qaDrillGate:Start(require('parts.Dependencies').For(bp:List()),function(ready,message)
+            assert(ready,message);if app.scene~=scene or app.stopped then return end
+            local ok,why=app:LoadBlueprint(bp:ToTable());assert(ok,why);print('[DrillQA] Original prefab ready '..app.qaDrillVariant)
+        end)
+    end
     if input:GetKeyPress(KEY_INSERT) and home and home.tab=='hangar' and not app.build then
         local bp=require('construction.Blueprint').New();local id=require('core.Rotations').IDENTITY
         for _,p in ipairs({{type='core',pos={0,3,0},rot=id},{type='rotorStep',pos={0,4,0},rot=id},

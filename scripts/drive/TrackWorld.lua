@@ -27,7 +27,7 @@ function M:init(scene)
     self.stats={shots=0,hits=0,damage=0,kills=0}
     self.metrics=require('drive.TrialMetrics').New(self.layout.drag)
     self.units={};self.fx={};self.viewEvents={};self.debris=Debris.New(self.space)
-    self.env={stats=self.stats,castRay=function(...) return self:CastRay(...) end,
+    self.env={stats=self.stats,castRay=function(...) return self:CastRay(...) end,sweepDrill=function(...) return self:SweepDrill(...) end,
         hit=function(...) self:Hit(...) end,lockables=function(...) return self:Lockables(...) end,
         explode=function(...) return self:Explode(...) end}
     local ground=self.root:CreateChild("Ground")
@@ -98,6 +98,10 @@ function M:CastRay(origin,direction,length,excluded)
         end
     end end
     return best
+end
+function M:SweepDrill(...)
+    self.drillSweep=self.drillSweep or require('physics.DrillSweep').New(self)
+    return self.drillSweep:Cast(...)
 end
 function M:Lockables(excluded,team,accept)
     local out={}
@@ -196,6 +200,7 @@ function M:Reset()
     self.metrics:Reset();self.fx={}
 end
 function M:Dispose()
+    if self.drillSweep then self.drillSweep:Dispose();self.drillSweep=nil end
     for _,unit in ipairs(self.units) do unit:Dispose() end
     self.units={};self.debris:Clear();self.fx={};self.viewEvents={};self.debris.events={}
     self.root:Remove();self.space.bodies={};self.cones={};self.targets={}

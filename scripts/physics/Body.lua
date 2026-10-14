@@ -9,6 +9,15 @@ local function Unpolar(v) return {x=-v.x,y=v.y,z=v.z} end
 local function Unaxial(v) return {x=v.x,y=-v.y,z=-v.z} end
 ---@param native RigidBody
 function M.Wrap(native)
+    local valid=true
+    local function Position(p)
+        local v=Polar(p);native.position=v
+        if native.kinematic then native.node.position=v end
+    end
+    local function Rotation(q)
+        local v=Quaternion(q.w,q.x,-q.y,-q.z);native.rotation=v
+        if native.kinematic then native.node.rotation=v end
+    end
     local function Center() return native.position+native.rotation*native.centerOfMass end
     -- Native Lua does not expose inertia. Measure the three impulse responses once,
     -- restore velocity immediately, and rotate this tensor with the body thereafter.
@@ -27,6 +36,16 @@ function M.Wrap(native)
     end
     return {
         native=native,
+        isValid=function() return valid end,
+        invalidate=function() valid=false end,
+        mass=function() return native.mass end,
+        bodyType=function() return native.kinematic end,
+        setBodyType=function(kinematic) native.kinematic=kinematic end,
+        isCcdEnabled=function() return {radius=native.ccdRadius,threshold=native.ccdMotionThreshold} end,
+        enableCcd=function(value)
+            if type(value)=='table' then native.ccdRadius=value.radius;native.ccdMotionThreshold=value.threshold
+            else native.ccdRadius=value and .15 or 0;native.ccdMotionThreshold=value and .1 or 0 end
+        end,
         translation=function() return Unpolar(native.position) end,
         rotation=function() local q=native.rotation;return {x=q.x,y=-q.y,z=-q.z,w=q.w} end,
         linvel=function() return Unpolar(native.linearVelocity) end,
@@ -52,8 +71,11 @@ function M.Wrap(native)
             local j=Polar(impulse);native:ApplyImpulse(j);native:ApplyTorqueImpulse((Polar(point)-Center()):CrossProduct(j))
         end,
         resetForces=function() native:ResetForces() end,
-        setTranslation=function(p) native.position=Polar(p) end,
-        setRotation=function(q) native.rotation=Quaternion(q.w,q.x,-q.y,-q.z) end,
+        resetTorques=function() native:ResetForces() end,
+        setTranslation=Position,
+        setRotation=Rotation,
+        setNextKinematicTranslation=Position,
+        setNextKinematicRotation=Rotation,
         setLinvel=function(v) native.linearVelocity=Polar(v) end,
         setAngvel=function(v) native.angularVelocity=Axial(v) end,
     }

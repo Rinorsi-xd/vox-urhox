@@ -144,7 +144,8 @@ end
 function M:Consume(events)
     for _,e in ipairs(events) do
         self.events=self.events+1
-        if e.type=="shot" then self:Shot(e)
+        if e.type=='drill' then require('render.DrillEffects').Event(self,e)
+        elseif e.type=="shot" then self:Shot(e)
         elseif e.type=='blast' and e.kind=='missile' then self.missiles:Blast(e)
         elseif e.type=="beam" then self:Beam(e)
         elseif e.type=="impact" then

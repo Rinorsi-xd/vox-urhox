@@ -16,7 +16,8 @@ function M.Render(vg,v,l)
         nvgSave(vg);nvgGlobalAlpha(vg,(selected or hurt or fix) and 1 or .6)
         local points=b.special and {x+h*.7,y,x+w-h*.7,y,x+w,y+h,x,y+h} or {x+c,y,x+w-c,y,x+w,y+c,x+w,y+h-c,x+w-c,y+h,x+c,y+h,x,y+h-c,x,y+c}
         R.Poly(vg,points,selected and {10,15,20,82} or {10,15,20,64},edge,(selected and 2 or 1.3)*k)
-        local weapon=g.weapons[1];local path=weapon and 'UI/WeaponIcons/'..weapon.type..'.png'
+        local weapon=g.weapons[1];local kind=weapon and weapon.type
+        local path=kind and 'UI/WeaponIcons/'..(kind=='fuyuanDrill' and 'tianyuanDrill' or kind)..'.png'
         local img=path and ImageCache.Get(path)
         if img and img>0 then
             local ix=x+(selected and 94 or b.special and 30 or 16)*k

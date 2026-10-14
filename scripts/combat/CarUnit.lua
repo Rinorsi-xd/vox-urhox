@@ -37,11 +37,13 @@ function M:RecordDamage(amount,point)
     self:Event('unitDamaged',nil,{amount=amount,point=point,source=self.env.attacker})
 end
 function M:DisposeVehicle()
+    if self.weapons then self.weapons.drill:Cancel() end
     if self.vehicle then self.vehicle:Dispose();self.vehicle=nil end
 end
 function M:Build(spec)
     self.spec=spec;self.vehicle=self.env:NewVehicle(spec,self)
     if self.weapons then self.weapons:Refit(spec) end
+    self.vehicle.drill=self.weapons and self.weapons.drill
 end
 function M:Spawn()
     self:DisposeVehicle();self.bp=BP.New():Load(self.source)
@@ -150,6 +152,7 @@ function M:Position()
 end
 function M:SavePose()
     if not self.vehicle then return end
+    if self.weapons and self.weapons.drill:ControlsBody() then self.vehicle:SyncDrillPose() end
     local b=self.vehicle.body;local p=b.translation();self.previous=self.current
     self.current={p={p.x,p.y,p.z},q=b.rotation()}
     self:Position()
@@ -296,6 +299,7 @@ function M:Destroy(id)
 end
 function M:Flush()
     if not self.dirty or not self.alive then return end
+    if self.weapons then self.weapons.drill:Cancel() end
     self.dirty=false;local body=self.vehicle.body;local state=self.vehicle:GetState();local pose={p=state.p,q=state.q}
     local function Velocity(pt) local v=body.velocityAtPoint({x=pt[1],y=pt[2],z=pt[3]});return {v.x,v.y,v.z} end
     local d=self.lastDir;local kick={d[1]*2,1.5+d[2]*2,d[3]*2}

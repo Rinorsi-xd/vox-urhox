@@ -17,6 +17,15 @@ function M.Fire(wpn,firing,mark,dist,enemy,lock)
     local g=wpn:Group();if not g then return nil end
     local w=g.weapons[1];local st=w and w.stats or {};local ready=Clamp(wpn:Readiness(g))
     local function State(word,tone,frac,sub) return {word=word,tone=tone,frac=Clamp(frac),sub=sub or ''} end
+    if st.drill then
+        local d=wpn.drill
+        if d:Latched() then return State('咬住','ok',1) end
+        if d.active then return State('突进','ok',1) end
+        if wpn.offline then return State('能量耗尽','warn',wpn.energy/wpn.energyMax,'等能量回来') end
+        if w.cool>0 then return State('冷却','busy',1-w.cool/(w.interval or 1),string.format('%.1f 秒',w.cool)) end
+        if d.held then return State('蓄力','busy',w.windup,'松开左键突进') end
+        return State('就绪','ok',1,'长按左键蓄力')
+    end
     if wpn.offline then return State('能量耗尽','warn',wpn.energy/wpn.energyMax,'停火等能量回来') end
     if g.kind=='missile' then
         local li=lock

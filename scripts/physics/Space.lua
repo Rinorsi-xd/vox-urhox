@@ -20,7 +20,11 @@ function Space:Register(native,owner)
     self.bodies[native.node:GetID()]={body=wrapper,owner=owner}
     return wrapper
 end
-function Space:Unregister(native) self.bodies[native.node:GetID()]=nil end
+function Space:Unregister(native)
+    local entry=self.bodies[native.node:GetID()]
+    if entry then entry.body.invalidate() end
+    self.bodies[native.node:GetID()]=nil
+end
 function Space:Raycast(origin,direction,length,excluded,skipOwnerType,fixedOnly)
     local ray=Ray(Coord.Vec(table.unpack(origin)),Coord.Vec(table.unpack(direction)))
     local results=self.world:Raycast(ray,length)

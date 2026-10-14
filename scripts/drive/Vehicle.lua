@@ -62,6 +62,7 @@ function Vehicle:init(space,spec)
     self.legHitboxes=LegHitboxes.New(self)
 end
 function Vehicle:Place(pos,yaw)
+    if self.drill then self.drill:Cancel() end
     self.body.setTranslation({x=pos[1],y=pos[2]-self.spec.bounds.min[2]+.15,z=pos[3]})
     self.body.setRotation({x=0,y=math.sin(yaw/2),z=0,w=math.cos(yaw/2)})
     self.body.setLinvel({x=0,y=0,z=0});self.body.setAngvel({x=0,y=0,z=0});self.body.resetForces()
@@ -91,6 +92,7 @@ function Vehicle:SetState(s)
     self.suspension:Sample()
 end
 function Vehicle:StepRotors(aim,step,dt)
+    if self.drill and self.drill:ControlsBody() then return end
     if #self.rotors==0 then return end
     local p=self.body.translation();local localAim=aim and Math.Unrotate(self.body.rotation(),Math.Sub(aim,{p.x,p.y,p.z}))
     RotorMotion.Step(self.rotors,localAim,step,dt);self:ApplyRotors()
@@ -118,6 +120,8 @@ function Vehicle:ApplyRotors()
 end
 function Vehicle:Step(cmd,dt)
     if self.disposed then return end
+    if self.drill and self.drill:ControlsBody() then self:SyncDrillPose();return end
+    for _,s in pairs(self.legStates) do s.drillDriven=false end
     self.body.resetForces()
     local q=self.body.rotation();local velocity=self.body.linvel();local vel={velocity.x,velocity.y,velocity.z}
     local up,fwd=Math.Rotate(q,{0,1,0}),Math.Rotate(q,{0,0,1});self.speed=Math.Dot(vel,fwd)
@@ -135,6 +139,18 @@ function Vehicle:Step(cmd,dt)
     self.telemetry={speed=self.speed,totalSpeed=Math.Length(vel),vmax=self.spec.motion.topSpeed}
     for _,values in ipairs({ground,hover,motion,legs,flight}) do for key,value in pairs(values) do self.telemetry[key]=value end end
 end
+function Vehicle:SyncDrillPose()
+    local q=self.body.rotation();local p=Math.Array(self.body.translation());local velocity=Math.Array(self.body.linvel())
+    for _,s in pairs(self.legStates) do
+        local l=s.leg
+        local point=s.target and Math.Add(l.origin,Math.Scale(require('core.Rotations').ApplyRot(l.rot,s.target),require('Config').CELL)) or l.toeRest or l.toe
+        s.previous=s.foot;s.foot=Math.Add(Math.RotateUnit(q,point),p);s.drillDriven=true
+        s.grounded=false;s.support=nil;s.contact=nil;s.ground=nil;s.swing=nil;s.sw=nil
+        s.mode='free';s.available=false;s.force=0;s.jet=0;s.pulse=0
+    end
+    self.legHitboxes:Update();self.speed=Math.Dot(velocity,Math.RotateUnit(q,{0,0,1}))
+    self.telemetry.speed=self.speed;self.telemetry.totalSpeed=Math.Length(velocity);self.telemetry.boosting=false;self.telemetry.legContacts=0
+end
 function Vehicle:WheelPose(index)
     local w,s=self.wheels[index],self.suspension.states[index]
     local length=s.grounded and s.length or w.rest
@@ -143,6 +159,7 @@ end
 function Vehicle:WheelTravel(index) return -self.suspension.states[index].spin*self.wheels[index].radius end
 function Vehicle:Dispose()
     if self.disposed then return end
+    if self.drill then self.drill:Cancel() end
     self.disposed=true;self.space:Unregister(self.native);self.node:Remove()
 end
 return Vehicle

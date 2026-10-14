@@ -48,6 +48,7 @@ function M.New(session,bp)
         end
         entry.env={stats=member.player and self.world.stats or {shots=0},killHeight=-80,
             castRay=function(...) return self.objectives:Cast(shooter,...) end,
+            sweepDrill=function(...) return self.objectives:SweepDrill(shooter,...) end,
             lockables=function(excluded) return self.world:Lockables(excluded,shooter.team,function(u) return not self.objectives:Ignore(u) end) end,
             explode=function(point,radius,damage,excluded)
                 if self.rules.state~='live' then return end
@@ -136,7 +137,7 @@ function M:BeforeStep(dt,command,aim)
                 v:Step(cmd,dt);local p,velocity=v.body.translation(),v.body.linvel()
                 local eye=u==self.player and self.session.camera:GetNode().worldPosition or nil
                 u.weapons:Step(dt,{firing=live and firing,aim=target or u:Position(),pos={p.x,p.y,p.z},quat=v.body.rotation(),vel={velocity.x,velocity.y,velocity.z},body=v.body,
-                    team=u.team,eye=eye and {-eye.x,eye.y,eye.z}},entry.env)
+                    team=u.team,live=live,eye=eye and {-eye.x,eye.y,eye.z}},entry.env)
                 self.session.effects:Consume(u.weapons.fx)
                 self.session.weaponAudio:Consume(u.weapons.fx,u~=self.player)
                 if p.y< -40 then local core=u.bp:CoreParts()[1];if core then u:Damage(core.id,1e9,u:Position());u:Flush() end end

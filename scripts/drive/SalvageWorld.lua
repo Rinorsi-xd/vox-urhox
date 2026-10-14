@@ -12,7 +12,7 @@ function M.New(scene,deferred)
     self.root=scene:CreateChild('SalvagePhysics');self.cones={};self.targets={};self.units={};self.time=0
     self.stats={shots=0,hits=0,damage=0,kills=0};self.metrics=require('drive.TrialMetrics').New(self.layout.drag)
     self.fx={};self.viewEvents={};self.debris=require('combat.Debris').New(self.space)
-    self.env={stats=self.stats,killHeight=-300,castRay=function(...) return self:CastRay(...) end,hit=function(...) return self:Hit(...) end,
+    self.env={stats=self.stats,killHeight=-300,castRay=function(...) return self:CastRay(...) end,sweepDrill=function(...) return self:SweepDrill(...) end,hit=function(...) return self:Hit(...) end,
         lockables=function(...) return self:Lockables(...) end,explode=function(...) return self:Explode(...) end}
     if not deferred then require('drive.SalvagePhysics').Build(self) end
     return self

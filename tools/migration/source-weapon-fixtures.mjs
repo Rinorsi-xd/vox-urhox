@@ -11,7 +11,11 @@ const {WeaponSystem,weaponStats,ENERGY,KINDS,FULL}=await load('shared/combat/wea
 const {buildVehicleSpec}=await load('shared/drive/vehicleSpec.js');
 const {Blueprint}=await load('shared/build/blueprint.js');
 const prefabs=await load('shared/build/prefab.js');
-const supported=p=>/^(mg|laser|sniper|missile)/.test(p.id)&&weaponStats(p.id);
+for(const p of ['shared/combat/weapons.js','shared/combat/drill.js','shared/parts/drillData.js']){
+ const hash=createHash('sha256').update(fs.readFileSync(path.join(source,p))).digest('hex');
+ if(hash!==baseline.files[p]?.sha256)throw Error(`Frozen source hash mismatch: ${p}`);
+}
+const supported=p=>/^(mg|laser|sniper|missile)|Drill$/.test(p.id)&&weaponStats(p.id);
 const stats=Object.fromEntries(PART_LIST.filter(supported).map(p=>[p.id,weaponStats(p.id)]));
 function writeAtomic(relative,value){
  const output=path.join(root,relative);fs.mkdirSync(path.dirname(output),{recursive:true});
@@ -22,7 +26,7 @@ const identity={x:0,y:0,z:0,w:1};
 const mount=(type,i=0)=>({partId:i+1,type,muzzle:[i*.4,1,1],dir:[0,0,1],pivot:[i*.4,1,0],off:[0,0,1],quat:identity});
 const state={firing:true,aim:[0,1,100],pos:[0,0,0],quat:identity,vel:[0,0,0]};
 const cases=[];
-for(const type of Object.keys(stats).filter(t=>!stats[t].homing)) cases.push({name:type,spec:{weapons:[mount(type)]},segments:[{frames:240,state},{frames:60,state:{...state,firing:false}}],plane:95});
+for(const type of Object.keys(stats).filter(t=>!stats[t].homing&&!stats[t].drill)) cases.push({name:type,spec:{weapons:[mount(type)]},segments:[{frames:240,state},{frames:60,state:{...state,firing:false}}],plane:95});
 const missileMount=(type,i=0)=>({...mount(type,i),offs:Array.from({length:stats[type].tubes},(_,j)=>[(j%2?1:-1)*.3,Math.floor(j/2)*.2,1])});
 const missileState={...state,eye:[0,1,0],aim:[0,1,160]};
 for(const type of Object.keys(stats).filter(t=>stats[t].homing)) for(const energy of [100,18]) cases.push({name:`${type}-energy-${energy}`,energy,spec:{weapons:[missileMount(type)]},targets:[{id:'enemy',pos:[0,1,160],alive:true}],segments:[{frames:1200,state:missileState}],plane:150});
@@ -44,7 +48,7 @@ cases.push(
 const fields=['id','cool','yaw','pitch','prevYaw','prevPitch','err','limited','spin','spinRate','spinAngle','charge','windup','barrel','shotAt','dryAt','rate','interval'];
 const missileFields=['open','lock','lockIn','lockLost','mphase','readyAt','reloadT','reload','volley','volleyAt','fired','tubes','lofting','aimPitch'];
 const projectileFields=['pos','vel','life','dist','bright','seed','age','path','end','aim','arrived','trail'];
-const fixtures={baseline:baseline.commit,coverage:'mg/laser/sniper/missile simulation, lock, salvo, moving targets, damage and mount geometry; turret obstruction and drill are not covered',weaponTypes:Object.keys(stats),cases:[],mounts:[],prefabs:{}};
+const fixtures={baseline:baseline.commit,coverage:'mg/laser/sniper/missile simulation, lock, salvo, moving targets, damage and mount geometry; drill behavior has separate fixtures',weaponTypes:Object.keys(stats),cases:[],mounts:[],prefabs:{}};
 const compact=o=>Object.fromEntries(Object.entries(o).filter(([,v])=>v!==null&&v!==undefined));
 const mountGeometry=w=>{const {range,...geometry}=w;return geometry;};
 for(const type of Object.keys(stats)) for(let rot=0;rot<24;rot++){

@@ -16,7 +16,9 @@ function M:Update(alpha,dt)
     local decay=math.exp(-math.min(.1,dt)*22)
     for _,item in ipairs(self.items) do
         local s=self.vehicle.legStates[item.id];local vis=item.vis
-        if s and (s.grounded or s.swing) and s.foot then
+        if s and s.drillDriven and s.target then
+            item.error=Rig.SetLegTarget(vis,s.target,s.bladeAngle).error*CELL
+        elseif s and (s.grounded or s.swing) and s.foot then
             local foot=s.grounded and s.foot or s.previous and Math.Mix(s.previous,s.foot,alpha) or s.foot
             local target=vis.node:WorldToLocal(Coord.Vec(table.unpack(foot)))
             local pose=Rig.SetLegTarget(vis,{-target.x,target.y,target.z},s.bladeAngle)

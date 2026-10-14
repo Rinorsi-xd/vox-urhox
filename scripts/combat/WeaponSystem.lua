@@ -5,6 +5,7 @@ local Defs=require "combat.WeaponDefs"
 local M=require "core.Math3"
 local ENERGY=Defs.ENERGY
 local Missiles=require 'combat.MissileWeapons'
+local Drill=require 'combat.DrillAttack'
 local TurretRange=require 'construction.TurretRange'
 local DEG=math.pi/180
 local FORWARD={0,0,1}
@@ -44,6 +45,7 @@ function Weapons:init(spec,random)
         self:Pace(g)
         for i,w in ipairs(g.weapons) do if w.interval>0 then w.cool=(i-1)/#g.weapons*w.interval end end
     end
+    self.drill=Drill.New(self)
 end
 function Weapons:Pace(g)
     g.share=0
@@ -59,6 +61,7 @@ function Weapons:Select(index)
     if index>=1 and index<=#self.groups and index%1==0 then self.current=index end
 end
 function Weapons:Refit(spec)
+    self.drill:Cancel()
     local old={};local selected=self:Group() and self:Group().kind
     for _,g in ipairs(self.groups) do for _,w in ipairs(g.weapons) do old[w.id]=w end end
     local rebuilt=Weapons.New(spec,self.random)
@@ -66,7 +69,7 @@ function Weapons:Refit(spec)
         if g.kind==selected then rebuilt.current=i end
         for _,w in ipairs(g.weapons) do local previous=old[w.id]
             if previous and previous.type==w.type then
-                for _,key in ipairs({'cool','yaw','pitch','prevYaw','prevPitch','spin','spinRate','spinAngle','charge','windup','barrel','shotAt','dryAt','bloom',
+                for _,key in ipairs({'cool','yaw','pitch','prevYaw','prevPitch','spin','spinRate','spinAngle','charge','windup','drillPhase','barrel','shotAt','dryAt','bloom',
                     'open','openHold','lock','lockRef','lockIn','lockLost','mphase','readyAt','reloadT','reload','volley','volleyAt','volleyTarget','fired','tubes'}) do w[key]=previous[key] end
             end
         end
@@ -80,15 +83,16 @@ function Weapons:Step(dt,state,env)
     local g=self:Group()
     if not self.offline and state.firing and g then self.sinceUse=0 end
     self:Energy(dt)
+    self.drill:Step(dt,state,env)
     if state.firing and not self.wasFiring then
         for _,active in ipairs(self.groups) do if state.salvo or active==g then
             for i,w in ipairs(active.weapons) do
-                if w.interval>0 then w.cool=math.max(w.cool,(i-1)/#active.weapons*w.interval) end
+                if w.interval>0 and not w.stats.drill then w.cool=math.max(w.cool,(i-1)/#active.weapons*w.interval) end
             end
         end end
     end
     self.wasFiring=state.firing
-    for _,grp in ipairs(self.groups) do for _,w in ipairs(grp.weapons) do
+    for _,grp in ipairs(self.groups) do for _,w in ipairs(grp.weapons) do if not w.stats.drill then
         local active=state.salvo or grp==g
         local firing=active and state.firing
         if not (self.offline and w.stats.windup) then w.cool=math.max(firing and -dt or 0,w.cool-dt) end
@@ -101,7 +105,7 @@ function Weapons:Step(dt,state,env)
             if not self.pointing then self.pointing=w end
             if not w.stats.homing and firing and w.cool<=0 and self:Ready(w,dt) then self:Fire(w,state,env) end
         end
-    end end
+    end end end
     self:Integrate(dt,state,env)
 end
 function Weapons:Energy(dt)
@@ -241,7 +245,7 @@ end
 function Weapons:Readiness(g)
     local best=0
     for _,w in ipairs(g.weapons) do
-        local value=w.stats.lockTime and w.lock or w.stats.spinUp and w.spin or (w.stats.windup and w.charge or 1-math.max(0,w.cool)/w.interval)
+        local value=w.stats.drill and (w.drillPhase=='charging' and w.windup or w.charge) or w.stats.lockTime and w.lock or w.stats.spinUp and w.spin or (w.stats.windup and w.charge or 1-math.max(0,w.cool)/w.interval)
         best=math.max(best,value)
     end
     return best

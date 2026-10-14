@@ -98,7 +98,7 @@ function M.Create(session)
         require('ui.ReticleState').Update(state.vitals,dt)
         for i,card in ipairs(state.cards) do card.widget.group=weapons.groups[i];card.widget.readiness=weapons.groups[i] and math.max(0,math.min(1,weapons:Readiness(weapons.groups[i]))) or 0 end
         local group=weapons:Group()
-        state.vitals.hint=group and group.kind=='missile' and '' or s.firing and group and weapons.blocked>=#group.weapons and '目标在射界外' or s.firing and state.overlay.aimState=='blocked' and '炮口被挡住' or ''
+        state.vitals.hint=group and group.weapons[1].stats.drill and weapons.drill:Hint() or group and group.kind=='missile' and '' or s.firing and group and weapons.blocked>=#group.weapons and '目标在射界外' or s.firing and state.overlay.aimState=='blocked' and '炮口被挡住' or ''
         state.refresh=state.refresh-dt
         if state.refresh<=0 or dt==0 then
             state.refresh=.1;state.readoutUpdates=state.readoutUpdates+1;if alive then state.meter:Refresh() end

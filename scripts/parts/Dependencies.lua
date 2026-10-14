@@ -6,6 +6,9 @@ function M.For(parts)
     paths=paths or require('core.ResourceData').Read('Parts/Dependencies.json')
     local result,seen={},{}
     for _,part in ipairs(parts) do
+        if require('parts.Defs').PARTS[part.type].drill and not seen.drillSpeed then
+            seen.drillSpeed=true;result[#result+1]='Shaders/BLGL/Combat/DrillSpeed.shader'
+        end
         local key=Assets.Key(part.type,part.rot)
         -- Turntable mode keys replace the authored rig synchronously and undo
         -- can restore it immediately. Warm only this part's three alternatives.

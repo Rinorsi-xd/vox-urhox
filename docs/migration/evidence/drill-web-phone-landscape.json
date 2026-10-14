@@ -1,0 +1,2056 @@
+{
+  "build": "D:\\Rino_Project\\maker\\Vox\\VoxelCraft\\.tmp\\outgame-cached-1791944800611",
+  "manifest": "manifest-fd95667f.json",
+  "viewport": {
+    "name": "phone-landscape",
+    "width": 840,
+    "height": 378,
+    "dpr": 3,
+    "touch": true
+  },
+  "checks": [
+    "original tianyuan prefab downloaded and assembled",
+    "actual source drill weapon selected",
+    "held touch fire charges drill",
+    "source reticle charge state and subtitle",
+    "nonblank tianyuan-charge",
+    "nonblank tianyuan-rush",
+    "speed shader changes a bounded set of canvas pixels",
+    "speed streaks preserve translucency without turning into solid white rays",
+    "source streak shader draws during dash",
+    "swept drill damages actual target car",
+    "nonblank tianyuan-grind",
+    "finish restores dynamic vehicle and shared cooldown",
+    "reused volumetric sweeps and one speed overlay viewport",
+    "pause clears speed and attack state",
+    "no runtime or shader errors after tianyuan",
+    "original fuyuan prefab downloaded and assembled",
+    "actual source drill weapon selected",
+    "held touch fire charges drill",
+    "source reticle charge state and subtitle",
+    "nonblank fuyuan-charge",
+    "nonblank fuyuan-rush",
+    "speed shader changes a bounded set of canvas pixels",
+    "speed streaks preserve translucency without turning into solid white rays",
+    "source streak shader draws during dash",
+    "swept drill damages actual target car",
+    "native latch and original HUD state",
+    "nonblank fuyuan-latched",
+    "finish restores dynamic vehicle and shared cooldown",
+    "reused volumetric sweeps and one speed overlay viewport",
+    "pause clears speed and attack state",
+    "no runtime or shader errors after fuyuan"
+  ],
+  "errors": [],
+  "httpFailures": [
+    {
+      "status": 404,
+      "url": "http://127.0.0.1:4204/cached-engine-source/src/engine-res/1.1.925/assets@windows.7z"
+    },
+    {
+      "status": 404,
+      "url": "http://127.0.0.1:4204/cached-engine-source/src/urhox-libs/1.0.47/assets@windows.7z"
+    },
+    {
+      "status": 404,
+      "url": "http://127.0.0.1:4204/cached-engine-source/src/engine-res/assets@windows.7z?v=1.1.925"
+    },
+    {
+      "status": 404,
+      "url": "http://127.0.0.1:4204/cached-engine-source/src/urhox-libs/assets@windows.7z?v=1.0.47"
+    }
+  ],
+  "samples": [
+    {
+      "rotors": {},
+      "loadingFlow": {
+        "map": "trial",
+        "phase": "closed",
+        "progress": 1,
+        "visible": false,
+        "error": "",
+        "warmFrames": 91,
+        "steps": [
+          {
+            "state": "done",
+            "note": "1.8s",
+            "id": "download",
+            "elapsed": 1.80904748942703,
+            "label": "下载场地与战车资源"
+          },
+          {
+            "state": "done",
+            "note": "0.0s",
+            "id": "resources",
+            "elapsed": 0,
+            "label": "准备贴图"
+          },
+          {
+            "state": "done",
+            "note": "0.1s",
+            "id": "scene",
+            "elapsed": 0.1465975046157837,
+            "label": "载入场景"
+          },
+          {
+            "state": "done",
+            "note": "0.0s",
+            "id": "prepare",
+            "elapsed": 0,
+            "label": "搭建碰撞体"
+          },
+          {
+            "state": "done",
+            "note": "0.0s",
+            "id": "environment",
+            "elapsed": 0,
+            "label": "准备环境"
+          },
+          {
+            "state": "done",
+            "note": "0.1s",
+            "id": "activate",
+            "elapsed": 0.060872502624988556,
+            "label": "装配战车与渲染"
+          }
+        ],
+        "active": false,
+        "failed": false
+      },
+      "drill": {
+        "kind": "tianyuanDrill",
+        "targetHealth": 1,
+        "held": true,
+        "cool": 0,
+        "visible": false,
+        "hint": "蓄力 63% · 松开左键突进",
+        "querySensors": 0,
+        "nativeKinematic": false,
+        "viewports": 1,
+        "charge": 0.6333333333333331,
+        "rush": 0,
+        "queryCasts": 0
+      },
+      "height": 540,
+      "widgets": [
+        {
+          "text": "翻正",
+          "rect": [
+            1118.0953369140625,
+            285.71429443359375,
+            63.8094482421875,
+            48.571441650390625
+          ]
+        },
+        {
+          "text": "传送",
+          "rect": [
+            1045.71435546875,
+            285.71429443359375,
+            64.7618408203125,
+            48.571441650390625
+          ]
+        },
+        {
+          "text": "瞄准",
+          "rect": [
+            974.2857666015625,
+            285.71429443359375,
+            63.8095703125,
+            48.571441650390625
+          ]
+        },
+        {
+          "text": "拉近",
+          "rect": [
+            1118.0953369140625,
+            132.38095092773438,
+            63.8094482421875,
+            43.809539794921875
+          ]
+        },
+        {
+          "text": "拉远",
+          "rect": [
+            1045.71435546875,
+            132.38095092773438,
+            64.7618408203125,
+            43.809539794921875
+          ]
+        },
+        {
+          "kind": "exit",
+          "text": "",
+          "rect": [
+            1070.4761962890625,
+            12.380952835083008,
+            111.4285888671875,
+            47.619049072265625
+          ]
+        },
+        {
+          "kind": "weapon",
+          "text": "",
+          "rect": [
+            992.3809814453125,
+            72.3809585571289,
+            189.5238037109375,
+            51.42857360839844
+          ]
+        }
+      ],
+      "camera": {
+        "dist": 25.777451250957494,
+        "position": [
+          -6.682239472866058e-7,
+          12.617006301879883,
+          -24.2230224609375
+        ],
+        "yaw": 0,
+        "pitch": 20
+      },
+      "drivingAudio": {
+        "counts": {},
+        "voices": 0,
+        "active": true,
+        "loops": {}
+      },
+      "mouse": {
+        "scale": 2.1,
+        "hit": "other",
+        "x": 0,
+        "overlay": false,
+        "y": 0
+      },
+      "touchRects": {
+        "scope": [
+          974.2857666015625,
+          285.71429443359375,
+          63.8095703125,
+          48.571441650390625
+        ],
+        "stick": [
+          18.095239639282227,
+          343.8095397949219,
+          180,
+          180.00003051757812
+        ],
+        "zoomIn": [
+          1118.0953369140625,
+          132.38095092773438,
+          63.8094482421875,
+          43.809539794921875
+        ],
+        "area": [
+          1045.71435546875,
+          285.71429443359375,
+          64.7618408203125,
+          48.571441650390625
+        ],
+        "brake": [
+          1007.6190795898438,
+          452.3809814453125,
+          72.38092041015625,
+          71.4285888671875
+        ],
+        "zoomOut": [
+          1045.71435546875,
+          132.38095092773438,
+          64.7618408203125,
+          43.809539794921875
+        ],
+        "fire": [
+          1094.2857666015625,
+          436.19049072265625,
+          87.6190185546875,
+          87.61907958984375
+        ],
+        "flip": [
+          1118.0953369140625,
+          285.71429443359375,
+          63.8094482421875,
+          48.571441650390625
+        ]
+      },
+      "performance": {
+        "resourceBytes": 46217040,
+        "fixedSteps": 90,
+        "retiredTargets": 0,
+        "primitives": 948562,
+        "effects": {
+          "flashes": 0,
+          "particles": 0,
+          "smoke": 0,
+          "beams": 0
+        },
+        "droppedSeconds": 0,
+        "arrayBytes": 0,
+        "luaKiB": 46010.65234375,
+        "modelBytes": 3439376,
+        "batches": 374
+      },
+      "sceneVisible": true,
+      "map": "trial",
+      "weaponAudio": {
+        "counts": {},
+        "loops": {},
+        "active": true,
+        "voices": 0
+      },
+      "missile": {
+        "visible": 0,
+        "group": "tianyuanDrill",
+        "projectiles": 0,
+        "models": 0,
+        "energy": 93.03333333333346
+      },
+      "width": 1200,
+      "combatFeedback": {
+        "score": false,
+        "hits": 0,
+        "cubes": 0,
+        "repairAge": 10.516644998453557,
+        "repairFull": false
+      },
+      "reticle": {
+        "groups": 1,
+        "scope": false,
+        "structure": 1,
+        "hp": 1,
+        "layout": {
+          "k": 0.5,
+          "inner": 127,
+          "width": 1200,
+          "cy": 270,
+          "height": 540,
+          "radius": 135,
+          "cx": 600
+        },
+        "legacyMeter": false,
+        "clock": 1.5166449984535575,
+        "hit": 0,
+        "selected": 1,
+        "repair": false,
+        "fire": {
+          "sub": "松开左键突进",
+          "tone": "busy",
+          "frac": 0.6333333333333331,
+          "word": "蓄力"
+        },
+        "fov": 46.34150695800781
+      },
+      "intro": false,
+      "feedbackAudio": {
+        "counts": {},
+        "repair": {
+          "amount": 0,
+          "playing": false,
+          "gain": 0,
+          "rate": 1
+        },
+        "voices": 0,
+        "active": true,
+        "pending": 0
+      },
+      "pointer": {
+        "fire": true,
+        "ready": false,
+        "captured": true,
+        "skip": true,
+        "left": false,
+        "pending": false
+      },
+      "touch": true,
+      "vehicle": {
+        "speed": 0.0007810677695022903,
+        "position": [
+          0.0000014426682355406228,
+          -0.9993896484375,
+          -0.00014907121658325195
+        ]
+      },
+      "weapons": {
+        "shots": 0,
+        "turning": 0,
+        "hits": 0,
+        "blocked": 0,
+        "energy": 93.03333333333346,
+        "kills": 0
+      },
+      "mode": "trial"
+    },
+    {
+      "rotors": {},
+      "loadingFlow": {
+        "map": "trial",
+        "phase": "closed",
+        "progress": 1,
+        "visible": false,
+        "error": "",
+        "warmFrames": 91,
+        "steps": [
+          {
+            "state": "done",
+            "note": "1.8s",
+            "id": "download",
+            "elapsed": 1.80904748942703,
+            "label": "下载场地与战车资源"
+          },
+          {
+            "state": "done",
+            "note": "0.0s",
+            "id": "resources",
+            "elapsed": 0,
+            "label": "准备贴图"
+          },
+          {
+            "state": "done",
+            "note": "0.1s",
+            "id": "scene",
+            "elapsed": 0.1465975046157837,
+            "label": "载入场景"
+          },
+          {
+            "state": "done",
+            "note": "0.0s",
+            "id": "prepare",
+            "elapsed": 0,
+            "label": "搭建碰撞体"
+          },
+          {
+            "state": "done",
+            "note": "0.0s",
+            "id": "environment",
+            "elapsed": 0,
+            "label": "准备环境"
+          },
+          {
+            "state": "done",
+            "note": "0.1s",
+            "id": "activate",
+            "elapsed": 0.060872502624988556,
+            "label": "装配战车与渲染"
+          }
+        ],
+        "active": false,
+        "failed": false
+      },
+      "drill": {
+        "kind": "tianyuanDrill",
+        "targetHealth": 1,
+        "viewports": 2,
+        "held": false,
+        "phase": "dash",
+        "cool": 0,
+        "grinding": false,
+        "visible": true,
+        "hint": "钻头突进！",
+        "querySensors": 4,
+        "nativeKinematic": false,
+        "meshEnabled": true,
+        "charge": 0,
+        "rush": 0.8360198703816081,
+        "queryCasts": 55
+      },
+      "height": 540,
+      "frames": {
+        "count": 16,
+        "max": 17.629999667406082,
+        "p50": 16.61749929189682,
+        "p95": 17.629999667406082,
+        "p99": 17.629999667406082
+      },
+      "widgets": [
+        {
+          "text": "翻正",
+          "rect": [
+            1118.0953369140625,
+            285.71429443359375,
+            63.8094482421875,
+            48.571441650390625
+          ]
+        },
+        {
+          "text": "传送",
+          "rect": [
+            1045.71435546875,
+            285.71429443359375,
+            64.7618408203125,
+            48.571441650390625
+          ]
+        },
+        {
+          "text": "瞄准",
+          "rect": [
+            974.2857666015625,
+            285.71429443359375,
+            63.8095703125,
+            48.571441650390625
+          ]
+        },
+        {
+          "text": "拉近",
+          "rect": [
+            1118.0953369140625,
+            132.38095092773438,
+            63.8094482421875,
+            43.809539794921875
+          ]
+        },
+        {
+          "text": "拉远",
+          "rect": [
+            1045.71435546875,
+            132.38095092773438,
+            64.7618408203125,
+            43.809539794921875
+          ]
+        },
+        {
+          "kind": "exit",
+          "text": "",
+          "rect": [
+            1070.4761962890625,
+            12.380952835083008,
+            111.4285888671875,
+            47.619049072265625
+          ]
+        },
+        {
+          "kind": "weapon",
+          "text": "",
+          "rect": [
+            992.3809814453125,
+            72.3809585571289,
+            189.5238037109375,
+            51.42857360839844
+          ]
+        }
+      ],
+      "camera": {
+        "dist": 25.777451250957494,
+        "position": [
+          0.000010485907296242658,
+          12.595722198486328,
+          -15.377887725830078
+        ],
+        "yaw": -0.00002277963292609794,
+        "pitch": 20
+      },
+      "drivingAudio": {
+        "counts": {
+          "track_loop": 1
+        },
+        "voices": 0,
+        "active": true,
+        "loops": {
+          "track_loop": {
+            "pan": 0,
+            "playing": true,
+            "gain": 0.1837591826915741,
+            "frequency": 48000
+          }
+        }
+      },
+      "mouse": {
+        "scale": 2.1,
+        "hit": "other",
+        "x": 0,
+        "overlay": false,
+        "y": 0
+      },
+      "touchRects": {
+        "scope": [
+          974.2857666015625,
+          285.71429443359375,
+          63.8095703125,
+          48.571441650390625
+        ],
+        "stick": [
+          18.095239639282227,
+          343.8095397949219,
+          180,
+          180.00003051757812
+        ],
+        "zoomIn": [
+          1118.0953369140625,
+          132.38095092773438,
+          63.8094482421875,
+          43.809539794921875
+        ],
+        "area": [
+          1045.71435546875,
+          285.71429443359375,
+          64.7618408203125,
+          48.571441650390625
+        ],
+        "brake": [
+          1007.6190795898438,
+          452.3809814453125,
+          72.38092041015625,
+          71.4285888671875
+        ],
+        "zoomOut": [
+          1045.71435546875,
+          132.38095092773438,
+          64.7618408203125,
+          43.809539794921875
+        ],
+        "fire": [
+          1094.2857666015625,
+          436.19049072265625,
+          87.6190185546875,
+          87.61907958984375
+        ],
+        "flip": [
+          1118.0953369140625,
+          285.71429443359375,
+          63.8094482421875,
+          48.571441650390625
+        ]
+      },
+      "performance": {
+        "resourceBytes": 46494549,
+        "fixedSteps": 174,
+        "retiredTargets": 0,
+        "primitives": 949070,
+        "effects": {
+          "flashes": 0,
+          "particles": 25,
+          "smoke": 0,
+          "beams": 0
+        },
+        "droppedSeconds": 0,
+        "arrayBytes": 0,
+        "luaKiB": 43755.130859375,
+        "modelBytes": 3439376,
+        "batches": 383
+      },
+      "sceneVisible": true,
+      "map": "trial",
+      "weaponAudio": {
+        "counts": {},
+        "loops": {},
+        "active": true,
+        "voices": 0
+      },
+      "missile": {
+        "visible": 0,
+        "group": "tianyuanDrill",
+        "projectiles": 0,
+        "models": 0,
+        "energy": 76.66666666666694
+      },
+      "width": 1200,
+      "combatFeedback": {
+        "score": false,
+        "hits": 0,
+        "cubes": 0,
+        "repairAge": 11.910064997151494,
+        "repairFull": false
+      },
+      "reticle": {
+        "groups": 1,
+        "scope": false,
+        "structure": 1,
+        "hp": 1,
+        "layout": {
+          "k": 0.5,
+          "inner": 127,
+          "width": 1200,
+          "cy": 270,
+          "height": 540,
+          "radius": 135,
+          "cx": 600
+        },
+        "legacyMeter": false,
+        "clock": 2.910064997151494,
+        "hit": 0,
+        "selected": 1,
+        "repair": false,
+        "fire": {
+          "sub": "",
+          "tone": "ok",
+          "frac": 1,
+          "word": "突进"
+        },
+        "fov": 68.83491516113281
+      },
+      "intro": false,
+      "feedbackAudio": {
+        "counts": {},
+        "repair": {
+          "amount": 0,
+          "playing": false,
+          "gain": 0,
+          "rate": 1
+        },
+        "voices": 0,
+        "active": true,
+        "pending": 0
+      },
+      "pointer": {
+        "fire": false,
+        "ready": false,
+        "captured": true,
+        "skip": true,
+        "left": false,
+        "pending": false
+      },
+      "touch": true,
+      "vehicle": {
+        "speed": 63.978428802947924,
+        "position": [
+          0.0000020831321307923645,
+          -1.027586579322815,
+          11.729408264160156
+        ]
+      },
+      "weapons": {
+        "shots": 1,
+        "turning": 0,
+        "hits": 0,
+        "blocked": 0,
+        "energy": 76.66666666666694,
+        "kills": 0
+      },
+      "mode": "trial"
+    },
+    {
+      "rotors": {},
+      "loadingFlow": {
+        "map": "trial",
+        "phase": "closed",
+        "progress": 1,
+        "visible": false,
+        "error": "",
+        "warmFrames": 91,
+        "steps": [
+          {
+            "state": "done",
+            "note": "1.8s",
+            "id": "download",
+            "elapsed": 1.80904748942703,
+            "label": "下载场地与战车资源"
+          },
+          {
+            "state": "done",
+            "note": "0.0s",
+            "id": "resources",
+            "elapsed": 0,
+            "label": "准备贴图"
+          },
+          {
+            "state": "done",
+            "note": "0.1s",
+            "id": "scene",
+            "elapsed": 0.1465975046157837,
+            "label": "载入场景"
+          },
+          {
+            "state": "done",
+            "note": "0.0s",
+            "id": "prepare",
+            "elapsed": 0,
+            "label": "搭建碰撞体"
+          },
+          {
+            "state": "done",
+            "note": "0.0s",
+            "id": "environment",
+            "elapsed": 0,
+            "label": "准备环境"
+          },
+          {
+            "state": "done",
+            "note": "0.1s",
+            "id": "activate",
+            "elapsed": 0.060872502624988556,
+            "label": "装配战车与渲染"
+          }
+        ],
+        "active": false,
+        "failed": false
+      },
+      "drill": {
+        "kind": "tianyuanDrill",
+        "targetHealth": 0.9797160243407708,
+        "viewports": 2,
+        "held": false,
+        "phase": "dash",
+        "cool": 0,
+        "grinding": true,
+        "visible": true,
+        "hint": "天元钻头 · 持续钻穿！",
+        "querySensors": 4,
+        "nativeKinematic": false,
+        "meshEnabled": true,
+        "charge": 0,
+        "rush": 0.6436447633760672,
+        "queryCasts": 150
+      },
+      "height": 540,
+      "widgets": [
+        {
+          "text": "翻正",
+          "rect": [
+            1118.0953369140625,
+            285.71429443359375,
+            63.8094482421875,
+            48.571441650390625
+          ]
+        },
+        {
+          "text": "传送",
+          "rect": [
+            1045.71435546875,
+            285.71429443359375,
+            64.7618408203125,
+            48.571441650390625
+          ]
+        },
+        {
+          "text": "瞄准",
+          "rect": [
+            974.2857666015625,
+            285.71429443359375,
+            63.8095703125,
+            48.571441650390625
+          ]
+        },
+        {
+          "text": "拉近",
+          "rect": [
+            1118.0953369140625,
+            132.38095092773438,
+            63.8094482421875,
+            43.809539794921875
+          ]
+        },
+        {
+          "text": "拉远",
+          "rect": [
+            1045.71435546875,
+            132.38095092773438,
+            64.7618408203125,
+            43.809539794921875
+          ]
+        },
+        {
+          "kind": "exit",
+          "text": "",
+          "rect": [
+            1070.4761962890625,
+            12.380952835083008,
+            111.4285888671875,
+            47.619049072265625
+          ]
+        },
+        {
+          "kind": "weapon",
+          "text": "",
+          "rect": [
+            992.3809814453125,
+            72.3809585571289,
+            189.5238037109375,
+            51.42857360839844
+          ]
+        }
+      ],
+      "camera": {
+        "dist": 25.777451250957494,
+        "position": [
+          0.000005215069904807024,
+          12.547473907470703,
+          -8.747013092041016
+        ],
+        "yaw": -0.000032123122176237406,
+        "pitch": 20
+      },
+      "drivingAudio": {
+        "counts": {
+          "track_loop": 1
+        },
+        "voices": 0,
+        "active": true,
+        "loops": {
+          "track_loop": {
+            "pan": 0,
+            "playing": false,
+            "gain": 0.000025107699912041426,
+            "frequency": 40689.7890625
+          }
+        }
+      },
+      "mouse": {
+        "scale": 2.1,
+        "hit": "other",
+        "x": 0,
+        "overlay": false,
+        "y": 0
+      },
+      "touchRects": {
+        "scope": [
+          974.2857666015625,
+          285.71429443359375,
+          63.8095703125,
+          48.571441650390625
+        ],
+        "stick": [
+          18.095239639282227,
+          343.8095397949219,
+          180,
+          180.00003051757812
+        ],
+        "zoomIn": [
+          1118.0953369140625,
+          132.38095092773438,
+          63.8094482421875,
+          43.809539794921875
+        ],
+        "area": [
+          1045.71435546875,
+          285.71429443359375,
+          64.7618408203125,
+          48.571441650390625
+        ],
+        "brake": [
+          1007.6190795898438,
+          452.3809814453125,
+          72.38092041015625,
+          71.4285888671875
+        ],
+        "zoomOut": [
+          1045.71435546875,
+          132.38095092773438,
+          64.7618408203125,
+          43.809539794921875
+        ],
+        "fire": [
+          1094.2857666015625,
+          436.19049072265625,
+          87.6190185546875,
+          87.61907958984375
+        ],
+        "flip": [
+          1118.0953369140625,
+          285.71429443359375,
+          63.8094482421875,
+          48.571441650390625
+        ]
+      },
+      "performance": {
+        "resourceBytes": 47465487,
+        "fixedSteps": 193,
+        "retiredTargets": 0,
+        "primitives": 1264472,
+        "effects": {
+          "flashes": 0,
+          "particles": 198,
+          "smoke": 9,
+          "beams": 0
+        },
+        "droppedSeconds": 0,
+        "arrayBytes": 0,
+        "luaKiB": 39405.9658203125,
+        "modelBytes": 3439376,
+        "batches": 451
+      },
+      "sceneVisible": true,
+      "map": "trial",
+      "weaponAudio": {
+        "counts": {},
+        "loops": {},
+        "active": true,
+        "voices": 0
+      },
+      "missile": {
+        "visible": 0,
+        "group": "tianyuanDrill",
+        "projectiles": 0,
+        "models": 0,
+        "energy": 76.66666666666694
+      },
+      "width": 1200,
+      "combatFeedback": {
+        "score": false,
+        "hits": 0,
+        "cubes": 0,
+        "repairAge": 12.222924998030066,
+        "repairFull": false
+      },
+      "reticle": {
+        "groups": 1,
+        "scope": false,
+        "structure": 1,
+        "hp": 1,
+        "layout": {
+          "k": 0.5,
+          "inner": 127,
+          "width": 1200,
+          "cy": 270,
+          "height": 540,
+          "radius": 135,
+          "cx": 600
+        },
+        "legacyMeter": false,
+        "clock": 3.2229249980300665,
+        "hit": 0.2503575004637241,
+        "selected": 1,
+        "repair": false,
+        "fire": {
+          "sub": "",
+          "tone": "ok",
+          "frac": 1,
+          "word": "突进"
+        },
+        "fov": 66.89801788330078
+      },
+      "intro": false,
+      "feedbackAudio": {
+        "counts": {
+          "hit_tick": 2
+        },
+        "repair": {
+          "amount": 0,
+          "playing": false,
+          "gain": 0,
+          "rate": 1
+        },
+        "voices": 2,
+        "active": true,
+        "pending": 0
+      },
+      "pointer": {
+        "fire": false,
+        "ready": false,
+        "captured": true,
+        "skip": true,
+        "left": false,
+        "pending": false
+      },
+      "touch": true,
+      "vehicle": {
+        "speed": -0.00002663598243149243,
+        "position": [
+          0.000008365590474568307,
+          -1.0787514448165894,
+          15.475865364074707
+        ]
+      },
+      "weapons": {
+        "shots": 1,
+        "turning": 0,
+        "hits": 2,
+        "blocked": 0,
+        "energy": 76.66666666666694,
+        "kills": 0
+      },
+      "mode": "trial"
+    },
+    {
+      "rotors": {},
+      "loadingFlow": {
+        "map": "trial",
+        "phase": "closed",
+        "progress": 1,
+        "visible": false,
+        "error": "",
+        "warmFrames": 145,
+        "steps": [
+          {
+            "state": "done",
+            "note": "0.0s",
+            "id": "download",
+            "elapsed": 0,
+            "label": "下载场地与战车资源"
+          },
+          {
+            "state": "done",
+            "note": "0.0s",
+            "id": "resources",
+            "elapsed": 0,
+            "label": "准备贴图"
+          },
+          {
+            "state": "done",
+            "note": "0.1s",
+            "id": "scene",
+            "elapsed": 0.14328250288963318,
+            "label": "载入场景"
+          },
+          {
+            "state": "done",
+            "note": "0.0s",
+            "id": "prepare",
+            "elapsed": 0,
+            "label": "搭建碰撞体"
+          },
+          {
+            "state": "done",
+            "note": "0.0s",
+            "id": "environment",
+            "elapsed": 0,
+            "label": "准备环境"
+          },
+          {
+            "state": "done",
+            "note": "0.0s",
+            "id": "activate",
+            "elapsed": 0.017149999737739563,
+            "label": "装配战车与渲染"
+          }
+        ],
+        "active": false,
+        "failed": false
+      },
+      "drill": {
+        "kind": "fuyuanDrill",
+        "targetHealth": 1,
+        "held": true,
+        "cool": 0,
+        "visible": false,
+        "hint": "蓄力 63% · 松开左键突进",
+        "querySensors": 0,
+        "nativeKinematic": false,
+        "viewports": 1,
+        "charge": 0.6333333333333331,
+        "rush": 0,
+        "queryCasts": 0
+      },
+      "height": 540,
+      "widgets": [
+        {
+          "text": "翻正",
+          "rect": [
+            1118.0953369140625,
+            285.71429443359375,
+            63.8094482421875,
+            48.571441650390625
+          ]
+        },
+        {
+          "text": "传送",
+          "rect": [
+            1045.71435546875,
+            285.71429443359375,
+            64.7618408203125,
+            48.571441650390625
+          ]
+        },
+        {
+          "text": "瞄准",
+          "rect": [
+            974.2857666015625,
+            285.71429443359375,
+            63.8095703125,
+            48.571441650390625
+          ]
+        },
+        {
+          "text": "拉近",
+          "rect": [
+            1118.0953369140625,
+            132.38095092773438,
+            63.8094482421875,
+            43.809539794921875
+          ]
+        },
+        {
+          "text": "拉远",
+          "rect": [
+            1045.71435546875,
+            132.38095092773438,
+            64.7618408203125,
+            43.809539794921875
+          ]
+        },
+        {
+          "kind": "exit",
+          "text": "",
+          "rect": [
+            1070.4761962890625,
+            12.380952835083008,
+            111.4285888671875,
+            47.619049072265625
+          ]
+        },
+        {
+          "kind": "weapon",
+          "text": "",
+          "rect": [
+            992.3809814453125,
+            72.3809585571289,
+            189.5238037109375,
+            51.42857360839844
+          ]
+        }
+      ],
+      "camera": {
+        "dist": 25.777451250957494,
+        "position": [
+          0.000010564490366959944,
+          12.616876602172852,
+          -24.22292709350586
+        ],
+        "yaw": 0,
+        "pitch": 20
+      },
+      "drivingAudio": {
+        "counts": {},
+        "voices": 0,
+        "active": true,
+        "loops": {}
+      },
+      "mouse": {
+        "scale": 2.1,
+        "hit": "other",
+        "x": 0,
+        "overlay": false,
+        "y": 0
+      },
+      "touchRects": {
+        "scope": [
+          974.2857666015625,
+          285.71429443359375,
+          63.8095703125,
+          48.571441650390625
+        ],
+        "stick": [
+          18.095239639282227,
+          343.8095397949219,
+          180,
+          180.00003051757812
+        ],
+        "zoomIn": [
+          1118.0953369140625,
+          132.38095092773438,
+          63.8094482421875,
+          43.809539794921875
+        ],
+        "area": [
+          1045.71435546875,
+          285.71429443359375,
+          64.7618408203125,
+          48.571441650390625
+        ],
+        "brake": [
+          1007.6190795898438,
+          452.3809814453125,
+          72.38092041015625,
+          71.4285888671875
+        ],
+        "zoomOut": [
+          1045.71435546875,
+          132.38095092773438,
+          64.7618408203125,
+          43.809539794921875
+        ],
+        "fire": [
+          1094.2857666015625,
+          436.19049072265625,
+          87.6190185546875,
+          87.61907958984375
+        ],
+        "flip": [
+          1118.0953369140625,
+          285.71429443359375,
+          63.8094482421875,
+          48.571441650390625
+        ]
+      },
+      "performance": {
+        "resourceBytes": 49478782,
+        "fixedSteps": 110,
+        "retiredTargets": 0,
+        "primitives": 948586,
+        "effects": {
+          "flashes": 0,
+          "particles": 0,
+          "smoke": 0,
+          "beams": 0
+        },
+        "droppedSeconds": 0,
+        "arrayBytes": 0,
+        "luaKiB": 36212.18359375,
+        "modelBytes": 3439376,
+        "batches": 374
+      },
+      "sceneVisible": true,
+      "map": "trial",
+      "weaponAudio": {
+        "counts": {},
+        "loops": {},
+        "active": true,
+        "voices": 0
+      },
+      "missile": {
+        "visible": 0,
+        "group": "fuyuanDrill",
+        "projectiles": 0,
+        "models": 0,
+        "energy": 100
+      },
+      "width": 1200,
+      "combatFeedback": {
+        "score": false,
+        "hits": 0,
+        "cubes": 0,
+        "repairAge": 10.849915002472699,
+        "repairFull": false
+      },
+      "reticle": {
+        "groups": 1,
+        "scope": false,
+        "structure": 1,
+        "hp": 1,
+        "layout": {
+          "k": 0.5,
+          "inner": 127,
+          "width": 1200,
+          "cy": 270,
+          "height": 540,
+          "radius": 135,
+          "cx": 600
+        },
+        "legacyMeter": false,
+        "clock": 1.8499150024726987,
+        "hit": 0,
+        "selected": 1,
+        "repair": false,
+        "fire": {
+          "sub": "松开左键突进",
+          "tone": "busy",
+          "frac": 0.6333333333333331,
+          "word": "蓄力"
+        },
+        "fov": 46.320308685302734
+      },
+      "intro": false,
+      "feedbackAudio": {
+        "counts": {},
+        "repair": {
+          "amount": 0,
+          "playing": false,
+          "gain": 0,
+          "rate": 1
+        },
+        "voices": 0,
+        "active": true,
+        "pending": 0
+      },
+      "pointer": {
+        "fire": true,
+        "ready": false,
+        "captured": true,
+        "skip": true,
+        "left": false,
+        "pending": false
+      },
+      "touch": true,
+      "vehicle": {
+        "speed": 0.0017270673972591283,
+        "position": [
+          -0.000008653714758111164,
+          -0.9995170831680298,
+          -0.0000623464584350586
+        ]
+      },
+      "weapons": {
+        "shots": 0,
+        "turning": 0,
+        "hits": 0,
+        "blocked": 0,
+        "energy": 100,
+        "kills": 0
+      },
+      "mode": "trial"
+    },
+    {
+      "rotors": {},
+      "loadingFlow": {
+        "map": "trial",
+        "phase": "closed",
+        "progress": 1,
+        "visible": false,
+        "error": "",
+        "warmFrames": 145,
+        "steps": [
+          {
+            "state": "done",
+            "note": "0.0s",
+            "id": "download",
+            "elapsed": 0,
+            "label": "下载场地与战车资源"
+          },
+          {
+            "state": "done",
+            "note": "0.0s",
+            "id": "resources",
+            "elapsed": 0,
+            "label": "准备贴图"
+          },
+          {
+            "state": "done",
+            "note": "0.1s",
+            "id": "scene",
+            "elapsed": 0.14328250288963318,
+            "label": "载入场景"
+          },
+          {
+            "state": "done",
+            "note": "0.0s",
+            "id": "prepare",
+            "elapsed": 0,
+            "label": "搭建碰撞体"
+          },
+          {
+            "state": "done",
+            "note": "0.0s",
+            "id": "environment",
+            "elapsed": 0,
+            "label": "准备环境"
+          },
+          {
+            "state": "done",
+            "note": "0.0s",
+            "id": "activate",
+            "elapsed": 0.017149999737739563,
+            "label": "装配战车与渲染"
+          }
+        ],
+        "active": false,
+        "failed": false
+      },
+      "drill": {
+        "kind": "fuyuanDrill",
+        "targetHealth": 1,
+        "viewports": 2,
+        "held": false,
+        "phase": "dash",
+        "cool": 0,
+        "grinding": false,
+        "visible": true,
+        "hint": "钻头突进！",
+        "querySensors": 4,
+        "nativeKinematic": false,
+        "meshEnabled": true,
+        "charge": 0,
+        "rush": 0.8385581027674706,
+        "queryCasts": 50
+      },
+      "height": 540,
+      "frames": {
+        "count": 19,
+        "max": 17.430000007152557,
+        "p50": 16.55000075697899,
+        "p95": 17.430000007152557,
+        "p99": 17.430000007152557
+      },
+      "widgets": [
+        {
+          "text": "翻正",
+          "rect": [
+            1118.0953369140625,
+            285.71429443359375,
+            63.8094482421875,
+            48.571441650390625
+          ]
+        },
+        {
+          "text": "传送",
+          "rect": [
+            1045.71435546875,
+            285.71429443359375,
+            64.7618408203125,
+            48.571441650390625
+          ]
+        },
+        {
+          "text": "瞄准",
+          "rect": [
+            974.2857666015625,
+            285.71429443359375,
+            63.8095703125,
+            48.571441650390625
+          ]
+        },
+        {
+          "text": "拉近",
+          "rect": [
+            1118.0953369140625,
+            132.38095092773438,
+            63.8094482421875,
+            43.809539794921875
+          ]
+        },
+        {
+          "text": "拉远",
+          "rect": [
+            1045.71435546875,
+            132.38095092773438,
+            64.7618408203125,
+            43.809539794921875
+          ]
+        },
+        {
+          "kind": "exit",
+          "text": "",
+          "rect": [
+            1070.4761962890625,
+            12.380952835083008,
+            111.4285888671875,
+            47.619049072265625
+          ]
+        },
+        {
+          "kind": "weapon",
+          "text": "",
+          "rect": [
+            992.3809814453125,
+            72.3809585571289,
+            189.5238037109375,
+            51.42857360839844
+          ]
+        }
+      ],
+      "camera": {
+        "dist": 25.777451250957494,
+        "position": [
+          0.00001028157385007944,
+          12.595966339111328,
+          -15.485478401184082
+        ],
+        "yaw": -0.000019961022443367576,
+        "pitch": 20
+      },
+      "drivingAudio": {
+        "counts": {
+          "track_loop": 1
+        },
+        "voices": 0,
+        "active": true,
+        "loops": {
+          "track_loop": {
+            "pan": 0,
+            "playing": true,
+            "gain": 0.1769285947084427,
+            "frequency": 48000
+          }
+        }
+      },
+      "mouse": {
+        "scale": 2.1,
+        "hit": "other",
+        "x": 0,
+        "overlay": false,
+        "y": 0
+      },
+      "touchRects": {
+        "scope": [
+          974.2857666015625,
+          285.71429443359375,
+          63.8095703125,
+          48.571441650390625
+        ],
+        "stick": [
+          18.095239639282227,
+          343.8095397949219,
+          180,
+          180.00003051757812
+        ],
+        "zoomIn": [
+          1118.0953369140625,
+          132.38095092773438,
+          63.8094482421875,
+          43.809539794921875
+        ],
+        "area": [
+          1045.71435546875,
+          285.71429443359375,
+          64.7618408203125,
+          48.571441650390625
+        ],
+        "brake": [
+          1007.6190795898438,
+          452.3809814453125,
+          72.38092041015625,
+          71.4285888671875
+        ],
+        "zoomOut": [
+          1045.71435546875,
+          132.38095092773438,
+          64.7618408203125,
+          43.809539794921875
+        ],
+        "fire": [
+          1094.2857666015625,
+          436.19049072265625,
+          87.6190185546875,
+          87.61907958984375
+        ],
+        "flip": [
+          1118.0953369140625,
+          285.71429443359375,
+          63.8094482421875,
+          48.571441650390625
+        ]
+      },
+      "performance": {
+        "resourceBytes": 49503038,
+        "fixedSteps": 198,
+        "retiredTargets": 0,
+        "primitives": 949058,
+        "effects": {
+          "flashes": 0,
+          "particles": 25,
+          "smoke": 0,
+          "beams": 0
+        },
+        "droppedSeconds": 0,
+        "arrayBytes": 0,
+        "luaKiB": 37431.3173828125,
+        "modelBytes": 3439376,
+        "batches": 382
+      },
+      "sceneVisible": true,
+      "map": "trial",
+      "weaponAudio": {
+        "counts": {},
+        "loops": {},
+        "active": true,
+        "voices": 0
+      },
+      "missile": {
+        "visible": 0,
+        "group": "fuyuanDrill",
+        "projectiles": 0,
+        "models": 0,
+        "energy": 78
+      },
+      "width": 1200,
+      "combatFeedback": {
+        "score": false,
+        "hits": 0,
+        "cubes": 0,
+        "repairAge": 12.303900009021163,
+        "repairFull": false
+      },
+      "reticle": {
+        "groups": 1,
+        "scope": false,
+        "structure": 1,
+        "hp": 1,
+        "layout": {
+          "k": 0.5,
+          "inner": 127,
+          "width": 1200,
+          "cy": 270,
+          "height": 540,
+          "radius": 135,
+          "cx": 600
+        },
+        "legacyMeter": false,
+        "clock": 3.303900009021163,
+        "hit": 0,
+        "selected": 1,
+        "repair": false,
+        "fire": {
+          "sub": "",
+          "tone": "ok",
+          "frac": 1,
+          "word": "突进"
+        },
+        "fov": 65.29838562011719
+      },
+      "intro": false,
+      "feedbackAudio": {
+        "counts": {},
+        "repair": {
+          "amount": 0,
+          "playing": false,
+          "gain": 0,
+          "rate": 1
+        },
+        "voices": 0,
+        "active": true,
+        "pending": 0
+      },
+      "pointer": {
+        "fire": false,
+        "ready": false,
+        "captured": true,
+        "skip": true,
+        "left": false,
+        "pending": false
+      },
+      "touch": true,
+      "vehicle": {
+        "speed": 63.97842901895164,
+        "position": [
+          5.332876753527671e-7,
+          -1.0250511169433594,
+          10.66309928894043
+        ]
+      },
+      "weapons": {
+        "shots": 1,
+        "turning": 0,
+        "hits": 0,
+        "blocked": 0,
+        "energy": 78,
+        "kills": 0
+      },
+      "mode": "trial"
+    },
+    {
+      "rotors": {},
+      "loadingFlow": {
+        "map": "trial",
+        "phase": "closed",
+        "progress": 1,
+        "visible": false,
+        "error": "",
+        "warmFrames": 145,
+        "steps": [
+          {
+            "state": "done",
+            "note": "0.0s",
+            "id": "download",
+            "elapsed": 0,
+            "label": "下载场地与战车资源"
+          },
+          {
+            "state": "done",
+            "note": "0.0s",
+            "id": "resources",
+            "elapsed": 0,
+            "label": "准备贴图"
+          },
+          {
+            "state": "done",
+            "note": "0.1s",
+            "id": "scene",
+            "elapsed": 0.14328250288963318,
+            "label": "载入场景"
+          },
+          {
+            "state": "done",
+            "note": "0.0s",
+            "id": "prepare",
+            "elapsed": 0,
+            "label": "搭建碰撞体"
+          },
+          {
+            "state": "done",
+            "note": "0.0s",
+            "id": "environment",
+            "elapsed": 0,
+            "label": "准备环境"
+          },
+          {
+            "state": "done",
+            "note": "0.0s",
+            "id": "activate",
+            "elapsed": 0.017149999737739563,
+            "label": "装配战车与渲染"
+          }
+        ],
+        "active": false,
+        "failed": false
+      },
+      "drill": {
+        "kind": "fuyuanDrill",
+        "targetHealth": 0.9429513184584178,
+        "viewports": 2,
+        "held": false,
+        "phase": "latched",
+        "cool": 0,
+        "grinding": false,
+        "visible": true,
+        "hint": "夫元钻头 · 咬死了！车体旋转中…准备起飞",
+        "querySensors": 4,
+        "nativeKinematic": true,
+        "meshEnabled": true,
+        "charge": 0,
+        "rush": 0.04011443734674979,
+        "queryCasts": 75
+      },
+      "height": 540,
+      "widgets": [
+        {
+          "text": "翻正",
+          "rect": [
+            1118.0953369140625,
+            285.71429443359375,
+            63.8094482421875,
+            48.571441650390625
+          ]
+        },
+        {
+          "text": "传送",
+          "rect": [
+            1045.71435546875,
+            285.71429443359375,
+            64.7618408203125,
+            48.571441650390625
+          ]
+        },
+        {
+          "text": "瞄准",
+          "rect": [
+            974.2857666015625,
+            285.71429443359375,
+            63.8095703125,
+            48.571441650390625
+          ]
+        },
+        {
+          "text": "拉近",
+          "rect": [
+            1118.0953369140625,
+            132.38095092773438,
+            63.8094482421875,
+            43.809539794921875
+          ]
+        },
+        {
+          "text": "拉远",
+          "rect": [
+            1045.71435546875,
+            132.38095092773438,
+            64.7618408203125,
+            43.809539794921875
+          ]
+        },
+        {
+          "kind": "exit",
+          "text": "",
+          "rect": [
+            1070.4761962890625,
+            12.380952835083008,
+            111.4285888671875,
+            47.619049072265625
+          ]
+        },
+        {
+          "kind": "weapon",
+          "text": "",
+          "rect": [
+            992.3809814453125,
+            72.3809585571289,
+            189.5238037109375,
+            51.42857360839844
+          ]
+        }
+      ],
+      "camera": {
+        "dist": 25.777451250957494,
+        "position": [
+          -2.5067081451416016,
+          14.200288772583008,
+          -8.606788635253906
+        ],
+        "yaw": -0.000030625690506746886,
+        "pitch": 20
+      },
+      "drivingAudio": {
+        "counts": {
+          "track_loop": 1
+        },
+        "voices": 0,
+        "active": true,
+        "loops": {
+          "track_loop": {
+            "pan": 0,
+            "playing": false,
+            "gain": 0,
+            "frequency": 39474.73046875
+          }
+        }
+      },
+      "mouse": {
+        "scale": 2.1,
+        "hit": "other",
+        "x": 0,
+        "overlay": false,
+        "y": 0
+      },
+      "touchRects": {
+        "scope": [
+          974.2857666015625,
+          285.71429443359375,
+          63.8095703125,
+          48.571441650390625
+        ],
+        "stick": [
+          18.095239639282227,
+          343.8095397949219,
+          180,
+          180.00003051757812
+        ],
+        "zoomIn": [
+          1118.0953369140625,
+          132.38095092773438,
+          63.8094482421875,
+          43.809539794921875
+        ],
+        "area": [
+          1045.71435546875,
+          285.71429443359375,
+          64.7618408203125,
+          48.571441650390625
+        ],
+        "brake": [
+          1007.6190795898438,
+          452.3809814453125,
+          72.38092041015625,
+          71.4285888671875
+        ],
+        "zoomOut": [
+          1045.71435546875,
+          132.38095092773438,
+          64.7618408203125,
+          43.809539794921875
+        ],
+        "fire": [
+          1094.2857666015625,
+          436.19049072265625,
+          87.6190185546875,
+          87.61907958984375
+        ],
+        "flip": [
+          1118.0953369140625,
+          285.71429443359375,
+          63.8094482421875,
+          48.571441650390625
+        ]
+      },
+      "performance": {
+        "resourceBytes": 49503038,
+        "fixedSteps": 235,
+        "retiredTargets": 0,
+        "primitives": 948370,
+        "effects": {
+          "flashes": 0,
+          "particles": 120,
+          "smoke": 7,
+          "beams": 0
+        },
+        "droppedSeconds": 0,
+        "arrayBytes": 0,
+        "luaKiB": 37689.5791015625,
+        "modelBytes": 3439376,
+        "batches": 351
+      },
+      "sceneVisible": true,
+      "map": "trial",
+      "weaponAudio": {
+        "counts": {},
+        "loops": {},
+        "active": true,
+        "voices": 0
+      },
+      "missile": {
+        "visible": 0,
+        "group": "fuyuanDrill",
+        "projectiles": 0,
+        "models": 0,
+        "energy": 78
+      },
+      "width": 1200,
+      "combatFeedback": {
+        "score": false,
+        "hits": 0,
+        "cubes": 0,
+        "repairAge": 12.92213250696659,
+        "repairFull": false
+      },
+      "reticle": {
+        "groups": 1,
+        "scope": false,
+        "structure": 1,
+        "hp": 1,
+        "layout": {
+          "k": 0.5,
+          "inner": 127,
+          "width": 1200,
+          "cy": 270,
+          "height": 540,
+          "radius": 135,
+          "cx": 600
+        },
+        "legacyMeter": false,
+        "clock": 3.922132506966591,
+        "hit": 0,
+        "selected": 1,
+        "repair": false,
+        "fire": {
+          "sub": "",
+          "tone": "ok",
+          "frac": 1,
+          "word": "咬住"
+        },
+        "fov": 50.83697509765625
+      },
+      "intro": false,
+      "feedbackAudio": {
+        "counts": {
+          "hit_tick": 1
+        },
+        "repair": {
+          "amount": 0,
+          "playing": false,
+          "gain": 0,
+          "rate": 1
+        },
+        "voices": 1,
+        "active": true,
+        "pending": 0
+      },
+      "pointer": {
+        "fire": false,
+        "ready": false,
+        "captured": true,
+        "skip": true,
+        "left": false,
+        "pending": false
+      },
+      "touch": true,
+      "vehicle": {
+        "speed": 0.000014993063916000893,
+        "position": [
+          2.747328519821167,
+          1.5925918817520142,
+          15.615927696228027
+        ]
+      },
+      "weapons": {
+        "shots": 1,
+        "turning": 0,
+        "hits": 1,
+        "blocked": 0,
+        "energy": 78,
+        "kills": 0
+      },
+      "mode": "trial"
+    }
+  ],
+  "pixelChecks": [
+    {
+      "variant": "tianyuan",
+      "changed": 200696,
+      "pixels": 2857680,
+      "whiteFraction": 0,
+      "p95": 76
+    },
+    {
+      "variant": "fuyuan",
+      "changed": 183481,
+      "pixels": 2857680,
+      "whiteFraction": 0,
+      "p95": 73
+    }
+  ],
+  "result": "PASS"
+}

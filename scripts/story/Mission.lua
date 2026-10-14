@@ -51,6 +51,7 @@ function M:Environment(unit)
     local world=self.world;local scale=unit.team=='red' and self.damageScale or 1
     return {stats=unit==self.player and world.stats or {shots=0},killHeight=-80,
         castRay=function(...) return world:CastRay(...) end,
+        sweepDrill=function(...) return world:SweepDrill(...) end,
         lockables=function(body) return world:Lockables(body,unit.team) end,
         hit=function(hit,damage,dir,impulse,pierce)
             if self.rules.finished then return end
