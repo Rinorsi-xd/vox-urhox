@@ -43,7 +43,11 @@ const url=base=>base+'/outgame.html?-game_url='+base+'/game-dist/&-log=info&cach
    }
    async function dump(){const n=sequence;await page.keyboard.press('F8');await wait(()=>sequence>n,'fresh state',15000);return state;}
    async function tap(x,y){if(test.touch)await page.touchscreen.tap(x,y);else await page.mouse.click(x,y);}
-   async function widget(text){const s=await dump(),w=s.widgets.find(w=>w.text===text);assert.ok(w,'Widget '+text);const [x,y,ww,hh]=w.rect;
+   async function widget(text){
+    await dump();
+    // A revision rebuild clears tracked widgets until the next Yoga layout.
+    const s=await wait(s=>s.widgets.some(w=>w.text===text&&w.rect[2]>0&&w.rect[3]>0),'Widget '+text,15000);
+    const w=s.widgets.find(w=>w.text===text);assert.ok(w,'Widget '+text);const [x,y,ww,hh]=w.rect;
     await tap((x+ww/2)/s.width*test.width,(y+hh/2)/s.height*test.height);}
    async function shot(name){await page.screenshot({path:path.join(out,test.id+'-'+name+'.png')});}
    async function touchControl(id){

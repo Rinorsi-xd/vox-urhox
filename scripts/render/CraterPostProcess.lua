@@ -91,7 +91,7 @@ function M:PostUpdate()
         self.graph:Parameter(self.indices.clamp,'shaft_sun',sun)
     end
     self.graph:Parameter(self.indices.clamp,'shaft_on',on)
-    self.graph:Parameter(self.indices.clamp,'shaft_aspect',graphics:GetWidth()/graphics:GetHeight())
+    self.graph:Parameter(self.indices.clamp,'shaft_aspect',math.max(1,graphics:GetWidth())/math.max(1,graphics:GetHeight()))
 end
 function M:Dispose()
     if self.graph then self.graph:Dispose();self.graph=nil end

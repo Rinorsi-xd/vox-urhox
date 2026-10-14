@@ -2,11 +2,11 @@
   "schema": 1,
   "source": "D:/Rino_Project/Vox",
   "branch": "2026-10-14",
-  "commit": "0f7734cf4f72f1c01bc088e2b2927b9762a66a9e",
-  "subject": "style: 正文默认字体换成游戏字体（阿里妈妈数黑体）——--body / --nu-body、输入框继承字体、开场漫画 / 音乐盒 / 打捞 HUD / 无尽 / 调试面板 / 画布贴字里写死的系统字体一并换掉",
-  "frozenAt": "2026-10-14T08:41:32.415Z",
-  "snapshot": "D:\\Rino_Project\\maker\\Vox\\VoxelCraft\\.tmp\\outgame-source-2026-10-14T08-41-23-975Z",
-  "workingTree": "M index.html\n M review/performance/PLAN.md\n M review/performance/README.md\n M review/performance/build/crater.png\n M review/performance/build/home.png\n M review/performance/modes/endless.png\n M review/performance/modes/match.png\n M review/performance/modes/mobile-story.png\n M review/performance/modes/results.json\n M review/performance/regression/mobile-hangar.png\n M review/performance/regression/results.json\n M review/performance/regression/test-drive.png\n M review/performance/workflows/damaged-mega.png\n M shared/build/editor.js\n M shared/combat/carUnit.js\n M shared/combat/weapons.js\n M shared/controls/cameraRig.js\n M shared/controls/touchControls.js\n M shared/css/touch-controls.css\n M shared/drive/controls.js\n M shared/story/tutorial.js\n M shared/ui/combatFeedback.js\n M shared/ui/endlessHud.js\n M shared/ui/home.js\n M shared/ui/homeScale.js\n M shared/ui/reticle.js\n M shared/ui/salvageHub.js\n M shared/ui/shell.js\n M shared/ui/storyHud.js\n M shared/ui/storyPage.js\n M shared/ui/tutorial.js\n M shared/ui/ui.js\n M shared/ui/uiScale.js\n M three/index.html\n M three/src/battle/endlessSession.js\n M three/src/battle/matchSession.js\n M three/src/battle/matchView.js\n M three/src/battle/storyKinds.js\n M three/src/debug/debugPanel.js\n M three/src/drive/combatView.js\n M three/src/drive/testDrive.js\n M three/src/main.js\n M three/src/render/pipeline.js\n M three/src/render/warmup.js\n M three/src/salvage/salvageRun.js\n M tools/mobile-input-check.mjs\n M tools/performance-modes-smoke.mjs\n M tools/site-build.mjs\n?? .claude/worktrees/\n?? review/mobile/\n?? review/performance/stutter/\n?? shared/assets/ui/touch/\n?? shared/controls/mobileEditor.js\n?? shared/css/mobile-editor.css\n?? shared/css/mobile.css\n?? shared/ui/perfMeter.js\n?? shared/ui/touchCopy.js\n?? three/manifest.webmanifest\n?? tools/mobile-shot.mjs\n?? tools/mobile-survey.mjs\n?? tools/mobile-touch-check.mjs\n?? tools/performance-first-frame-profile.mjs\n?? tools/performance-physics-warm-check.mjs\n?? tools/performance-ready-check.mjs\n?? tools/performance-repair-check.mjs\n?? tools/performance-soak-check.mjs\n?? tools/performance-stutter-check.mjs\n?? tools/touch-icons-slice.mjs\n?? 策划案/移动端适配方案-2026-10-13.md",
+  "commit": "2b169a9964645f5f346a7158bcb14447f040814a",
+  "subject": "fix(render): 窗口 0×0 时打开（后台标签页 / 最小化）渲染目标按 1×1 建，不再刷 WebGL「Attachment has zero size」，窗口恢复后照常 resize",
+  "frozenAt": "2026-10-14T10:09:57.754Z",
+  "snapshot": "D:\\Rino_Project\\maker\\Vox\\VoxelCraft\\.tmp\\outgame-source-2026-10-14T10-09-50-505Z",
+  "workingTree": "M index.html\n M review/performance/PLAN.md\n M review/performance/README.md\n M review/performance/build/crater.png\n M review/performance/build/home.png\n M review/performance/modes/endless.png\n M review/performance/modes/match.png\n M review/performance/modes/mobile-story.png\n M review/performance/modes/results.json\n M review/performance/regression/mobile-hangar.png\n M review/performance/regression/results.json\n M review/performance/regression/test-drive.png\n M review/performance/workflows/damaged-mega.png\n M shared/build/editor.js\n M shared/combat/carUnit.js\n M shared/combat/weapons.js\n M shared/controls/cameraRig.js\n M shared/controls/touchControls.js\n M shared/css/touch-controls.css\n M shared/drive/controls.js\n M shared/story/tutorial.js\n M shared/ui/combatFeedback.js\n M shared/ui/endlessHud.js\n M shared/ui/home.js\n M shared/ui/homeScale.js\n M shared/ui/reticle.js\n M shared/ui/salvageHub.js\n M shared/ui/shell.js\n M shared/ui/storyHud.js\n M shared/ui/storyPage.js\n M shared/ui/tutorial.js\n M shared/ui/ui.js\n M shared/ui/uiScale.js\n M three/index.html\n M three/src/battle/endlessSession.js\n M three/src/battle/matchSession.js\n M three/src/battle/matchView.js\n M three/src/battle/storyKinds.js\n M three/src/debug/debugPanel.js\n M three/src/drive/combatView.js\n M three/src/drive/testDrive.js\n M three/src/main.js\n M three/src/render/pipeline.js\n M three/src/render/warmup.js\n M three/src/salvage/salvageRun.js\n M tools/mobile-input-check.mjs\n M tools/performance-modes-smoke.mjs\n M tools/site-build.mjs\n?? .claude/worktrees/\n?? review/audio/music-audition-20-22/\n?? review/audio/music-audition-23-24/\n?? review/mobile/\n?? review/performance/stutter/\n?? shared/assets/ui/touch/\n?? shared/controls/mobileEditor.js\n?? shared/css/mobile-editor.css\n?? shared/css/mobile.css\n?? shared/ui/perfMeter.js\n?? shared/ui/touchCopy.js\n?? three/manifest.webmanifest\n?? tools/mobile-shot.mjs\n?? tools/mobile-survey.mjs\n?? tools/mobile-touch-check.mjs\n?? tools/performance-first-frame-profile.mjs\n?? tools/performance-physics-warm-check.mjs\n?? tools/performance-ready-check.mjs\n?? tools/performance-repair-check.mjs\n?? tools/performance-soak-check.mjs\n?? tools/performance-stutter-check.mjs\n?? tools/touch-icons-slice.mjs\n?? 策划案/移动端适配方案-2026-10-13.md",
   "scope": [
     "full H5 Git baseline"
   ],
@@ -6053,8 +6053,8 @@
       "bytes": 5871
     },
     "three/src/main.js": {
-      "sha256": "462894dd2e105eba9bcf46bbcea1028d5ff47fc0680ede15d38627ddf5af2ef8",
-      "bytes": 22125
+      "sha256": "8a4354b5c3426b6b7d9f9fb6d3d554ecdc32b50c6784eb433018d9ace2fc0434",
+      "bytes": 22143
     },
     "three/src/parts/equipmentSurface.js": {
       "sha256": "85e59f03065ac57209845139c4ec2e7a2505ec9b4f2336569e65c99269e93a1a",
@@ -6101,8 +6101,8 @@
       "bytes": 1028
     },
     "three/src/render/pipeline.js": {
-      "sha256": "f07de5b6ea2dbfbf20cdaee624b6daf39df5d08a8eb593ddca231722dd5cd331",
-      "bytes": 20103
+      "sha256": "16aedf8a7df233c71d2d010dd89e2a1390295cea3663531d0a9d4cc647cab66c",
+      "bytes": 20304
     },
     "three/src/render/reflection.js": {
       "sha256": "5632bddefc78b0f2a1e7a8245c4bf9c79c8f8c0432c24b630d058047fcb439d2",
@@ -8639,5 +8639,5 @@
   },
   "sourceMode": "git-commit",
   "includesWorkingTreeChanges": false,
-  "contentSha256": "6f7022f5d49d74e00f88ed57e745b1cbafe7f97246ebeb5dd9f5cd6955f8bd35"
+  "contentSha256": "227ecd10517b3cf55b0af5800d8250d9a1033e55702d87f1509d93c01d88e6d4"
 }

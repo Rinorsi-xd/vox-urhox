@@ -1,0 +1,20 @@
+{
+  "capturedAt": "2026-10-14T10:52:20.388Z",
+  "sourceCommit": "2b169a9964645f5f346a7158bcb14447f040814a",
+  "manifest": "manifest-1f1d11ca.json",
+  "workspaceScriptFingerprint": "3c2c9c791ba70fbbc99d953861abb9170c9e9a405fd667b95038d13928c57129",
+  "project": "D:/Rino_Project/maker/Vox/VoxelCraft/",
+  "scene": "D:/Rino_Project/maker/Vox/VoxelCraft/assets/Scenes/Crater.xml",
+  "editMode": "edit",
+  "playMode": false,
+  "runtimeDebugRunning": true,
+  "dirty": false,
+  "savedAccountPresent": true,
+  "savedAccountSelected": true,
+  "acceptance": {
+    "editorInteraction": "NOT_RUN",
+    "editorRuntimeIdentity": "NOT_VERIFIED",
+    "realAccountWebRefresh": "NOT_RUN"
+  },
+  "limitation": "A saved native debug account does not prove Web cloud authentication or persistence. Status is not runtime, visual or interaction acceptance."
+}

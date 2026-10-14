@@ -1,5 +1,6 @@
 """Check the actual Maker manifest, not just source-tree module existence."""
 import argparse
+import fnmatch
 import json
 from pathlib import Path
 
@@ -23,10 +24,13 @@ print(f"PASS: {len(expected)} Lua scripts present and blocking in {args.manifest
 # Synchronous shader compilation cannot wait for nonblocking .shaderinc files.
 # Check emitted payloads too: source-tree existence hid the original Web failure.
 assert "boot" in manifest["preload_groups"], "Boot group is not preloaded"
-startup_prefixes = ("Shaders/", "Rendering/", "Hangar/", "Cube/", "Fonts/", "UI/")
+boot_rules = json.loads((root / '.project/resources.json').read_text('utf8'))['groups']['boot']
+def startup_expected(name):
+    included = any(fnmatch.fnmatchcase(name, rule) for rule in boot_rules if not rule.startswith('!'))
+    excluded = any(fnmatch.fnmatchcase(name, rule[1:]) for rule in boot_rules if rule.startswith('!'))
+    return included and not excluded
 startup = [f for name, f in files.items() if name and (root / "assets" / name).is_file() and
-           (name.startswith(startup_prefixes) or
-            name == "Editor/Textures/Engine/Vignetting.png")]
+           startup_expected(name)]
 assert any(f["fs_path"].endswith("PlanarClip.shaderinc") for f in startup)
 assert any(f["fs_path"].endswith("VoxHemi.shaderinc") for f in startup)
 for f in startup:
@@ -81,4 +85,9 @@ for name in cpu_images:
 for kind in ('albedo', 'nra'):
     layers = ET.parse(root / f'assets/Crater/{kind}.xml').getroot().findall('layer')
     assert [layer.get('name') for layer in layers] == [f'Crater/{kind}-{i}.bin' for i in range(6)]
+    for i in range(6):
+        original = f'Crater/{kind}-{i}.png'
+        assert original not in downloads and original not in files, f'Offline terrain source redundantly shipped: {original}'
+        assert f'Crater/{kind}-{i}.xml' not in files, 'Offline PNG settings sidecar redundantly shipped'
 print('PASS: 13 CPU images retain exact PNG payloads outside GPU texture cooking')
+print('PASS: 12 offline terrain PNG originals and their settings are excluded from downloads and package')

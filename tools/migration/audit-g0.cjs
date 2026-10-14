@@ -179,6 +179,21 @@ for(const [name,converter]of [['music-box','import-music-box.cjs'],['livery','im
   [['Fonts/VoxIndustrial-Bold.otf',data.output_sha256]]);
 }
 write('recorded-provenance.json',{sourceCommit:baseline.commit,method:'Verify existing export records. Matching hashes do not establish converter reproducibility, visual parity or complete dependencies.',groups:provenance});
+const trackArg=process.argv.find(arg=>arg.startsWith('--track='));
+const trackOutputs=new Map();
+if(trackArg){
+ const directory=path.resolve(trackArg.slice('--track='.length));
+ const record=JSON.parse(fs.readFileSync(path.join(directory,'provenance.json')));
+ if(record.sourceCommit!==baseline.commit||record.converterSha256!==hash(fs.readFileSync(path.join(root,record.converter))))throw Error('Track export version mismatch');
+ if(!record.inputs.length||record.inputs.some(input=>baseline.files[input.file]?.sha256!==input.sha256))throw Error('Track export input drift');
+ for(const item of record.outputs){
+  if(!item.file.startsWith('Track/')||item.file.includes('..'))throw Error('Invalid track output path');
+  const stagedFile=path.join(directory,item.file.slice('Track/'.length));
+  if(hash(fs.readFileSync(stagedFile))!==item.sha256)throw Error('Track staged output drift: '+item.file);
+  trackOutputs.set(item.file,{converter:record.converter,expectedSha256:item.sha256});
+ }
+ write('track-reexport.json',record);
+}
 const assets=[];
 for(const entry of fs.readdirSync(path.join(root,'assets'),{recursive:true,withFileTypes:true})){
  if(!entry.isFile()||entry.name.endsWith('.meta'))continue;
@@ -187,11 +202,13 @@ for(const entry of fs.readdirSync(path.join(root,'assets'),{recursive:true,withF
  const derivedRecord=staged&&staged.files[name.replace(/^Parts\//,'')];
  const isPart=name.startsWith('Parts/')&&derivedRecord;
  const prior=recorded.get(name);
+ const trackRecord=trackOutputs.get(name);
  const status=matches.length?'EXACT_SOURCE_BYTES':isPart?(derivedRecord.sha256===sha256?'DERIVED_BASELINE_MATCH':'DERIVED_BASELINE_DIFF'):
+  trackRecord?(trackRecord.expectedSha256===sha256?'DERIVED_TRACK_BASELINE_MATCH':'DERIVED_TRACK_BASELINE_DIFF'):
   prior?(prior.outputMatches?'RECORDED_OUTPUT_MATCH':'RECORDED_OUTPUT_DIFF'):'UNMAPPED';
- assets.push({file:name,sha256,bytes:content.length,status,source:matches,...(isPart?{converter:'tools/migration/export-parts.cjs',expectedSha256:derivedRecord.sha256}:{}),...(prior?{recordedProvenance:prior}:{})});
+ assets.push({file:name,sha256,bytes:content.length,status,source:matches,...(isPart?{converter:'tools/migration/export-parts.cjs',expectedSha256:derivedRecord.sha256}:{}),...(trackRecord?trackRecord:{}),...(prior?{recordedProvenance:prior}:{})});
 }
-write('asset-ledger.json',{sourceCommit:baseline.commit,method:'Exact source bytes, independently staged part-converter output, or explicitly labelled historical export records. Records are not independent rebuilds. Other resources remain UNMAPPED.',
+write('asset-ledger.json',{sourceCommit:baseline.commit,method:'Exact source bytes, independently staged part/track-converter output, or explicitly labelled historical export records. Records are not independent rebuilds. Other resources remain UNMAPPED.',
  counts:assets.reduce((a,r)=>(a[r.status]=(a[r.status]||0)+1,a),{}),assets});
 write('baseline.json',{result:'PASS',branch:baseline.branch,commit:baseline.commit,contentSha256:baseline.contentSha256,files:Object.keys(baseline.files).length,bytes,snapshot:source,targetCommit:git(root,'rev-parse','HEAD'),targetBranch:git(root,'branch','--show-current'),targetStatus:git(root,'status','--porcelain=v1'),sourceDelta:delta,partSources,derived});
 write('entry-ledger.json',{method:'Explicit entries and reviewed route findings plus textual candidates. Text scanning does not prove completeness or dynamic reachability.',entries,pathIssues:issues,routeFindings,callbacks,keys,urls,resourceCandidates:resources});

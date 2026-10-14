@@ -11,12 +11,14 @@ function M.New(specs,width,height)
     return self
 end
 function M:Init(specs,width,height)
+    width,height=math.max(1,math.floor(width)),math.max(1,math.floor(height))
     self.scenes={};self.materials={};self.textures={};self.viewports={};self.width=width;self.height=height;self.colorBytes=0
     -- All inputs must reference an earlier pass, so feedback is impossible.
     for i,spec in ipairs(specs) do for _,source in pairs(spec.inputs or {}) do assert(source<i,'Filter graph cycle') end end
     for i=#specs-1,1,-1 do
         local spec=specs[i];local texture=Texture2D:new();self.textures[i]=texture;texture:SetNumLevels(1)
-        local w,h=spec.width or self.width,spec.height or self.height
+        local w=math.max(1,math.floor(spec.width or self.width))
+        local h=math.max(1,math.floor(spec.height or self.height))
         assert(texture:SetSize(w,h,Graphics:GetRGBAFloat16Format(),TEXTURE_RENDERTARGET),'HDR filter allocation failed')
         texture.filterMode=FILTER_BILINEAR;texture:SetAddressMode(COORD_U,ADDRESS_CLAMP);texture:SetAddressMode(COORD_V,ADDRESS_CLAMP)
         self.colorBytes=self.colorBytes+w*h*8

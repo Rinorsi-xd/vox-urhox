@@ -17,5 +17,7 @@ const report={capturedAt:new Date().toISOString(),sourceCommit:prepared.identity
  limitation:'A saved native debug account does not prove Web cloud authentication or persistence. Status is not runtime, visual or interaction acceptance.'};
 if(state.project_path.replaceAll('\\','/').replace(/\/$/,'').toLowerCase()!==root.replaceAll('\\','/').toLowerCase())throw Error('Wrong editor project');
 const out=path.join(root,'docs/migration/evidence/full-parity',prepared.identity.sourceCommit.slice(0,12),'G0',path.basename(prepared.manifest_path,'.json'));
-fs.mkdirSync(out,{recursive:true});fs.writeFileSync(path.join(out,'editor-status.json'),JSON.stringify(report,null,2));
+fs.mkdirSync(out,{recursive:true});
+const capturePath=path.join(out,'editor-status-'+report.capturedAt.replace(/[:.]/g,'-')+'.json');
+fs.writeFileSync(capturePath,JSON.stringify(report,null,2),{flag:'wx'});
 console.log(JSON.stringify(report));

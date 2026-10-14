@@ -199,6 +199,8 @@ from crater_height import build as build_visual_height
 build_visual_height(ROOT)
 paths={'Scenes/Crater.xml','Crater/Layout.json','Crater/Dynamics.json','Crater/Materials.json','Crater/Boulders.json','Crater/Sky.hdr','Crater/sky.xml','Models/Box.mdl'}
 paths.update('Crater/'+p.name for p in OUT.iterdir() if p.suffix in ('.png','.xml','.cube','.bin') and not (p.suffix=='.xml' and p.with_suffix('.png').exists()))
+# Arrays read the .bin PNG payloads; their exported PNG originals are offline inputs.
+paths.difference_update('Crater/'+kind+'-'+str(i)+'.png' for kind in ('albedo','nra') for i in range(6))
 paths.update(p.relative_to(ROOT/'assets').as_posix() for p in (OUT/'Layout').glob('*.json'))
 paths.update('Shaders/BLGL/Crater/'+p.name for p in SH.iterdir() if p.suffix in ('.shader','.shaderinc'))
 paths.update('Shaders/BLGL/CraterPost/'+p.name for p in (SH.parent/'CraterPost').iterdir() if p.suffix=='.shader')

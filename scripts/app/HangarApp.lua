@@ -72,7 +72,7 @@ function App:init()
     self.graphicsSettings=require('render.GraphicsSettings').New(self)
     self.previews=require('render.HangarPreview').New(self)
     self.store.captureContext=function()
-        return {tier=self.tier,aspect=graphics:GetWidth()/math.max(1,graphics:GetHeight()),
+        return {tier=self.tier,aspect=math.max(1,graphics:GetWidth())/math.max(1,graphics:GetHeight()),
             grid=self.hangar and self.hangar.gridOn or false,time=self.hangar and self.hangar.time or 10,
             graphics=self.graphicsSettings.data}
     end

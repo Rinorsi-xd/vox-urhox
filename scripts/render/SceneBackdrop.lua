@@ -5,10 +5,13 @@ local UI=require 'urhox-libs/UI'
 local M={};M.__index=M
 local shader='Shaders/BLGL/UI/BackdropBlur.shader'
 function M.Size(width,height,logicalW,logicalH)
+    width,height=math.max(1,width),math.max(1,height)
+    logicalW,logicalH=math.max(1,logicalW),math.max(1,logicalH)
     local scale=math.min(1,logicalW/width,logicalH/height,1920/width,1080/height)
     return math.max(1,math.floor(width*scale+.5)),math.max(1,math.floor(height*scale+.5))
 end
 function M.Specs(viewport,width,height,logicalW,logicalH)
+    logicalW,logicalH=math.max(1,logicalW),math.max(1,logicalH)
     local w,h=M.Size(width,height,logicalW,logicalH)
     return {
         {viewport=viewport,width=w,height=h},

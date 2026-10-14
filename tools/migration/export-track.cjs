@@ -1,8 +1,14 @@
 // Convert the source TrackView and its canvas textures. Source checkout is read-only.
-const fs=require('fs'),path=require('path'),http=require('http');
+const fs=require('fs'),path=require('path'),http=require('http'),crypto=require('node:crypto');
 const {chromium}=require(process.env.PLAYWRIGHT_MODULE||'C:/Users/XD/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
 const source=path.resolve(process.argv[2]||'D:/Rino_Project/Vox'),root=path.resolve(__dirname,'../..');
-const out=path.join(root,'assets/Track');fs.mkdirSync(out,{recursive:true});
+const out=path.join(root,'assets/Track');
+const isolatedArg=process.argv.find(arg=>arg.startsWith('--output='));
+const destination=isolatedArg?path.resolve(isolatedArg.slice('--output='.length)):out;
+if(isolatedArg&&destination===out)throw Error('Isolated output must differ from runtime assets/Track');
+if(isolatedArg&&fs.existsSync(destination)&&fs.readdirSync(destination).length)throw Error('Isolated output must be empty to exclude stale exports');
+fs.mkdirSync(destination,{recursive:true});
+const dependencies=new Map(),sha256=body=>crypto.createHash('sha256').update(body).digest('hex');
 function mdl(g){
  const chunks=[],u=(...a)=>{const b=Buffer.alloc(a.length*4);a.forEach((v,i)=>b.writeUInt32LE(v,i*4));chunks.push(b);},f=(...a)=>{const b=Buffer.alloc(a.length*4);a.forEach((v,i)=>b.writeFloatLE(v,i*4));chunks.push(b);};
  const n=g.p.length/3,ix=g.idx,lo=[Infinity,Infinity,Infinity],hi=[-Infinity,-Infinity,-Infinity];
@@ -17,6 +23,7 @@ function mdl(g){
   if(req.url==='/migration.html'){res.setHeader('Content-Type','text/html');res.end('<script type="importmap">{"imports":{"three":"/three/vendor/three/build/three.module.js","@shared/":"/shared/"}}</script>');return;}
   const file=path.resolve(source,'.'+decodeURIComponent(new URL(req.url,'http://local').pathname));
   if(!file.startsWith(source+path.sep)||!fs.existsSync(file)||fs.statSync(file).isDirectory()){res.writeHead(404).end();return;}
+  dependencies.set(path.relative(source,file).replaceAll('\\','/'),sha256(fs.readFileSync(file)));
   res.setHeader('Content-Type',path.extname(file)==='.js'?'text/javascript':'application/octet-stream');fs.createReadStream(file).pipe(res);
  });
  await new Promise(r=>server.listen(0,'127.0.0.1',r));const browser=await chromium.launch({headless:true,channel:'msedge'});
@@ -50,12 +57,22 @@ function mdl(g){
    const cones=collect(cone),targetBase=collect(target.root,new Set([target.pivot,target.bar])),targetBoard=collect(target.pivot);
    renderer.dispose();return {layout,materials,textures,statics,cones,targetBase,targetBoard};
   });
-  result.textures.forEach((t,i)=>fs.writeFileSync(path.join(out,'texture-'+i+'.png'),Buffer.from(t.split(',')[1],'base64')));delete result.textures;
+  result.textures.forEach((t,i)=>fs.writeFileSync(path.join(destination,'texture-'+i+'.png'),Buffer.from(t.split(',')[1],'base64')));delete result.textures;
   let count=0,vertices=0,triangles=0;
-  for(const key of ['statics','cones','targetBase','targetBoard'])result[key]=result[key].map(g=>{const name='model-'+count+++'.mdl';vertices+=g.p.length/3;triangles+=g.idx.length/3;fs.writeFileSync(path.join(out,name),mdl(g));return {model:'Track/'+name,material:g.material+1,shadow:g.shadow};});
+  for(const key of ['statics','cones','targetBase','targetBoard'])result[key]=result[key].map(g=>{const name='model-'+count+++'.mdl';vertices+=g.p.length/3;triangles+=g.idx.length/3;fs.writeFileSync(path.join(destination,name),mdl(g));return {model:'Track/'+name,material:g.material+1,shadow:g.shadow};});
   for(const m of result.materials)for(const key of ['map','normal','roughMap'])if(m[key])m[key].path='Track/texture-'+m[key].id+'.png';
-  fs.writeFileSync(path.join(out,'Manifest.json'),JSON.stringify(result));
+  fs.writeFileSync(path.join(destination,'Manifest.json'),JSON.stringify(result));
   const report={source,models:count,vertices,triangles,materials:result.materials.length,blocks:result.layout.blocks.length,signs:result.layout.signs.length};
-  fs.writeFileSync(path.join(root,'docs/migration/evidence/track-import.json'),JSON.stringify(report,null,2));console.log(report);
+  if(isolatedArg){
+   const baseline=JSON.parse(fs.readFileSync(path.join(root,'docs/migration/outgame-baseline.json')));
+   const inputs=[...dependencies].map(([file,hash])=>({file,sha256:hash,baselineMatches:baseline.files[file]?.sha256===hash}));
+   if(!inputs.length||inputs.some(input=>!input.baselineMatches))throw Error('Export dependencies differ from frozen baseline');
+   const outputs=fs.readdirSync(destination).filter(file=>file!=='provenance.json').map(file=>{
+    const body=fs.readFileSync(path.join(destination,file)),target=path.join(out,file),digest=sha256(body);
+    return {file:'Track/'+file,sha256:digest,bytes:body.length,status:!fs.existsSync(target)?'MISSING_TARGET':sha256(fs.readFileSync(target))===digest?'DERIVED_BASELINE_MATCH':'DERIVED_BASELINE_DIFF'};
+   });
+   fs.writeFileSync(path.join(destination,'provenance.json'),JSON.stringify({sourceCommit:baseline.commit,source,converter:'tools/migration/export-track.cjs',converterSha256:sha256(fs.readFileSync(__filename)),inputs,outputs,acceptance:'Independent isolated export. Does not verify compiled materials, collision, rendering or gameplay parity.'},null,2));
+   console.log(JSON.stringify({...report,destination,inputs:inputs.length,outputs:outputs.reduce((a,o)=>(a[o.status]=(a[o.status]||0)+1,a),{})}));
+  }else fs.writeFileSync(path.join(root,'docs/migration/evidence/track-import.json'),JSON.stringify(report,null,2));
  }finally{await browser.close();server.close();}
 })().catch(e=>{console.error(e);process.exitCode=1;});

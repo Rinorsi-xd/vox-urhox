@@ -1,0 +1,1035 @@
+{
+  "sourceCommit": "2b169a9964645f5f346a7158bcb14447f040814a",
+  "manifest": "manifest-1f1d11ca.json",
+  "viewport": {
+    "width": 1920,
+    "height": 1080,
+    "dpr": 1
+  },
+  "instrumented": true,
+  "bootMs": 45810,
+  "craterMs": 82508,
+  "longestFrames": [
+    {
+      "at": 119162,
+      "ms": 11209.11
+    },
+    {
+      "at": 45651.83,
+      "ms": 8907.345000000001
+    },
+    {
+      "at": 128703.135,
+      "ms": 7372.689999999988
+    },
+    {
+      "at": 89020.65,
+      "ms": 3869.829999999987
+    },
+    {
+      "at": 23884.04,
+      "ms": 3019.125
+    },
+    {
+      "at": 71239.44,
+      "ms": 1968.3150000000023
+    },
+    {
+      "at": 69121.035,
+      "ms": 1618.020000000004
+    },
+    {
+      "at": 34943.01,
+      "ms": 1584.6100000000006
+    },
+    {
+      "at": 14409.565,
+      "ms": 1534.5900000000001
+    },
+    {
+      "at": 10789.94,
+      "ms": 1517.9099999999999
+    }
+  ],
+  "methods": {
+    "boot:getError": {
+      "calls": 422,
+      "totalMs": 21.10499995946884,
+      "maxMs": 0.26499998569488525
+    },
+    "boot:texImage2D": {
+      "calls": 428,
+      "totalMs": 25.629999935626984,
+      "maxMs": 7.879999995231628
+    },
+    "boot:shaderSource": {
+      "calls": 125,
+      "totalMs": 2.925000011920929,
+      "maxMs": 0.18000000715255737
+    },
+    "boot:compileShader": {
+      "calls": 125,
+      "totalMs": 0.1799999177455902,
+      "maxMs": 0.025000005960464478
+    },
+    "boot:getShaderParameter": {
+      "calls": 125,
+      "totalMs": 117.7999999821186,
+      "maxMs": 4.770000010728836
+    },
+    "boot:attachShader": {
+      "calls": 174,
+      "totalMs": 0.2550000846385956,
+      "maxMs": 0.009999990463256836
+    },
+    "boot:linkProgram": {
+      "calls": 87,
+      "totalMs": 0.9050000607967377,
+      "maxMs": 0.10500001907348633
+    },
+    "boot:getProgramParameter": {
+      "calls": 609,
+      "totalMs": 2144.184999972582,
+      "maxMs": 141.3299999833107
+    },
+    "boot:getActiveUniform": {
+      "calls": 4284,
+      "totalMs": 2.0150000751018524,
+      "maxMs": 0.04000002145767212
+    },
+    "boot:getUniformLocation": {
+      "calls": 1428,
+      "totalMs": 1.194999873638153,
+      "maxMs": 0.034999996423721313
+    },
+    "boot:bufferData": {
+      "calls": 642,
+      "totalMs": 2.725000023841858,
+      "maxMs": 0.23500001430511475
+    },
+    "boot:texSubImage2D": {
+      "calls": 492,
+      "totalMs": 0.5950000882148743,
+      "maxMs": 0.08000001311302185
+    },
+    "boot:compressedTexImage2D": {
+      "calls": 8,
+      "totalMs": 0.02000001072883606,
+      "maxMs": 0.02000001072883606
+    },
+    "boot:bufferSubData": {
+      "calls": 88,
+      "totalMs": 1.4300000369548798,
+      "maxMs": 0.17500001192092896
+    },
+    "crater:bufferSubData": {
+      "calls": 2539,
+      "totalMs": 83.89999967813492,
+      "maxMs": 0.25
+    },
+    "crater:bufferData": {
+      "calls": 4537,
+      "totalMs": 34.90000006556511,
+      "maxMs": 9.240000009536743
+    },
+    "crater:texImage2D": {
+      "calls": 371,
+      "totalMs": 72.72999998927116,
+      "maxMs": 28.76000002026558
+    },
+    "crater:texSubImage2D": {
+      "calls": 709,
+      "totalMs": 0.8449999690055847,
+      "maxMs": 0.13999998569488525
+    },
+    "crater:attachShader": {
+      "calls": 174,
+      "totalMs": 0.2150000035762787,
+      "maxMs": 0.010000020265579224
+    },
+    "crater:linkProgram": {
+      "calls": 87,
+      "totalMs": 0.98499995470047,
+      "maxMs": 0.07500001788139343
+    },
+    "crater:getProgramParameter": {
+      "calls": 609,
+      "totalMs": 5806.059999912977,
+      "maxMs": 355.5949999988079
+    },
+    "crater:getActiveUniform": {
+      "calls": 7002,
+      "totalMs": 3.0400000512599945,
+      "maxMs": 0.12000000476837158
+    },
+    "crater:getUniformLocation": {
+      "calls": 2334,
+      "totalMs": 1.6250001788139343,
+      "maxMs": 0.010000020265579224
+    },
+    "crater:shaderSource": {
+      "calls": 120,
+      "totalMs": 4.475000113248825,
+      "maxMs": 0.17500001192092896
+    },
+    "crater:compileShader": {
+      "calls": 120,
+      "totalMs": 0.12999996542930603,
+      "maxMs": 0.009999990463256836
+    },
+    "crater:getShaderParameter": {
+      "calls": 120,
+      "totalMs": 225.88499981164932,
+      "maxMs": 9.46000000834465
+    },
+    "crater:texSubImage3D": {
+      "calls": 135,
+      "totalMs": 16.520000100135803,
+      "maxMs": 5.050000011920929
+    },
+    "crater:texImage3D": {
+      "calls": 1,
+      "totalMs": 0.02000001072883606,
+      "maxMs": 0.02000001072883606
+    },
+    "crater:getError": {
+      "calls": 54,
+      "totalMs": 3.9700000286102295,
+      "maxMs": 0.19499999284744263
+    }
+  },
+  "longestTasks": [
+    {
+      "phase": "crater",
+      "at": 108215.06000000238,
+      "ms": 10951,
+      "recordedSlowCallsMs": {
+        "getProgramParameter": 2868.824999988079
+      }
+    },
+    {
+      "phase": "boot",
+      "at": 36760.755000025034,
+      "ms": 8899,
+      "recordedSlowCallsMs": {
+        "getProgramParameter": 1713.9799999892712
+      }
+    },
+    {
+      "phase": "crater",
+      "at": 121342.56500002742,
+      "ms": 7371,
+      "recordedSlowCallsMs": {
+        "getProgramParameter": 2471.099999845028
+      }
+    },
+    {
+      "phase": "crater",
+      "at": 85164.80500000715,
+      "ms": 3858,
+      "recordedSlowCallsMs": {}
+    },
+    {
+      "phase": "boot",
+      "at": 20856.70000001788,
+      "ms": 3039,
+      "recordedSlowCallsMs": {}
+    },
+    {
+      "phase": "crater",
+      "at": 69331.68500000238,
+      "ms": 1913,
+      "recordedSlowCallsMs": {}
+    },
+    {
+      "phase": "crater",
+      "at": 67519.58500000834,
+      "ms": 1597,
+      "recordedSlowCallsMs": {}
+    },
+    {
+      "phase": "boot",
+      "at": 33358.510000020266,
+      "ms": 1591,
+      "recordedSlowCallsMs": {}
+    },
+    {
+      "phase": "boot",
+      "at": 12884.57000002265,
+      "ms": 1532,
+      "recordedSlowCallsMs": {}
+    },
+    {
+      "phase": "boot",
+      "at": 9288.165000021458,
+      "ms": 1515,
+      "recordedSlowCallsMs": {}
+    }
+  ],
+  "slowestCalls": [
+    {
+      "phase": "crater",
+      "method": "getProgramParameter",
+      "at": 116728.86500000954,
+      "ms": 355.5949999988079,
+      "program": 115,
+      "pname": 35714,
+      "shaderHashes": [
+        {
+          "id": 164,
+          "sha256": "a1604143e5228c0cb8e0629690ea6984cfc58f409c3c9a04edbf12751caa7405"
+        },
+        {
+          "id": 165,
+          "sha256": "0be0eb0cebbc5ef602c75777778827e30b7f769a8cb9f56e812b46db38055043"
+        }
+      ]
+    },
+    {
+      "phase": "crater",
+      "method": "getProgramParameter",
+      "at": 126359.16000002623,
+      "ms": 322.3149999976158,
+      "program": 150,
+      "pname": 35714,
+      "shaderHashes": [
+        {
+          "id": 215,
+          "sha256": "739f800e23dae60736b17e2beb5b395474f1715c1d1df37d37d2c47b8f219f2d"
+        },
+        {
+          "id": 217,
+          "sha256": "05484c492d723e3ff116d463b5d3040488715c4f22a8028a75e21306582ae7c5"
+        }
+      ]
+    },
+    {
+      "phase": "crater",
+      "method": "getProgramParameter",
+      "at": 118144.21000000834,
+      "ms": 285.5900000035763,
+      "program": 134,
+      "pname": 35714,
+      "shaderHashes": [
+        {
+          "id": 191,
+          "sha256": "524464b04c24c17d769ff5235e7bcb0617d727e7737511f1c1fc8712bda1efc7"
+        },
+        {
+          "id": 192,
+          "sha256": "fec267a57050ae45686b06cfa617afdc0c1b91e3bf2c2a67ecf14e3ec301be33"
+        }
+      ]
+    },
+    {
+      "phase": "crater",
+      "method": "getProgramParameter",
+      "at": 126098.32500001788,
+      "ms": 251.10499998927116,
+      "program": 149,
+      "pname": 35714,
+      "shaderHashes": [
+        {
+          "id": 215,
+          "sha256": "739f800e23dae60736b17e2beb5b395474f1715c1d1df37d37d2c47b8f219f2d"
+        },
+        {
+          "id": 216,
+          "sha256": "b8ca43740e46d76ba9c59004c67564fd3a1d86b1ddd0ff3c21567a3492a7c90e"
+        }
+      ]
+    },
+    {
+      "phase": "crater",
+      "method": "getProgramParameter",
+      "at": 128412.29000002146,
+      "ms": 218.30500000715256,
+      "program": 171,
+      "pname": 35714,
+      "shaderHashes": [
+        {
+          "id": 191,
+          "sha256": "524464b04c24c17d769ff5235e7bcb0617d727e7737511f1c1fc8712bda1efc7"
+        },
+        {
+          "id": 241,
+          "sha256": "a36485439fc6bd9ec7f79ff632ff20200db412710fd39e66f4fdc93260e5156a"
+        }
+      ]
+    },
+    {
+      "phase": "crater",
+      "method": "getProgramParameter",
+      "at": 117090.37000000477,
+      "ms": 200.4399999976158,
+      "program": 116,
+      "pname": 35714,
+      "shaderHashes": [
+        {
+          "id": 143,
+          "sha256": "40cc5aadcf598ba97dcaa0b8356ba165c61b5ac091cc5379f4284c26ae52eeee"
+        },
+        {
+          "id": 166,
+          "sha256": "609c609a40b8c8dc0f579f30ad4267cc503090f6d317627eabc88f1224e90dc3"
+        }
+      ]
+    },
+    {
+      "phase": "crater",
+      "method": "getProgramParameter",
+      "at": 127659.93500000238,
+      "ms": 185.9200000166893,
+      "program": 164,
+      "pname": 35714,
+      "shaderHashes": [
+        {
+          "id": 218,
+          "sha256": "18a3bd4ff2136e5ce785629817d81b11973f23a6137ad0789612d7f744a70945"
+        },
+        {
+          "id": 234,
+          "sha256": "1459f301ac2cbbe190fad3ed74f717f8c01958ed2c7bb5a2989a7a76d8c2c973"
+        }
+      ]
+    },
+    {
+      "phase": "crater",
+      "method": "getProgramParameter",
+      "at": 127973.17500001192,
+      "ms": 182.72999998927116,
+      "program": 167,
+      "pname": 35714,
+      "shaderHashes": [
+        {
+          "id": 218,
+          "sha256": "18a3bd4ff2136e5ce785629817d81b11973f23a6137ad0789612d7f744a70945"
+        },
+        {
+          "id": 237,
+          "sha256": "bc98d60955e60619d9ff2e1177f12de9306c5d704f79939067a0f15ef7a67176"
+        }
+      ]
+    },
+    {
+      "phase": "crater",
+      "method": "getProgramParameter",
+      "at": 117297.46500000358,
+      "ms": 177.7950000166893,
+      "program": 117,
+      "pname": 35714,
+      "shaderHashes": [
+        {
+          "id": 143,
+          "sha256": "40cc5aadcf598ba97dcaa0b8356ba165c61b5ac091cc5379f4284c26ae52eeee"
+        },
+        {
+          "id": 167,
+          "sha256": "a8f6ab38434d7be1faf8cdf70b4ef957c4368af3a55ee5699f1476515aff634c"
+        }
+      ]
+    },
+    {
+      "phase": "crater",
+      "method": "getProgramParameter",
+      "at": 127372.60500001907,
+      "ms": 177.54499998688698,
+      "program": 162,
+      "pname": 35714,
+      "shaderHashes": [
+        {
+          "id": 218,
+          "sha256": "18a3bd4ff2136e5ce785629817d81b11973f23a6137ad0789612d7f744a70945"
+        },
+        {
+          "id": 232,
+          "sha256": "1b9db92c6f6493cc816d37c146bf97fb2de2dbd2bc0e90ac6034a9ed4004bc26"
+        }
+      ]
+    },
+    {
+      "phase": "crater",
+      "method": "getProgramParameter",
+      "at": 118435.34000000358,
+      "ms": 161.4500000178814,
+      "program": 135,
+      "pname": 35714,
+      "shaderHashes": [
+        {
+          "id": 170,
+          "sha256": "a1ebba418f1dd4af802daabe82822547584e382eab5425e650ad80bba0d5a29d"
+        },
+        {
+          "id": 193,
+          "sha256": "cd8f66e741045070943fa13aba134b945a7fe58a8f45269e810902619b8eb74e"
+        }
+      ]
+    },
+    {
+      "phase": "crater",
+      "method": "getProgramParameter",
+      "at": 115978.43500000238,
+      "ms": 156.1899999976158,
+      "program": 101,
+      "pname": 35714,
+      "shaderHashes": [
+        {
+          "id": 143,
+          "sha256": "40cc5aadcf598ba97dcaa0b8356ba165c61b5ac091cc5379f4284c26ae52eeee"
+        },
+        {
+          "id": 144,
+          "sha256": "2fb56f3c54f5267b1103d60423ef8a0d275d9c0d0b2b341873857958f38e2f66"
+        }
+      ]
+    },
+    {
+      "phase": "crater",
+      "method": "getProgramParameter",
+      "at": 118602.10500001907,
+      "ms": 153.55500000715256,
+      "program": 136,
+      "pname": 35714,
+      "shaderHashes": [
+        {
+          "id": 170,
+          "sha256": "a1ebba418f1dd4af802daabe82822547584e382eab5425e650ad80bba0d5a29d"
+        },
+        {
+          "id": 194,
+          "sha256": "6ff2fa93a6a2998ec138dd0075dc31f8bfa61ba9aa8d8635b8516c6ce5ac043d"
+        }
+      ]
+    },
+    {
+      "phase": "crater",
+      "method": "getProgramParameter",
+      "at": 127024.74500000477,
+      "ms": 142.91500002145767,
+      "program": 158,
+      "pname": 35714,
+      "shaderHashes": [
+        {
+          "id": 218,
+          "sha256": "18a3bd4ff2136e5ce785629817d81b11973f23a6137ad0789612d7f744a70945"
+        },
+        {
+          "id": 228,
+          "sha256": "cde66dbebd664f67887f92b324fac8550b652d870d42b73b21d63e20cd212884"
+        }
+      ]
+    },
+    {
+      "phase": "boot",
+      "method": "getProgramParameter",
+      "at": 43603.32000002265,
+      "ms": 141.3299999833107,
+      "program": 32,
+      "pname": 35714,
+      "shaderHashes": [
+        {
+          "id": 48,
+          "sha256": "807c53f304c2d629d755e5351a5b5e87d7825c9e164a437eca82af04f7907939"
+        },
+        {
+          "id": 49,
+          "sha256": "ca68803afe7b9c039380180688d5b10cc414117eed821fc8b8c0966debcb9796"
+        }
+      ]
+    },
+    {
+      "phase": "crater",
+      "method": "getProgramParameter",
+      "at": 126687.17000001669,
+      "ms": 137.33500000834465,
+      "program": 151,
+      "pname": 35714,
+      "shaderHashes": [
+        {
+          "id": 218,
+          "sha256": "18a3bd4ff2136e5ce785629817d81b11973f23a6137ad0789612d7f744a70945"
+        },
+        {
+          "id": 219,
+          "sha256": "b554d61569b04fc708747dfb042ff4b16b1711c76c5be97c93385f47dc84bbe2"
+        }
+      ]
+    },
+    {
+      "phase": "crater",
+      "method": "getProgramParameter",
+      "at": 128275.19500002265,
+      "ms": 129.2049999833107,
+      "program": 170,
+      "pname": 35714,
+      "shaderHashes": [
+        {
+          "id": 170,
+          "sha256": "a1ebba418f1dd4af802daabe82822547584e382eab5425e650ad80bba0d5a29d"
+        },
+        {
+          "id": 240,
+          "sha256": "dfde5000bab3d3257097ea7eebb01f395969d61fafd5de03fe2eb4bb73c94134"
+        }
+      ]
+    },
+    {
+      "phase": "crater",
+      "method": "getProgramParameter",
+      "at": 117698.21000000834,
+      "ms": 124.30000001192093,
+      "program": 120,
+      "pname": 35714,
+      "shaderHashes": [
+        {
+          "id": 170,
+          "sha256": "a1ebba418f1dd4af802daabe82822547584e382eab5425e650ad80bba0d5a29d"
+        },
+        {
+          "id": 171,
+          "sha256": "fa862ebdce13fb5793abc9683350bd12faf592378a1c85c2cb6f1d204b2cbd60"
+        }
+      ]
+    },
+    {
+      "phase": "crater",
+      "method": "getProgramParameter",
+      "at": 117479.875,
+      "ms": 115.06000000238419,
+      "program": 118,
+      "pname": 35714,
+      "shaderHashes": [
+        {
+          "id": 143,
+          "sha256": "40cc5aadcf598ba97dcaa0b8356ba165c61b5ac091cc5379f4284c26ae52eeee"
+        },
+        {
+          "id": 168,
+          "sha256": "c644240b58b23d3626c956863f776c77d0fbf98add1e95ad24d265428c8676e8"
+        }
+      ]
+    },
+    {
+      "phase": "crater",
+      "method": "getProgramParameter",
+      "at": 127172.5150000155,
+      "ms": 100.36500000953674,
+      "program": 159,
+      "pname": 35714,
+      "shaderHashes": [
+        {
+          "id": 218,
+          "sha256": "18a3bd4ff2136e5ce785629817d81b11973f23a6137ad0789612d7f744a70945"
+        },
+        {
+          "id": 229,
+          "sha256": "89874624a77000aa2e137da04e3a2d23db8ab9df885cd344174738b06034d5ab"
+        }
+      ]
+    }
+  ],
+  "bootWaitStacks": [
+    {
+      "sampledSelfMs": 10793.706,
+      "frames": [
+        "_emscripten_get_now",
+        "wasm-to-js",
+        "wasm-function[4618]",
+        "wasm-function[5469]",
+        "wasm-function[14591]",
+        "wasm-function[5468]",
+        "wasm-function[1870]",
+        "wasm-function[1551]",
+        "wasm-function[21936]",
+        "wasm-function[3928]",
+        "wasm-function[46089]",
+        "wasm-function[4342]",
+        "wasm-function[3096]",
+        "wasm-function[46138]",
+        "js-to-wasm:i:",
+        "",
+        "callUserCallback",
+        "doCallback",
+        "reportSuccess",
+        "xhr.onload"
+      ]
+    },
+    {
+      "sampledSelfMs": 7966.425,
+      "frames": [
+        "_emscripten_get_now",
+        "wasm-to-js",
+        "wasm-function[4618]",
+        "wasm-function[5469]",
+        "wasm-function[14591]",
+        "wasm-function[5468]",
+        "wasm-function[1870]",
+        "wasm-function[1551]",
+        "wasm-function[12585]",
+        "wasm-function[21948]",
+        "wasm-function[12606]",
+        "wasm-function[1506]",
+        "wasm-function[46089]",
+        "wasm-function[4342]",
+        "wasm-function[3096]",
+        "wasm-function[46138]",
+        "js-to-wasm:i:",
+        "",
+        "callUserCallback",
+        "doCallback"
+      ]
+    },
+    {
+      "sampledSelfMs": 1792.154,
+      "frames": [
+        "_emscripten_get_now",
+        "wasm-to-js",
+        "wasm-function[5469]",
+        "wasm-function[14591]",
+        "wasm-function[5468]",
+        "wasm-function[1870]",
+        "wasm-function[1551]",
+        "wasm-function[12585]",
+        "wasm-function[21948]",
+        "wasm-function[12606]",
+        "wasm-function[1506]",
+        "wasm-function[46089]",
+        "wasm-function[4342]",
+        "wasm-function[3096]",
+        "wasm-function[46138]",
+        "js-to-wasm:i:",
+        "",
+        "callUserCallback",
+        "doCallback",
+        "reportSuccess"
+      ]
+    },
+    {
+      "sampledSelfMs": 1704.234,
+      "frames": [
+        "_emscripten_get_now",
+        "wasm-to-js",
+        "wasm-function[5469]",
+        "wasm-function[14591]",
+        "wasm-function[5468]",
+        "wasm-function[1870]",
+        "wasm-function[1551]",
+        "wasm-function[21936]",
+        "wasm-function[3928]",
+        "wasm-function[46089]",
+        "wasm-function[4342]",
+        "wasm-function[3096]",
+        "wasm-function[46138]",
+        "js-to-wasm:i:",
+        "",
+        "callUserCallback",
+        "doCallback",
+        "reportSuccess",
+        "xhr.onload",
+        "(root)"
+      ]
+    },
+    {
+      "sampledSelfMs": 796.088,
+      "frames": [
+        "_emscripten_get_now",
+        "wasm-to-js",
+        "wasm-function[14591]",
+        "wasm-function[5468]",
+        "wasm-function[1870]",
+        "wasm-function[1551]",
+        "wasm-function[12585]",
+        "wasm-function[21948]",
+        "wasm-function[12606]",
+        "wasm-function[1506]",
+        "wasm-function[46089]",
+        "wasm-function[4342]",
+        "wasm-function[3096]",
+        "wasm-function[46138]",
+        "js-to-wasm:i:",
+        "",
+        "callUserCallback",
+        "doCallback",
+        "reportSuccess",
+        "xhr.onload"
+      ]
+    },
+    {
+      "sampledSelfMs": 642.123,
+      "frames": [
+        "_emscripten_get_now",
+        "wasm-to-js",
+        "wasm-function[14591]",
+        "wasm-function[5468]",
+        "wasm-function[1870]",
+        "wasm-function[1551]",
+        "wasm-function[21936]",
+        "wasm-function[3928]",
+        "wasm-function[46089]",
+        "wasm-function[4342]",
+        "wasm-function[3096]",
+        "wasm-function[46138]",
+        "js-to-wasm:i:",
+        "",
+        "callUserCallback",
+        "doCallback",
+        "reportSuccess",
+        "xhr.onload",
+        "(root)"
+      ]
+    },
+    {
+      "sampledSelfMs": 421.591,
+      "frames": [
+        "_emscripten_get_now",
+        "wasm-to-js",
+        "wasm-function[14591]",
+        "wasm-function[1870]",
+        "wasm-function[1551]",
+        "wasm-function[21953]",
+        "wasm-function[1934]",
+        "wasm-function[1038]",
+        "wasm-function[8191]",
+        "wasm-function[45940]",
+        "wasm-function[28102]",
+        "wasm-function[28096]",
+        "wasm-function[26668]",
+        "wasm-function[9961]",
+        "wasm-function[15801]",
+        "wasm-function[9975]",
+        "wasm-function[28149]",
+        "wasm-function[2477]",
+        "wasm-function[1460]",
+        "wasm-function[8587]"
+      ]
+    },
+    {
+      "sampledSelfMs": 241.755,
+      "frames": [
+        "_emscripten_get_now",
+        "wasm-to-js",
+        "wasm-function[14591]",
+        "wasm-function[5468]",
+        "wasm-function[1870]",
+        "wasm-function[21951]",
+        "wasm-function[4439]",
+        "wasm-function[22003]",
+        "wasm-function[2085]",
+        "wasm-function[1934]",
+        "wasm-function[1038]",
+        "wasm-function[8191]",
+        "wasm-function[45940]",
+        "wasm-function[20985]",
+        "wasm-function[45937]",
+        "wasm-function[2917]",
+        "wasm-function[17137]",
+        "wasm-function[8152]",
+        "wasm-function[25942]",
+        "wasm-function[12012]"
+      ]
+    }
+  ],
+  "craterWaitStacks": [
+    {
+      "sampledSelfMs": 12488.249,
+      "frames": [
+        "_emscripten_get_now",
+        "wasm-to-js",
+        "wasm-function[14591]",
+        "wasm-function[1870]",
+        "wasm-function[1551]",
+        "wasm-function[21936]",
+        "wasm-function[3928]",
+        "wasm-function[46089]",
+        "wasm-function[4342]",
+        "wasm-function[3096]",
+        "wasm-function[46138]",
+        "js-to-wasm:i:",
+        "",
+        "callUserCallback",
+        "doCallback",
+        "reportSuccess",
+        "xhr.onload",
+        "(root)"
+      ]
+    },
+    {
+      "sampledSelfMs": 7376.277,
+      "frames": [
+        "_emscripten_get_now",
+        "wasm-to-js",
+        "wasm-function[14591]",
+        "wasm-function[1870]",
+        "wasm-function[1551]",
+        "wasm-function[12585]",
+        "wasm-function[21948]",
+        "wasm-function[12606]",
+        "wasm-function[46089]",
+        "wasm-function[4342]",
+        "wasm-function[3096]",
+        "wasm-function[46138]",
+        "js-to-wasm:i:",
+        "",
+        "callUserCallback",
+        "doCallback",
+        "reportSuccess",
+        "xhr.onload",
+        "(root)"
+      ]
+    },
+    {
+      "sampledSelfMs": 1226.48,
+      "frames": [
+        "_emscripten_get_now",
+        "wasm-to-js",
+        "wasm-function[14591]",
+        "wasm-function[1870]",
+        "wasm-function[21953]",
+        "wasm-function[1934]",
+        "wasm-function[45940]",
+        "wasm-function[28102]",
+        "wasm-function[28096]",
+        "wasm-function[26668]",
+        "wasm-function[9961]",
+        "wasm-function[15801]",
+        "wasm-function[9975]",
+        "wasm-function[28149]",
+        "wasm-function[2477]",
+        "wasm-function[1460]",
+        "wasm-function[8587]",
+        "wasm-function[12939]",
+        "wasm-function[3490]",
+        "wasm-function[5933]"
+      ]
+    },
+    {
+      "sampledSelfMs": 672.47,
+      "frames": [
+        "_emscripten_get_now",
+        "wasm-to-js",
+        "wasm-function[14591]",
+        "wasm-function[1870]",
+        "wasm-function[21951]",
+        "wasm-function[4439]",
+        "wasm-function[27447]",
+        "wasm-function[1067]",
+        "wasm-function[22693]",
+        "wasm-function[1067]",
+        "wasm-function[20985]",
+        "wasm-function[45937]",
+        "wasm-function[13610]",
+        "wasm-function[23759]",
+        "wasm-function[1067]",
+        "wasm-function[20985]",
+        "wasm-function[45937]",
+        "wasm-function[2310]",
+        "wasm-function[13157]",
+        "wasm-function[17129]"
+      ]
+    },
+    {
+      "sampledSelfMs": 639.236,
+      "frames": [
+        "_emscripten_get_now",
+        "wasm-to-js",
+        "wasm-function[14591]",
+        "wasm-function[1870]",
+        "wasm-function[21951]",
+        "wasm-function[4439]",
+        "wasm-function[1934]",
+        "wasm-function[45940]",
+        "wasm-function[20985]",
+        "wasm-function[45937]",
+        "wasm-function[2917]",
+        "wasm-function[17137]",
+        "wasm-function[8152]",
+        "wasm-function[25942]",
+        "wasm-function[12012]",
+        "wasm-function[12058]",
+        "wasm-function[5158]",
+        "wasm-function[5158]",
+        "wasm-function[20866]",
+        "wasm-function[45725]"
+      ]
+    },
+    {
+      "sampledSelfMs": 533.346,
+      "frames": [
+        "_emscripten_get_now",
+        "wasm-to-js",
+        "wasm-function[14591]",
+        "wasm-function[1870]",
+        "wasm-function[1551]",
+        "wasm-function[12585]",
+        "wasm-function[12606]",
+        "wasm-function[46089]",
+        "wasm-function[4342]",
+        "wasm-function[3096]",
+        "wasm-function[46138]",
+        "js-to-wasm:i:",
+        "",
+        "callUserCallback",
+        "doCallback",
+        "reportSuccess",
+        "xhr.onload",
+        "(root)"
+      ]
+    },
+    {
+      "sampledSelfMs": 518.713,
+      "frames": [
+        "_emscripten_get_now",
+        "wasm-to-js",
+        "wasm-function[14591]",
+        "wasm-function[1870]",
+        "wasm-function[21951]",
+        "wasm-function[4439]",
+        "wasm-function[22003]",
+        "wasm-function[21094]",
+        "wasm-function[46053]",
+        "wasm-function[1067]",
+        "wasm-function[8189]",
+        "wasm-function[6452]",
+        "wasm-function[22679]",
+        "wasm-function[1067]",
+        "wasm-function[20985]",
+        "wasm-function[45937]",
+        "wasm-function[37456]",
+        "wasm-function[10071]",
+        "wasm-function[4135]",
+        "wasm-function[26909]"
+      ]
+    },
+    {
+      "sampledSelfMs": 347.092,
+      "frames": [
+        "_emscripten_get_now",
+        "wasm-to-js",
+        "wasm-function[14591]",
+        "wasm-function[1870]",
+        "wasm-function[21951]",
+        "wasm-function[4439]",
+        "wasm-function[23664]",
+        "wasm-function[1067]",
+        "wasm-function[20985]",
+        "wasm-function[45937]",
+        "wasm-function[2917]",
+        "wasm-function[17137]",
+        "wasm-function[8152]",
+        "wasm-function[25942]",
+        "wasm-function[12012]",
+        "wasm-function[12058]",
+        "wasm-function[5158]",
+        "wasm-function[5158]",
+        "wasm-function[5158]",
+        "wasm-function[5158]"
+      ]
+    }
+  ],
+  "limitations": [
+    "Instrumented JS API wall time includes synchronous driver wait. It is not GPU execution time or a native mutex owner trace.",
+    "Slow-call overlap only includes calls >=20ms; it is not the complete GL time of a task.",
+    "WASM function indexes are tied to this fixed runtime. No native symbols means no proven mutex owner.",
+    "Single instrumented Windows Chrome sample; shader/OS caches may be warm. No target-phone or controlled before/after acceptance."
+  ]
+}

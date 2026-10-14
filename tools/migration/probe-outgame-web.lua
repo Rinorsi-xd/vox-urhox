@@ -22,6 +22,7 @@ local function FrameStats()
 end
 local function ResourceStats()
     local data={luaKiB=collectgarbage('count'),resourceBytes=cache:GetTotalMemoryUse(),
+        api=graphics.apiName,desktop=require('urhox-libs.Platform.PlatformUtils').IsDesktopPlatform(),
         modelBytes=cache:GetMemoryUse(StringHash('Model')),arrayBytes=cache:GetMemoryUse(StringHash('Texture2DArray')),
         retiredTargets=require('render.RenderTargetLifetime').PendingCount()}
     return data
@@ -37,6 +38,7 @@ local function DumpTrial(app)
         weapons={energy=s.weapons.energy,shots=s.world.stats.shots,hits=s.world.stats.hits,kills=s.world.stats.kills,blocked=s.weapons.blocked,turning=s.weapons.turning},
         widgets={},performance=ResourceStats(),frames=FrameStats()}
     data.performance.batches=renderer.numBatches;data.performance.primitives=renderer.numPrimitives
+    data.performance.postPasses=app.graphicsSettings.post and app.graphicsSettings.post.graph.passCount or 0
     if s.drivingAudio then data.drivingAudio=s.drivingAudio:Snapshot() end
     data.rotors={}
     local drill=s.weapons.drill;local dg=s.weapons:Group();local dw=dg and dg.weapons[1]

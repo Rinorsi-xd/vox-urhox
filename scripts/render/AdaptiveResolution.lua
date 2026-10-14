@@ -18,7 +18,7 @@ function M:Sample(dt,active)
     return previous~=self.scale
 end
 function M:Size(width,height,dpr,quality,fixed)
-    if fixed then return width,height end
+    if fixed then return math.max(1,width),math.max(1,height) end
     dpr=math.max(1,dpr)
     local base=quality=='high' and math.min(dpr,1.5) or 1
     local scale=base/dpr*self.scale

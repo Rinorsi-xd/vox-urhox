@@ -20,7 +20,15 @@
     ],
     "asset_ignores": [
       "assets/Salvage/model-*",
-      "assets/Salvage/collision-hull-?.bin*"
+      "assets/Salvage/collision-hull-?.bin*",
+      "assets/Crater/albedo-?.png*",
+      "assets/Crater/nra-?.png*",
+      "assets/Crater/albedo-?.xml*",
+      "assets/Crater/nra-?.xml*",
+      "../assets/Crater/albedo-?.png*",
+      "../assets/Crater/nra-?.png*",
+      "../assets/Crater/albedo-?.xml*",
+      "../assets/Crater/nra-?.xml*"
     ]
   },
   "@runtime": {

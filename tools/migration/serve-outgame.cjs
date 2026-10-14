@@ -7,19 +7,28 @@ const manifest=JSON.parse(fs.readFileSync(prepared.manifest_path,'utf8'));
 const main=manifest.files.find(f=>f.fs_path==='main.lua');
 const mainName=main.uuid+'-'+main.hash+main.ext;
 const qa=process.argv.includes('--qa');
-const probe=qa?fs.readFileSync(path.join(__dirname,'probe-outgame-web.lua'),'utf8'):'';
+const loadProfile=qa&&process.argv.includes('--profile-loads');
+const concurrencyArg=process.argv.find(arg=>arg.startsWith('--download-concurrency='));
+const downloadConcurrency=concurrencyArg?Number(concurrencyArg.split('=')[1]):null;
+if(downloadConcurrency!==null&&(!loadProfile||!Number.isInteger(downloadConcurrency)||downloadConcurrency<1||downloadConcurrency>16))throw Error('Download concurrency is a QA load-profile option, range 1..16');
+const probe=qa?(loadProfile?'G0_DOWNLOAD_CONCURRENCY='+(downloadConcurrency??'nil')+'\n'+fs.readFileSync(path.join(__dirname,'profile-load-bindings.lua'),'utf8')+'\n':'')+fs.readFileSync(path.join(__dirname,'probe-outgame-web.lua'),'utf8'):'';
 const port=Number(process.env.VOX_PREVIEW_PORT||4203);
 const sourceCache=require('./cached-engine-sources.cjs');
 const server=http.createServer((req,res)=>{
  if(req.url==='/identity.json'){
   res.setHeader('Content-Type','application/json');res.setHeader('Cache-Control','no-store');
-  res.end(JSON.stringify({...prepared,qa,port,processId:process.pid,servedManifest:path.basename(prepared.manifest_path)}));return;
+  res.end(JSON.stringify({...prepared,qa,loadProfile,downloadConcurrency,port,processId:process.pid,servedManifest:path.basename(prepared.manifest_path)}));return;
  }
  if(req.url.startsWith('/cached-engine-source/')){
   const cached=sourceCache.read('https://tapcode-sce.spark.xd.com/'+req.url.slice('/cached-engine-source/'.length));
   if(!cached){res.writeHead(404);res.end();return;}
   res.setHeader('Content-Type',cached.headers['content-type']||'application/octet-stream');res.setHeader('Cache-Control','no-store');
   res.setHeader('Cross-Origin-Resource-Policy','same-origin');res.end(cached.body);return;
+ }
+ if(qa&&(req.url==='/resize-host.html'||req.url==='/resize-host.html?restore=1')){
+  res.setHeader('Content-Type','text/html');res.setHeader('Cross-Origin-Opener-Policy','same-origin');res.setHeader('Cross-Origin-Embedder-Policy','require-corp');
+  const dimensions=req.url.endsWith('?restore=1')?'width:100vw;height:100vh':'width:0;height:0';
+  res.end('<!doctype html><style>body{margin:0;background:#111}iframe{position:absolute;inset:0;border:0;'+dimensions+'}</style><iframe src="/outgame.html?-game_url=http://127.0.0.1:'+port+'/game-dist/&amp;-log=info&amp;cached=1"></iframe>');return;
  }
  const url=decodeURIComponent(req.url.split('?')[0]);const game=url.startsWith('/game-dist/');
  const base=game?dist:engine;const relative=game?url.slice('/game-dist'.length):url==='/'?'/outgame.html':url;

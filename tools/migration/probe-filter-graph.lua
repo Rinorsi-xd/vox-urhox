@@ -4,6 +4,22 @@ local graph,source
 local count=28
 V.atFrame(45,function()
     cache:AddResourceDir('tools/migration/probes',false);require('urhox-libs/UI').SetRoot(nil)
+    local Adaptive=require 'render.AdaptiveResolution'
+    for _,fixed in ipairs({false,true}) do
+        local w,h=Adaptive.New():Size(0,0,2,'high',fixed)
+        V.assert(w==1 and h==1,'zero drawable size is safe, fixed='..tostring(fixed))
+    end
+    local Backdrop=require 'render.SceneBackdrop'
+    local specs,w,h=Backdrop.Specs(nil,0,0,0,0)
+    V.assert(w==1 and h==1 and specs[2].width==1 and specs[2].height==1,'zero backdrop dimensions retain valid targets')
+    V.assert(specs[2].parameters.direction.x==1 and specs[3].parameters.direction.y==1,'zero logical size cannot produce infinite blur offsets')
+    local tiny=Graph.New({
+        {shader='Shaders/BLGL/FilterGraphProbe.shader',width=0,height=0},
+        {shader='Shaders/BLGL/FilterGraphProbe.shader',inputs={source_map=1}},
+    },0,0)
+    V.assert(tiny.width==1 and tiny.height==1 and tiny.textures[1].width==1 and tiny.textures[1].height==1,'actual HDR allocation clamps graph and per-pass sizes to one pixel')
+    tiny:Dispose()
+    V.assert(next(tiny.textures)==nil and next(tiny.scenes)==nil,'one pixel graph releases its resources')
     source=Graph.New({{shader='Shaders/BLGL/FilterGraphProbe.shader',parameters={stage=0}}},64,64)
     local zone=source.output.scene:CreateComponent('Zone');zone.boundingBox=BoundingBox(-100,100)
     zone:SetAttribute('Bloom Enable',Variant(false));zone:SetAttribute('Auto Exposure Enable',Variant(false));zone.vignetteEnabled=false
