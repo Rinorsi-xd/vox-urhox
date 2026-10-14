@@ -4,7 +4,9 @@ const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypt
 const source='D:/Rino_Project/Vox',target=path.resolve(__dirname,'../..');
 const refIndex=process.argv.indexOf('--ref');
 const requestedRef=refIndex>=0?process.argv[refIndex+1]:null;
+const candidate=process.argv.includes('--candidate');
 if(refIndex>=0&&!requestedRef)throw Error('--ref requires a Git commit or branch');
+if(candidate&&!requestedRef)throw Error('--candidate requires --ref to preserve an immutable Git baseline');
 const git=(...args)=>cp.execFileSync('git',args,{cwd:source,encoding:'utf8',windowsHide:true}).trim();
 const commit=git('rev-parse','--verify',requestedRef?requestedRef+'^{commit}':'HEAD');
 const stamp=new Date().toISOString().replace(/[:.]/g,'-');
@@ -44,6 +46,12 @@ if(requestedRef){manifest.scope=['full H5 Git baseline'];manifest.excluded=[];}
 manifest.contentSha256=hash(Buffer.from(JSON.stringify(files)));
 fs.mkdirSync(path.join(target,'docs/migration'),{recursive:true});
 const active=path.join(target,'docs/migration/outgame-baseline.json');
+if(candidate){
+ const saved=path.join(target,'docs/migration/baselines',commit+'.json');
+ fs.mkdirSync(path.dirname(saved),{recursive:true});fs.writeFileSync(saved,JSON.stringify(manifest,null,2));
+ console.log(JSON.stringify({candidate:true,activeBaselineUnchanged:true,manifest:saved,snapshot:destination,branch:manifest.branch,commit,contentSha256:manifest.contentSha256,files:Object.keys(files).length},null,2));
+ process.exit(0);
+}
 if(fs.existsSync(active)){
  const previous=JSON.parse(fs.readFileSync(active,'utf8'));
  const saved=path.join(target,'docs/migration/baselines',previous.commit+'.json');
