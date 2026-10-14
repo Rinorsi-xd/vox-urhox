@@ -19,7 +19,7 @@ local helpSymbol=nil
 function M.Resolve()
     if resolved then return resolved end
     local paths={body='Fonts/MiSans-Regular.ttf',bold='Fonts/MiSans-Bold.ttf',code='Fonts/Anonymous Pro.ttf'}
-    if GetPlatform()=='Windows' then
+    if GetPlatform()=='Windows' and os.getenv then
         local windows=os.getenv and os.getenv('SystemRoot') or 'C:/Windows'
         local fonts=windows:gsub('\\','/')..'/Fonts/'
         local cacheDir=fileSystem:GetAppPreferencesDir('VoxelCraft','SystemFonts')
@@ -43,7 +43,7 @@ function M.GetBodyFace() M.Resolve();return bodyFace end
 function M.ResolveHelpSymbol()
     if helpSymbol then return helpSymbol end
     local path='Fonts/MiSans-Regular.ttf';local source=false
-    if GetPlatform()=='Windows' then
+    if GetPlatform()=='Windows' and os.getenv then
         local windows=os.getenv and os.getenv('SystemRoot') or 'C:/Windows'
         local candidate=windows:gsub('\\','/')..'/Fonts/NotoSansSC-VF.ttf'
         if fileSystem:FileExists(candidate) then path=candidate;source=true end
@@ -62,7 +62,7 @@ function M.ResolveInlineCode()
     if inlineCode then return inlineCode end
     local path='Fonts/Anonymous Pro.ttf'
     local sourceFace=false
-    if GetPlatform()=='Windows' then
+    if GetPlatform()=='Windows' and os.getenv then
         local windows=os.getenv and os.getenv('SystemRoot') or 'C:/Windows'
         local dir=fileSystem:GetAppPreferencesDir('VoxelCraft','SystemFonts')
         if dir~='' and fileSystem:CreateDir(dir) then

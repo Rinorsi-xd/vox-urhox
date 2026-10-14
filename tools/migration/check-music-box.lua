@@ -1,5 +1,20 @@
 local Hud=require 'ui.GarageHud';local Box=require 'ui.MusicBox';local UI=require 'urhox-libs/UI'
-local home,box,position,delayed
+local home,box,position,delayed,playerUpdate
+local sandbox=false
+for _,a in ipairs(GetArguments()) do if a=='-music-sandbox' then sandbox=true end end
+local getenv,createFont=os.getenv,nvgCreateFont
+local fallbackFonts,rejectedFonts=0,0
+if sandbox then
+    -- Editor/Maker removes getenv; system font access may also be unavailable.
+    os.getenv=nil
+    nvgCreateFont=function(vg,name,path)
+        if name=='vox-music-latin' then
+            if path~='Fonts/MiSans-Regular.ttf' then rejectedFonts=rejectedFonts+1;return -1 end
+            fallbackFonts=fallbackFonts+1
+        end
+        return createFont(vg,name,path)
+    end
+end
 local function Shot(name)
     local image=Image();V.assert(graphics:TakeScreenShot(image),'Music screenshot '..name)
     image:SavePNG('docs/migration/evidence/music-box-'..name..'-'..(VOX_HANGAR.app.musicTestCase or 'pc')..'.png');image:Dispose()
@@ -9,6 +24,10 @@ V.atFrame(65,function()
     local app=VOX_HANGAR.app
     for _,a in ipairs(GetArguments()) do app.musicTestCase=a:match('^%-music%-case=(.+)$') or app.musicTestCase end
     home=Hud.GetState();box=Box.Open(home)
+    -- Validation runs hidden and must not depend on another desktop app's focus.
+    playerUpdate=box.player.Update
+    box.player.Update=function(self,dt,group) return playerUpdate(self,dt,group,false) end
+    box.player:Update(0,'hangar',false)
     V.assert(#box.tracks==13,'Only original approved 13 tracks')
     V.assert(home.musicBox==box and Hud.IsBlocked(),'Music box blocks camera and home shortcuts')
     V.assert(UI.GetTopOverlay()==box.root,'Music owns overlay input')
@@ -18,12 +37,30 @@ V.atFrame(65,function()
     V.assert(box.player.slots[box.player.current].sound.compressed,'MP3 remains compressed')
 end)
 V.atFrame(110,function()
+    if sandbox then
+        V.assert(os.getenv==nil,'Music UI renders with the sandbox getenv restriction')
+        V.assert(fallbackFonts>0,'Music UI uses bundled font when system access is unavailable')
+    end
     V.assert(box.player:Position()>.1,'Audio position advances')
     box.player:SetPaused(true);position=box.player:Position();Shot('main')
     local l=box.layout;local r=l.rects
     V.assert(l.w==((box.cssWidth<=1000) and 720 or 880),'Original CSS popup width')
     V.assert(r.list[4]>0 and r.list[2]+r.list[4]<=r.transport[2],'List is bounded above transport')
-    V.assert(box.root:GetAbsoluteLayout().w==UI.GetViewportSize(),'Transparent input shield covers viewport')
+    local shield=box.root:GetAbsoluteLayout();local viewportW,viewportH=UI.GetViewportSize()
+    V.assert(math.abs(shield.w-viewportW)<=.5 and math.abs(shield.h-viewportH)<=.5,
+        'Transparent input shield covers viewport within Yoga pixel rounding: '..cjson.encode(shield)..' viewport '..viewportW..'x'..viewportH)
+end)
+V.atFrame(115,function()
+    if not sandbox then return end
+    os.getenv=getenv
+    local vg=nvgCreate(1);local previous=fallbackFonts
+    require('ui.MusicDraw').Begin(vg)
+    os.getenv=nil;nvgDelete(vg)
+    V.assert(rejectedFonts>0 and fallbackFonts>previous,'Failed system font registration retries the bundled font')
+end)
+V.atFrame(185,function()
+    if box and playerUpdate then box.player.Update=playerUpdate end
+    if sandbox then os.getenv=getenv;nvgCreateFont=createFont end
 end)
 V.atFrame(140,function()
     V.assert(math.abs(box.player:Position()-position)<.06,'Paused music retains actual position')

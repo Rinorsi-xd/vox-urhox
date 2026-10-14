@@ -3,8 +3,16 @@ local M={};local contexts=setmetatable({},{__mode='k'})
 function M.Begin(vg)
     D.Begin(vg);if contexts[vg] then return end
     local font='Fonts/MiSans-Regular.ttf'
-    if GetPlatform()=='Windows' then font=(os.getenv('SystemRoot') or 'C:/Windows'):gsub('\\','/')..'/Fonts/segoeui.ttf' end
-    assert(nvgCreateFont(vg,'vox-music-latin',font)>=0,'Music Latin font unavailable');contexts[vg]={}
+    if GetPlatform()=='Windows' and os.getenv then
+        local windows=os.getenv and os.getenv('SystemRoot') or 'C:/Windows'
+        local candidate=windows:gsub('\\','/')..'/Fonts/segoeui.ttf'
+        if fileSystem:FileExists(candidate) then font=candidate end
+    end
+    local face=nvgCreateFont(vg,'vox-music-latin',font)
+    if face<0 and font~='Fonts/MiSans-Regular.ttf' then
+        face=nvgCreateFont(vg,'vox-music-latin','Fonts/MiSans-Regular.ttf')
+    end
+    assert(face>=0,'Music Latin font unavailable');contexts[vg]={}
 end
 function M.Texture(vg,name,x,y,w,h,points)
     local ctx=contexts[vg];local handle=ctx[name]

@@ -13,8 +13,9 @@ function M.Load(ref)
     if not ref or not fileSystem:FileExists(ref.path) then return nil end
     local file=File(ref.path,FILE_READ)
     if not file:IsOpen() or file.size>512*1024 then file:Dispose();return nil end
-    file:Dispose()
-    local image=Image:new();local ok=image:Load(ref.path)
+    -- The File bridge resolves user-save isolation; Resource:Load(path) does not.
+    local bytes=file:Read(file.size);file:Dispose()
+    local image=Image:new();local ok=image:Load(tolua.cast(bytes,'Deserializer'));bytes:Clear()
     if not ok or image.width~=M.width or image.height~=M.height then image:Dispose();return nil end
     return image
 end
