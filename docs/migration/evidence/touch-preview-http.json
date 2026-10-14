@@ -1,0 +1,27 @@
+{
+  "build": "D:\\Rino_Project\\maker\\Vox\\VoxelCraft\\.tmp\\outgame-cached-1791948477339",
+  "manifest": "manifest-c43a4c0b.json",
+  "checks": [
+    "latest identifies tested build",
+    "entry HTTP 200",
+    "manifest equals tested build",
+    "main.lua HTTP 200 and exact workspace/build bytes",
+    "app/BuildSession.lua HTTP 200 and exact workspace/build bytes",
+    "app/TrialSession.lua HTTP 200 and exact workspace/build bytes",
+    "controls/BuildCamera.lua HTTP 200 and exact workspace/build bytes",
+    "controls/BuildInput.lua HTTP 200 and exact workspace/build bytes",
+    "controls/FreeFlight.lua HTTP 200 and exact workspace/build bytes",
+    "controls/TouchGestures.lua HTTP 200 and exact workspace/build bytes",
+    "ui/BuildHud.lua HTTP 200 and exact workspace/build bytes",
+    "ui/BuildOverlay.lua HTTP 200 and exact workspace/build bytes",
+    "ui/DriveHud.lua HTTP 200 and exact workspace/build bytes",
+    "ui/MatchHud.lua HTTP 200 and exact workspace/build bytes",
+    "ui/SourceTouchLayout.lua HTTP 200 and exact workspace/build bytes",
+    "ui/SourceTouchWidgets.lua HTTP 200 and exact workspace/build bytes",
+    "ui/SourceTouchOverlay.lua HTTP 200 and exact workspace/build bytes",
+    "ui/TouchBuildControls.lua HTTP 200 and exact workspace/build bytes",
+    "ui/TouchDriveControls.lua HTTP 200 and exact workspace/build bytes",
+    "test fixtures and probes excluded"
+  ],
+  "result": "PASS"
+}

@@ -57,7 +57,7 @@ function Layer:Render(vg)
         nvgRestore(vg)
     end
     if not b.player.alive and rule.state~='over' then D.Text(vg,'战车已被击毁 · 观战队友',cx,h-78,24,D.white,'vox-title',NVG_ALIGN_CENTER,3) end
-    if rule.state=='over' or input:GetKeyDown(KEY_TAB) then
+    if rule.state=='over' or input:GetKeyDown(KEY_TAB) or s.touchScoreboard then
         local bw=math.min(1440,w*.94);local bh=830;local bx,by=(w-bw)/2,(h-bh)/2;local rowHeight=cfg.size==4 and 48 or 62
         self.resultRect={x=bx*k,y=by*k,w=bw*k,h=bh*k}
         Panel(vg,bx,by,bw,bh,{11,13,17,242},26)

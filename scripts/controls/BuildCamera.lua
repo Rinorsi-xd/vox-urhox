@@ -5,14 +5,11 @@ local Coord=require 'core.Coord'
 local Config=require 'Config'
 local M={};M.__index=M
 function M.New(session)
-    local self=setmetatable({session=session,mode='orbit',captured=false,touch=require('controls.TouchMode').Enabled(),held={},dx=0,dy=0},M)
+    local self=setmetatable({session=session,mode='fp',captured=false,touch=require('controls.TouchMode').Enabled(),held={},dx=0,dy=0},M)
     local state=session.app.buildCameraState
-    if not self.touch then
-        self.mode='fp'
-        local p=session.camera.node.position;local f=session.camera.node.rotation*Vector3.FORWARD
-        self.flight=Flight.New(state and state.pos or {-p.x,p.y,p.z},state and state.forward or {-f.x,f.y,f.z},require('scene.HangarConfig').layout.cameraLimit)
-        self:Apply()
-    end
+    local p=session.camera.node.position;local f=session.camera.node.rotation*Vector3.FORWARD
+    self.flight=Flight.New(state and state.pos or {-p.x,p.y,p.z},state and state.forward or {-f.x,f.y,f.z},require('scene.HangarConfig').layout.cameraLimit)
+    self:Apply()
     return self
 end
 function M:SetMouseMode(mode) input.mouseMode=mode end
@@ -27,7 +24,7 @@ end
 function M:Release()
     local changed=self.captured or self.pending
     if changed and not self.touch then self:SetMouseMode(MM_ABSOLUTE) end
-    self.held={};self.dx=0;self.dy=0
+    self.held={};self.dx=0;self.dy=0;self.touchRight=0;self.touchForward=0
     self.captured=false;self.pending=false;if self.flight then self.flight:Stop() end
     self.session.controls:Cancel()
     if changed and self.session.hud and not self.session.disposed then self.session.hud.Refresh() end
@@ -59,7 +56,7 @@ function M:Apply()
 end
 function M:Read()
     if self.touch then
-        local h=self.held;local c={dx=self.dx,dy=self.dy,forward=(h.forward and 1 or 0)-(h.back and 1 or 0),right=(h.right and 1 or 0)-(h.left and 1 or 0),up=(h.up and 1 or 0)-(h.down and 1 or 0)}
+        local h=self.held;local c={dx=self.dx,dy=self.dy,forward=self.touchForward or 0,right=self.touchRight or 0,up=(h.up and 1 or 0)-(h.down and 1 or 0),speed=self.session.flyScale or 1}
         self.dx=0;self.dy=0;return c
     end
     local function Down(k) return input:GetKeyDown(k) end

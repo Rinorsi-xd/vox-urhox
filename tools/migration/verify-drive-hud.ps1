@@ -6,7 +6,7 @@ try {
     if($LASTEXITCODE -ne 0){throw 'Source metrics fixtures failed'}
     $report=$projectRoot+'/docs/migration/evidence/pc-drive-hud.json'
     if(Test-Path -LiteralPath $report){Remove-Item -LiteralPath $report}
-    $runtimeArgs=@('main.lua',('-tapcode_dir='+$projectRoot),'-tool_mode','-quality=desktop','-validate','-validate-frames=250','-validate-timeout=90','-validate-spike-threshold=30000',('-validate-test='+$PSScriptRoot+'/check-drive-hud.lua'),('-validate-output='+$report),'-log','info')
+    $runtimeArgs=@('main.lua',('-tapcode_dir='+$projectRoot),'-tool_mode','-quality=desktop','-validate','-validate-frames=650','-validate-timeout=90','-validate-spike-threshold=30000',('-validate-test='+$PSScriptRoot+'/check-drive-hud.lua'),('-validate-output='+$report),'-log','info')
     $p=Start-Process -FilePath ($projectRoot+'/.cli/UrhoXRuntime.exe') -WorkingDirectory $projectRoot -WindowStyle Hidden -PassThru -ArgumentList $runtimeArgs -RedirectStandardOutput ($projectRoot+'/.tmp/drive-hud-out.txt') -RedirectStandardError ($projectRoot+'/.tmp/drive-hud-err.txt')
     $timer=[Diagnostics.Stopwatch]::StartNew()
     while(-not $p.WaitForExit(1000)){if($timer.Elapsed.TotalSeconds -gt 105){$p.Kill();throw 'PC drive HUD verification timeout'}}

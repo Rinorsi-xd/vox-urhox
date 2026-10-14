@@ -51,17 +51,11 @@ function M.Create(session)
         state.cinema.session=session;root:AddChild(state.cinema)
     end
     if session.touch then
-        local safe=UI.GetSafeAreaInsets();local edge=math.max(18,safe.right or 0)
-        state.buttons['return']:SetStyle({right=edge,top=12,width=112,height=48})
         state.stats:SetVisible(false);state.keys:SetVisible(false);state.timer:SetVisible(false);state.meter:SetVisible(false)
-        local cardWidth=math.min(190,(width-edge*2-(#state.cards-1)*6)/#state.cards)
-        for i,card in ipairs(state.cards) do
-            local left=session.salvage and edge+(i-1)*(cardWidth+6) or width-edge-cardWidth-(i-1)*(cardWidth+6)
-            card.widget:SetStyle({left=left,right=width-left-cardWidth,top=72,bottom=height-124,width=cardWidth,height=52})
-        end
+        root:RemoveChild(controls.root);root:AddChild(controls.root)
     end
     -- The frozen reticle owns weapon slots and speed; retain real touch buttons.
-    if not session.touch then for _,card in ipairs(state.cards) do card.widget:SetVisible(false) end end
+    for _,card in ipairs(state.cards) do card.widget:SetVisible(false) end
     local modes={};for _,child in ipairs(root.children) do modes[child]=child.props.pointerEvents or 'auto' end
     state.Clear=controls.Clear
     function state.Update(s,dt)
@@ -80,16 +74,10 @@ function M.Create(session)
         state.pause:SetVisible(not active and not s.touch and not over and not choosing and not hideHud);state.vitals:SetVisible(active and alive and not hideHud);state.detailPanel:SetVisible(s.details and alive and not hideHud)
         if s.salvage then state.buttons['return']:SetVisible(not hideHud and not over);state.missile:SetVisible(not hideHud and not over) end
         if state.touchControls then
-            local blocked=over or choosing or cinematic
-            if state.touchBlocked~=blocked then
-                state.touchBlocked=blocked
-                if blocked then state.touchControls.Clear() end
-                state.touchControls.stick:SetVisible(not blocked)
-                for _,button in pairs(state.touchControls.buttons) do button:SetVisible(not blocked) end
-            end
-            for _,card in ipairs(state.cards) do card.widget:SetVisible(not blocked) end
+            state.touchControls.Update(over or choosing or cinematic or s.dialog~=nil or not s:HasFocus())
         end
-        state.meter:SetVisible(false);state.playfield:SetVisible(not over and not cinematic)
+        state.meter:SetVisible(false)
+        if not state.touchControls then state.playfield:SetVisible(not over and not cinematic) end
         if state.match then state.match.Update() end
         if state.story then state.story.Update(dt) end
         if state.salvage then state.salvage.Update(dt) end
@@ -107,7 +95,7 @@ function M.Create(session)
     end
     function state.Dispose()
         if state.disposed then return end;state.disposed=true
-        controls.Clear();Theme.TrimThumbnails({})
+        if controls.Dispose then controls.Dispose() else controls.Clear() end;Theme.TrimThumbnails({})
         if UI.GetRoot()==root then UI.SetRoot(nil) end
         if root.node then root:Destroy() end
     end

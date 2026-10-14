@@ -2,7 +2,7 @@
 -- cancellation, leaving the field, focus loss and scene switches release holds.
 local M={};M.__index=M
 function M.New(session) return setmetatable({session=session,pointer=nil,inside=false,dirty=true},M) end
-function M:Cancel() self.pointer=nil;self.inside=false;self.dirty=true;self.selectionBox=nil;self.dragSelection=nil end
+function M:Cancel() self.pointer=nil;self.inside=false;self.dirty=true;self.selectionBox=nil;self.dragSelection=nil;self.touchPrimary=false end
 function M:Position(e)
     if self.session.dialog or self.session.inventoryPanel then self:Cancel();return end
     self.x,self.y=e.x,e.y;self.inside=true;self.dirty=true
@@ -113,8 +113,41 @@ function M:FirstPerson(dt)
     end
     if self.dragSelection then e:DragPreview(self.dragSelection) end
 end
+function M:TouchPrimary(on,cancelled)
+    if not on then
+        if self.dragSelection and not cancelled then self.session.editor:AddSelection(self.dragSelection.parts) end
+        self.dragSelection=nil;self.pointer=nil;self.touchPrimary=false;return
+    end
+    if self.session.dialog or self.session.inventoryPanel then return end
+    self.touchPrimary=true;self:TouchEdit(0,true)
+end
+function M:TouchEdit(dt,initial)
+    local UI=require 'urhox-libs/UI';local w,h=UI.GetViewportSize();local e=self.session.editor
+    self.x,self.y=w/2,h/2;self.inside=true;self.session:Trace(self.x,self.y)
+    if not self.touchPrimary then return end
+    local selecting=self.session.selecting and not e.pasting
+    if initial then
+        self.pointer={kind='left',touch=true,held=0,nextRepeat=selecting and .03 or .3,select=selecting,stretch=e.stretch or e.tool=='stretch'}
+        if selecting then
+            local on=e:ToggleSelectTarget()
+            if on and e.hit and e.hit.cell then self.dragSelection={anchor={table.unpack(e.hit.cell)},parts={}}
+            elseif on==false then self.pointer.action='deselect' end
+        else self.session:Act() end
+    else
+        local p=self.pointer
+        if p then
+            p.held=p.held+dt
+            if not p.stretch and not self.dragSelection and p.held>=p.nextRepeat then
+                p.nextRepeat=p.held+(p.select and .03 or .1)
+                if p.select then e:SweepSelect(false) else self.session:Act() end
+            end
+        end
+    end
+    if self.dragSelection then e:DragPreview(self.dragSelection) end
+end
 function M:Update(dt)
     if not input.focus or input.minimized then self:Cancel();return end
+    if self.session.buildCamera.touch then self:TouchEdit(dt,false);return end
     if self.session.buildCamera.mode=='fp' then
         self:FirstPerson(dt)
         if self.inside and input.mouseMoveWheel~=0 then self.session:Wheel(input.mouseMoveWheel) end

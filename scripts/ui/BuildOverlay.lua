@@ -23,7 +23,7 @@ function Overlay:Render(vg)
         Fade(vg,0,h-210,w,210,{9,10,12,0},{9,10,12,224});return
     end
     if s.inventoryPanel then return end
-    if s.buildCamera.touch then return end
+    if not s.buildCamera.touch then
     local hints={};local function Hint(text,key,mouse,extra,bold) hints[#hints+1]={text=text,key=key,mouse=mouse,extra=extra,bold=bold} end
     local rot=tostring(((e.pasting and e.pasteSpin or e.spin)%4)*90)..'°'
     if e.pasting then Hint('放下粘贴',nil,'L');Hint('旋转 '..rot,'R');Hint('取消','Esc')
@@ -55,6 +55,8 @@ function Overlay:Render(vg)
         if item.mouse then Mouse(vg,tx,cy+4,item.mouse);tx=tx+23 end
         D.Text(vg,item.text,tx,cy+(height-(item.bold and 18 or 16))/2,item.bold and 15 or 12.5,item.bold and e.tool=='erase' and {255,59,48,255} or {201,206,214,255},item.bold and nil or 'vox-body');cy=cy+height+2
     end
+    end
+    local fly=s.buildCamera
     if fly.mode=='fp' and not s.dialog and not s.hud.colorOpen then
         -- H5 keeps its crosshair in CSS pixels, outside the reference-scaled UI.
         local unit=graphics:GetDPR()/require('urhox-libs/UI').GetScale()
@@ -67,7 +69,7 @@ function Overlay:Render(vg)
         if edge>0 then D.Rect(vg,-size/2-edge,-size/2-edge,size+edge*2,size+edge*2,{0,0,0,mode=='paint' and 166 or 179}) end
         local badge=s.hud.modeBadge
         D.Rect(vg,-size/2,-size/2,size,size,badge.renderMode==mode and badge.color or Badge.Color(s));nvgRestore(vg)
-        if not fly.captured then
+        if not fly.captured and not fly.touch then
             local text='点击画面开始建造';local width=D.Width(vg,text,17)+40;D.Rect(vg,(w-width)/2,h*.58,width,42,{14,15,18,235});D.Rect(vg,(w-width)/2,h*.58,3,42,D.orange);D.Text(vg,text,w/2,h*.58+10,17,nil,nil,NVG_ALIGN_CENTER)
         end
     end

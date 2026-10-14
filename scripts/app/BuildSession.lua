@@ -17,11 +17,9 @@ function M.New(app)
     self:ApplyHotbar()
     self.car.root.position=Vector3.ZERO
     if not app.buildCameraState then
-        if not self.buildCamera.touch then
-            local st=self.editor.bp:Stats()
-            local lift=math.min(4-st.bb.minY,self.editor.bounds.maxY-st.bb.maxY)
-            if st.count>0 and lift>0 then self.editor:Lift(lift) end
-        end
+        local st=self.editor.bp:Stats()
+        local lift=math.min(4-st.bb.minY,self.editor.bounds.maxY-st.bb.maxY)
+        if st.count>0 and lift>0 then self.editor:Lift(lift) end
         self.buildCamera:Focus()
     end
     self.car:SetXray(app.buildXray==true)
@@ -255,10 +253,10 @@ function M:Update(dt)
     local hadDialog=self.dialog~=nil
     if self.dialog then self.controls:Cancel();if self.dialogTick then self.dialogTick(dt) end
     elseif self.inventoryPanel then self.controls:Cancel();self.inventoryPanel:Update(dt)
-    elseif self.hud.colorOpen then self.controls:Cancel() else self.controls:Update(dt) end
+    elseif self.hud.colorOpen or self.hud.touchControls and self.hud.touchControls.menu then self.controls:Cancel() else self.controls:Update(dt) end
     -- A dialog closing on H consumes the press before normal build shortcuts.
     if input.focus and not input.minimized and (not hadDialog or self.dialog) then self:Keys() end
-    local focus=UI.GetFocus();self.buildCamera:Update(dt,self.dialog or self.inventoryPanel or self.hud.colorOpen or focus and focus.OnTextInput~=nil)
+    local focus=UI.GetFocus();self.buildCamera:Update(dt,self.dialog or self.inventoryPanel or self.hud.colorOpen or self.hud.touchControls and self.hud.touchControls.menu or focus and focus.OnTextInput~=nil)
     -- Picking and ghost geometry are capped at 30 Hz; shaders animate on GPU.
     self.refreshTime=self.refreshTime+dt
     if self.editor.dirty or self.refreshTime>=1/30 then self.refreshTime=0;self:Refresh() end

@@ -1,12 +1,16 @@
 local UI=require 'urhox-libs/UI'
 local Event=require 'urhox-libs/UI/Core/PointerEvent'
 local app,s,hud,oldRoot,worldTime,shots,readCount,originalRead
+local checkpoints={};local readyFrame=nil
+local function At(frame,callback) checkpoints[frame-90]=callback end
 local w,h=1920,1080
 local viewportSize,getWidth,getHeight,oldScale=UI.GetViewportSize,UI.GetWidth,UI.GetHeight,UI.GetScale()
 engine.maxInactiveFps=120
 local function Click(widget)
+    UI.Layout()
     local r=widget:GetAbsoluteLayoutForHitTest()
-    for _,kind in ipairs({'PointerDown','PointerUp'}) do UI.HandlePointerEvent(Event.new(kind,{x=r.x+r.w/2,y=r.y+r.h/2,pointerId=88,pointerType='mouse',button=MOUSEB_LEFT})) end
+    local scale=UI.GetScale()
+    for _,kind in ipairs({'PointerDown','PointerUp'}) do UI.HandlePointerEvent(Event.new(kind,{x=(r.x+r.w/2)*scale,y=(r.y+r.h/2)*scale,pointerId=88,pointerType='mouse',button=MOUSEB_LEFT})) end
 end
 local function Shot(name)
     local img=Image:new();V.assert(graphics:TakeScreenShot(img),'native drive frame captured')
@@ -68,7 +72,7 @@ V.atFrame(50,function()
     UI.SetScale(1);UI.GetViewportSize=function() return w,h end;UI.GetWidth=function() return w end;UI.GetHeight=function() return h end
     app:EnterTrial()
 end)
-V.atFrame(90,function()
+At(90,function()
     s=assert(app.trial);Bound();oldRoot=hud.root
     -- Hidden window input is injected without capturing the user's desktop.
     s.HasFocus=function() return true end
@@ -79,17 +83,20 @@ V.atFrame(90,function()
     V.assert(not hud.buttons.menu and not hud.buttons.details and not hud.holds,'invented menu/detail buttons and mobile pads removed')
     V.assert(#hud.cards==#s.weapons.groups and #hud.overlay.pops==40 and #hud.overlay.tags==3,'bounded actual weapon and target feedback data')
 end)
-V.atFrame(100,function()
+At(100,function()
     -- Advance the existing notification lifecycle for a clean post-toast frame.
     app.toasts:Update(3)
 end)
-V.atFrame(105,function()
+At(105,function()
     Shot('paused-1920')
-    local r=hud.meter:GetAbsoluteLayoutForHitTest();V.assert(r.x==12 and r.w==400 and r.y+r.h==1030,'source meter width and bottom 50px anchor')
+    V.assert(not hud.meter:IsVisible(),'replaced speed panel stays hidden')
     local b=hud.buttons['return']:GetAbsoluteLayoutForHitTest();V.assert(math.abs(b.x-1804.96875)<.6 and b.y==12 and b.h==36,'source return button at top right')
     local q=hud.stats:GetAbsoluteLayoutForHitTest();V.assert(q.x==1702 and q.y==56 and q.w==206 and q.h==51,'source damage statistics dimensions')
-    for i,card in ipairs(hud.cards) do local a=card.widget:GetAbsoluteLayoutForHitTest();V.assert(a.x==1694 and a.w==214 and a.h==46 and a.y==926+(i-1)*50,'source weapon card '..i) end
-    V.assert(hud.pause.box and math.abs(hud.pause.box.w-214)<3,'source center pause message width')
+    for i,card in ipairs(hud.cards) do V.assert(not card.widget:IsVisible(),'replaced weapon card hidden '..i) end
+    local reticleLayout=require('ui.ReticleState').Layout(w,h)
+    local chips=require('ui.ReticleState').Chips(reticleLayout,s.weapons.groups,s.weapons.current,false)
+    for i,chip in ipairs(chips) do V.assert(chip.x>=0 and chip.y>=0 and chip.x+chip.w<=w and chip.y+chip.h<=h,'actual reticle weapon chip within viewport '..i) end
+    V.assert(hud.pause.box and hud.pause.box.w>180 and hud.pause.box.w<400 and hud.pause.box.h==90,'current source pause message has a bounded centered box')
     Click(hud.playfield);hud.Update(s,0)
     V.assert(s.pointer.captured and not hud.pause:IsVisible() and s.pointer.lastMouseMode==MM_RELATIVE,'native playfield click captures PC mouse and hides pause')
     V.assert(not s.controls.held.fire,'capture click never fires')
@@ -102,16 +109,20 @@ V.atFrame(105,function()
     p:Sample({right=true},.01);p:Sample({},.1);V.assert(not s.scope,'second short right click toggles scope off')
     p:Sample({right=true},.01);p:Sample({right=true},.26);p:Sample({},.01);V.assert(not s.scope,'right hold over 250ms exits scope on release')
     p:Sample({right=true},.01);p:Sample({},.25);V.assert(s.scope,'exact 250ms right press remains a toggle')
-    s:PostUpdate(1);V.assert(s.camera:GetCamera().fov==24,'source right-click scope reaches actual camera')
+    s:PostUpdate(1)
+    local group=s.weapons:Group();local scoped=require('ui.ReticleState').ScopeFov(48,group and group.kind)
+    V.assert(math.abs(s.camera:GetCamera().fov-scoped)<.001,'source weapon optical zoom reaches actual camera')
     s:Pause();V.assert(not s.scope and not s.controls.held.fire and not s.pointer.captured and p.lastMouseMode==MM_ABSOLUTE,'pause releases mouse, scope and fire')
     s:Resume();p:Sample({},0);p:Sample({},0);hud.Update(s,0)
     s.details=true;hud.Update(s,0)
 end)
-V.atFrame(118,function()
+At(118,function()
     Shot('active-1920');local r=hud.vitals:GetAbsoluteLayoutForHitTest()
-    V.assert(r.x==835 and r.y==415 and r.w==250 and r.h==250,'source CSS vitals are 250px, not SVG intrinsic 200px')
+    V.assert(r.x==0 and r.y==0 and r.w==w and r.h==h,'current source reticle owns full viewport')
+    local layout=require('ui.ReticleState').Layout(r.w,r.h)
+    V.assert(layout.cx==960 and layout.cy==540 and layout.radius==270,'source reticle center and radius')
     local d=hud.detailPanel:GetAbsoluteLayoutForHitTest();V.assert(d.x==12 and d.y==72 and d.w==280 and #hud.detailPanel.wheels==#s.vehicle.wheels,'source detailed data includes actual per-wheel compression')
-    V.assert(hud.meter:IsVisible(),'PC detailed data keeps speed panel')
+    V.assert(not hud.meter:IsVisible(),'detailed data does not revive replaced speed panel')
     local before=hud.readoutUpdates;for _=1,60 do hud.Update(s,1/60) end
     V.assert(hud.readoutUpdates-before<=11,'formatted motion and suspension data refresh at most 10 Hz')
     s.controls.held.forward=true;s.controls.held.fire=true;s.controls:Look(50,50);s:Escape();hud.Update(s,0)
@@ -119,7 +130,7 @@ V.atFrame(118,function()
     worldTime=s.world.time;shots=s.world.stats.shots;readCount=0;originalRead=s.controls.Read
     s.controls.Read=function() readCount=readCount+1;return {throttle=1,steer=1,firing=true} end
 end)
-V.atFrame(133,function()
+At(133,function()
     V.assert(readCount==0 and s.world.stats.shots==shots and s.world.time>worldTime,'paused source world continues with neutral command and never polls driving input')
     s.controls.Read=originalRead;s:Escape();V.assert(s.wantsReturn,'Escape while released requests return');s.wantsReturn=false
     s:Resume();s.pointer.skip=false;s.pointer.ready=true;s.controls.held.fire=true
@@ -137,32 +148,43 @@ V.atFrame(133,function()
     hud.overlay:Pop({-p.x,p.y,p.z},135,false);V.assert(hud.overlay.pops[hud.overlay.index].t==0,'damage feedback projects into actual camera')
     for _=1,50 do hud.overlay:Pop({-p.x,p.y,p.z},25,false) end
     V.assert(#hud.overlay.pops==40,'damage events reuse bounded 40-entry pool')
-    hud.vitals:SetEnergy(.1,true,true,0);s.weapons.energy=s.weapons.energyMax*.1;s.weapons.offline=true
+    s.weapons.energy=s.weapons.energyMax*.1;s.weapons.offline=true
     s.details=false;hud.Update(s,0)
+    V.assert(hud.vitals.fire.word=='能量耗尽','current reticle reads actual offline weapon state')
 end)
-V.atFrame(144,function()
+At(144,function()
     Shot('energy');s.weapons.offline=false;s.weapons.energy=s.weapons.energyMax;hud.Update(s,0)
-    V.assert(hud.vitals.boot>0,'weapon recovery triggers source energy arc flash')
+    V.assert(hud.vitals.fire.word~='能量耗尽','weapon recovery retires actual offline state')
     s:Pause();s.details=true;oldRoot=hud.root;w,h=1440,900
 end)
-V.atFrame(158,function()
+At(158,function()
     Bound();V.assert(not oldRoot.node and hud.width==1440 and s.details and not s.pointer.captured,'PC resize releases old UI and preserves details and released state')
 end)
-V.atFrame(170,function()
+At(170,function()
     Shot('paused-1440');local q=hud.stats:GetAbsoluteLayoutForHitTest();V.assert(q.x==1222 and q.y==56,'16:10 PC keeps original right stats anchor: '..cjson.encode(q));Click(hud.playfield);hud.Update(s,0)
     V.assert(s.pointer.captured,'rebuilt PC playfield can resume')
     s.scope=true;s:PostUpdate(1)
 end)
-V.atFrame(182,function()
+At(182,function()
     Shot('scope-1440');s:Pause();hud.Update(s,0)
     local m=require('ui.GraphicsPanel').Open(s);m:Close();s:Update(.16)
     V.assert(not m.node and not s.closingDialog and not s.dialog,'trial update retires shared modal without retaining input or resources')
 end)
-V.atFrame(188,function()
+At(188,function()
     Click(hud.buttons['return']);V.assert(s.wantsReturn,'original return button works without source selector bug')
     UI.GetViewportSize=viewportSize;UI.GetWidth=getWidth;UI.GetHeight=getHeight;UI.SetScale(oldScale)
 end)
-V.atFrame(235,function()
+At(235,function()
     V.assert(app.mode=='hangar' and s.disposed and not hud.root.node,'return releases PC trial UI and simulation')
     V.assert(not app.scene:GetChild('TrialPhysics',true),'trial physics and feedback do not remain in hangar');V.finish()
 end)
+-- HUD input starts only after the real loading overlay releases hit testing.
+for frame=51,640 do
+    local tick=frame
+    V.atFrame(tick,function()
+        if not readyFrame and app and app.trial and not app.loadingFlow.active then readyFrame=tick end
+        local run=readyFrame and checkpoints[tick-readyFrame]
+        if run then run() end
+    end)
+end
+V.atFrame(645,function() V.assert(readyFrame~=nil,'production loading reached playable HUD');V.finish() end)

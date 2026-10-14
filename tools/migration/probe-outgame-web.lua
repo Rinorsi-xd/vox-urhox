@@ -4,6 +4,16 @@ VOX_CLOUD_VALIDATION=true
 local UI=require 'urhox-libs/UI'
 local frames=0;local previous='';local samples={}
 local sampleMode=''
+local function TouchState(layer)
+    if not layer then return nil end
+    local data={menu=layer.menu,expanded=layer.expanded==true,blocked=layer.blocked,aux=layer.aux,contacts=0,rects={}}
+    for _ in pairs(layer.gestures.pointers) do data.contacts=data.contacts+1 end
+    local function Rect(id,widget) local r=widget:GetAbsoluteLayoutForHitTest();data.rects[id]={r.x,r.y,r.w,r.h} end
+    Rect('stick',layer.stick);Rect('menu',layer.toggle)
+    for id,widget in pairs(layer.buttons) do Rect(id,widget) end
+    for id,widget in pairs(layer.menuButtons) do Rect('option-'..id,widget) end
+    return data
+end
 local function FrameStats()
     if #samples<10 then return nil end
     table.sort(samples);local n=#samples
@@ -55,6 +65,7 @@ local function DumpTrial(app)
         for id,loop in pairs(s.weaponAudio.loops) do data.weaponAudio.loops[id]={playing=loop.source.playing,gain=loop.source.gain,frequency=loop.source.frequency} end
     end
     if s.hud.touchControls then
+        data.touchControls=TouchState(s.hud.touchControls)
         data.touchRects={}
         local r=s.hud.touchControls.stick:GetAbsoluteLayoutForHitTest();data.touchRects.stick={r.x,r.y,r.w,r.h}
         for id,button in pairs(s.hud.touchControls.buttons) do local r=button:GetAbsoluteLayoutForHitTest();data.touchRects[id]={r.x,r.y,r.w,r.h} end
@@ -105,6 +116,7 @@ local function Dump(app)
     local f=c.node.rotation*Vector3.FORWARD;data.camera.forward={f.x,f.y,f.z}
     if app.build then
         local b=app.build
+        data.touchControls=TouchState(b.hud.touchControls)
         local backdrop=b.inventoryPanel and b.inventoryPanel.backdrop
         if backdrop and backdrop.graph then
             data.backdrop={passes=backdrop.graph.passCount,width=backdrop.graph.width,height=backdrop.graph.height,

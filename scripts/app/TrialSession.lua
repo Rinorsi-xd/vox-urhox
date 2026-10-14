@@ -92,8 +92,11 @@ end
 function M:HasFocus() return input.focus and not input.minimized end
 function M:Resume() if (self.story or self.salvage) and self.combat.rules.finished then return false end;return self.pointer:Capture() end
 function M:Zoom(wheel)
-    if wheel==0 then return end
-    self.cameraDistance=require('controls.Wheel').Zoom(self.cameraDistance,wheel,self.minCameraDistance,self.maxCameraDistance)
+    self:ZoomPixels(require('controls.Wheel').Pixels(wheel))
+end
+function M:ZoomPixels(delta)
+    if delta==0 then return end
+    self.cameraDistance=math.max(self.minCameraDistance,math.min(self.maxCameraDistance,self.cameraDistance*1.0012^delta))
     -- The library interpolates only across distinct modes. Alternate two public
     -- mode configurations instead of mutating its private interpolation state.
     local mode=self.camera:GetMode()=='zoomA' and 'zoomB' or 'zoomA'

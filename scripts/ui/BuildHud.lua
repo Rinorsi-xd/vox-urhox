@@ -59,6 +59,7 @@ function M.Create(session)
     badge.session=session;root:AddChild(badge);state.modeBadge=badge
     local rotor=require('ui.RotorHud'){position='absolute',width='100%',height='100%',pointerEvents='none'}
     rotor.session=session;root:AddChild(rotor);state.rotor=rotor
+    if session.buildCamera.touch then state.touchControls=require('ui.TouchBuildControls').Create(session,root,playfield) end
     local owned={};for _,child in ipairs(root.children) do owned[#owned+1]=child end
     local pointerModes={};for _,child in ipairs(owned) do pointerModes[child]=child.props.pointerEvents or 'auto' end
     local blockedPointer=false;local inventoryHidden=false
@@ -75,6 +76,7 @@ function M.Create(session)
             for _,child in ipairs(owned) do if child~=shade then child:SetVisible(not hidden) end end
             if hidden then state.SetColor(false) end
         end
+        if state.touchControls then state.touchControls.Update(hidden or session.dialog~=nil or state.colorOpen or not input.focus or input.minimized) end
         state.RefreshDock()
         state.buttons.mirror.props.selected=editor.mirror;state.buttons.xray.props.selected=session.app.buildXray==true
         state.buttons.shell.props.selected=editor.paintChannel=='shell';state.buttons.accent.props.selected=editor.paintChannel=='accent'
@@ -86,6 +88,7 @@ function M.Create(session)
     end
     function state.Dispose()
         if state.disposed then return end;state.disposed=true;controls:Cancel()
+        if state.touchControls then state.touchControls.Dispose() end
         if UI.GetFocus()==name then UI.ClearFocus() end
         if UI.GetRoot()==root then UI.SetRoot(nil) end
         if root.node then root:Destroy() end
