@@ -107,7 +107,11 @@ function M.Card:Render(vg)
     Shadows.Image(self,vg,def.id,'card',{x=x+(w-size)/2,y=imageY,w=size,h=size})
     self:RenderBackgroundImage(vg,Theme.Thumbnail(def.id),{x=x+(w-size)/2,y=imageY,w=size,h=size},'contain',nil)
     nvgRestore(vg)
-    if slot then D.Rect(vg,x+w-21,y+h-37,21,20,D.orange);D.Text(vg,slot%10,x+w-10.5,y+h-35,13,D.ink,'vox-body',NVG_ALIGN_CENTER) end
+    if slot then
+        local top=y+h-57
+        D.Rect(vg,x+w-21,top,21,20,D.orange)
+        D.Text(vg,slot%10,x+w-10.5,top,13,D.ink,'vox-body',NVG_ALIGN_CENTER,nil,false,20)
+    end
     local fs=p.compact and 12 or 16;local name=def.name
     while D.Width(vg,name,fs)>w-20 and utf8.len(name)>1 do name=name:sub(1,utf8.offset(name,-1)-1) end
     if name~=def.name then

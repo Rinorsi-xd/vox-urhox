@@ -1,0 +1,59 @@
+{
+  "baseline": "90862445074e7e146da900037979ad97899ecf6c",
+  "source": "shared/ui/salvageRunHud.js",
+  "sourceSha256": "b3e5502b2e033188f8978fa29f572ccaa08edf769721512f4221e9a5415b1147",
+  "sampleRate": 48000,
+  "format": "mono PCM16",
+  "sourceVolume": 1,
+  "cues": {
+    "reveal0": {
+      "path": "Sounds/Salvage/reveal0.wav",
+      "bytes": 96044,
+      "sha256": "a140650dc62a3e9b7225d11cf4c5577f7343941860b93d74cd4c8c896fa83bd6",
+      "seconds": 1,
+      "peak": 0.10849540680646896
+    },
+    "reveal1": {
+      "path": "Sounds/Salvage/reveal1.wav",
+      "bytes": 96044,
+      "sha256": "ffba8ab28e7035e814ebb182e71c614886c2893e87e6dff12bf5824bb9ef02cd",
+      "seconds": 1,
+      "peak": 0.10706120729446411
+    },
+    "reveal2": {
+      "path": "Sounds/Salvage/reveal2.wav",
+      "bytes": 96044,
+      "sha256": "e6596343216ca1c53e64407656c8654da7692a94711f4ca9b3e511ab95000b36",
+      "seconds": 1,
+      "peak": 0.10669705271720886
+    },
+    "reveal3": {
+      "path": "Sounds/Salvage/reveal3.wav",
+      "bytes": 96044,
+      "sha256": "3b954cffbe2ffc1b15a89198788086ef25457228cb50ddda226f29d700d847b8",
+      "seconds": 1,
+      "peak": 0.10671026259660721
+    },
+    "reveal4": {
+      "path": "Sounds/Salvage/reveal4.wav",
+      "bytes": 96044,
+      "sha256": "5981ca3c3dfe8b53b4e5c09aff54c3e42618fdc1eb7bb16815a78e34727c5488",
+      "seconds": 1,
+      "peak": 0.10642821341753006
+    },
+    "reveal5": {
+      "path": "Sounds/Salvage/reveal5.wav",
+      "bytes": 153644,
+      "sha256": "67d842dcb36fbd732e3fb5fbabc9d7dd2ca22506365de9a9c338389e9efe871d",
+      "seconds": 1.6,
+      "peak": 0.24610567092895508
+    },
+    "suspense": {
+      "path": "Sounds/Salvage/suspense.wav",
+      "bytes": 61484,
+      "sha256": "e8a8959c39db7e1ffbd09365aa434ec35ea81703f47dc1a2b2f7765aeb088591",
+      "seconds": 0.64,
+      "peak": 0.21517229080200195
+    }
+  }
+}

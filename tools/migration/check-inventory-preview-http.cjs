@@ -27,6 +27,11 @@ const resources=['main.lua','ui/InventoryPanel.lua','ui/InventoryChrome.lua','ui
  assert.equal(masks.length,936,'all source alpha masks packaged');
  assert.ok(masks.every(f=>!boot.has(f.uuid)&&!(f.groups||[]).includes('#blocking')),'masks excluded from startup and blocking groups');
  report.checks.push('936 shadow masks load on demand, including transitive boot dependencies');
+ const sounds=manifest.files.filter(f=>f.fs_path?.startsWith('Sounds/Salvage/'));
+ assert.equal(sounds.length,7,'all original reveal and suspense sounds packaged');
+ assert.ok(sounds.every(f=>!boot.has(f.uuid)&&!(f.groups||[]).includes('#blocking')),'salvage cues do not download at startup');
+ report.checks.push('seven original salvage sounds deferred until map entry');
+ resources.push('audio/SalvageAudio.lua','salvage/Run.lua','app/TrialSession.lua','app/HangarApp.lua','Salvage/RevealSounds.json',...sounds.map(f=>f.fs_path));
  for(const resource of resources){
   const file=manifest.files.find(f=>f.fs_path===resource);assert.ok(file,'packaged '+resource);
   const leaf=file.uuid+'-'+file.hash+file.ext;

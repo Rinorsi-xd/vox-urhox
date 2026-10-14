@@ -125,5 +125,36 @@ V.atFrame(90,function()
     local focused=UI.GetFocus();V.assert(focused and focused.props.partType==owner.results[#owner.results].id,'focused virtual card remains stable across frames')
     local image=Image:new();assert(graphics:TakeScreenShot(image));image:SavePNG('docs/migration/evidence/inventory-keyboard.png');image:Dispose()
     owner:Close();V.assert(UI.GetFocus()==nil,'closing clears focused virtual widgets')
-    state.app:ExitBuild();V.finish()
+    state.app:ExitBuild()
+    local feedback=require 'ui.InventoryFeedback'
+    local path=require('ui.VoxTheme').Thumbnail('core')
+    state.brightness=assert(tonumber(fixture.focus.slotFilter:match('brightness%(([%d%.]+)%)')))
+    Near(fixture.focus.number.bottom,37,'frozen DOM number bottom offset')
+    Near(fixture.focus.number.height,20,'frozen DOM number height')
+    local root=UI.GetRoot()
+    local strip=UI.Panel{position='absolute',left=20,top=100,width=240,height=110,zIndex=100000,pointerEvents='none'}
+    function strip:Render(vg)
+        local r=self:GetAbsoluteLayout();self.sampleRect=r
+        require('ui.SourceDraw').Rect(vg,r.x,r.y,r.w,r.h,{25,25,25,255})
+        feedback.Image(self,vg,path,{x=r.x+4,y=r.y+4,w=94,h=94},false)
+        feedback.Image(self,vg,path,{x=r.x+124,y=r.y+4,w=94,h=94},true)
+    end
+    root:AddChild(strip);state.strip=strip
+end)
+V.atFrame(99,function()
+    local image=Image:new();assert(graphics:TakeScreenShot(image));local r=state.strip.sampleRect;local count,clear=0,0
+    for y=8,88,4 do for x=8,88,4 do
+        local a=image:GetPixel(math.floor(r.x+4+x),math.floor(r.y+4+y))
+        local b=image:GetPixel(math.floor(r.x+124+x),math.floor(r.y+4+y))
+        if a.r>.15 and a.r<.8 and math.abs(a.r-a.g)<.035 then
+            -- Opaque interior texels: CSS brightness is RGB multiplication,
+            -- alpha and the background outside the part must stay unchanged.
+            if math.abs(b.r-a.r*state.brightness)<.014 then count=count+1 end
+        elseif math.abs(a.r-25/255)<.004 and math.abs(a.g-25/255)<.004 then
+            V.assert(math.abs(a.r-b.r)<.005 and math.abs(a.g-b.g)<.005,'focus leaves transparent thumbnail pixels unchanged');clear=clear+1
+        end
+    end end
+    V.assert(count>20,'GPU focus tint matches frozen CSS brightness on opaque part pixels: '..count)
+    V.assert(clear>20,'GPU focus tint preserves transparent coverage: '..clear)
+    image:SavePNG('docs/migration/evidence/inventory-focus-brightness.png');image:Dispose();state.strip:Destroy();V.finish()
 end)

@@ -6,6 +6,7 @@ function M.New(app) local self=setmetatable({},M);self:init(app);return self end
 function M:init(app)
     self.app=app;self.root=app.scene:CreateChild('SalvageWarehouse');self.root.enabled=false
     self.cursor=1;self.ready=false;self.materials={};self.disposed=false
+    self.batches={};self.motion=require('scene.WarehouseMotion').New(self.root,Data.motion)
     self.gate=require('app.ResourceGate').New()
     local paths={'Warehouse/Effects.json','Shaders/BLGL/Warehouse/Dust.shader','Shaders/BLGL/Warehouse/Holo.shader','Shaders/BLGL/Warehouse/Surface.shader','Shaders/BLGL/Warehouse/Decal.shader','Shaders/BLGL/Hangar/Deck.shader','Shaders/BLGL/Hangar/Beam.shader'}
     for _,m in ipairs(Data.models) do paths[#paths+1]=m.model end
@@ -34,6 +35,7 @@ function M:Material(index)
     self.materials[index]=m;return m
 end
 function M:Activate()
+    self.motion:Update(self.app.hangar.time)
     self.effects=require('render.WarehouseEffects').New(self.root,self.effectData,self.materials)
     self.effects:Update(self.app.hangar.time)
     for _,d in ipairs(Data.lights) do if d.type~='HemisphereLight' then
@@ -54,7 +56,7 @@ function M:Activate()
     self.previousLimit=self.app.camera.roomLimit;self.app.camera.roomLimit=Data.limit
     local hall=self.app.hangar;self.previousPad=hall.padMat;hall.padMat=self.deck
     hall.reflMats[#hall.reflMats+1]=self.deck;hall.reflFilter:Bind(self.deck)
-    for index,d in ipairs(Data.models) do if Data.materials[d.material+1].name=='WarehouseDeck' then self.root:GetChild('Batch'..index):GetComponent('StaticModel').viewMask=2 end end
+    for index,d in ipairs(Data.models) do if Data.materials[d.material+1].name=='WarehouseDeck' then self.batches[index]:GetComponent('StaticModel').viewMask=2 end end
     self.ready=true;self.app:HomeView('salvage')
     print('[Warehouse] Frozen scene ready batches='..#Data.models)
 end
@@ -63,13 +65,15 @@ function M:Update()
     if self.ready then
         for _,m in pairs(self.materials) do m:SetShaderParameter('hangar_time',Variant(self.app.hangar.time)) end
         self.effects:Update(self.app.hangar.time)
+        self.motion:Update(self.app.hangar.time)
         require('scene.HangarAtmosphere').Update(self.app.hangar,self.app.camera.node,self.app.camera.camera,self.app.hangar.time)
         return
     end
     self.effectData=self.effectData or require('core.ResourceData').Read('Warehouse/Effects.json')
     for _=1,4 do
         local index=self.cursor;local d=Data.models[index];if not d then self:Activate();break end
-        local node=self.root:CreateChild('Batch'..index);local mesh=node:CreateComponent('StaticModel')
+        local parent=d.motion and assert(self.motion.nodes[d.motion]) or self.root
+        local node=parent:CreateChild('Batch'..index);local mesh=node:CreateComponent('StaticModel');self.batches[index]=node
         mesh.model=assert(cache:GetResource('Model',d.model));mesh.material=self:Material(d.material+1);mesh.castShadows=d.shadow
         self.cursor=index+1
     end
@@ -82,6 +86,7 @@ function M:Dispose()
         hall.root:ResetDeepEnabled();for _,entry in ipairs(self.oldLights) do entry.light.enabled=entry.enabled end;self.app.camera.roomLimit=self.previousLimit
     end
     if self.effects then self.effects:Dispose();self.effects=nil end
+    self.motion:Dispose();self.batches={}
     self.root:Dispose();for _,m in pairs(self.materials) do m:Dispose() end;self.materials={};self.effectData=nil
 end
 return M

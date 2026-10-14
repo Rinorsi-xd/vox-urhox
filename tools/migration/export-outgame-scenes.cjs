@@ -1,9 +1,13 @@
 // Convert the frozen authored scenes; never modify the H5 checkout.
-const fs=require('node:fs'),path=require('node:path'),http=require('node:http');
+const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),{createHash}=require('node:crypto');
 const {chromium}=require('C:/Users/XD/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
 const {optimize}=require('./crater-model.cjs');
 const root=path.resolve(__dirname,'../..');
-const source=JSON.parse(fs.readFileSync(path.join(root,'docs/migration/outgame-baseline.json'))).snapshot;
+const baseline=JSON.parse(fs.readFileSync(path.join(root,'docs/migration/outgame-baseline.json')));
+const source=baseline.snapshot;
+const motionSource='three/src/scene/warehouse.js';
+const motionHash=createHash('sha256').update(fs.readFileSync(path.join(source,motionSource))).digest('hex');
+if(motionHash!==baseline.files[motionSource]?.sha256)throw Error('Warehouse source differs from frozen baseline');
 function model(g){
  const chunks=[],u=(...v)=>{const b=Buffer.alloc(v.length*4);v.forEach((x,i)=>b.writeUInt32LE(x,i*4));chunks.push(b)},f=(...v)=>{const b=Buffer.alloc(v.length*4);v.forEach((x,i)=>b.writeFloatLE(x,i*4));chunks.push(b)};
  const count=g.p.length/3,lo=[Infinity,Infinity,Infinity],hi=[-Infinity,-Infinity,-Infinity];
@@ -53,7 +57,17 @@ function model(g){
    const {Warehouse}=await import('/three/src/scene/warehouse.js');const wh=new Warehouse(new T.Scene());wh.setActive(true);wh.update(0,0);
    const {STARTER_CAR,STASH_CELLS}=await import('/shared/salvage/stash.js');
    wh.deck.top.material.name='WarehouseDeck';
-   scenes.Warehouse={group:wh.group,lights:[],limit:wh.cameraLimit,starter:{...STARTER_CAR.source,name:STARTER_CAR.name},stashCells:STASH_CELLS};
+   const moving={bridge:wh.crane.bridge,trolley:wh.crane.trolley,cable:wh.crane.cable,load:wh.crane.load,
+    trader:wh.trader.bot.parent,bot:wh.trader.bot,head:wh.trader.head};
+   for(const [id,node] of Object.entries(moving))node.userData.migrationMotion=id;
+   const motion=Object.entries(moving).map(([id,node])=>({id,parent:node.parent.userData.migrationMotion||null,
+    position:node.position.toArray(),quaternion:node.quaternion.toArray(),scale:node.scale.toArray()}));
+   const samples=[];for(const time of [0,.25,1,7.5,19,31,70,140]){
+    wh.update(0,time);wh.group.updateMatrixWorld(true);
+    samples.push({time,nodes:Object.fromEntries(Object.entries(moving).map(([id,n])=>[id,{position:n.position.toArray(),quaternion:n.quaternion.toArray(),scale:n.scale.toArray(),matrix:n.matrixWorld.toArray()}]))});
+   }
+   wh.update(0,0);
+   scenes.Warehouse={group:wh.group,lights:[],motion,motionSamples:samples,limit:wh.cameraLimit,starter:{...STARTER_CAR.source,name:STARTER_CAR.name},stashCells:STASH_CELLS};
    }
    if(!selected||selected==='Salvage'){
    scenes.Salvage=await (await import('/migration/salvage-export.js')).build();
@@ -98,13 +112,15 @@ function model(g){
     }
     function add(o,matrix){
      if(!o.geometry.attributes.position)return;
+     let motion=null;
+     if(folder==='Warehouse')for(let p=o;p;p=p.parent)if(p.userData.migrationMotion){motion=p.userData.migrationMotion;matrix=new T.Matrix4().copy(p.matrixWorld).invert().multiply(matrix);break;}
      const groups=o.geometry.groups.length?o.geometry.groups:[{start:0,count:o.geometry.index?.count||o.geometry.attributes.position.count,materialIndex:0}];
      const source=o.geometry;const g=source.clone();g.applyMatrix4(matrix);if(!g.attributes.normal)g.computeVertexNormals();
      const pos=new T.Vector3().setFromMatrixPosition(matrix),bucket=folder==='Warehouse'?16:256;
      for(const group of groups){
       const m=Array.isArray(o.material)?o.material[group.materialIndex]:o.material;if(m.visible===false)continue;
-      const mi=material(m),key=[mi,Math.floor(pos.x/bucket),Math.floor(pos.z/bucket),o.userData.storyLevel||''].join(':');
-      if(!batches.has(key))batches.set(key,{folder,material:mi,level:o.userData.storyLevel,shadow:o.castShadow,p:[],n:[],c:[],uv:[],idx:[]});
+      const mi=material(m),key=[mi,Math.floor(pos.x/bucket),Math.floor(pos.z/bucket),o.userData.storyLevel||'',motion||'',folder==='Warehouse'?o.castShadow:''].join(':');
+      if(!batches.has(key))batches.set(key,{folder,material:mi,level:o.userData.storyLevel,motion,shadow:o.castShadow,p:[],n:[],c:[],uv:[],idx:[]});
       const b=batches.get(key),remap=new Map();const count=Math.min(group.count,(g.index?.count||g.attributes.position.count)-group.start);
       for(let j=0;j<count;j++){
        const i=g.index?g.index.getX(group.start+j):group.start+j;
@@ -136,15 +152,19 @@ function model(g){
     });
     const models=[];let index=0;
     for(const g of batches.values()){
-     g.index=index++;const response=await fetch('/convert',{method:'POST',body:JSON.stringify(g)});if(!response.ok)throw Error(await response.text());models.push({...await response.json(),level:g.level});
+     g.index=index++;const response=await fetch('/convert',{method:'POST',body:JSON.stringify(g)});if(!response.ok)throw Error(await response.text());models.push({...await response.json(),level:g.level,...(g.motion?{motion:g.motion}:{})});
     }
-    output[folder]={materials,textures,models,lights:scene.lights,limit:scene.limit,terrain:scene.terrain,levels:scene.levels,starter:scene.starter,stashCells:scene.stashCells};console.log(folder+' converted '+models.length+' batches');
+    output[folder]={materials,textures,models,lights:scene.lights,motion:scene.motion,motionSamples:scene.motionSamples,limit:scene.limit,terrain:scene.terrain,levels:scene.levels,starter:scene.starter,stashCells:scene.stashCells};console.log(folder+' converted '+models.length+' batches');
     if(scene.salvage)output[folder].salvage=await scene.salvage(material);
    }return output;
   },process.env.VOX_EXPORT_SCENE||'');
   fs.writeFileSync(path.join(root,'.tmp/outgame-scenes-export.json'),JSON.stringify(result));
   for(const [folder,data] of Object.entries(result)){
    const out=path.join(root,'assets',folder);
+   if(data.motionSamples){
+    fs.writeFileSync(path.join(root,'tools/migration/source-warehouse-motion.json'),JSON.stringify({baseline:baseline.commit,source:motionSource,sha256:motionHash,samples:data.motionSamples}));
+    delete data.motionSamples;
+   }
    data.textures.forEach((t,i)=>fs.writeFileSync(path.join(out,'texture-'+i+'.png'),Buffer.from(t.split(',')[1],'base64')));delete data.textures;
    if(data.salvage){
     const s=data.salvage;const height=Buffer.alloc(20+s.heights.length*4);height.write('VHF1');height.writeUInt32LE(s.n,4);

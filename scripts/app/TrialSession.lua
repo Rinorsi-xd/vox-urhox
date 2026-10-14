@@ -96,7 +96,10 @@ function M:Zoom(wheel)
     self.camera:SetModeConfig(mode,{distance=self.cameraDistance,offset=self.cameraOffset,fov=48})
     self.camera:SetMode(mode)
 end
-function M:Pause() self.pendingRotorStep=false;self.pointer:Release();self.weaponAudio:SetActive(false);self.drivingAudio:SetActive(false);self.feedbackAudio:SetActive(false) end
+function M:Pause()
+    self.pendingRotorStep=false;self.pointer:Release();self.weaponAudio:SetActive(false);self.drivingAudio:SetActive(false);self.feedbackAudio:SetActive(false)
+    if self.salvage and self.salvage.audio then self.salvage.audio:SetActive(false) end
+end
 function M:Escape()
     if self.dialog then Host.Close(self);self:Pause()
     elseif self.pointer.captured then self:Pause()
@@ -179,6 +182,7 @@ function M:Tick(dt,command)
     self.weaponAudio:Update(dt,self.weapons,self.camera:GetNode(),self.combat and self.combat.entries,self.combat and self.combat.voice.card~=nil)
     self.drivingAudio:SetActive(self.weaponAudio.active)
     self.feedbackAudio:SetActive(self.weaponAudio.active)
+    if self.salvage then self.salvage.audio:SetActive(self.weaponAudio.active) end
     self.feedbackAudio:Update(dt,self.camera:GetNode(),self.combat and self.combat.voice.card~=nil)
     local alive=not self.combat or self.combat.player.alive
     self.drivingAudio:Update(dt,alive and self.vehicle or nil,command,self.camera:GetNode(),self.combat and self.combat.entries,self.combat and self.combat.voice.card~=nil)

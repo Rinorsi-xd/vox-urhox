@@ -2,7 +2,7 @@ const fs=require('node:fs'),path=require('node:path'),assert=require('node:asser
 const {chromium}=require('C:/Users/XD/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
 const root=path.resolve(__dirname,'../..'),out=path.join(root,'docs/migration/evidence');
 const prepared=JSON.parse(fs.readFileSync(path.join(root,'.tmp/outgame-prepare-cached.json')));
-const cases=[{name:'pc',width:1920,height:1080},{name:'phone-landscape',width:840,height:378,dpr:3,touch:true}];
+const cases=[{name:'pc',width:1920,height:1080},{name:'phone-landscape',width:840,height:378,dpr:3,touch:true},{name:'tablet',width:1024,height:768,dpr:2,touch:true}];
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 (async()=>{const browser=await chromium.launch({headless:true,channel:'chrome',args:['--use-angle=d3d11']});
  try{for(const test of cases.filter(c=>!process.env.VOX_QA_CASE||process.env.VOX_QA_CASE.split(',').includes(c.name))){
@@ -33,7 +33,13 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
    if(state.dialog){await click('保存');await wait(s=>!s.dialog,'save completed');}
    await click('打捞行动');await wait(s=>s.tab==='salvage'&&s.warehouse?.ready,'warehouse');await shot('warehouse');
    check(state.warehouse.effects.particles===900&&state.warehouse.effects.uploads===1,'warehouse GPU dust uploaded once');const time=state.warehouse.effects.time;
+   const crane=state.warehouse.motion.nodes.bridge.position[2],head=state.warehouse.motion.nodes.head.quaternion[1];
    await sleep(900);await dump();check(state.warehouse.effects.time>time&&state.warehouse.effects.uploads===1,'warehouse animation advances without geometry rebuild');
+   check(state.warehouse.motion.nodes.bridge.position[2]!==crane&&state.warehouse.motion.nodes.head.quaternion[1]!==head,'authored crane and trader joints animate in production warehouse');
+   await shot('warehouse-moving');
+   await click('商人','tab');await sleep(1200);await shot('warehouse-trader');
+   check(state.warehouse.motion.nodes.bot.position.length===3,'trader remains articulated in market camera');
+   await click('整备','tab');
    await click('出发');await wait(s=>s.mode==='trial'&&s.map==='salvage'&&!s.loadingFlow.active,'salvage loading',240000);await shot('spawn');
    const before=state.salvageRun.time;
    if(test.touch)await page.touchscreen.tap(test.width*.5,test.height*.5);else await page.mouse.click(test.width*.5,test.height*.5);
@@ -44,10 +50,12 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
    await wait(s=>s.salvageRun?.search,'actual search');check(!!state.salvageRun.search,test.touch?'touch search button opens production crate':'E opens production crate');await shot('search');
    await key('F11');await wait(s=>s.salvageRun?.lootPulse?.id,'rare reveal fixture');await shot('rare-reveal');
    check(state.salvageRun.used>0,'production search fills cargo');
+   check((state.salvageRun.audio.counts.reveal4||0)>0&&state.salvageRun.audio.voices<=4,'real rarity reveal plays original decoded audio with bounded voices');
    report.fixtures=['F4 relocates to a source supply crate','F11 supplies one rarity-4 item to production search rules','F7 relocates to an eligible source extraction'];
    await key('F7');await wait(s=>s.salvageRun?.result,'actual extraction',90000);await shot('result');
    check(state.salvageRun.result.ok&&state.salvageRun.committed,'actual extraction commits cargo');
    check(!state.pointer.captured,'result releases driving input');
+   check(!state.salvageRun.audio.active,'result stops loot audio');
    if(test.touch)await click('回大厅');else await key('Enter');
    await wait(s=>s.mode==='hangar'&&!s.loadingFlow.active,'return');await shot('returned');
    check(!state.mouse.overlay,'result overlay released after return');

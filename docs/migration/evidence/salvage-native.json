@@ -2,7 +2,7 @@
     "version": 2,
     "script": "main.lua",
     "result": "PASS",
-    "duration_ms": 108305,
+    "duration_ms": 61798,
     "frames_completed": 1000,
     "phases": {
         "load": {
@@ -20,8 +20,8 @@
         "scene": {
             "result": "PASS",
             "errors": [],
-            "node_count": 720,
-            "component_count": 681,
+            "node_count": 741,
+            "component_count": 694,
             "scene_exists": true
         }
     },
@@ -32,7 +32,7 @@
             "nodes": 0,
             "components": 0,
             "hash": 0,
-            "frame_time_ms": 380.74310302734377
+            "frame_time_ms": 398.2984924316406
         },
         {
             "frame": 10,
@@ -40,33 +40,33 @@
             "nodes": 0,
             "components": 0,
             "hash": 0,
-            "frame_time_ms": 99.45590209960938
+            "frame_time_ms": 33.504398345947269
         },
         {
             "frame": 500,
             "phase": "run",
-            "nodes": 179,
-            "components": 242,
-            "hash": 1702031940,
-            "frame_time_ms": 99.9395980834961
+            "nodes": 181,
+            "components": 241,
+            "hash": 3380867101,
+            "frame_time_ms": 33.41170120239258
         },
         {
             "frame": 1000,
             "phase": "run",
-            "nodes": 118,
-            "components": 111,
-            "hash": 345173220,
-            "frame_time_ms": 99.94640350341797
+            "nodes": 127,
+            "components": 115,
+            "hash": 1187232102,
+            "frame_time_ms": 50.619598388671878
         }
     ],
     "scene_stalled": false,
-    "max_frame_time_ms": 2596.481201171875,
+    "max_frame_time_ms": 1771.526123046875,
     "update_defined": false,
     "component_census": {
         "Octree": 1,
         "DebugRenderer": 1,
         "Zone": 1,
-        "StaticModel": 661,
+        "StaticModel": 674,
         "Light": 12,
         "CustomGeometry": 2,
         "Camera": 2,
@@ -74,8 +74,8 @@
     },
     "test_result": "PASSED",
     "test_assertions": {
-        "total": 1107,
-        "passed": 1107,
+        "total": 1132,
+        "passed": 1132,
         "failed": 0
     },
     "test_issues": [],

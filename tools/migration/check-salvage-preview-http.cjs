@@ -7,7 +7,7 @@ const paths=['main.lua','app/DriveMaps.lua','app/HangarApp.lua','app/LoadingFlow
  'salvage/Run.lua','salvage/RunRules.lua','salvage/Loot.lua','salvage/Director.lua','salvage/Drops.lua',
  'drive/SalvageWorld.lua','drive/SalvagePhysics.lua','scene/SalvageAssets.lua','render/SalvageView.lua','render/WarehouseEffects.lua',
  'Scenes/Salvage.xml','Salvage/Resources.json','Salvage/RunManifest.json','Salvage/Gameplay.json','Salvage/RunData.json','Salvage/Physics.json',
- 'Salvage/Height.bin','Salvage/GroundBaked.png','Salvage/run-model-0.bin','Warehouse/Effects.json',
+ 'Salvage/Height.bin','Salvage/GroundBaked.png','Salvage/run-model-0.bin','Warehouse/Effects.json','Warehouse/Manifest.json','scene/Warehouse.lua','scene/WarehouseMotion.lua',
  'Shaders/BLGL/Outgame/Ground.shader','Shaders/BLGL/Warehouse/Dust.shader','Shaders/BLGL/Warehouse/Holo.shader'];
 (async()=>{
  const manifestName=path.basename(prepared.manifest_path),report={build:prepared.source_directory,manifest:manifestName,checks:[]};

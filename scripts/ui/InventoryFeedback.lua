@@ -2,6 +2,7 @@
 local UI=require 'urhox-libs/UI'
 local D=require 'ui.SourceDraw'
 local Motion=require 'ui.SourceButtonMotion'
+local Images=require 'urhox-libs/UI/Core/ImageCache'
 local M={}
 local function Tween(v) return {value=v,start=v,target=v,elapsed=0,duration=0} end
 function M.Focused(widget)
@@ -11,6 +12,20 @@ end
 function M.Color(c,focused)
     if not focused then return c end
     return {math.min(255,c[1]*1.18),math.min(255,c[2]*1.18),math.min(255,c[3]*1.18),c[4] or 255}
+end
+function M.Image(widget,vg,path,r,focused)
+    if not focused then widget:RenderBackgroundImage(vg,path,r,'contain');return end
+    local handle=Images.Get(path)
+    if not handle or handle<=0 then return end
+    local width,height=Images.GetSize(path)
+    if width<=0 or height<=0 then return end
+    local scale=math.min(r.w/width,r.h/height)
+    local w,h=width*scale,height*scale;local x,y=r.x+(r.w-w)/2,r.y+(r.h-h)/2
+    -- nvgRGBA uses byte channels; the float tint preserves CSS brightness > 1
+    -- without changing coverage, allocating another image or adding a pass.
+    nvgBeginPath(vg);nvgRect(vg,r.x,r.y,r.w,r.h)
+    nvgFillPaint(vg,nvgImagePatternTinted(vg,x,y,w,h,0,handle,nvgRGBAf(1.18,1.18,1.18,1)))
+    nvgFill(vg)
 end
 function M.Mix(a,b,t)
     return {a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t,a[3]+(b[3]-a[3])*t,(a[4] or 255)+((b[4] or 255)-(a[4] or 255))*t}

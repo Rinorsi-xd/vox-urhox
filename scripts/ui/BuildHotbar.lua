@@ -24,7 +24,7 @@ function Slot:Render(vg)
         D.Text(vg,tostring(p.index%10),r.x+5,r.y+2,14,Feedback.Color(p.active and D.ink or {153,182,208,255},focused),'vox-display')
         if def then
             local size=p.thumbnailSize;require('ui.InventoryShadows').Image(self,vg,p.partType,'slot',{x=r.x+(r.w-size)/2,y=r.y+8,w=size,h=size})
-            self:RenderBackgroundImage(vg,Theme.Thumbnail(p.partType),{x=r.x+(r.w-size)/2,y=r.y+8,w=size,h=size},'contain',nil,nil,focused and {255,255,255,255} or nil)
+            Feedback.Image(self,vg,Theme.Thumbnail(p.partType),{x=r.x+(r.w-size)/2,y=r.y+8,w=size,h=size},focused)
             nvgSave(vg);nvgIntersectScissor(vg,r.x+2,r.y+r.h-18,r.w-4,16)
             D.Text(vg,def.name,r.x+r.w/2,r.y+r.h-17,p.compactInventory and 10 or 11,p.active and D.ink or D.white,'vox-body',NVG_ALIGN_CENTER);nvgRestore(vg)
         else D.Icon(vg,'plus',r.x+r.w/2-9,r.y+25,18,D.dim) end

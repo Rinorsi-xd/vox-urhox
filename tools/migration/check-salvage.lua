@@ -4,6 +4,29 @@ local Loot=require 'salvage.Loot'
 local Rules=require 'salvage.RunRules'
 local GP=require('core.ResourceData').Read('Salvage/Gameplay.json')
 local Data=require('core.ResourceData').Read('Salvage/RunData.json')
+local function AudioLogic(scene)
+    local sound=require('audio.SalvageAudio').New(scene);sound.focus=function() return true end
+    V.assert(not sound:Event({type='reveal',item={r=4}}),'inactive salvage does not play or queue reveal')
+    sound:SetActive(true)
+    for r=0,5 do
+        local id='reveal'..r;local sample=sound.sounds[id]
+        V.assert(sample:GetFrequency()==48000 and sample.sixteenBit and not sample.stereo,'source mono PCM decode '..id)
+        V.assert(sound:Event({type='reveal',item={r=r}}) and sound.counts[id]==1,'source rarity event routes '..id)
+    end
+    V.assert(sound:Event({type='suspense'}) and sound.counts.suspense==1,'production suspense routes original heartbeat')
+    V.assert(#sound.voices==4,'bursts retain four reusable voices')
+    V.assert(not sound:Event({type='noise'}),'world noise does not create a loot sound')
+    local function Stopped() for _,source in ipairs(sound.voices) do if source.playing then return false end end;return true end
+    sound:SetActive(false);V.assert(Stopped(),'pause immediately stops all reveal tails')
+    sound:SetActive(true);sound:Event({type='reveal',item={r=5}})
+    V.assert(sound.voices[1].frequency==48000 and math.abs(sound.voices[1].gain-.6)<.001,'native voice uses original pitch and default effects volume')
+    sound.focus=function() return false end;sound:SetActive(true)
+    V.assert(Stopped() and not sound:Event({type='suspense'}),'focus loss stops playback and rejects stale sound')
+    sound.focus=function() return true end;sound.volume=0
+    V.assert(not sound:Event({type='suspense'}),'zero effects volume suppresses reveals')
+    sound:Dispose();sound:Dispose();V.assert(sound.disposed and next(sound.voices)==nil and next(sound.sounds)==nil,'disposal releases voices and is idempotent')
+    V.assert(not sound:Event({type='suspense'}),'disposed audio cannot replay')
+end
 local function Logic()
     local f=assert(io.open('tools/migration/source-salvage-fixtures.json'));local fixtures=cjson.decode(f:read('*a'));f:close()
     for i,c in ipairs(fixtures.cases) do local at=0;local state={red=0}
@@ -45,6 +68,7 @@ local function Exercise(s)
     local update=s.Update;s.Update=function() end
     V.assert(s.salvage.begun and s.combat==s.salvage and s.hud.salvage~=nil,'production loading begins salvage and attaches HUD')
     local run=s.salvage;local before=run.rules.time
+    run.audio.focus=function() return true end
     s.pointer.captured=true
     for i=1,120 do s:Tick(1/60,{throttle=0,steer=0});if i%20==0 then coroutine.yield() end end
     V.assert(run.rules.time>before+1.9 and s.vehicle.body.translation().y> -100,'production physics and clock run')
@@ -53,6 +77,11 @@ local function Exercise(s)
     s:Tick(1/60,{throttle=0,steer=0});V.assert(run.rules.search~=nil,'session E routes to search')
     for i=1,480 do s:Tick(1/60,{throttle=0,steer=0});if i%30==0 then coroutine.yield() end end
     V.assert(Loot.Used(run.rules.cargo)>0,'production search adds loot')
+    local reveals=0;for id,n in pairs(run.audio.counts) do if id:match('^reveal') then reveals=reveals+n end end
+    V.assert(reveals>0 and #run.audio.voices<=4,'real search events play decoded reveal audio')
+    s:Pause();local stopped=true;for _,source in ipairs(run.audio.voices) do if source.playing then stopped=false end end
+    V.assert(stopped and not run.audio.active,'real session pause stops loot voices')
+    _G.VOX_QA_SALVAGE_AUDIO=run.audio
     local stash=app.salvageLobby;local data=stash.data;local save=stash.Save;stash.Save=function() return false,'injected write failure' end
     run:Finish(true,'QA extraction',false)
     V.assert(not run.committed and stash.data==data and run.saveError~=nil,'failed persistence rolls back and retains result')
@@ -68,7 +97,7 @@ local function Exercise(s)
 end
 local function Poll()
     if stage=='boot' and VOX_HANGAR then
-        app=VOX_HANGAR.app;Logic();V.assert(app.bays:Save(1),'validation draft saved before lobby switch');require('ui.GarageHud').GetState().SetLobby('salvage');stage='warehouse'
+        app=VOX_HANGAR.app;Logic();AudioLogic(app.scene);V.assert(app.bays:Save(1),'validation draft saved before lobby switch');require('ui.GarageHud').GetState().SetLobby('salvage');stage='warehouse'
     elseif stage=='warehouse' and app.warehouse and app.warehouse.ready then
         V.assert(app.warehouse.effects.uploads==1 and #app.warehouse.effectData.dust.positions==900,'warehouse dust uploads once')
         V.assert(app:EnterTrial('salvage'),'production salvage entry');stage='loading'
@@ -77,6 +106,7 @@ local function Poll()
     elseif stage=='exercise' then
         local ok,err=coroutine.resume(work);if not ok then V.assert(false,tostring(err));stage='failed';V.finish() end
     elseif stage=='return' and not app.trial and not app.loadingFlow.active then
+        V.assert(VOX_QA_SALVAGE_AUDIO.disposed and not next(VOX_QA_SALVAGE_AUDIO.voices),'return disposes production salvage sound sources')
         V.assert(app.lobby=='salvage','return preserves salvage lobby');stage='done';V.finish()
     end
 end

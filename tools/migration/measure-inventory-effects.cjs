@@ -67,7 +67,15 @@ const baseline=JSON.parse(fs.readFileSync(path.join(root,'docs/migration/outgame
    return samples;
   }
   const controls={close:await control('.inv-close'),closePress:await control('.inv-close','press'),material:await control('.inv-mat'),slot:await control('.inv-slot:not(.on)')};
-  const result={baseline:{branch:baseline.branch,commit:baseline.commit},entry,hover,press,release,leave,filters,controls,errors};
+  await page.keyboard.press('Tab');
+  await card.focus();await page.waitForTimeout(350);
+  const focus=await page.evaluate(()=>{
+   const el=document.querySelector('#inventory .inv-part'),number=el.querySelector('.no'),r=el.getBoundingClientRect(),n=number.getBoundingClientRect(),css=getComputedStyle(el);
+   return {filter:css.filter,number:{bottom:r.bottom-n.bottom,height:n.height,width:n.width,fontSize:getComputedStyle(number).fontSize,lineHeight:getComputedStyle(number).lineHeight}};
+  });
+  await page.locator('.inv-slot').first().focus();
+  focus.slotFilter=await page.locator('.inv-slot').first().evaluate(el=>getComputedStyle(el).filter);
+  const result={baseline:{branch:baseline.branch,commit:baseline.commit},entry,hover,press,release,leave,filters,controls,focus,errors};
   fs.writeFileSync(path.join(out,'source-inventory-effects.json'),JSON.stringify(result,null,2));
   fs.writeFileSync(path.join(__dirname,'source-inventory-effects.json'),JSON.stringify(result,null,2)+'\n');
   await card.hover();await page.waitForTimeout(500);await page.screenshot({path:path.join(out,'source-inventory-effects-hover.png')});

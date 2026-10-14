@@ -235,6 +235,7 @@ local function Dump(app)
         data.ghost={ready=ghost.ready,state=ghost.gate.state,type=app.editor.type,warmKey=ghost.warmKey,pool=#ghost.pool}
     end
     if app.warehouse then data.warehouse={ready=app.warehouse.ready,cursor=app.warehouse.cursor,hallVisible=app.hangar.root.enabled,
+        motion=app.warehouse.ready and app.warehouse.motion:Snapshot() or nil,
         effects=app.warehouse.effects and {time=app.warehouse.effects.time,uploads=app.warehouse.effects.uploads,particles=#app.warehouse.effectData.dust.positions}} end
     local scale=app.graphicsSettings.sceneScale
     if scale then data.render={scale.graph.width,scale.graph.height} end

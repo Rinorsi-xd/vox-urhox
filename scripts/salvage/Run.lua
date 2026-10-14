@@ -22,6 +22,7 @@ function M:init(session,bp)
     assert(self.player.alive,'Invalid salvage vehicle');self:Center(self.player,self.spawn)
     self.world.units={self.player};self.entries[1]={unit=self.player,env=self:Environment(self.player)}
     self.director=require('salvage.Director').New(self);self.view=require('render.SalvageView').New(self)
+    self.audio=require('audio.SalvageAudio').New(session.scene)
 end
 function M:Center(u,at)
     local a,b=u.spec.bounds.min,u.spec.bounds.max;local x,z=(a[1]+b[1])/2,(a[3]+b[3])/2;local yaw=at.yaw or 0
@@ -92,6 +93,7 @@ end
 function M:Events()
     for _,e in ipairs(self.rules:Drain()) do
         require('ui.SalvageLootMotion').Event(self,e)
+        self.audio:Event(e)
         if e.type=='noise' then self.director:Noise(e.at,e.r)
         elseif e.type=='hunt' then self.director:Hunt(e.n,e.at)
         elseif e.type=='crate' then self.view:Crate(e.object)
@@ -142,8 +144,9 @@ end
 function M:SyncPlayer() require('combat.PlayerViewSync').Update(self) end
 function M:Snapshot() return {time=self.rules.time,heat=self.rules.heat,cargo=self.rules.cargo,used=Loot.Used(self.rules.cargo),mass=Loot.Mass(self.rules.cargo),value=Loot.Value(self.rules.cargo),
     opened=self.rules.openedCount,kills=self.rules.kills,enemies=#self.entries-1,prompt=self.rules.prompt,search=self.rules.search and {title=self.rules.search.title,crack=self.rules.search.crack,done=self.rules.search.done,items=self.rules.search.items},
-    extracts=self.rules.extracts,lootPulse=self.lootPulse,flights=#(self.lootFlights or {}),result=self.result,committed=self.committed,saveError=self.saveError} end
+    extracts=self.rules.extracts,lootPulse=self.lootPulse,flights=#(self.lootFlights or {}),audio=self.audio:Snapshot(),result=self.result,committed=self.committed,saveError=self.saveError} end
 function M:Dispose()
+    if self.audio then self.audio:Dispose() end
     if self.view then self.view:Dispose() end
     for _,e in ipairs(self.entries) do e.unit:Dispose() end;self.entries={};self.world.units={}
 end
