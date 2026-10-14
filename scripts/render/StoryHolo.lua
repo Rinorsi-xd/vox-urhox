@@ -81,7 +81,7 @@ function M:Update(dt)
         node.enabled=not m.level or tonumber(m.level)==self.level
         self.nodes[index]=node;self.cursor=index+1
         if self.cursor>#Data.models then
-            self.ready=true;renderer:SetViewport(1,Viewport:new(self.scene,self.camera))
+            self.ready=true;require('render.WindowViewports').Set(1,Viewport:new(self.scene,self.camera))
             print('[StoryHolo] Ready frozen batches='..#Data.models)
         end
     end
@@ -98,7 +98,7 @@ function M:Update(dt)
 end
 function M:Dispose()
     if self.disposed then return end;self.disposed=true
-    self.gate:Cancel();renderer:SetViewport(1,nil);self.scene:Dispose()
+    self.gate:Cancel();require('render.WindowViewports').Set(1,nil);self.scene:Dispose()
     for _,material in pairs(self.materials) do material:Dispose() end
     self.materials={};self.nodes={}
 end

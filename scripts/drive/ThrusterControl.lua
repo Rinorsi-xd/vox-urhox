@@ -12,25 +12,29 @@ end
 function M.Step(v,cmd,dt,contact,supportForce)
     local body=v.body;local q=body.rotation();local p,lv,av=body.translation(),body.linvel(),body.angvel()
     local mg=v.mass*9.81;local ts=v.spec.thrusters;local lifts={}
+    local thinX=C((p.y-140)/60,0,1);local thin=math.sqrt(1-thinX*thinX)
     for _,t in ipairs(ts) do if t.dir[2]>.7 then lifts[#lifts+1]=t end end
     local climb,throttle,strafe,steer=C(cmd.climb or 0,-1,1),C(cmd.throttle or 0,-1,1),C(cmd.strafe or 0,-1,1),C(cmd.steer or 0,-1,1)
     v.thrusterOutputs={};v.thrusterDirections={}
     if cmd.cutLift or #lifts==0 then v.flightTarget=nil;v.landingTime=0
     elseif climb>0 and v.flightTarget==nil then v.flightTarget=p.y end
     if v.flightTarget~=nil then
-        v.flightTarget=C(v.flightTarget+climb*3*dt,p.y-1.8,p.y+1.8)
+        v.flightTarget=math.min(C(v.flightTarget+climb*3*dt,p.y-1.8,p.y+1.8),170)
         local hit=v.space:Raycast({p.x,p.y+v.spec.bounds.min[2]+.1,p.z},{0,-1,0},.35,body)
         v.landingTime=climb<0 and (contact>0 or hit) and math.abs(lv.y)<.7 and (v.landingTime or 0)+dt or 0
         if v.landingTime>.25 then v.flightTarget=nil end
     end
     local horizontalSpeed=math.sqrt(lv.x*lv.x+lv.z*lv.z)
-    if #ts>0 and horizontalSpeed>0 then body.addForce({x=-v.mass*.002*horizontalSpeed*lv.x,y=0,z=-v.mass*.002*horizontalSpeed*lv.z},true) end
+    if #ts>0 and horizontalSpeed>0 and contact==0 and (supportForce or 0)<mg*.5 then
+        body.addForce({x=-v.mass*.002*horizontalSpeed*lv.x,y=0,z=-v.mass*.002*horizontalSpeed*lv.z},true)
+    end
     local torque={0,0,0};local outputCount=0
     local function Apply(t,d,f,point)
         if f<.001 then return end
         point=point or t.pos
         local wd=Math.Rotate(q,d);local r=Math.Rotate(q,point)
-        body.addForceAtPoint(Vec(Math.Scale(wd,f)),{x=p.x+r[1],y=p.y+r[2],z=p.z+r[3]},true)
+        local force=Math.Scale(wd,f);if force[2]>0 then force[2]=force[2]*thin end
+        body.addForceAtPoint(Vec(force),{x=p.x+r[1],y=p.y+r[2],z=p.z+r[3]},true)
         v.thrusterOutputs[t.partId]=f/t.thrust;v.thrusterDirections[t.partId]=d;outputCount=outputCount+1
         local tq=Math.Cross(Math.Sub(point,v.com),d)
         for k=1,3 do torque[k]=torque[k]+tq[k]*f end

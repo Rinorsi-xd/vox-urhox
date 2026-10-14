@@ -2,6 +2,7 @@
 -- CSS pixels; high-DPI displays do not allocate a full physical-resolution copy.
 local Graph=require 'render.FilterGraph'
 local UI=require 'urhox-libs/UI'
+local Viewports=require 'render.WindowViewports'
 local M={};M.__index=M
 local shader='Shaders/BLGL/UI/BackdropBlur.shader'
 function M.Size(width,height,logicalW,logicalH)
@@ -20,7 +21,7 @@ function M.Specs(viewport,width,height,logicalW,logicalH)
     },w,h
 end
 function M.New()
-    local source=renderer:GetViewport(0)
+    local source=Viewports.Get(0)
     if not source then return nil end
     local self=setmetatable({source=source},M)
     local ok,err=pcall(self.Resize,self)
@@ -33,19 +34,20 @@ function M:Resize()
     local specs,w,h=M.Specs(self.source,pw,ph,lw,lh)
     local graph=Graph.New(specs,w,h);local previous=self.graph
     self.graph=graph;self.lw=lw;self.lh=lh;self.pw=pw;self.ph=ph
-    renderer:SetViewport(0,graph.output)
+    Viewports.Set(0,graph.output)
     if previous then previous:Dispose() end
 end
 function M:Update()
     if self.disposed then return end
     -- Scene switches own the renderer. Never restore an obsolete hall viewport.
-    if renderer:GetViewport(0)~=self.graph.output then self:Dispose();return end
+    if Viewports.Get(0)~=self.graph.output then self:Dispose();return end
+    if not Viewports.Drawable() then return end
     self:Resize();self.graph:Queue()
 end
 function M:Dispose()
     if self.disposed then return end;self.disposed=true
     if self.graph then
-        if renderer:GetViewport(0)==self.graph.output then renderer:SetViewport(0,self.source) end
+        if Viewports.Get(0)==self.graph.output then Viewports.Set(0,self.source) end
         self.graph:Dispose();self.graph=nil
     end
     self.source=nil

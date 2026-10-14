@@ -1,6 +1,7 @@
 -- One additive overlay draw, no intermediate color/depth texture or CPU particles.
 local V=require 'core.Math3'
 local Coord=require 'core.Coord'
+local Viewports=require 'render.WindowViewports'
 local M={};M.__index=M
 function M.New()
     local self=setmetatable({},M);self:init();return self
@@ -20,7 +21,7 @@ function M:Prepare()
     local xml=XMLFile:new();assert(xml:FromString('<renderpath><command type="scenepass" pass="alpha" vertexlights="false"/></renderpath>'))
     local path=renderer:GetDefaultRenderPath():Clone();assert(path:Load(xml));xml:Dispose()
     self.viewport=Viewport:new(self.scene,camera);self.viewport:SetRenderPath(path)
-    self.index=renderer.numViewports;renderer:SetNumViewports(self.index+1);renderer:SetViewport(self.index,self.viewport)
+    self.index=renderer.numViewports;renderer:SetNumViewports(self.index+1);Viewports.Set(self.index,self.viewport)
 end
 function M:Update(dt,camera,system,live)
     local a=system.drill.active;local want=live and a and a.phase=='dash' and (a.grinding and .55 or 1) or 0
@@ -40,8 +41,8 @@ function M:Update(dt,camera,system,live)
 end
 function M:Clear() self.rush=0;self.visible=false;if self.mesh then self.mesh.enabled=false end end
 function M:Dispose()
-    if self.viewport and renderer:GetViewport(self.index)==self.viewport then
-        renderer:SetViewport(self.index,nil)
+    if self.viewport and Viewports.Get(self.index)==self.viewport then
+        Viewports.Set(self.index,nil)
         if renderer.numViewports==self.index+1 then renderer:SetNumViewports(self.index) end
     end
     if self.scene then self.scene:Dispose();self.material:Dispose() end

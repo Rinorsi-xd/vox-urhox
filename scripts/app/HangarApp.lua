@@ -549,7 +549,7 @@ function App:Update(dt)
     end
     if input:GetKeyPress(KEY_B) then self.hangar:SetGrid(not self.hangar.gridOn) end
     if input:GetKeyPress(KEY_R) then self.hangar:Welcome(self.blueprint) end
-    if input:GetKeyPress(KEY_G) then self:ToggleGallery() end
+    if input:GetKeyPress(KEY_G) and page and page.tab=='hangar' then page.SetLobby('salvage');return end
     if self.gallery then
         if input:GetKeyPress(KEY_PAGEUP) then self.gallery:Page(self.gallery.page-1);Hud.SetMode("零件目录 "..self.gallery.page.."/"..self.gallery.pages.." · PageUp / PageDown 翻页 · G 关闭") end
         if input:GetKeyPress(KEY_PAGEDOWN) then self.gallery:Page(self.gallery.page+1);Hud.SetMode("零件目录 "..self.gallery.page.."/"..self.gallery.pages.." · PageUp / PageDown 翻页 · G 关闭") end
@@ -602,7 +602,7 @@ function App:Stop()
     if self.gallery then self.gallery:Dispose();self.gallery=nil end
     if self.car then self.car:Dispose();self.car=nil end
     if self.hangar then self.hangar:Dispose() end
-    if self.ownsScene then renderer:SetViewport(0,nil) end
+    if self.ownsScene then require('render.WindowViewports').Stop() end
     if self.scene and self.ownsScene then self.scene:Dispose() end
     local previous=self.previousState
     cache.autoReloadResources=previous.autoReload

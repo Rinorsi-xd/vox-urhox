@@ -1,11 +1,16 @@
 // Bake the frozen CSS filters with Chromium; tint cannot reproduce saturation.
-const fs=require('node:fs'),path=require('node:path'),http=require('node:http');
+const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),crypto=require('node:crypto');
 const {chromium}=require('C:/Users/XD/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
 const root=path.resolve(__dirname,'../..');
 const baseline=JSON.parse(fs.readFileSync(path.join(root,'docs/migration/outgame-baseline.json')));
 const source=path.join(baseline.snapshot,'shared/assets/ui/prefabs');
 const css=fs.readFileSync(path.join(baseline.snapshot,'shared/css/workshop.css'),'utf8');
 const filters={card:'.wsb-card img',hover:'.wsb-card:hover img',dot:'.wsh-dots img'};
+const outputArg=process.argv.find(arg=>arg.startsWith('--output='));
+const folder=outputArg?path.resolve(outputArg.slice('--output='.length)):path.join(root,'assets/UI/Prefabs/Filtered');
+if(outputArg&&fs.existsSync(folder)&&fs.readdirSync(folder).length)throw Error('Isolated output must be empty');
+const hash=b=>crypto.createHash('sha256').update(b).digest('hex');
+const inputs=[{file:'shared/css/workshop.css',sha256:hash(Buffer.from(css))}],outputs=[];
 for(const [name,selector] of Object.entries(filters)){
  const rule=css.split('\n').find(line=>line.includes(selector+' {')&&line.includes('filter:'));
  const value=rule?.match(/(?:^|[;{])\s*filter:\s*([^;]+)/)?.[1];
@@ -24,8 +29,9 @@ for(const [name,selector] of Object.entries(filters)){
  try{
   const page=await browser.newPage();
   await page.goto('http://127.0.0.1:'+server.address().port+'/');
-  const folder=path.join(root,'assets/UI/Prefabs/Filtered');fs.mkdirSync(folder,{recursive:true});
+  fs.mkdirSync(folder,{recursive:true});
   for(const file of fs.readdirSync(source).filter(file=>file.endsWith('.jpg'))){
+   inputs.push({file:'shared/assets/ui/prefabs/'+file,sha256:hash(fs.readFileSync(path.join(source,file)))});
    for(const [name,filter] of Object.entries(filters)){
     const data=await page.evaluate(async({url,filter,thumbnail})=>{
      const image=new Image();image.src=url;await image.decode();
@@ -35,9 +41,12 @@ for(const [name,selector] of Object.entries(filters)){
      context.drawImage(image,0,0,canvas.width,canvas.height);
      return canvas.toDataURL('image/jpeg',.98).split(',')[1];
     },{url:'http://127.0.0.1:'+server.address().port+'/'+file,filter,thumbnail:name==='dot'});
-    fs.writeFileSync(path.join(folder,name+'-'+file),Buffer.from(data,'base64'));
+    const bytes=Buffer.from(data,'base64');fs.writeFileSync(path.join(folder,name+'-'+file),bytes);
+    outputs.push({file:'UI/Prefabs/Filtered/'+name+'-'+file,sha256:hash(bytes),bytes:bytes.length});
    }
   }
-  console.log(JSON.stringify({filters,images:fs.readdirSync(source).filter(f=>f.endsWith('.jpg')).length*3}));
+  const provenance={sourceCommit:baseline.commit,converter:'tools/migration/import-workshop-filters.cjs',converterSha256:hash(fs.readFileSync(__filename)),browser:browser.version(),filters,inputs,outputs};
+  if(outputArg)fs.writeFileSync(path.join(folder,'provenance.json'),JSON.stringify(provenance,null,2));
+  console.log(JSON.stringify({filters,images:outputs.length,output:folder}));
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}
 })().catch(error=>{console.error(error);process.exitCode=1;});

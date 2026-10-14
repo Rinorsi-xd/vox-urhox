@@ -15,8 +15,10 @@ V.atFrame(55,function()
     floor:CreateComponent("CollisionShape"):SetStaticPlane()
     space:Register(ground,{type="ground"})
     local evidence={}
-    for name,build in pairs({car=Prefab.BuildRaceCar,tank=Prefab.BuildTank}) do
+    for _,name in ipairs({'raceCar','tianyuan','fuyuan'}) do
+        local build=function(bp) return Prefab.Create(bp,name) end
         local v=Vehicle.New(space,Spec.Build(build(BP.New())))
+        V.assert(name=='raceCar' or v.tracked,name..' actual prefab has tracked locomotion')
         local function Step(frames,cmd)
             for _=1,frames do v:Step(cmd or {throttle=0,steer=0},1/60);space:Step(1/60) end
         end

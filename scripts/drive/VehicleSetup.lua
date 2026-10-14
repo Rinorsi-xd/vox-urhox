@@ -94,7 +94,7 @@ function M.Wheels(spec)
         local rest=Math.Clamp(.28*w.radius+.06,.12,.5)
         local soft=w.track and .2 or Contact.FEEL.soft
         local sag=w["end"] and 0 or math.min(.9,soft*math.max(1,spec.motion.L))
-        local drop=Math.Clamp((w.center[2]-w.radius)-bottom+.12,0,math.max(.15,w.radius*.4))
+        local drop=Math.Clamp((w.center[2]-w.radius)-bottom+.3,0,math.max(.15,w.radius*.4))
         local conn={w.center[1],w.center[2]-drop+rest*(1-sag),w.center[3]}
         local axle=math.abs(w.axle[1])>.5 and {-1,0,0} or {0,0,1}
         local alignment=Math.Dot(axle,w.axle);local sign=alignment<0 and -1 or 1
@@ -102,7 +102,8 @@ function M.Wheels(spec)
         local damping=2*math.sqrt(k*shares[i])
         local result={};for key,value in pairs(w) do result[key]=value end
         result.rest=rest;result.sag0=sag;result.drop=drop;result.spinSign=sign;result.index=i;result.share=shares[i]
-        result.conn=conn;result.contactAxle=axle;result.stiffness=k;result.compression=damping*.5;result.relaxation=damping*Contact.FEEL.bounce
+        result.conn=conn;result.contactAxle=axle;result.stiffness=k
+        result.compression=damping*(w.track and .85 or .5);result.relaxation=damping*(w.track and 1 or Contact.FEEL.bounce)
         result.down={0,-1,0}
         result.maxTravel=rest*.95;result.maxForce=w.load*9.81*6;result.friction=w.track and Contact.TUNING.trackGrip or Contact.TUNING.wheelGrip
         wheels[#wheels+1]=result

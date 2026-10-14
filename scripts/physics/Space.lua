@@ -25,9 +25,9 @@ function Space:Unregister(native)
     if entry then entry.body.invalidate() end
     self.bodies[native.node:GetID()]=nil
 end
-function Space:Raycast(origin,direction,length,excluded,skipOwnerType,fixedOnly)
+function Space:Raycast(origin,direction,length,excluded,skipOwnerType,fixedOnly,collisionMask)
     local ray=Ray(Coord.Vec(table.unpack(origin)),Coord.Vec(table.unpack(direction)))
-    local results=self.world:Raycast(ray,length)
+    local results=self.world:Raycast(ray,length,collisionMask or 0xffff)
     for _,hit in ipairs(results) do
         if hit.body and (not excluded or hit.body~=excluded.native) and not hit.body.trigger
             and (not fixedOnly or (hit.body.mass==0 and not hit.body.kinematic)) then
@@ -41,5 +41,11 @@ function Space:Raycast(origin,direction,length,excluded,skipOwnerType,fixedOnly)
     end
     return nil
 end
-function Space:Step(dt) self.world:Update(dt) end
+function Space:Step(dt)
+    self.world:Update(dt)
+    for _,entry in pairs(self.bodies) do
+        local owner=entry.owner
+        if owner and owner.type=='vehicle' and owner.ref then owner.ref:PostStep() end
+    end
+end
 return Space

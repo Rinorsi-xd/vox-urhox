@@ -1,6 +1,7 @@
 -- Original H5 graphics values. Never publish a setting that only changes Lua.
 local Exposure=require 'render.FixedExposure'
 local CraterTonemap=require 'render.CraterTonemap'
+local Viewports=require 'render.WindowViewports'
 local M={};M.__index=M
 local ranges={bloom={0,.8},mist={0,.2},exposure={.6,1.4},vignette={0,.6},grain={0,.06}}
 local supported={bloom=true,exposure=true,vignette=true,quality=true}
@@ -21,6 +22,7 @@ local function Legacy(data)
 end
 function M.ValidSaved(data) return M.Valid(data) or Legacy(data) end
 function M.New(app)
+    Viewports.Start()
     local saved=not app.isValidation and app.store:Read('graphics',function(d) return M.Valid(d) or Legacy(d) end) or nil
     local data=saved or M.Defaults();local migrate=saved and saved.v==1 or false
     if migrate then data=M.Defaults();data.bloom=saved.bloom;data.vignette=saved.vignette end
@@ -51,18 +53,18 @@ function M:Show(scene,camera)
         if self.post then self.post:Dispose();self.post=nil end
         local post=require('render.CraterPostProcess').New(scene,camera,self.data,{fixedResolution=self.app.isValidation})
         if self.tonemap then self.tonemap:Dispose();self.tonemap=nil end
-        self.post=post;post.graph:Queue();renderer:SetViewport(0,post.graph.output)
+        self.post=post;post.graph:Queue();Viewports.Set(0,post.graph.output)
     else
         if self.post then self.post:Dispose();self.post=nil end
-        renderer:SetViewport(0,Viewport:new(scene,camera))
+        Viewports.Set(0,Viewport:new(scene,camera))
     end
 end
 function M:SetSceneVisible(visible)
     if not self.app.ownsScene then return end
     if visible and self.suspendedViewport then
-        renderer:SetViewport(0,self.suspendedViewport);self.suspendedViewport=nil
+        Viewports.Set(0,self.suspendedViewport);self.suspendedViewport=nil
     elseif not visible and not self.suspendedViewport then
-        self.suspendedViewport=renderer:GetViewport(0);renderer:SetViewport(0,nil)
+        self.suspendedViewport=Viewports.Get(0);Viewports.Set(0,nil)
     end
 end
 function M:Set(key,value)
@@ -81,11 +83,15 @@ function M:Flush()
     return ok,err
 end
 function M:Update(dt)
-    if self.post and not self.suspendedViewport then self.post:Update(dt) end
+    Viewports.Refresh()
+    if self.post and not self.suspendedViewport and Viewports.Drawable() then self.post:Update(dt) end
     if self.tonemap then self.tonemap:Update() end
     if self.pending then self.delay=self.delay-dt;if self.delay<=0 then self:Flush() end end
 end
-function M:PostUpdate() if self.post and not self.suspendedViewport then self.post:PostUpdate() end end
+function M:PostUpdate()
+    Viewports.Refresh()
+    if self.post and not self.suspendedViewport and Viewports.Drawable() then self.post:PostUpdate() end
+end
 function M:Dispose()
     self.suspendedViewport=nil
     self:Flush()

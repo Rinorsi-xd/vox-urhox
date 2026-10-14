@@ -16,4 +16,4 @@ function Start()
     SubscribeToEvent('Update','HandleUpdate')
 end
 function HandleUpdate(_,data) local dt=data:GetFloat('TimeStep');require('render.RenderTargetLifetime').Update();loader:Update(dt);if settings then settings:Update(dt) end;if environment then environment:Update(dt,camera.node) end;if settings then settings:PostUpdate() end end
-function Stop() loader:Cancel();renderer:SetViewport(0,nil);if settings then settings:Dispose() end;if environment then environment:Dispose() end;if scene then scene:Dispose() end;require('render.RenderTargetLifetime').Flush() end
+function Stop() loader:Cancel();require('render.WindowViewports').Stop();if settings then settings:Dispose() end;if environment then environment:Dispose() end;if scene then scene:Dispose() end;require('render.RenderTargetLifetime').Flush() end

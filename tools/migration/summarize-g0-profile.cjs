@@ -15,12 +15,14 @@ function waitStacks(file){
   });
 }
 const result={sourceCommit:identity.identity.sourceCommit,manifest:identity.servedManifest,
+ qa:{loadProfile:identity.loadProfile===true,renderExperiment:identity.renderExperiment===true,warmExperiment:identity.warmExperiment===true,warmIntroExperiment:identity.warmIntroExperiment===true,probeSha256:identity.probeSha256||null},
  viewport:{width:1920,height:1080,dpr:1},instrumented:true,
  bootMs:profile.bootMs,craterMs:profile.craterMs,
  longestFrames:profile.frames.toSorted((a,b)=>b.ms-a.ms).slice(0,10),methods:gl.methods,
  longestTasks:gl.longTasks.toSorted((a,b)=>b.ms-a.ms).slice(0,10).map(task=>({...task,
   recordedSlowCallsMs:gl.slow.filter(call=>call.at>=task.at&&call.at+call.ms<=task.at+task.ms+2)
    .reduce((out,call)=>(out[call.method]=(out[call.method]||0)+call.ms,out),{})})),
+ phaseTasks:Object.fromEntries(['boot','crater'].map(phase=>[phase,gl.longTasks.filter(t=>t.phase===phase).toSorted((a,b)=>b.ms-a.ms).slice(0,10)])),
  slowestCalls:gl.slow.toSorted((a,b)=>b.ms-a.ms).slice(0,20).map(call=>({...call,
   shaderHashes:(gl.programs[call.program]||[call.shader]).filter(Boolean).map(id=>{
    const shader=gl.shaders.find(s=>s.id===id);return {id,sha256:shader&&crypto.createHash('sha256').update(shader.source).digest('hex')};

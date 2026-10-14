@@ -3,11 +3,13 @@
 local Math=require "core.Math3"
 local C=Math.Clamp
 local G=9.81
-local M={FEEL={soft=.45,bounce=.55,steerIn=9,yawK=11,yawKFree=5,roll=.5,pitch=1,rollDamp=1},TUNING={wheelGrip=1.6,trackGrip=2.4}}
+local M={FEEL={soft=.45,bounce=.55,steerIn=16,yawK=18,yawKFree=8,roll=.5,pitch=1,rollDamp=1},TUNING={wheelGrip=2.2,trackGrip=2.4}}
 local F=M.FEEL
+local TRACK={side0=.12,side=.18,pivot=1.2,hiTurn=.5,steerIn=6,yawK=40,yawKFree=24,turnDrag=.3,latGain=16,latK=1.4,hug=.3,accel=.8}
+local ANTI_PITCH=.8
 local function Vec(a) return {x=a[1],y=a[2],z=a[3]} end
 local function Smooth(x) local k=C(x,0,1);return k*k*(3-2*k) end
-local function Falloff(v,max) return max<=.01 and 0 or (v<=0 and 1 or (v>=max and 0 or 1-(v/max)^3)) end
+local function Falloff(v,max) return max<=.01 and 0 or (v<=0 and 1 or (v>=max and 0 or 1-(v/max)^5)) end
 function M.Step(vehicle,cmd,dt,frame)
     local body,vc=vehicle.body,vehicle.vc
     local mass,m=vehicle.mass,vehicle.spec.motion
@@ -17,12 +19,15 @@ function M.Step(vehicle,cmd,dt,frame)
     elseif t<-.01 then if v>.8 then braking=true else drive=t end end
     local contact=0
     for i=1,#vehicle.wheels do if vc.wheelIsInContact(i) then contact=contact+1 end end
-    local aStab=.5*G*vehicle.supRear/vehicle.cgH
-    local aStabBrake=(vehicle.tracked and .7 or .5)*G*vehicle.supFront/vehicle.cgH
-    local aDrive=math.min(10*m.accelFactor,aStab);local force=0
+    local steady=contact/math.max(1,#vehicle.wheels)>.7
+    local keepUp=steady and 1/(1-ANTI_PITCH) or 1
+    local aStab=math.max(steady and 7 or 0,.5*G*vehicle.supRear/vehicle.cgH*keepUp)
+    local aStabBrake=math.max(steady and 9 or 0,(vehicle.tracked and .7 or .5)*G*vehicle.supFront/vehicle.cgH*keepUp)
+    local aDrive=math.min(15*m.accelFactor*(vehicle.tracked and TRACK.accel or 1),aStab);local force=0
     if drive>0 then force=mass*aDrive*drive*Falloff(v,m.topSpeed)
     elseif drive<0 then force=mass*aDrive*drive*Falloff(-v,m.topSpeed*.45) end
     force=force*vehicle.capabilities.wheelShare
+    if vehicle.tracked then force=force*(1-TRACK.turnDrag*math.abs(vehicle.steer)) end
     local nW=math.max(1,#vehicle.wheels)
     local fn,fnSum={},0
     for _,w in ipairs(vehicle.wheels) do
@@ -32,11 +37,11 @@ function M.Step(vehicle,cmd,dt,frame)
     local function Share(i) return fnSum>0 and fn[i]/fnSum or (contact>0 and 1/contact or 0) end
     local lifts=false;for _,thruster in ipairs(vehicle.spec.thrusters) do if thruster.dir[2]>.7 then lifts=true end end
     local hand=cmd.handbrake==true and not vehicle.hoverMode and not lifts
-    local brake=braking and mass*math.min(10,aStabBrake)*dt or (drive==0 and mass*.8*dt or 0)
+    local brake=braking and mass*math.min(16,aStabBrake)*math.min(1,math.abs(t))*dt or (drive==0 and mass*1.6*dt or 0)
     local handBrake=mass*9*dt/math.max(1,vehicle.nRear)
     vehicle.drifting=hand
     local steerScale=#vehicle.wheels>0 and not vehicle.tracked and not vehicle.hoverMode and .75 or 1
-    vehicle.steer=vehicle.steer+(C(cmd.steer or 0,-1,1)*steerScale-vehicle.steer)*math.min(1,dt*F.steerIn)
+    vehicle.steer=vehicle.steer+(C(cmd.steer or 0,-1,1)*steerScale-vehicle.steer)*math.min(1,dt*(vehicle.tracked and TRACK.steerIn or F.steerIn))
     vehicle.aLong=vehicle.aLong+((v-vehicle.vPrev)/dt-vehicle.aLong)*math.min(1,dt*10);vehicle.vPrev=v
     local speed=math.abs(v);local steerAuth=.5
     for _,list in ipairs({vehicle.steerWheels,vehicle.trackWheels}) do for _,w in ipairs(list) do
@@ -44,11 +49,13 @@ function M.Step(vehicle,cmd,dt,frame)
     end end
     local turning=math.abs(vehicle.steer)>.05;local skid=steerAuth<1 and turning
     for _,w in ipairs(vehicle.wheels) do
-        local k=math.min(hand and w.rear and .25 or 1,skid and .3 or 1,turning and not w.steer and (w.track and .1 or .3) or 1)
+        local trackSide=TRACK.side0+(TRACK.side-TRACK.side0)*Smooth(speed/8)
+        local k=math.min(hand and w.rear and .25 or 1,skid and .3 or 1,turning and not w.steer and (w.track and trackSide or .45) or 1)
         if k~=w.sideK then w.sideK=k;vc.setWheelSideFrictionStiffness(w.index,k) end
     end
     local hi=1-.25*Smooth((speed-15)/21)
-    local rate=math.min(math.max(speed/vehicle.rMin,vehicle.tracked and 2.2 or 1.1),2.2*hi)*steerAuth*(vehicle.tracked and 1.75 or 1)
+    local rate=vehicle.tracked and TRACK.pivot*(1-(1-TRACK.hiTurn)*Smooth(speed/math.max(6,m.topSpeed)))*steerAuth
+        or math.min(math.max(speed/vehicle.rMin,1.6),2.8*hi)*steerAuth
     local dir=v<-.5 and -1 or (v>.5 and 1 or (t<-.01 and -1 or 1))
     local wantYaw=vehicle.steer*rate*dir
     local rear=math.max(0,1-speed/10);local along=math.max(speed,2)
@@ -66,12 +73,13 @@ function M.Step(vehicle,cmd,dt,frame)
     local steeringAssist=0
     if not vehicle.hoverMode and not vehicle.legMode and contact>0 then
         local kYaw=math.abs(vehicle.steer)>.02 and F.yawK or F.yawKFree
+        if vehicle.tracked then kYaw=math.abs(vehicle.steer)>.02 and TRACK.yawK or TRACK.yawKFree end
         local target=hand and wantYaw*1.8 or wantYaw
         local tq=C(vehicle.inertiaY*kYaw*(target-yawRate),-vehicle.inertiaY*30,vehicle.inertiaY*30)*grip*(hand and .5 or 1)
         steeringAssist=tq;body.addTorque(Vec(Math.Scale(up,tq)),true)
         local left=Math.Rotate(q,{1,0,0});local vs=Math.Dot(vel,left)
-        local aMax=6.5*G*grip*(hand and .15 or 1)
-        local a=C(-vs*10,-aMax,aMax);local forceSide=Math.Scale(left,mass*a)
+        local aMax=6.5*G*math.min(1,grip*1.6)*(hand and .15 or 1)*(vehicle.tracked and TRACK.latK or 1)
+        local a=C(-vs*(vehicle.tracked and TRACK.latGain or 10),-aMax,aMax);local forceSide=Math.Scale(left,mass*a)
         local sp=math.sqrt(vel[1]^2+vel[3]^2)
         if sp>3 and not hand then
             local beta=math.atan(math.abs(vs),math.abs(v));local keep=1-Smooth((beta-.25)/.35)
@@ -81,11 +89,18 @@ function M.Step(vehicle,cmd,dt,frame)
             end
         end
         body.addForce(Vec(forceSide),true)
+        -- Contact-only downforce: preserve takeoff for vehicles with wings.
+        local hasWings=vehicle.spec.wings and #vehicle.spec.wings>0
+        local aDown=((vehicle.tracked and TRACK.hug*G or 0)+(hasWings and 0 or math.min(.5*G,.006*v*v)))*grip
+        body.addForce(Vec(Math.Scale(up,-mass*aDown)),true)
         local rollMax=.7*mass*G*vehicle.halfTrack*grip
         local arm=vehicle.aLong>=0 and vehicle.supRear or vehicle.supFront
         local pitchMax=math.min(.25*mass*G*arm,math.max(0,.65*mass*G*arm-vehicle.cgH*mass*math.abs(vehicle.aLong)))*grip
         local tRoll=C(vehicle.cgH*mass*vehicle.aLat*F.roll,-rollMax,rollMax)*math.min(1,vehicle.halfTrack/vehicle.cgH)
         local tPitch=C(-vehicle.cgH*mass*vehicle.aLong*F.pitch,-pitchMax,pitchMax)
+        local sign=v<0 and -1 or (v>0 and 1 or 0)
+        local fLong=(drive~=0 and not braking and force or 0)-(braking and sign*mass*math.min(16,aStabBrake)*math.min(1,math.abs(t)) or 0)
+        if grip>.7 then tPitch=tPitch+vehicle.cgH*fLong*ANTI_PITCH*grip^3 end
         body.addTorque(Vec(Math.Add(Math.Scale(fwd,tRoll),Math.Scale(left,tPitch))),true)
     end
     if contact>0 then

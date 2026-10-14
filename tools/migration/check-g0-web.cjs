@@ -7,6 +7,9 @@ const origin='http://127.0.0.1:'+port,plain='http://127.0.0.1:'+normalPort;
 const out=path.join(root,'docs/migration/evidence/full-parity',baseline.commit.slice(0,12),'G0',path.basename(prepared.manifest_path,'.json'),new Date().toISOString().replace(/[:.]/g,'-'));
 fs.mkdirSync(out,{recursive:true});
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const trialCycles=Number(process.env.VOX_G0_TRIAL_CYCLES||5);
+const driveOnly=process.env.VOX_G0_DRIVE_ONLY==='1';
+assert.ok(Number.isInteger(trialCycles)&&trialCycles>=1&&trialCycles<=5,'trial cycles 1..5');
 const cases=[{id:'pc',width:1920,height:1080},{id:'20-9',width:840,height:378,dpr:3,touch:true}];
 const url=base=>base+'/outgame.html?-game_url='+base+'/game-dist/&-log=info&cached=1';
 (async()=>{
@@ -21,7 +24,7 @@ const url=base=>base+'/outgame.html?-game_url='+base+'/game-dist/&-log=info&cach
     ...(test.touch?{isMobile:true,hasTouch:true}:{}),recordVideo:{dir:path.join(out,'video'),size:{width:test.width,height:test.height}}});
    const page=await context.newPage();let state,sequence=0,intentional=false;
    await page.addInitScript(()=>{window.__voxG0Frames=[];let previous=0;function frame(now){if(previous&&window.__voxG0Frames.length<20000)window.__voxG0Frames.push({at:now,ms:now-previous});previous=now;requestAnimationFrame(frame);}requestAnimationFrame(frame);});
-   const report={sourceCommit:baseline.commit,build:identities.qa,viewport:test,checks:[],errors:[],expectedErrors:[],httpFailures:[],timings:[],frames:[],storageRisk:'QA is isolated from real cloud. Normal unauthenticated preview checked separately. Real-account refresh remains NOT_RUN.'};
+   const report={sourceCommit:baseline.commit,build:identities.qa,viewport:test,trialCycles,scope:driveOnly?'drive-and-lobby':'drive-battle-and-lobby',checks:[],errors:[],expectedErrors:[],httpFailures:[],timings:[],frames:[],storageRisk:'QA is isolated from real cloud. Normal unauthenticated preview checked separately. Real-account refresh remains NOT_RUN.'};
    const log=path.join(out,test.id+'.log');fs.writeFileSync(log,'');
    page.on('console',m=>{
     const line=m.text();fs.appendFileSync(log,line+'\n');const at=line.indexOf('OUTGAME_STATE ');
@@ -69,7 +72,7 @@ const url=base=>base+'/outgame.html?-game_url='+base+'/game-dist/&-log=info&cach
     if(back){const [x,y,w,h]=back.rect;await tap((x+w/2)/state.width*test.width,(y+h/2)/state.height*test.height);}
     else throw Error('Construction return button missing');
     await wait(s=>!s.build&&s.mode==='hangar','construction return');check(!state.build,'construction returns without losing vehicle');
-    for(let cycle=1;cycle<=5;cycle++){
+    for(let cycle=1;cycle<=trialCycles;cycle++){
      const at=Date.now();await page.keyboard.press('t');await wait(s=>s.mode==='trial'&&!s.loadingFlow.active,'trial '+cycle);
      report.timings.push({stage:'trial-'+cycle,ms:Date.now()-at});check(state.loadingFlow.warmFrames>=2,'trial '+cycle+' revealed after rendered frames');
      await capture('trial '+cycle+' capture');await sleep(300);const before=structuredClone(await dump());
@@ -96,6 +99,7 @@ const url=base=>base+'/outgame.html?-game_url='+base+'/game-dist/&-log=info&cach
      if(cycle===1)await shot('trial-hud');await page.keyboard.press('t');await wait(s=>s.mode==='hangar'&&!s.loadingFlow.active,'trial return '+cycle);
      check(!state.craterModelResident,'trial '+cycle+' no stale crater');
     }
+    if(!driveOnly){
     intentional=true;await page.keyboard.press('F2');await wait(s=>s.loadingFlow.failed&&s.loadingFlow.backRect,'intentional load failure');await shot('load-failure');
     const failureBack=state.loadingFlow.backRect;await tap((failureBack.x+failureBack.w/2)/state.width*test.width,(failureBack.y+failureBack.h/2)/state.height*test.height);
     await wait(s=>!s.loadingFlow.active&&s.mode==='hangar','failed load return');intentional=false;check(state.mode==='hangar','load failure keeps recoverable hall');
@@ -103,7 +107,10 @@ const url=base=>base+'/outgame.html?-game_url='+base+'/game-dist/&-log=info&cach
     await wait(s=>s.loadingFlow.match?.stage==='queue','queue');await page.keyboard.press('Escape');await wait(s=>!s.loadingFlow.active&&s.mode==='hangar','queue cancel');check(!state.battle,'cancel queue retains hall');
     const battleAt=Date.now();await widget('开始匹配');await wait(s=>s.mode==='trial'&&s.battle&&!s.loadingFlow.active,'crater battle',240000);
     report.timings.push({stage:'cold-crater-battle',ms:Date.now()-battleAt});await wait(s=>s.intro?.active,'intro');await shot('intro');
-    check(!state.pointer.captured,'intro owns input');const r=state.intro.skipRect;assert.ok(r,'clickable skip');
+    check(!state.pointer.captured,'intro owns input');
+    // Update creates the intro before NanoVGRender lays out its hit rectangle.
+    await wait(s=>s.intro?.skipRect,'rendered clickable intro skip');
+    const r=state.intro.skipRect;assert.ok(r,'clickable skip');
     await tap((r.x+r.w/2)/state.width*test.width,(r.y+r.h/2)/state.height*test.height);await wait(s=>!s.intro?.active,'intro skip');
     await capture('post-intro capture');await sleep(8000);await dump();check(state.battle.state==='live','intro-to-play reaches live battle');await shot('battle-hud');
     report.battleState=structuredClone(state);report.timings.push({stage:'battle-resident',resourceBytes:state.performance.resourceBytes,arrayBytes:state.performance.arrayBytes});
@@ -112,6 +119,15 @@ const url=base=>base+'/outgame.html?-game_url='+base+'/game-dist/&-log=info&cach
     else await widget('退出对局');
     await wait(s=>s.mode==='hangar'&&!s.loadingFlow.active,'battle return',60000);await sleep(500);await dump();
     check(state.performance.arrayBytes===0,'battle exit frees terrain arrays');check(!state.craterModelResident,'battle exit frees unused crater models');
+    }
+    if(!test.touch){
+     await widget('机库');await wait(s=>s.tab==='hangar','home before G route');
+     report.beforeSalvage={blueprint:state.blueprint,parts:state.parts};
+     await page.keyboard.press('g');await wait(s=>s.tab==='salvage'&&s.lobby==='salvage'&&s.warehouse?.ready,'G enters source salvage lobby',180000);
+     await shot('g-salvage');check(state.warehouse.ready,'home G uses production salvage lobby');
+     await widget('竞技对战');await wait(s=>s.tab==='hangar'&&s.lobby==='arena','return from G salvage');
+     check(state.blueprint===report.beforeSalvage.blueprint&&state.parts===report.beforeSalvage.parts,'G lobby round trip preserves original vehicle');
+    }
     check(report.errors.length===0,'no unexpected Lua/shader/runtime errors');report.result='PASS';
    }catch(e){report.result='FAIL';report.failure=e.stack;report.lastState=state;await shot('failure').catch(()=>{});}
    finally{report.browserFrames=await page.evaluate(()=>window.__voxG0Frames).catch(()=>[]);report.video=await page.video().path();await context.close();fs.writeFileSync(path.join(out,test.id+'.json'),JSON.stringify(report,null,2));}

@@ -99,10 +99,10 @@ function anchor(base,file,needle){
  return {file,line:index+1,snippet:lines[index].trim(),sha256:hash(fs.readFileSync(path.join(base,file)))};
 }
 const routeFindings=[
- {id:'salvage-key',acceptance:'Z05,L01',status:'STATIC_MISMATCH_NOT_FIXED',
+ {id:'salvage-key',acceptance:'Z05,L01',status:'SOURCE_ROUTE_APPLIED_RUNTIME_PENDING',
   source:anchor(source,'shared/ui/shell.js',"case 'KeyG': if ( this.home.tab === 'hangar' ) this.enterSalvage()"),
-  target:anchor(root,'scripts/app/HangarApp.lua','if input:GetKeyPress(KEY_G) then self:ToggleGallery()'),
-  finding:'Source home G enters salvage; target home G toggles a legacy part gallery. Context guards still require runtime comparison.'},
+  target:anchor(root,'scripts/app/HangarApp.lua',"if input:GetKeyPress(KEY_G) and page and page.tab=='hangar' then page.SetLobby('salvage')"),
+  finding:'Source home G enters salvage; target now uses the existing salvage lobby route and vehicle gate. Context guards still require runtime comparison.'},
  {id:'intro-replay',acceptance:'Z05,S01',status:'EMPTY_TARGET_CALLBACK',
   source:anchor(source,'three/src/main.js',"if ( new URLSearchParams( location.search ).has( 'intro' ) ) {"),
   target:anchor(root,'scripts/ui/GarageHud.lua',"AddButton(s.nav,'intro'"),
@@ -194,6 +194,20 @@ if(trackArg){
  }
  write('track-reexport.json',record);
 }
+const filtersArg=process.argv.find(arg=>arg.startsWith('--workshop-filters='));
+const filterOutputs=new Map();
+if(filtersArg){
+ const directory=path.resolve(filtersArg.slice('--workshop-filters='.length));
+ const record=JSON.parse(fs.readFileSync(path.join(directory,'provenance.json')));
+ if(record.sourceCommit!==baseline.commit||record.converterSha256!==hash(fs.readFileSync(path.join(root,record.converter))))throw Error('Workshop filter export version mismatch');
+ if(!record.inputs.length||record.inputs.some(input=>baseline.files[input.file]?.sha256!==input.sha256))throw Error('Workshop filter input drift');
+ for(const item of record.outputs){
+  if(!item.file.startsWith('UI/Prefabs/Filtered/')||item.file.includes('..'))throw Error('Invalid workshop filter output path');
+  if(hash(fs.readFileSync(path.join(directory,path.basename(item.file))))!==item.sha256)throw Error('Workshop filter staged output drift: '+item.file);
+  filterOutputs.set(item.file,{converter:record.converter,expectedSha256:item.sha256});
+ }
+ write('workshop-filter-reexport.json',record);
+}
 const assets=[];
 for(const entry of fs.readdirSync(path.join(root,'assets'),{recursive:true,withFileTypes:true})){
  if(!entry.isFile()||entry.name.endsWith('.meta'))continue;
@@ -203,12 +217,14 @@ for(const entry of fs.readdirSync(path.join(root,'assets'),{recursive:true,withF
  const isPart=name.startsWith('Parts/')&&derivedRecord;
  const prior=recorded.get(name);
  const trackRecord=trackOutputs.get(name);
+ const filterRecord=filterOutputs.get(name);
  const status=matches.length?'EXACT_SOURCE_BYTES':isPart?(derivedRecord.sha256===sha256?'DERIVED_BASELINE_MATCH':'DERIVED_BASELINE_DIFF'):
   trackRecord?(trackRecord.expectedSha256===sha256?'DERIVED_TRACK_BASELINE_MATCH':'DERIVED_TRACK_BASELINE_DIFF'):
+  filterRecord?(filterRecord.expectedSha256===sha256?'DERIVED_WORKSHOP_FILTER_BASELINE_MATCH':'DERIVED_WORKSHOP_FILTER_BASELINE_DIFF'):
   prior?(prior.outputMatches?'RECORDED_OUTPUT_MATCH':'RECORDED_OUTPUT_DIFF'):'UNMAPPED';
- assets.push({file:name,sha256,bytes:content.length,status,source:matches,...(isPart?{converter:'tools/migration/export-parts.cjs',expectedSha256:derivedRecord.sha256}:{}),...(trackRecord?trackRecord:{}),...(prior?{recordedProvenance:prior}:{})});
+ assets.push({file:name,sha256,bytes:content.length,status,source:matches,...(isPart?{converter:'tools/migration/export-parts.cjs',expectedSha256:derivedRecord.sha256}:{}),...(trackRecord?trackRecord:{}),...(filterRecord?filterRecord:{}),...(prior?{recordedProvenance:prior}:{})});
 }
-write('asset-ledger.json',{sourceCommit:baseline.commit,method:'Exact source bytes, independently staged part/track-converter output, or explicitly labelled historical export records. Records are not independent rebuilds. Other resources remain UNMAPPED.',
+write('asset-ledger.json',{sourceCommit:baseline.commit,method:'Exact source bytes, independently staged part/track/workshop-filter output, or explicitly labelled historical export records. Records are not independent rebuilds. Other resources remain UNMAPPED.',
  counts:assets.reduce((a,r)=>(a[r.status]=(a[r.status]||0)+1,a),{}),assets});
 write('baseline.json',{result:'PASS',branch:baseline.branch,commit:baseline.commit,contentSha256:baseline.contentSha256,files:Object.keys(baseline.files).length,bytes,snapshot:source,targetCommit:git(root,'rev-parse','HEAD'),targetBranch:git(root,'branch','--show-current'),targetStatus:git(root,'status','--porcelain=v1'),sourceDelta:delta,partSources,derived});
 write('entry-ledger.json',{method:'Explicit entries and reviewed route findings plus textual candidates. Text scanning does not prove completeness or dynamic reachability.',entries,pathIssues:issues,routeFindings,callbacks,keys,urls,resourceCandidates:resources});

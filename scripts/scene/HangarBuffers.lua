@@ -22,7 +22,7 @@ end
 function Garage:ResizeReflection(cam)
     local quality=Quality.current
     local width,height=graphics:GetWidth(),graphics:GetHeight()
-    local viewport=renderer:GetViewport(0)
+    local viewport=require('render.WindowViewports').Get(0)
     if self.renderSize then width,height=self.renderSize[1],self.renderSize[2]
     elseif cam and viewport and viewport.camera==cam then
         local rect=viewport.rect

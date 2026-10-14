@@ -3,6 +3,7 @@ local Coord=require "core.Coord"
 local Setup=require "drive.VehicleSetup"
 local Suspension=require "drive.RaySuspension"
 local Contact=require "drive.ContactControl"
+local Stability=require 'drive.ChassisStability'
 local Hover=require "drive.HoverControl"
 local Thrusters=require "drive.ThrusterControl"
 local Legs=require "drive.LegControl"
@@ -67,7 +68,7 @@ function Vehicle:Place(pos,yaw)
     self.body.setRotation({x=0,y=math.sin(yaw/2),z=0,w=math.cos(yaw/2)})
     self.body.setLinvel({x=0,y=0,z=0});self.body.setAngvel({x=0,y=0,z=0});self.body.resetForces()
     self.steer=0;self.flightTarget=nil;self.liftTilt=0;self.landingTime=0;self.hoverHeightScale=1
-    self.vPrev=0;self.aLong=0;self.aLat=0
+    self.vPrev=0;self.aLong=0;self.aLat=0;self.airT=0;self.popBefore=nil;self.stability=nil
     self.thrusterOutputs={};self.thrusterDirections={};self.hoverStates={}
     RotorMotion.Restore(self.rotors);self:ApplyRotors()
     if self.legControl then self.legControl:Reset();self.legHitboxes:Update() end
@@ -86,7 +87,7 @@ end
 function Vehicle:SetState(s)
     local b=self.body;b.setTranslation(s.p);b.setRotation(s.q);b.setLinvel(s.lv);b.setAngvel(s.av)
     self.steer=s.steer;self.flightTarget=s.flightTarget;self.liftTilt=s.liftTilt or 0
-    self.hoverHeightScale=Math.Clamp(s.hoverHeightScale or 1,.6,1.35)
+    self.hoverHeightScale=Math.Clamp(s.hoverHeightScale or 1,.6,1.7)
     RotorMotion.Restore(self.rotors,s.rotors);self:ApplyRotors()
     if self.legControl then self.legControl:Restore(s.legs);self.legHitboxes:Update() end
     self.suspension:Sample()
@@ -120,24 +121,42 @@ function Vehicle:ApplyRotors()
 end
 function Vehicle:Step(cmd,dt)
     if self.disposed then return end
-    if self.drill and self.drill:ControlsBody() then self:SyncDrillPose();return end
+    if self.drill and self.drill:ControlsBody() then self.popBefore=nil;self:SyncDrillPose();return end
     for _,s in pairs(self.legStates) do s.drillDriven=false end
     self.body.resetForces()
     local q=self.body.rotation();local velocity=self.body.linvel();local vel={velocity.x,velocity.y,velocity.z}
+    local previous=self.telemetry
+    self.popBefore={y=velocity.y,grounded=(previous.contact or 0)>0 or (previous.legContacts or 0)>0 or (previous.hovers or 0)>0}
     local up,fwd=Math.Rotate(q,{0,1,0}),Math.Rotate(q,{0,0,1});self.speed=Math.Dot(vel,fwd)
     local frame={up=up,fwd=fwd,vel=vel,speed=self.speed,q=q}
     local lifts=false;for _,t in ipairs(self.spec.thrusters) do if t.dir[2]>.7 then lifts=true end end
-    if self.hoverMode and not lifts then self.hoverHeightScale=Math.Clamp(self.hoverHeightScale+Math.Clamp(cmd.climb or 0,-1,1)*.4*dt,.6,1.35) end
+    if self.hoverMode and not lifts then self.hoverHeightScale=Math.Clamp(self.hoverHeightScale+Math.Clamp(cmd.climb or 0,-1,1)*.6*dt,.6,1.7) end
     self.suspension:Sample()
     local ground=Contact.Step(self,cmd,dt,frame)
+    local flyingWing=self.spec.wings and #self.spec.wings>0 and (ground.contact==0 or self.wingState and self.wingState.phase=='takeoff')
+    if Stability.Wants(self) and not flyingWing then Stability.Step(self,dt,frame,ground.contact) end
     local hover=Hover.Step(self,ground.wheelSupport)
     local motion=Hover.Motion(self,cmd,frame)
     local legs=self.legControl and self.legControl:Step(cmd,dt,ground.wheelSupport+hover.hoverForce) or {}
     self.legHitboxes:Update()
     local flight=Thrusters.Step(self,cmd,dt,ground.contact,math.max(0,ground.wheelSupport+hover.hoverForce+(legs.legVerticalSupport or 0)))
+    local over=self.body.translation().y-200
+    if over>0 then
+        local x=over/20
+        self.body.addForce({x=0,y=-self.mass*(9.81*1.8*x*x+math.max(0,velocity.y)*1.2*x),z=0},true)
+    end
     self.suspension:Apply(dt)
     self.telemetry={speed=self.speed,totalSpeed=Math.Length(vel),vmax=self.spec.motion.topSpeed}
     for _,values in ipairs({ground,hover,motion,legs,flight}) do for key,value in pairs(values) do self.telemetry[key]=value end end
+end
+-- Apply after Bullet integration and before visual pose capture. Ground impact
+-- may add at most the source 4 m/s upward; intentional flight/jumps are exempt.
+function Vehicle:PostStep()
+    local before,t=self.popBefore,self.telemetry;self.popBefore=nil
+    if self.disposed or not before or not before.grounded or t.legJumped or t.mechJet or t.mechBoost
+        or t.boosting or (t.wingLift or 0)>0 or self.drill and self.drill:ControlsBody() then return end
+    local velocity=self.body.linvel()
+    if velocity.y>before.y+4 then self.body.setLinvel({x=velocity.x,y=before.y+4,z=velocity.z},true) end
 end
 function Vehicle:SyncDrillPose()
     local q=self.body.rotation();local p=Math.Array(self.body.translation());local velocity=Math.Array(self.body.linvel())

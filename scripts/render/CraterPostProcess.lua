@@ -1,5 +1,6 @@
 -- PC H5 post chain. The source scene is rendered once; all later passes are quads.
 local Graph=require 'render.FilterGraph'
+local Viewports=require 'render.WindowViewports'
 local M={};M.__index=M
 local shaderRoot='Shaders/BLGL/CraterPost/'
 local function Half(n) return math.max(1,math.floor(n/2+.5)) end
@@ -55,7 +56,7 @@ function M:Resize(width,height,force)
     local graph=Graph.New(specs,width,height)
     local previous=self.graph;self.graph=graph;self.indices=indices
     -- Replace the renderer's output before invalidating its old scene/camera.
-    if previous then renderer:SetViewport(0,graph.output) end
+    if previous then Viewports.Set(0,graph.output) end
     if previous then previous:Dispose() end
     return true
 end
@@ -72,7 +73,7 @@ end
 function M:Update(dt)
     self.adaptive:Sample(dt,input.focus and not input.minimized)
     local width,height=self:RenderSize()
-    if self:Resize(width,height,self.rebuild) then renderer:SetViewport(0,self.graph.output) end
+    if self:Resize(width,height,self.rebuild) then Viewports.Set(0,self.graph.output) end
     self.rebuild=false
     self.graph:Queue()
 end

@@ -19,6 +19,13 @@ local function Near(a,b)
 end
 local function Source()
     for i,c in ipairs(fixture.forces) do V.assert(Near(Hover.Force(c.h,c.d,c.speed,c.share,c.scale),c.result),'source hover force '..i) end
+    for i,c in ipairs(fixture.hoverMotion) do
+        local v=c.initial;local applied={};v.hoverStates={[10]={G=v.ground}}
+        v.body={angvel=function() return v.av end,addForce=function(force) applied[#applied+1]={force=force} end,
+            addTorque=function(torque) applied[#applied+1]={torque=torque} end}
+        local actual={telemetry=Hover.Motion(v,c.command,v.frame),applied=applied}
+        V.assert(Near(actual,c.result),'frozen hover ellipse, coasting and yaw '..i)
+    end
     for i,c in ipairs(fixture.cases) do
         local applied={};local state=c.state
         local v={spec=fixture.spec,mass=500,com=c.com,inertiaY=c.inertiaY,liftTilt=0,landingTime=0,
@@ -62,13 +69,14 @@ V.atFrame(55,function()
             V.assert(up[2]>.995 and math.abs(v.body.linvel().y)<.05,name..' settles upright')
             Step(2);local p=v.body.translation()
             V.assert(Math.Length({p.x-rest.x,p.y-rest.y,p.z-rest.z})<.05,name..' neutral remains stationary')
-            Step(1,{climb=1});Step(5)
-            V.assert(v.hoverHeightScale==1.35 and math.abs(v.telemetry.hoverHeight-1.35*.75)<.05,name..' raises hover height')
+            Step(2,{climb=1});Step(5)
+            V.assert(v.hoverHeightScale==1.7 and math.abs(v.telemetry.hoverHeight-1.7*.75)<.05,name..' raises hover height to current source cap')
             Step(2,{climb=-1});Step(5)
             V.assert(v.hoverHeightScale==.6 and math.abs(v.telemetry.hoverHeight-.6*.75)<.05,name..' lowers hover height')
             local start=v.body.translation();Step(3,{throttle=1});p=v.body.translation()
             V.assert(p.z-start.z>8 and math.abs(p.x-start.x)<.3,name..' held throttle drives straight')
-            Step(6);V.assert(math.abs(v.speed)<.15,name..' releasing throttle brakes drift')
+            local coastSpeed=math.abs(v.speed);Step(6)
+            V.assert(math.abs(v.speed)<coastSpeed*.05+.05,name..' source hover damping coasts then slows')
             start=v.body.translation();Step(2,{strafe=1});p=v.body.translation()
             V.assert(p.x-start.x>2,name..' source positive strafe moves along x')
             Step(1,{steer=1});V.assert(v.body.angvel().y>.3,name..' steering rotates under hover authority')
