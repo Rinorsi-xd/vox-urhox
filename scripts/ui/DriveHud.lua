@@ -47,6 +47,8 @@ function M.Create(session)
         for _,widget in ipairs({state.title,state.timer,state.stats,state.keys}) do widget:SetVisible(false) end
         for _,card in ipairs(state.cards) do card.widget:SetStyle({bottom=220+(#state.cards-card.widget.index)*50}) end
         state.salvage=require('ui.SalvageRunHud').Attach(session,root)
+        state.cinema=require('ui.SalvageCinematics'){position='absolute',left=0,top=0,width='100%',height='100%',pointerEvents='auto'}
+        state.cinema.session=session;root:AddChild(state.cinema)
     end
     if session.touch then
         local safe=UI.GetSafeAreaInsets();local edge=math.max(18,safe.right or 0)
@@ -71,11 +73,14 @@ function M.Create(session)
             root:SetStyle({pointerEvents=active and 'none' or 'box-none'})
             for child,mode in pairs(modes) do child:SetStyle({pointerEvents=active and 'none' or mode}) end
         end
-        local alive=not s.combat or s.combat.player.alive;local over=s.battle and s.battle.rules.state=='over' or s.story and s.story.rules.finished or s.salvage and s.salvage.rules.finished
+        local alive=not s.combat or s.combat.player.alive;local over=s.battle and s.battle.rules.state=='over' or s.story and s.story.rules.finished or s.salvage and s.salvage.result~=nil
+        local cinematic=s.salvage and s.salvage.cine.blocking
+        local hideHud=cinematic or s.salvage and s.salvage.cine.barsOn
         local choosing=s.story and s.story.rules.choice~=nil
-        state.pause:SetVisible(not active and not s.touch and not over and not choosing);state.vitals:SetVisible(active and alive);state.detailPanel:SetVisible(s.details and alive)
+        state.pause:SetVisible(not active and not s.touch and not over and not choosing and not hideHud);state.vitals:SetVisible(active and alive and not hideHud);state.detailPanel:SetVisible(s.details and alive and not hideHud)
+        if s.salvage then state.buttons['return']:SetVisible(not hideHud and not over);state.missile:SetVisible(not hideHud and not over) end
         if state.touchControls then
-            local blocked=over or choosing
+            local blocked=over or choosing or cinematic
             if state.touchBlocked~=blocked then
                 state.touchBlocked=blocked
                 if blocked then state.touchControls.Clear() end
@@ -84,7 +89,7 @@ function M.Create(session)
             end
             for _,card in ipairs(state.cards) do card.widget:SetVisible(not blocked) end
         end
-        state.meter:SetVisible(false);state.playfield:SetVisible(not over)
+        state.meter:SetVisible(false);state.playfield:SetVisible(not over and not cinematic)
         if state.match then state.match.Update() end
         if state.story then state.story.Update(dt) end
         if state.salvage then state.salvage.Update(dt) end

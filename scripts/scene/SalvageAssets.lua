@@ -11,5 +11,6 @@ function M.Release()
             end
         end
     end
+    require('render.SalvageCinematics').Release()
 end
 return M

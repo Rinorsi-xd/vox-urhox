@@ -2,7 +2,7 @@
     "version": 2,
     "script": "main.lua",
     "result": "PASS",
-    "duration_ms": 61798,
+    "duration_ms": 113450,
     "frames_completed": 1000,
     "phases": {
         "load": {
@@ -32,7 +32,7 @@
             "nodes": 0,
             "components": 0,
             "hash": 0,
-            "frame_time_ms": 398.2984924316406
+            "frame_time_ms": 420.9400939941406
         },
         {
             "frame": 10,
@@ -40,27 +40,27 @@
             "nodes": 0,
             "components": 0,
             "hash": 0,
-            "frame_time_ms": 33.504398345947269
+            "frame_time_ms": 100.09519958496094
         },
         {
             "frame": 500,
             "phase": "run",
-            "nodes": 181,
-            "components": 241,
-            "hash": 3380867101,
-            "frame_time_ms": 33.41170120239258
+            "nodes": 197,
+            "components": 249,
+            "hash": 3564637631,
+            "frame_time_ms": 99.94650268554688
         },
         {
             "frame": 1000,
             "phase": "run",
             "nodes": 127,
             "components": 115,
-            "hash": 1187232102,
-            "frame_time_ms": 50.619598388671878
+            "hash": 1044695614,
+            "frame_time_ms": 99.94539642333985
         }
     ],
     "scene_stalled": false,
-    "max_frame_time_ms": 1771.526123046875,
+    "max_frame_time_ms": 1807.63671875,
     "update_defined": false,
     "component_census": {
         "Octree": 1,
@@ -74,8 +74,8 @@
     },
     "test_result": "PASSED",
     "test_assertions": {
-        "total": 1132,
-        "passed": 1132,
+        "total": 1561,
+        "passed": 1561,
         "failed": 0
     },
     "test_issues": [],

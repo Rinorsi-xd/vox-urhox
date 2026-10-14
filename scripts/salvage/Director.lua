@@ -30,6 +30,11 @@ end
 function M:Alert(enc)
     if enc.alerted then return end;enc.alerted=true
     self.run:Feed(enc.kind=='ambush' and '伏击！' or enc.name,'被发现 · '..#enc.units..' 辆车冲过来了')
+    local cine=self.run.cine
+    if enc.kind=='elite' then for _,entry in ipairs(enc.units) do if entry.unit.alive and entry.unit.elite then
+        cine:Elite(entry.unit);cine:NameCard('精英 · '..entry.def.name,(entry.def.title or '')..' · '..(entry.def.gang or ''),3.4);cine:Flash(.2,.6);break
+    end end
+    elseif enc.kind=='ambush' then cine:NameCard('伏击！',enc.name..' · '..#enc.units..' 辆冲出来了',2.4);cine:Flash(.15,.4) end
 end
 function M:Noise(at,r) for _,e in ipairs(self.encounters) do if e.state=='active' and not e.alerted and Flat(at,e.g)<r then self:Alert(e) end end end
 function M:Spawn(enc)

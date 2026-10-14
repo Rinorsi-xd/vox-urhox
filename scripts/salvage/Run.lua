@@ -23,6 +23,7 @@ function M:init(session,bp)
     self.world.units={self.player};self.entries[1]={unit=self.player,env=self:Environment(self.player)}
     self.director=require('salvage.Director').New(self);self.view=require('render.SalvageView').New(self)
     self.audio=require('audio.SalvageAudio').New(session.scene)
+    self.cine=require('salvage.Cinematics').New(self)
 end
 function M:Center(u,at)
     local a,b=u.spec.bounds.min,u.spec.bounds.max;local x,z=(a[1]+b[1])/2,(a[3]+b[3])/2;local yaw=at.yaw or 0
@@ -44,10 +45,12 @@ function M:Environment(shooter)
             world.attacker=shooter;world:Explode(point,radius,damage*scale,body,Accept);world.attacker=nil
         end end}
 end
-function M:Begin() if self.begun then return end;self.begun=true;self:Feed('行动开始',self.spawn.name..' · '..self.rules.op.name..' · 15:00') end
+function M:Begin() if self.begun then return end;self.begun=true;self.cine:Drop() end
 function M:Feed(title,text) self.feed[#self.feed+1]={title=title,text=text,at=self.rules.time,untilAt=self.rules.time+7};if #self.feed>5 then table.remove(self.feed,1) end end
 function M:BeforeStep(dt,command,aim)
     if not self.begun or self.rules.finished then return end
+    command=self.cine:Command(command)
+    if self.cine.hold then self.cine:HoldCar();return end
     for _,entry in ipairs(self.entries) do local u=entry.unit;u:Flush()
         if u.alive then
             local cmd,target,firing=command,aim,command.firing==true
@@ -68,6 +71,7 @@ function M:BeforeStep(dt,command,aim)
 end
 function M:AfterStep(dt)
     if not self.begun or self.rules.finished then return end
+    if not self.landed then self.cine:HoldCar();return end
     for i=#self.entries,2,-1 do local e=self.entries[i];local u=e.unit
         if not u.alive then
             self.rules.kills=self.rules.kills+1;self.rules:Heat(2)
@@ -102,8 +106,11 @@ function M:Events()
             self.revealed=self.revealed or {};self.revealed[e.item.id]=self.rules.time
             self:Feed(self.rules.search and self.rules.search.title or '搜刮',require('core.ResourceData').Read('UI/Outgame.json').items[e.item.id].name..' × '..e.item.n)
         elseif e.type=='airdrop' then self:Airdrop()
-        elseif e.type=='extracted' then self:Finish(true,'从「'..e.exit.name..'」撤离',false,e.exit)
-        elseif e.type=='failed' then self:Finish(false,e.reason,false) end
+        elseif e.type=='extracted' then self.cine:Extract(e.exit)
+        elseif e.type=='failed' then
+            if not self.player.alive then self:Feed('信号丢失','战车被击毁');self.cine:Death()
+            else self:Finish(false,e.reason,false) end
+        end
     end
 end
 function M:Airdrop()
@@ -114,6 +121,10 @@ function M:Airdrop()
 end
 function M:Finish(ok,title,keepCar,exit)
     if self.result then return self.committed end
+    if self.cine.playing then
+        self.cine:ReleaseCar();self.cine.current=nil;self.cine.playing=false;self.cine.blocking=false;self.cine.barsOn=false;self.cine.skipOn=false;self.cine.captionTitle=nil
+        if self.cine.filter then self.cine.filter:Dispose();self.cine.filter=nil end
+    end
     local cargo={};for id,n in pairs(self.rules.cargo) do cargo[id]=n end
     if exit and exit.needs then cargo[exit.needs]=cargo[exit.needs]-1;if cargo[exit.needs]==0 then cargo[exit.needs]=nil end end
     local lostCar=0
@@ -132,10 +143,15 @@ function M:Commit()
     self.committed=ok;self.saveError=not ok and tostring(err) or nil;return ok
 end
 function M:Return()
+    if self.cine.current and (self.cine.current.name=='extract' or self.cine.current.name=='death') then return false end
     if not self.result then self:Finish(false,'放弃行动',true);return false end
     return self.committed or self:Commit()
 end
 function M:Key(key)
+    if self.cine.blocking then
+        if key==KEY_SPACE then self.cine:Skip() end
+        return self.cine.current.name~='drop' or key~=KEY_ESCAPE and key~=KEY_T
+    end
     if self.rules.finished then if key==KEY_RETURN then self.session.wantsReturn=true end;return key~=KEY_ESCAPE and key~=KEY_T end
     if key==KEY_E then self.tapE=true;return true end
     if key==KEY_F then self.tapF=true;return true end
@@ -144,8 +160,9 @@ end
 function M:SyncPlayer() require('combat.PlayerViewSync').Update(self) end
 function M:Snapshot() return {time=self.rules.time,heat=self.rules.heat,cargo=self.rules.cargo,used=Loot.Used(self.rules.cargo),mass=Loot.Mass(self.rules.cargo),value=Loot.Value(self.rules.cargo),
     opened=self.rules.openedCount,kills=self.rules.kills,enemies=#self.entries-1,prompt=self.rules.prompt,search=self.rules.search and {title=self.rules.search.title,crack=self.rules.search.crack,done=self.rules.search.done,items=self.rules.search.items},
-    extracts=self.rules.extracts,lootPulse=self.lootPulse,flights=#(self.lootFlights or {}),audio=self.audio:Snapshot(),result=self.result,committed=self.committed,saveError=self.saveError} end
+    extracts=self.rules.extracts,lootPulse=self.lootPulse,flights=#(self.lootFlights or {}),audio=self.audio:Snapshot(),cine=self.cine:Snapshot(),result=self.result,committed=self.committed,saveError=self.saveError} end
 function M:Dispose()
+    if self.cine then self.cine:Dispose() end
     if self.audio then self.audio:Dispose() end
     if self.view then self.view:Dispose() end
     for _,e in ipairs(self.entries) do e.unit:Dispose() end;self.entries={};self.world.units={}

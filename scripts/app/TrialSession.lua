@@ -128,7 +128,7 @@ function M:NextArea()
     self.app.toasts:Push('传送：'..self.world.layout.teleports[self.teleport].name)
 end
 local digitKeys={KEY_1,KEY_2,KEY_3,KEY_4,KEY_5,KEY_6,KEY_7,KEY_8,KEY_9,KEY_0}
-local actionKeys={KEY_ESCAPE,KEY_T,KEY_R,KEY_BACKSPACE,KEY_I,KEY_C,KEY_N,KEY_E,KEY_F,KEY_RETURN}
+local actionKeys={KEY_ESCAPE,KEY_T,KEY_R,KEY_BACKSPACE,KEY_I,KEY_C,KEY_N,KEY_E,KEY_F,KEY_RETURN,KEY_SPACE}
 local resultKeys={KEY_RETURN,KEY_ESCAPE,KEY_T}
 function M:KeyPressed(key) return input:GetKeyPress(key) end
 function M:HandleKey(key)
@@ -158,7 +158,7 @@ function M:PollKeys(typing)
     if typing or not self:HasFocus() then return end
     -- A completed salvage run owns the result overlay. Its exit keys must
     -- reach the commit gate even while that overlay blocks driving input.
-    if self.salvage and self.salvage.rules.finished then
+    if self.salvage and self.salvage.result then
         for _,key in ipairs(resultKeys) do
             if self:KeyPressed(key) then self.wantsReturn=true;break end
         end
@@ -267,6 +267,14 @@ function M:Update(dt)
     end
     if self.dialog or typing or not self:HasFocus() then self:Pause() end
     self.pointer:Poll(dt)
+    if self.salvage then
+        self.salvage.cine:Update(dt)
+        local shot=self.salvage.cine.current
+        if self.salvage.cine.blocking and (shot.name~='drop' or shot.t<=8.3) then
+            self.controls:Clear();self.firing=false
+            self:Tick(dt,{throttle=0,steer=0});return
+        end
+    end
     if not self.touch and not self.pointer.captured and not self.dialog and not typing and self:HasFocus() then
         self:Zoom(input:GetMouseMoveWheel())
         if input:GetMouseButtonDown(MOUSEB_RIGHT) then
@@ -303,7 +311,9 @@ function M:PostUpdate(dt)
         local watched=false
         for _,entry in ipairs(self.combat.entries) do if entry.unit.team=='blue' and entry.unit.alive then watched=entry.unit;break end end
         if watched then p=Coord.Vec(table.unpack(watched:Position())) end
-        self.target.position=p;self.camera:Update(dt,self.target,self.yaw,self.pitch);return
+        self.target.position=p;self.camera:Update(dt,self.target,self.yaw,self.pitch)
+        if self.salvage then self.salvage.cine:Camera() end
+        if self.environment then self.environment:Update(dt,self.camera:GetNode()) end;return
     end
     -- A wall-walking chassis rotates its entire local height axis. Ground-only
     -- bounds offsets aim above it and crop the feet; follow its displayed COM.
@@ -322,6 +332,7 @@ function M:PostUpdate(dt)
     end
     self.currentFov=(self.currentFov or 48)+(targetFov-(self.currentFov or 48))*math.min(1,dt*8)
     c.fov=self.currentFov;self.fxContext.fov=c.fov
+    if self.salvage then self.salvage.cine:Camera();self.fxContext.fov=c.fov end
     if self.environment then self.environment:Update(dt,self.camera:GetNode()) end
 end
 function M:Dispose()

@@ -28,6 +28,7 @@ local function AudioLogic(scene)
     V.assert(not sound:Event({type='suspense'}),'disposed audio cannot replay')
 end
 local function Logic()
+    dofile('tools/migration/check-salvage-cine.lua').Fixtures()
     local f=assert(io.open('tools/migration/source-salvage-fixtures.json'));local fixtures=cjson.decode(f:read('*a'));f:close()
     for i,c in ipairs(fixtures.cases) do local at=0;local state={red=0}
         local result=Loot.Roll(c.kind,function() at=at+1;return assert(c.values[at],'unexpected RNG use '..i) end,state,c.op,nil)
@@ -68,6 +69,7 @@ local function Exercise(s)
     local update=s.Update;s.Update=function() end
     V.assert(s.salvage.begun and s.combat==s.salvage and s.hud.salvage~=nil,'production loading begins salvage and attaches HUD')
     local run=s.salvage;local before=run.rules.time
+    dofile('tools/migration/check-salvage-cine.lua').Drop(s);before=run.rules.time
     run.audio.focus=function() return true end
     s.pointer.captured=true
     for i=1,120 do s:Tick(1/60,{throttle=0,steer=0});if i%20==0 then coroutine.yield() end end
@@ -83,7 +85,7 @@ local function Exercise(s)
     V.assert(stopped and not run.audio.active,'real session pause stops loot voices')
     _G.VOX_QA_SALVAGE_AUDIO=run.audio
     local stash=app.salvageLobby;local data=stash.data;local save=stash.Save;stash.Save=function() return false,'injected write failure' end
-    run:Finish(true,'QA extraction',false)
+    dofile('tools/migration/check-salvage-cine.lua').Extraction(s)
     V.assert(not run.committed and stash.data==data and run.saveError~=nil,'failed persistence rolls back and retains result')
     stash.Save=save;V.assert(run:Commit(),'retry commits extraction')
     local raids=stash.data.stats.raids;V.assert(run:Commit() and stash.data.stats.raids==raids,'retry never commits twice')

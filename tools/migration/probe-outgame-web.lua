@@ -66,7 +66,11 @@ local function DumpTrial(app)
         if overlay.footerWidget_ then Walk(overlay.footerWidget_) end
     end
     if s.battle then data.battle=s.battle:Snapshot() end
-    if s.salvage then data.salvageRun=s.salvage:Snapshot() end
+    if s.salvage then
+        data.salvageRun=s.salvage:Snapshot();data.salvageRun.cine.skipRect=s.hud.cinema.skipRect
+        data.salvageRun.cine.pauseVisible=s.hud.pause:IsVisible();data.salvageRun.cine.reticleVisible=s.hud.vitals:IsVisible()
+        data.salvageRun.cine.nativeKinematic=s.salvage.player.alive and s.vehicle.native.kinematic or false
+    end
     if s.story then
         data.story=s.story:Snapshot()
         data.story.collectorModels=#s.story.view.collectors
@@ -305,6 +309,9 @@ function HandleUpdate(et,ed)
         local salvage=app.trial.salvage
         if salvage and not salvage.rules.finished then
             local session=app.trial
+            if input:GetKeyPress(KEY_F3) and salvage.player.alive and salvage.landed then
+                local u=salvage.player;u.struct=0;u:Damage(u.bp:CoreParts()[1].id,u.bodyHpMax*2,u:Position());u:Flush()
+            end
             if input:GetKeyPress(KEY_F4) then
                 for _,o in ipairs(salvage.rules.objects) do if o.ctype=='supply' and not salvage.rules.opened[o.id] then
                     salvage.qaCrate=o

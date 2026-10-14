@@ -25,9 +25,10 @@ end
 function Panel:Render(vg)
     D.Begin(vg);local box=self:GetAbsoluteLayout();local run=self.session.salvage;local r=run.rules
     if r.finished then return end
+    local opacity=1-run.cine.hud.value;if opacity<=.001 then return end
     local scale=self.session.touch and .65 or math.min(1,box.w/1100,box.h/640)
     local w,h=box.w/scale,box.h/scale
-    nvgSave(vg);nvgTranslate(vg,box.x,box.y);nvgScale(vg,scale,scale)
+    nvgSave(vg);nvgGlobalAlpha(vg,opacity);nvgTranslate(vg,box.x,box.y);nvgScale(vg,scale,scale)
     local tx=w/2-154
     D.Panel(vg,tx,14,308,63,10,{17,21,26,204},{17,21,26,153});D.Rect(vg,tx,75,308,2,gold)
     Text(vg,'断坝峡谷 · 打捞行动',tx+16,20,12,muted)
