@@ -15,7 +15,9 @@ let input=source;
 if(requestedRef){
  const archive=path.join(target,'.tmp','h5-baseline-'+commit.slice(0,12)+'.tar');
  fs.mkdirSync(path.dirname(archive),{recursive:true});
- cp.execFileSync('git',['archive','--format=tar','--output='+archive,commit,'shared','three','docs','策划案','AGENTS.md','README.md','project.yaml'],{cwd:source,windowsHide:true});
+ const entries=['shared','three','docs','策划案','AGENTS.md','README.md','project.yaml','review/performance'];
+ const tracked=entries.filter(name=>git('ls-tree','--name-only',commit,'--',name));
+ cp.execFileSync('git',['archive','--format=tar','--output='+archive,commit,...tracked],{cwd:source,windowsHide:true});
  fs.mkdirSync(destination,{recursive:true});
  // Python's tar reader preserves Git's UTF-8 filenames on Windows.
  cp.execFileSync(process.env.VOX_MAKER_PYTHON||'python',['-m','tarfile','--filter=data','-e',archive,destination],{windowsHide:true});
@@ -33,7 +35,7 @@ if(!requestedRef){
  for(const [name,record]of Object.entries(files))if(hash(fs.readFileSync(path.join(source,name)))!==record.sha256)throw Error('Source changed while freezing: '+name);
  if(git('rev-parse','HEAD')!==commit)throw Error('Source HEAD changed while freezing');
 }
-const manifest={schema:1,source,branch:git('branch','--show-current'),commit,subject:git('log','-1','--format=%s',commit),
+const manifest={schema:1,source,branch:requestedRef||git('branch','--show-current'),commit,subject:git('log','-1','--format=%s',commit),
  frozenAt:new Date().toISOString(),snapshot:destination,workingTree:git('status','--porcelain=v1'),
  scope:['garage','builder','inventory','weapons and model presentation','creative workshop'],excluded:['tutorial','combat simulation','endless mode'],files};
 manifest.sourceMode=requestedRef?'git-commit':'working-tree';
@@ -41,5 +43,11 @@ manifest.includesWorkingTreeChanges=!requestedRef;
 if(requestedRef){manifest.scope=['full H5 Git baseline'];manifest.excluded=[];}
 manifest.contentSha256=hash(Buffer.from(JSON.stringify(files)));
 fs.mkdirSync(path.join(target,'docs/migration'),{recursive:true});
-fs.writeFileSync(path.join(target,'docs/migration/outgame-baseline.json'),JSON.stringify(manifest,null,2));
+const active=path.join(target,'docs/migration/outgame-baseline.json');
+if(fs.existsSync(active)){
+ const previous=JSON.parse(fs.readFileSync(active,'utf8'));
+ const saved=path.join(target,'docs/migration/baselines',previous.commit+'.json');
+ fs.mkdirSync(path.dirname(saved),{recursive:true});if(!fs.existsSync(saved))fs.copyFileSync(active,saved);
+}
+fs.writeFileSync(active,JSON.stringify(manifest,null,2));
 console.log(JSON.stringify({snapshot:destination,branch:manifest.branch,commit:manifest.commit,contentSha256:manifest.contentSha256,files:Object.keys(files).length,bytes:Object.values(files).reduce((s,v)=>s+v.bytes,0)},null,2));
