@@ -249,12 +249,15 @@ local function Dump(app)
             local r=widget:GetAbsoluteLayoutForHitTest()
             if r.w>0 and r.h>0 then
                 local motion=widget.cardMotion
+                local inv=widget.inventoryMotion;local feedback=widget.inventoryFeedback
                 data.widgets[#data.widgets+1]={text=p.text or '',icon=p.icon or '',part=p.partType,kind=p.sourceKind or p.kind,styleWidth=p.width,styleHeight=p.height,selected=p.selected,disabled=p.disabled,rect={r.x,r.y,r.w,r.h},
                     entrance={opacity=p.opacity or 1,translateX=p.translateX or 0,translateY=p.translateY or 0},
                     card=motion and {hovered=widget.state.hovered or false,lift=motion.lift.value,image=motion.image.value,reveal=motion.reveal.value,opacity=motion.opacity.value},
                     heroTitleSize=widget.heroTitleSize,
                     sourceMotion=widget.sourceMotion,hovered=widget.state.hovered,pressed=widget.state.pressed,
-                    inventoryMotion=widget.inventoryMotion,focused=UI.GetFocus()==widget,
+                    inventoryMotion=inv and {entry=inv.entry,image={value=inv.image.value},budget={value=inv.budget.value},hover={value=inv.hover.value}},
+                    inventoryFeedback=feedback and {y=feedback.y.value,hover=feedback.hover.value,active=feedback.active and feedback.active.value},dropTarget=p.dropTarget,
+                    focused=UI.GetFocus()==widget,
                     tabContent=widget.GetTabContent and widget:GetTabContent(UI.GetNVGContext()),
                     shelfContent=widget.GetShelfContent and widget:GetShelfContent(UI.GetNVGContext())}
             end
@@ -273,6 +276,7 @@ local function Dump(app)
         local focus=UI.GetFocus()
         local fp=focus and focus.props or {}
         data.inventoryState={current=inventory.model:Current(),active=inventory.model.active,hotbar=inventory.model.hotbar,
+            drag=inventory.dragType,dragPoint=inventory.dragPoint,
             shown=inventory.shown,query=inventory.model.query,scroll=inventory.list.scrollOffset_,pool=inventory.list:GetPoolStats(),
             last=inventory.results[#inventory.results] and inventory.results[#inventory.results].id,
             focus=focus and {part=fp.partType,kind=fp.kind,slot=fp.inventoryStyle and fp.index,

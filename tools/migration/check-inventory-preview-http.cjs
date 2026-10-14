@@ -3,9 +3,10 @@ const root=path.resolve(__dirname,'../..');
 const prepared=JSON.parse(fs.readFileSync(path.join(root,'.tmp/outgame-prepare-cached.json')));
 const baseline=JSON.parse(fs.readFileSync(path.join(root,'docs/migration/outgame-baseline.json')));
 const resources=['main.lua','ui/InventoryPanel.lua','ui/InventoryChrome.lua','ui/InventoryDetail.lua',
- 'ui/InventoryCardMotion.lua','ui/InventoryKeys.lua','ui/InventoryList.lua','ui/InventorySearch.lua',
+ 'ui/InventoryCardMotion.lua','ui/InventoryKeys.lua','ui/InventoryList.lua','ui/InventorySearch.lua','ui/InventoryFeedback.lua','ui/InventoryShadows.lua',
  'ui/BuildHotbar.lua','ui/SourceButtonMotion.lua','render/SceneBackdrop.lua','render/FilterGraph.lua',
- 'render/RenderTargetLifetime.lua','Shaders/BLGL/UI/BackdropBlur.shader'];
+ 'render/RenderTargetLifetime.lua','Shaders/BLGL/UI/BackdropBlur.shader',
+ 'UI/Parts/Shadows/card-laser1.png','UI/Parts/Shadows/slot-laser1.png','UI/Parts/Shadows/detail-laser1.png','UI/Parts/Shadows/tile-rest.png'];
 (async()=>{
  const base='http://127.0.0.1:4206',name=path.basename(prepared.manifest_path);
  const report={build:path.basename(prepared.source_directory),manifest:name,baseline:baseline.commit,checks:[]};
@@ -16,6 +17,16 @@ const resources=['main.lua','ui/InventoryPanel.lua','ui/InventoryChrome.lua','ui
  const bytes=Buffer.from(await response.arrayBuffer());assert.ok(bytes.equals(fs.readFileSync(prepared.manifest_path)));
  report.checks.push('manifest identity');
  const manifest=JSON.parse(bytes);
+ const boot=new Set(manifest.files.filter(f=>(f.groups||[]).some(g=>manifest.preload_groups.includes(g))).map(f=>f.uuid));
+ const byUuid=new Map(manifest.files.map(f=>[f.uuid,f]));
+ const pending=[...boot];
+ for(let i=0;i<pending.length;i++)for(const uuid of byUuid.get(pending[i])?.refs||[]){
+  if(!boot.has(uuid)){boot.add(uuid);pending.push(uuid);}
+ }
+ const masks=manifest.files.filter(f=>f.fs_path?.startsWith('UI/Parts/Shadows/'));
+ assert.equal(masks.length,936,'all source alpha masks packaged');
+ assert.ok(masks.every(f=>!boot.has(f.uuid)&&!(f.groups||[]).includes('#blocking')),'masks excluded from startup and blocking groups');
+ report.checks.push('936 shadow masks load on demand, including transitive boot dependencies');
  for(const resource of resources){
   const file=manifest.files.find(f=>f.fs_path===resource);assert.ok(file,'packaged '+resource);
   const leaf=file.uuid+'-'+file.hash+file.ext;

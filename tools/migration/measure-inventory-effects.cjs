@@ -45,7 +45,29 @@ const baseline=JSON.parse(fs.readFileSync(path.join(root,'docs/migration/outgame
    });
   }
   const hover=await motion('hover'),press=await motion('press'),release=await motion('release'),leave=await motion('leave');
-  const result={baseline:{branch:baseline.branch,commit:baseline.commit},entry,hover,press,release,leave,errors};
+  const filters=await page.evaluate(()=>{
+   const css=s=>{const c=getComputedStyle(document.querySelector(s));return {filter:c.filter,shadow:c.boxShadow,transition:c.transition};};
+   return {card:css('.inv-part'),image:css('.inv-part img'),detail:css('.inv-big img'),slot:css('.inv-slot'),slotImage:css('.inv-slot img'),tip:css('.inv-tip')};
+  });
+  async function control(selector,action){
+   await page.mouse.move(1910,1070);await page.waitForTimeout(350);
+   const element=page.locator(selector).first();
+   await element.hover();if(action==='press')await page.mouse.down();
+   await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+   const samples=await page.evaluate(selector=>{
+    const el=document.querySelector(selector),animations=el.getAnimations({subtree:true}).filter(a=>a.constructor.name==='CSSTransition');
+    for(const a of animations)a.pause();
+    const data=[0,30,80,150,160,180,260].map(time=>{
+     for(const a of animations)a.currentTime=time;
+     const c=getComputedStyle(el),matrix=new DOMMatrix(c.transform);
+     return {time,x:matrix.e,y:matrix.f,translate:c.translate,color:c.color,background:c.backgroundColor,shadow:c.boxShadow,filter:c.filter};
+    });for(const a of animations)a.finish();return data;
+   },selector);
+   if(action==='press'){await page.mouse.move(1910,1070);await page.mouse.up();}
+   return samples;
+  }
+  const controls={close:await control('.inv-close'),closePress:await control('.inv-close','press'),material:await control('.inv-mat'),slot:await control('.inv-slot:not(.on)')};
+  const result={baseline:{branch:baseline.branch,commit:baseline.commit},entry,hover,press,release,leave,filters,controls,errors};
   fs.writeFileSync(path.join(out,'source-inventory-effects.json'),JSON.stringify(result,null,2));
   fs.writeFileSync(path.join(__dirname,'source-inventory-effects.json'),JSON.stringify(result,null,2)+'\n');
   await card.hover();await page.waitForTimeout(500);await page.screenshot({path:path.join(out,'source-inventory-effects-hover.png')});

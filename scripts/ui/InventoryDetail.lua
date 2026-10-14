@@ -44,6 +44,7 @@ function Detail:Render(vg)
     local imageHeight=compact and 76 or math.min(250,math.max(160,self.props.viewportHeight*.22))
     local entry=require('ui.SourceButtonMotion').Ease((self.imageEntry or .24)/.24,'css-ease-out')
     nvgSave(vg);nvgGlobalAlpha(vg,entry);nvgTranslate(vg,7*(1-entry),0)
+    require('ui.InventoryShadows').Image(self,vg,d.id,'detail',{x=x+(w-imageSize)/2,y=y+(imageHeight-imageSize)/2,w=imageSize,h=imageSize})
     self:RenderBackgroundImage(vg,Theme.Thumbnail(d.id),{x=x+(w-imageSize)/2,y=y+(imageHeight-imageSize)/2,w=imageSize,h=imageSize},'contain',nil);nvgRestore(vg)
     local tagY=y+imageHeight+8
     D.Icon(vg,Icons[d.cat] or 'cube',x,tagY,16,D.orange);D.Text(vg,category[d.cat] or '',x+24,tagY,12,D.orange,'vox-body')

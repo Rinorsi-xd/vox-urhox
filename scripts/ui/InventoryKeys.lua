@@ -28,6 +28,7 @@ function M.Focus(owner,stop)
     end
     if not stop.widget or not stop.widget.node then return false end
     if stop.widget.props.kind=='material' then owner.list:ScrollToTop() end
+    stop.widget.inventoryKeyOwner=owner
     UI.SetFocus(stop.widget);owner.keyboardFocus=stop.widget;owner.hoverType=false
     local p=stop.widget.props
     if p.inventoryStyle and p.partType then owner:Detail(p.partType) end

@@ -27,10 +27,22 @@ function M.Open(session,restore)
     local modal=Art.Modal{title='',headerHeight=0,contentPadding=0,showCloseButton=false,closeOnEscape=false,
         onClose=function(w)
             self.closed=true;session.inventoryPanel=nil
+            if self.pointerTargetListener then require('urhox-libs/UI/Core/Input').Off('PointerDown',self.pointerTargetListener);self.pointerTargetListener=nil end
+            if self.pointerCancelListener then require('urhox-libs/UI/Core/Input').Off('PointerCancel',self.pointerCancelListener);self.pointerCancelListener=nil end
             if self.backdrop then self.backdrop:Dispose();self.backdrop=nil end
             w:Destroy();self:Trim(true);session:Refresh()
         end}
     self.modal=modal
+    -- Cached Web adapters dispatch Gesture before UI, so event.target is still
+    -- empty at gesture start. Pin the hit widget before the recognizer observes it.
+    self.pointerTargetListener=require('urhox-libs/UI/Core/Input').On('PointerDown',function(event)
+        if not self.closed and not event.target then event.target=UI.FindWidgetAt(event.x/UI.GetScale(),event.y/UI.GetScale()) end
+    end,100)
+    self.pointerCancelListener=require('urhox-libs/UI/Core/Input').On('PointerCancel',function(event)
+        if event.pointerId~=self.dragPointer then return end
+        if self.dragWidget then self.dragWidget.state.isDragging=false end
+        self.dragType=nil;self.dragPoint=nil;self.dragWidget=nil;self.dragPointer=nil
+    end,100)
     self.body=UI.Panel{width=width,height=height,pointerEvents='box-none'};modal:AddContent(self.body)
     self.body:AddChild(Art.Title(self))
     local search=require('ui.InventorySearch'){value=self.model.query,placeholder='搜索零件',sourceSize=13,position='absolute',right=self.narrow and 120 or 132.03125,top=self.narrow and 2 or 18,width=self.narrow and math.min(230,sw*.3) or math.min(350,math.max(190,sw*.23)),height=self.narrow and 44 or 40,
@@ -83,22 +95,27 @@ function M:CreateRow()
     for i=1,self.columns do
         local cell={type=false}
         cell.root=Art.Card{height=self.itemHeight,compact=self.narrow,flexGrow=1,flexBasis=0,
-            onClick=function(_,event) if cell.type and not cell.suppressClick and (not event or event:IsPrimaryButton()) then self.session:PickHotbar(cell.type);self:Detail(cell.type);self.hotbar.Refresh() end end,
-            onPointerDown=function() cell.suppressClick=false;self.keyboardFocus=nil end,
-            onPointerCancel=function(_,w) w.state.isDragging=false;self.dragType=nil end,
+            onClick=function(_,event) if cell.type and (not event or not cell.suppressClick) and (not event or event:IsPrimaryButton()) then self.session:PickHotbar(cell.type);self:Detail(cell.type);self.hotbar.Refresh() end end,
+            onPointerDown=function(event) cell.suppressClick=false;cell.dragSource=event.pointerType=='mouse' and event:IsPrimaryButton() and event.pointerId;self.keyboardFocus=nil end,
+            onPointerCancel=function(event,w)
+                if self.dragWidget~=w or self.dragPointer~=event.pointerId then return end
+                w.state.isDragging=false;self.dragType=nil;self.dragPoint=nil;self.dragWidget=nil;self.dragPointer=nil
+            end,
             onDoubleTap=function() if cell.type then self.session:PickHotbar(cell.type);self:Close() end end,
             onPointerEnter=function() self.hoverType=cell.type;if cell.type then self:Detail(cell.type) end end,
             onPointerLeave=function() if self.hoverType==cell.type then self.hoverType=false end end,
             onPanEnd=function(event,w)
+                if self.dragWidget~=w or self.dragPointer~=event.pointerId then return end
                 local slot=self.hotbar.Hit(event.x,event.y)
                 if slot and self.dragType then self.session:AssignHotbar(slot,self.dragType);self.hotbar.Refresh() end
-                w.state.isDragging=false;self.dragType=nil
+                w.state.isDragging=false;self.dragType=nil;self.dragPoint=nil;self.dragWidget=nil;self.dragPointer=nil
             end}
         cell.root.inventory=self.model;cell.root.inventoryOwner=self
         cell.root.OnPanStart=function(w,event)
-            cell.suppressClick=true;if event.pointerType~='mouse' or not cell.type then return false end
-            self.dragType=cell.type;w.state.isDragging=true;return true
+            cell.suppressClick=true;if event.pointerType~='mouse' or cell.dragSource~=event.pointerId or not cell.type or self.dragWidget then return false end
+            self.dragType=cell.type;self.dragPoint={x=event.x,y=event.y};self.dragWidget=w;self.dragPointer=event.pointerId;w.state.isDragging=true;return true
         end
+        cell.root.OnPanMove=function(w,event) if self.dragWidget==w and self.dragPointer==event.pointerId then self.dragPoint={x=event.x,y=event.y} end end
         root:AddChild(cell.root);cells[i]=cell
     end
     root.cells=cells;return root
@@ -160,9 +177,13 @@ end
 function M:Trim(closing)
     local keep={};for _,id in ipairs(self.model.hotbar) do if id then keep[Theme.Thumbnail(id)]=true end end
     if not closing then
+        local shadows=require 'ui.InventoryShadows'
+        for _,kind in ipairs({'rest','hover','press'}) do keep['UI/Parts/Shadows/tile-'..kind..'.png']=true end
         keep[Theme.Thumbnail(self.shown)]=true
+        keep[shadows.Path(self.shown,'detail')]=true
+        for _,id in ipairs(self.model.hotbar) do if id then keep[shadows.Path(id,'slot')]=true end end
         local first,last=self.list:GetVisibleRange()
-        for i=first,last do for _,d in ipairs(self.list.props.data[i] or {}) do keep[Theme.Thumbnail(d.id)]=true end end
+        for i=first,last do for _,d in ipairs(self.list.props.data[i] or {}) do keep[Theme.Thumbnail(d.id)]=true;keep[shadows.Path(d.id,'card')]=true end end
     end
     Theme.TrimThumbnails(keep)
 end
@@ -183,7 +204,10 @@ function M:Update(dt)
         local anchor=self.pendingAnchor;self.pendingAnchor=nil
         for i,def in ipairs(self.results) do if def.id==anchor then self.list:ScrollToIndex(math.floor((i-1)/self.columns)+1);break end end
     end
-    self.hotbar.Refresh();self.trimTime=self.trimTime+dt;if self.trimTime>.5 then self.trimTime=0;self:Trim(false) end
+    self.hotbar.Refresh()
+    local target=self.dragType and self.dragPoint and self.hotbar.Hit(self.dragPoint.x,self.dragPoint.y)
+    for i,slot in ipairs(self.hotbar.slots) do slot.widget.props.dropTarget=i==target end
+    self.trimTime=self.trimTime+dt;if self.trimTime>.5 then self.trimTime=0;self:Trim(false) end
 end
 function M:Close() if not self.closed then self.modal:Close() end end
 return M

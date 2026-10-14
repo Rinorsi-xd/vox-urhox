@@ -6,6 +6,8 @@ local D=require 'ui.SourceDraw'
 local Relief=require 'ui.SourceRelief'
 local Theme=require 'ui.VoxTheme'
 local Defs=require 'parts.Defs'
+local Feedback=require 'ui.InventoryFeedback'
+local Shadows=require 'ui.InventoryShadows'
 local M={icons={all='workshop',structure='cube',frame='truss',movement='wheel',weapon='crosshair',['function']='bolt',shield='shield',decor='decor'}}
 M.Modal=require('ui.OwnedModal'):Extend('VoxInventoryModal')
 function M.Modal:RenderModalContent(vg)
@@ -36,9 +38,20 @@ function M.Modal:RenderModalContent(vg)
     nvgSave(vg);nvgIntersectScissor(vg,x,y,w,h);UI.RenderWidgetSubtree(content,vg);nvgRestore(vg);nvgRestore(vg)
 end
 M.Button=BaseButton:Extend('VoxInventoryButton')
+function M.Button:Update(dt) Feedback.Button(self,dt) end
+function M.Button:OnPointerDown(event)
+    if self.inventoryKeyOwner then self.inventoryKeyOwner.keyboardFocus=nil end
+    BaseButton.OnPointerDown(self,event)
+end
 function M.Button:Render(vg)
     D.Begin(vg);local r=self:GetAbsoluteLayout();local p=self.props;local x,y,w,h=r.x,r.y,r.w,r.h
-    local on=p.selected;local color=on and D.white or self.state.hovered and D.orange or D.muted
+    local on=p.selected;local focused=Feedback.Focused(self);local motion=self.inventoryFeedback
+    local hover=motion and motion.hover.value or 0
+    local color=Feedback.Color(on and D.white or Feedback.Mix(D.muted,p.kind=='material' and D.white or D.orange,hover),focused)
+    local function Face(points)
+        D.Path(vg,points);nvgFillColor(vg,D.Color(Feedback.Color(Feedback.Mix({25,62,110,255},{33,76,128,255},hover),focused)));nvgFill(vg)
+        Feedback.Edges(vg,r,points,p.kind=='material' and on,focused)
+    end
     if p.kind=='category' then
         local size=p.compact and 14 or 18;local pad=p.compact and 12 or 17
         D.Icon(vg,p.icon,x+pad,y+(h-18)/2,18,on and D.orange or color)
@@ -47,24 +60,25 @@ function M.Button:Render(vg)
             D.Text(vg,p.count,x+w-pad,y+(h-13.2)/2,11,D.orange,'vox-body',NVG_ALIGN_RIGHT)
             D.Rect(vg,x+16,y+h-3,w-32,3,D.orange)
         end
+        if focused then nvgBeginPath(vg);nvgRect(vg,x-4,y-4,w+8,h+8);nvgStrokeWidth(vg,2);nvgStrokeColor(vg,D.Color(D.orange));nvgStroke(vg) end
     elseif p.kind=='material' then
-        Relief.Draw(vg,x,y,w,h,false,true,{x,y,x+w-7,y,x+w,y+7,x+w,y+h,x,y+h},false)
+        Face({x,y,x+w-7,y,x+w,y+7,x+w,y+h,x,y+h})
         local a,b={230,233,238,255},{167,173,182,255};local c=p.material
         if c=='heavy' then a,b={141,147,156,255},{85,91,100,255} elseif c=='glass' then a,b={159,220,255,217},{159,220,255,64} elseif c=='neon' then a,b=D.orange,D.orange end
         nvgBeginPath(vg);nvgRect(vg,x+10,y+(h-11)/2,11,11);nvgFillPaint(vg,nvgLinearGradient(vg,x+10,y+(h-11)/2,x+21,y+(h+11)/2,D.Color(a),D.Color(b)));nvgFill(vg)
         if c=='heavy' then D.Rect(vg,x+12,y+(h-7)/2,7,7,{34,37,42,255}) end
         D.Text(vg,p.text,x+28,y+(h-15.6)/2,13,color,'vox-body')
-        if on then D.Rect(vg,x,y+h-2,w,2,D.orange) end
     elseif p.kind=='more' or p.kind=='instructions' then
         if p.kind=='more' then D.Rect(vg,x,y,w,1,{65,100,134,255});D.Rect(vg,x,y+h-1,w,1,{65,100,134,255}) end
         local fs=p.kind=='more' and 12 or 10
         D.Text(vg,p.text,x,y+(h-fs*1.2)/2,fs,D.orange,'vox-body')
         if p.count then D.Text(vg,p.count..' 项',x+w-24,y+(h-12)/2,10,D.muted,'vox-body',NVG_ALIGN_RIGHT) end
-        nvgSave(vg);nvgTranslate(vg,x+w-8,y+h/2);if on then nvgRotate(vg,math.pi) end;D.Icon(vg,'chev',-6,-6,12,D.orange);nvgRestore(vg)
+        nvgSave(vg);nvgTranslate(vg,x+w-8,y+h/2);nvgRotate(vg,math.pi*(p.kind=='more' and motion and motion.arrow.value or on and 1 or 0));D.Icon(vg,'chev',-6,-6,12,D.orange);nvgRestore(vg)
+        if focused then nvgBeginPath(vg);nvgRect(vg,x-4,y-4,w+8,h+8);nvgStrokeWidth(vg,2);nvgStrokeColor(vg,D.Color(D.orange));nvgStroke(vg) end
     else
-        Relief.Draw(vg,x,y,w,h,false,true,{x,y,x+w-14,y,x+w,y+14,x+w,y+h,x,y+h},false)
-        D.Icon(vg,'close',x+12,y+(h-18)/2,18,D.orange);D.Text(vg,'关闭',x+38,y+(h-19.2)/2,16)
-        D.Text(vg,'B',x+w-26,y+(h-14.4)/2,12,{188,215,235,255},'vox-body')
+        Face({x,y,x+w-14,y,x+w,y+14,x+w,y+h,x,y+h})
+        D.Icon(vg,'close',x+12,y+(h-18)/2,18,Feedback.Color(D.orange,focused));D.Text(vg,'关闭',x+38,y+(h-19.2)/2,16,Feedback.Color(D.white,focused))
+        D.Text(vg,'B',x+w-26,y+(h-14.4)/2,12,Feedback.Color({188,215,235,255},focused),'vox-body')
     end
 end
 M.Card=Panel:Extend('VoxInventoryCard')
@@ -82,6 +96,7 @@ function M.Card:Render(vg)
     local current=slot==inv.active;local motion=self.inventoryMotion
     local hover=motion and motion.hover.value or 0;local image=motion and motion.image.value or 0
     local points={x,y,x+w-15,y,x+w,y+15,x+w,y+h,x,y+h}
+    Shadows.Tile(self,vg,r,motion)
     local face=current and 1 or hover
     D.Path(vg,points);nvgFillColor(vg,nvgRGBA(32+9*face,58+12*face,84+11*face,255));nvgFill(vg)
     Relief.Halftone(vg,x,y,w,h,false,165,points)
@@ -89,6 +104,7 @@ function M.Card:Render(vg)
     local size=p.compact and 60 or 94;local imageY=y+(p.compact and 7 or 12)
     nvgSave(vg);local ix,iy=x+w/2,imageY+size/2
     nvgTranslate(vg,ix,iy-2*image);nvgRotate(vg,math.rad(-3)*image);nvgScale(vg,1+.06*image,1+.06*image);nvgTranslate(vg,-ix,-iy)
+    Shadows.Image(self,vg,def.id,'card',{x=x+(w-size)/2,y=imageY,w=size,h=size})
     self:RenderBackgroundImage(vg,Theme.Thumbnail(def.id),{x=x+(w-size)/2,y=imageY,w=size,h=size},'contain',nil)
     nvgRestore(vg)
     if slot then D.Rect(vg,x+w-21,y+h-37,21,20,D.orange);D.Text(vg,slot%10,x+w-10.5,y+h-35,13,D.ink,'vox-body',NVG_ALIGN_CENTER) end
@@ -151,7 +167,10 @@ function M.Footer()
     -- Frozen Chromium measurement: six 16.390625px rows, 12px gaps, 20px padding.
     p.tip=Panel{position='absolute',right=0,bottom=35,width=430,height=198.34375,visible=false,pointerEvents='none'}
     function p.tip:Render(vg)
-        D.Begin(vg);local r=self:GetAbsoluteLayout();D.Rect(vg,r.x,r.y,r.w,r.h,{17,43,69,255})
+        D.Begin(vg);local r=self:GetAbsoluteLayout()
+        self.sourceShadow=self.sourceShadow or require('ui.SourceBoxShadow').New()
+        self.sourceShadow:Draw(vg,r.x,r.y+3,r.w,r.h,10,nvgRGBA(4,12,22,64))
+        D.Rect(vg,r.x,r.y,r.w,r.h,{17,43,69,255})
         for i,row in ipairs(tips) do
             local x,y=r.x+20,r.y+20+(i-1)*28.390625
             for _,span in ipairs(row) do
@@ -160,6 +179,10 @@ function M.Footer()
                 x=x+D.Width(vg,span[1],fs,'vox-body')+(key and 10 or 0)
             end
         end
+    end
+    function p.tip:Destroy()
+        if self.sourceShadow then self.sourceShadow:Dispose();self.sourceShadow=nil end
+        Panel.Destroy(self)
     end
     line:AddChild(p.tip);p:AddChild(line);return p
 end

@@ -4,16 +4,27 @@ local Defs=require 'parts.Defs'
 local Theme=require 'ui.VoxTheme'
 local D=require 'ui.SourceDraw'
 local Relief=require 'ui.SourceRelief'
+local Feedback=require 'ui.InventoryFeedback'
 local Slot=Panel:Extend('VoxBuildSlot')
+function Slot:Update(dt) Feedback.Slot(self,dt) end
+function Slot:OnMouseEnter() self:SetState({hovered=true}) end
+function Slot:OnMouseLeave() self:SetState({hovered=false}) end
 function Slot:Render(vg)
     D.Begin(vg);local r=self:GetAbsoluteLayout();local p=self.props;local def=Defs.PARTS[p.partType]
     if p.inventoryStyle then
+        local focused=Feedback.Focused(self);local m=self.inventoryFeedback
+        local color=Feedback.Mix({32,58,84,255},{49,92,131,255},m and m.hover.value or 0)
+        color=Feedback.Mix(color,{157,207,238,255},m and m.active.value or (p.active and 1 or 0))
+        color=Feedback.Mix(color,{67,104,137,255},m and m.drop.value or 0)
         D.Path(vg,{r.x,r.y,r.x+r.w-9,r.y,r.x+r.w,r.y+9,r.x+r.w,r.y+r.h,r.x,r.y+r.h})
-        nvgFillColor(vg,D.Color(p.active and {157,207,238,255} or {32,58,84,255}));nvgFill(vg)
-        Relief.Halftone(vg,r.x,r.y,r.w,r.h,p.active,140,{r.x,r.y,r.x+r.w-9,r.y,r.x+r.w,r.y+9,r.x+r.w,r.y+r.h,r.x,r.y+r.h})
-        D.Text(vg,tostring(p.index%10),r.x+5,r.y+2,14,p.active and D.ink or {153,182,208,255},'vox-display')
+        nvgFillColor(vg,D.Color(Feedback.Color(color,focused)));nvgFill(vg)
+        if not self.state.hovered and not p.dropTarget or p.active then Relief.Halftone(vg,r.x,r.y,r.w,r.h,p.active,140,{r.x,r.y,r.x+r.w-9,r.y,r.x+r.w,r.y+9,r.x+r.w,r.y+r.h,r.x,r.y+r.h}) end
+        if focused or p.dropTarget then Feedback.Edges(vg,r,{r.x,r.y,r.x+r.w-9,r.y,r.x+r.w,r.y+9,r.x+r.w,r.y+r.h,r.x,r.y+r.h},false,focused,p.dropTarget and {230,187,112,255} or D.orange)
+            if p.dropTarget and not focused then D.Rect(vg,r.x,r.y+r.h-4,r.w,4,{230,187,112,255}) end end
+        D.Text(vg,tostring(p.index%10),r.x+5,r.y+2,14,Feedback.Color(p.active and D.ink or {153,182,208,255},focused),'vox-display')
         if def then
-            local size=p.thumbnailSize;self:RenderBackgroundImage(vg,Theme.Thumbnail(p.partType),{x=r.x+(r.w-size)/2,y=r.y+8,w=size,h=size},'contain',nil)
+            local size=p.thumbnailSize;require('ui.InventoryShadows').Image(self,vg,p.partType,'slot',{x=r.x+(r.w-size)/2,y=r.y+8,w=size,h=size})
+            self:RenderBackgroundImage(vg,Theme.Thumbnail(p.partType),{x=r.x+(r.w-size)/2,y=r.y+8,w=size,h=size},'contain',nil,nil,focused and {255,255,255,255} or nil)
             nvgSave(vg);nvgIntersectScissor(vg,r.x+2,r.y+r.h-18,r.w-4,16)
             D.Text(vg,def.name,r.x+r.w/2,r.y+r.h-17,p.compactInventory and 10 or 11,p.active and D.ink or D.white,'vox-body',NVG_ALIGN_CENTER);nvgRestore(vg)
         else D.Icon(vg,'plus',r.x+r.w/2-9,r.y+25,18,D.dim) end
@@ -55,7 +66,7 @@ function M.Create(session,compact,onHover)
         if revision==inventory.revision and tool==currentTool then return end;revision=inventory.revision;tool=currentTool
         for i,s in ipairs(slots) do
             local p=s.widget.props;p.partType=inventory.hotbar[i];p.selected=i==inventory.active;p.active=p.selected and (not sourceMain or currentTool=='build');p.dimmed=sourceMain and currentTool~='build'
-            s.widget:SetStyle({top=p.active and -5 or 0})
+            s.widget:SetStyle({top=sourceMain and p.active and -5 or 0})
         end
     end
     Refresh()
