@@ -2,7 +2,7 @@
 
 UrhoX Lua migration of the Three.js game. Active source baseline: `2026-10-15 / b276064942ae09c0227ec28d4cfda1d5ff006455`. Imported content includes 331 catalog parts and 19 public vehicle prefabs. Migration and performance acceptance remain incomplete.
 
-Current development branch: `codex/h5-2026-10-15`. Start with [the current version status](docs/migration/LATEST_VERSION_2026_10_15.md) for what is included and verified. The [engine-team performance handoff](docs/migration/ENGINE_TEAM_HANDOFF_2026_10_15.md) documents the older, immutable `706d` reproduction snapshot; its measurements do not validate later changes.
+Current checkout and integration branch: `main`. `codex/h5-2026-10-15` is synchronized to the same checkpoint. Start with [the current version status](docs/migration/LATEST_VERSION_2026_10_15.md) for what is included and verified. The [engine-team performance handoff](docs/migration/ENGINE_TEAM_HANDOFF_2026_10_15.md) documents the older, immutable `706d` reproduction snapshot; its measurements do not validate later changes.
 
 ## Run
 

@@ -51,8 +51,12 @@ end
 local function Finish()
     Core.Select(records,variants,'original',false)
     for _,variant in pairs(variants)do V.assert(Core.Validate(records,variant)==4160,'all 4160 source instances preserved after run '..variant.size)end
-    report.result='MEASURED';report.completed=true;Write(request.out+'/native.json',report)
-    Cleanup();phase='done';print('SCATTER_CULLING MEASURED '..request.out);V.finish()
+    report.result='MEASURED';report.completed=true;Write(request.out..'/native.json',report)
+    Cleanup();phase='done'
+    -- V.finish does not end the validator frame budget. Keep the isolated blank
+    -- tail uncapped by the hidden-window 10 FPS limit until its report is saved.
+    engine.maxFps=200;engine.maxInactiveFps=200
+    print('SCATTER_CULLING MEASURED '..request.out);V.finish()
 end
 local function NextCase()
     local nextCase=cases[#report.cases+1]
@@ -72,7 +76,7 @@ local function SaveCase()
     local image=Image:new();assert(graphics:TakeScreenShot(image),'Cannot read native framebuffer')
     result.image=current.name..'-'..current.range..'-'..current.mode..(current.repeatBaseline and '-repeat'or'')..'.png'
     assert(image:SavePNG(request.out..'/'..result.image),'Cannot save experiment screenshot');image:Dispose()
-    report.cases[#report.cases+1]=result;Write(request.out+'/partial.json',report);NextCase()
+    report.cases[#report.cases+1]=result;Write(request.out..'/partial.json',report);NextCase()
 end
 local function PrepareCases()
     cases={};local poses={
@@ -142,8 +146,8 @@ end
 local function Update()
     local ok,message=xpcall(Tick,debug.traceback)
     if not ok then
-        if report then report.result='FAILED';report.failure=tostring(message);Write(request.out+'/native.json',report)end
-        Cleanup();error(message)
+        if report then report.result='FAILED';report.failure=tostring(message);Write(request.out..'/native.json',report)end
+        Cleanup();phase='failed';engine.maxFps=200;engine.maxInactiveFps=200;V.assert(false,tostring(message));V.finish()
     end
 end
 V.atFrame(2,function()

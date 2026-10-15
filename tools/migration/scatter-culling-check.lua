@@ -12,7 +12,12 @@ local function Node(id,matrix)
         function group:GetMaterial(index)return self.materials[index+1]end
         function group:AddInstanceNode(instance)self.instances[#self.instances+1]=instance;self.numInstanceNodes=#self.instances end
         function group:GetInstanceNode(index)return self.instances[index+1]end
-        return group
+        local values={}
+        return setmetatable(group,{__index=function(_,key)return values[key]end,__newindex=function(_,key,value)
+            values[key]=value
+            if key=='instanceColor'then values.useInstanceColor=true end
+            if key=='instanceCustomData'then values.useInstanceCustomData=true end
+        end})
     end
     return node
 end
@@ -21,6 +26,7 @@ for _,fixture in ipairs(SCATTER_FIXTURE)do
     local node=Node(fixture.id,fixture.matrix);local group=node:CreateComponent();group.ID=fixture.id
     group.enabled=true;group.model=model;group:SetMaterial(0,material)
     for i,key in ipairs(SCATTER_CORE.fields)do group[key]=key=='castShadows'and true or i end
+    group.useInstanceColor=false;group.useInstanceCustomData=false
     group.drawDistance=220
     for _,instance in ipairs(fixture.instances)do group:AddInstanceNode(Node(instance.id,instance.matrix))end
     groups[#groups+1]=group

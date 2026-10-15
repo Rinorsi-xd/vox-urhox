@@ -15,7 +15,8 @@ try {
     $text=$request|ConvertTo-Json -Depth 8
     [IO.File]::WriteAllText((Join-Path $root '.tmp/scatter-culling-request.json'),$text,[Text.UTF8Encoding]::new($false))
     [IO.File]::WriteAllText((Join-Path $root ($out+'/request.json')),$text,[Text.UTF8Encoding]::new($false))
-    $arguments=@('_minimap_check.lua',('-tapcode_dir='+$root),'-tool_mode','-quality=mobile','-validate','-validate-frames=20000',('-validate-timeout='+$TimeoutSeconds),'-validate-spike-threshold=100',('-validate-test='+$root+'/tools/migration/scatter-culling-runtime.lua'),('-validate-output='+$root+'/'+$out+'/validation.json'),'-log','info')
+    $validationFrames=28*($SampleFrames+$SettleFrames)+2000
+    $arguments=@('_minimap_check.lua',('-tapcode_dir='+$root),'-tool_mode','-quality=mobile','-validate',('-validate-frames='+$validationFrames),('-validate-timeout='+$TimeoutSeconds),'-validate-spike-threshold=100',('-validate-test='+$root+'/tools/migration/scatter-culling-runtime.lua'),('-validate-output='+$root+'/'+$out+'/validation.json'),'-log','info')
     $process=Start-Process -FilePath ($root+'/.cli/UrhoXRuntime.exe') -WorkingDirectory $root -WindowStyle Hidden -PassThru -ArgumentList $arguments -RedirectStandardOutput ($root+'/'+$out+'/stdout.log') -RedirectStandardError ($root+'/'+$out+'/stderr.log')
     $timer=[Diagnostics.Stopwatch]::StartNew()
     while(-not $process.WaitForExit(500)){
@@ -27,6 +28,7 @@ try {
     }
     node tools/migration/scatter-culling-analyze.cjs $out
     if($LASTEXITCODE -ne 0){throw ('Scatter analysis failed: '+$out)}
+    if(-not(Test-Path (Join-Path $root ($out+'/validation.json')))){throw ('Native validator report missing, measurement remains unaccepted: '+$out)}
     Write-Output ('Evidence: '+$out)
     Write-Output 'MEASURED is not performance/visual acceptance. Inspect analysis, validation, stderr and paired screenshots.'
 } finally {Pop-Location}

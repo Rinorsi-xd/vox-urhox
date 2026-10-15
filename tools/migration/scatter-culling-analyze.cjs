@@ -42,12 +42,13 @@ async function main(){
  for(const item of comparisons.filter(i=>i.range==='limited'&&i.view.startsWith('distance-'))){
   const unlimited=comparisons.find(i=>i.mode===item.mode&&i.view===item.view.replace('/limited','/unlimited-diagnostic'));
   distanceChecks.push({view:item.view,mode:item.mode,limited:item.visualResult,unlimited:unlimited?.visualResult,
-   interpretation:item.visualResult!=='WITHIN_TOLERANCE'&&unlimited?.visualResult==='WITHIN_TOLERANCE'
+   rangeBehaviorChanged:item.baselineDrift.changedAbove2===0&&item.pixels.changedAbove2>0&&unlimited?.pixels.changedAbove2===0,
+   interpretation:item.baselineDrift.changedAbove2===0&&item.pixels.changedAbove2>0&&unlimited?.pixels.changedAbove2===0
     ?'Range/group-distance behavior changed; candidate cannot qualify from lower triangle counts.'
     :'Inspect paired screenshots and native group distances; counters alone do not establish per-instance distance semantics.'});
  }
  const result={result:'MEASURED_REQUIRES_VISUAL_REVIEW',scope:native.scope,partitions:native.partitions,configuration:native.configuration,
-  candidateEligibility:Object.fromEntries(['32','64'].map(mode=>[mode,comparisons.filter(i=>i.mode===mode&&i.range==='limited').every(i=>i.visualResult==='WITHIN_TOLERANCE')?'PIXEL_CHECKS_ONLY_PASS_PENDING_REVIEW':'NOT_QUALIFIED'])),
+  candidateEligibility:Object.fromEntries(['32','64'].map(mode=>[mode,distanceChecks.some(i=>i.mode===mode&&i.rangeBehaviorChanged)?'NOT_QUALIFIED_RANGE_CHANGE':comparisons.filter(i=>i.mode===mode&&i.range==='limited').every(i=>i.visualResult==='WITHIN_TOLERANCE')?'PIXEL_CHECKS_ONLY_PASS_PENDING_REVIEW':'NOT_QUALIFIED'])),
   policy:'All original instances and authored properties retained. Unlimited-distance cases are diagnostic only and excluded from optimization eligibility. Setup, switch, screenshot and validation costs excluded from steady frames. Native renderer counters and wall intervals are not GPU timestamp queries or phone/Web acceptance.',
   comparisons,distanceChecks,provenance:native.provenance};
  fs.writeFileSync(path.join(out,'analysis.json'),JSON.stringify(result,null,2)+'\n');

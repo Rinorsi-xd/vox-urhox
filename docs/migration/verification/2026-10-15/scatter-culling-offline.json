@@ -1,0 +1,11 @@
+{
+  "groups32": 345,
+  "assertions": 11215,
+  "instances": 4160,
+  "groups64": 100,
+  "groupsOriginal": 36,
+  "result": "PASSED",
+  "coreSha256": "69f9ff1546578ffdb3c16e00c92f9be05634374b6d275c7ab9742407ee5a1ee0",
+  "sceneSha256": "12f03b201e5517813a8974979bba93449a6ee47119a338968c07d3ff7be504e9",
+  "scope": "Actual authored XML positions/affine transforms and QA partition core using native-object stubs. Not renderer, GPU, draw-distance semantics, or performance acceptance."
+}

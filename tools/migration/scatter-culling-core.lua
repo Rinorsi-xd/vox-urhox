@@ -12,6 +12,12 @@ local function SameMatrix(node,value)
     local actual=Matrix(node)
     for i,v in ipairs(value)do assert(math.abs(actual[i]-v)<.00001,'Instance world transform changed')end
 end
+local function CopyFields(group,fields)
+    for _,key in ipairs(M.fields)do group[key]=fields[key]end
+    -- Native color/custom setters enable their flags; restore source flags last.
+    group.useInstanceColor=fields.useInstanceColor
+    group.useInstanceCustomData=fields.useInstanceCustomData
+end
 function M.Snapshot(groups,path)
     local records={};local count=0;local ids={}
     for _,group in ipairs(groups)do if group.model and group.model.name==path then
@@ -51,7 +57,7 @@ function M.Build(records,size)
             local node=root:CreateChild(cell.key);local group=node:CreateComponent('StaticModelGroup')
             group.enabled=false;group.model=record.model
             for i,material in ipairs(record.materials)do group:SetMaterial(i-1,material)end
-            for _,key in ipairs(M.fields)do group[key]=record.fields[key]end
+            CopyFields(group,record.fields)
             for _,instance in ipairs(cell.instances)do group:AddInstanceNode(instance.node)end
             variant.groups[#variant.groups+1]={group=group,record=record,cell=cell.key,instances=cell.instances}
         end
@@ -97,7 +103,7 @@ function M.Restore(records,variants)
     for _,variant in pairs(variants)do for _,node in ipairs(variant.roots)do node:Dispose()end end
     for _,record in ipairs(records)do
         record.group.enabled=record.enabled
-        for _,key in ipairs(M.fields)do record.group[key]=record.fields[key]end
+        CopyFields(record.group,record.fields)
         SameMatrix(record.node,record.nodeMatrix)
         for _,instance in ipairs(record.instances)do SameMatrix(instance.node,instance.matrix)end
     end

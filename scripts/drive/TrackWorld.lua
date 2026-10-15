@@ -77,7 +77,7 @@ function M:init(scene)
 end
 function M:NewVehicle(spec,unit)
     local vehicle=Vehicle.New(self.space,spec)
-    self.space.bodies[vehicle.node:GetID()].owner={type="car",ref=unit}
+    self.space:SetOwner(vehicle.native,{type="car",ref=unit})
     return vehicle
 end
 function M:SetUnits(bp,combat)

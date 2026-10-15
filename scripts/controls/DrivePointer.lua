@@ -2,7 +2,7 @@
 -- capture edges, right-click toggle/hold, and focus loss can be replayed exactly.
 local M={};M.__index=M
 local Platform=require 'urhox-libs.Platform.PlatformUtils'
-function M.New(session) return setmetatable({session=session,web=Platform.IsWebPlatform(),captured=false,pending=false,lockWait=0,ready=false,skip=false,right=false,scopeHold=false,heldTime=0},M) end
+function M.New(session) return setmetatable({session=session,web=Platform.IsWebPlatform(),captured=false,pending=false,lockWait=0,ready=false,skip=false,right=false,scopeHold=false,heldTime=0,mouse=require('controls.MouseDeltaFilter').New()},M) end
 function M:SetMouseMode(mode) input.mouseMode=mode end
 function M:Listen()
     if self.session.touch or self.eventNode then return end
@@ -10,6 +10,13 @@ function M:Listen()
     local receiver=self.eventNode:CreateScriptObject('LuaScriptObject')
     receiver:SubscribeToEvent('MouseButtonDown',function(_,_,data) self:Button(data:GetInt('Button'),true,Time:GetSystemTime()) end)
     receiver:SubscribeToEvent('MouseButtonUp',function(_,_,data) self:Button(data:GetInt('Button'),false,Time:GetSystemTime()) end)
+    receiver:SubscribeToEvent('MouseMove',function(_,_,data) self:Move(data:GetInt('DX'),data:GetInt('DY')) end)
+end
+function M:Move(dx,dy)
+    local s=self.session
+    if not self.captured or self.skip or not self.ready or s.disposed or s.dialog or not s:HasFocus() then return end
+    if input.mouseMode~=MM_RELATIVE or self.web and not input.mouseLocked then return end
+    self.mouse:Push(dx,dy)
 end
 function M:Button(button,down,now)
     local s=self.session
@@ -34,6 +41,7 @@ function M:Capture()
     -- Browser pointer lock completes after this click handler, often on the
     -- next frame. Do not enable driving or treat the old mode as lock loss.
     self.pending=self.web and not s.touch;self.lockWait=0
+    self.mouse:Reset()
     s.controls:Clear();self.captured=not self.pending;self.ready=false;self.skip=true;self.right=false;self.scopeHold=false;self.scopeAt=nil;self.heldTime=0
     self:Listen()
     if not s.touch then self:SetMouseMode(MM_RELATIVE) end;return true
@@ -42,10 +50,11 @@ function M:Release()
     if self.eventNode then self.eventNode:Dispose();self.eventNode=nil end
     if (self.captured or self.pending) and not self.session.touch then self:SetMouseMode(MM_ABSOLUTE) end
     self.captured=false;self.pending=false;self.lockWait=0;self.ready=false;self.right=false;self.scopeHold=false;self.scopeAt=nil;self.heldTime=0
+    self.mouse:Reset()
     local s=self.session;s.scope=false;s.firing=false;s.controls:Clear()
     if s.touch and s.hud then s.hud.Clear() end
 end
-function M:Suppress() self.ready=false;self.right=false;self.scopeHold=false;self.scopeAt=nil;self.heldTime=0;self.session.controls:Clear() end
+function M:Suppress() self.ready=false;self.right=false;self.scopeHold=false;self.scopeAt=nil;self.heldTime=0;self.mouse:Reset();self.session.controls:Clear() end
 function M:Sample(sample,dt)
     if not self.captured then return end
     if self.skip then self.skip=false;return end
@@ -67,6 +76,7 @@ function M:Poll(dt)
         if not self.session:HasFocus() or self.session.disposed or self.session.dialog then self:Release();return end
         if input.mouseMode==MM_RELATIVE and input.mouseLocked then
             self.pending=false;self.captured=true;self.ready=false;self.skip=true
+            self.mouse:Reset()
         else
             -- Count responsive processing time: a blocked browser frame must
             -- not cancel its own still-undelivered pointer-lock completion.
@@ -86,7 +96,9 @@ function M:Poll(dt)
         return
     end
     if not self.session:HasFocus() or input.mouseMode~=MM_RELATIVE or (self.web and not input.mouseLocked) then self:Release();return end
-    self:Sample({dx=input.mouseMoveX,dy=input.mouseMoveY,left=input:GetMouseButtonDown(MOUSEB_LEFT),
+    local dx,dy=0,0
+    if self.ready and not self.skip then dx,dy=self.mouse:Consume(input.mouseMoveX,input.mouseMoveY) else self.mouse:Reset() end
+    self:Sample({dx=dx,dy=dy,left=input:GetMouseButtonDown(MOUSEB_LEFT),
         right=input:GetMouseButtonDown(MOUSEB_RIGHT),middle=input:GetMouseButtonDown(MOUSEB_MIDDLE),wheel=input:GetMouseMoveWheel()},dt)
 end
 return M

@@ -558,6 +558,16 @@ local function Dump(app)
             last=inventory.results[#inventory.results] and inventory.results[#inventory.results].id,
             focus=focus and {part=fp.partType,kind=fp.kind,slot=fp.inventoryStyle and fp.index,
                 search=focus==inventory.search,close=focus==inventory.closeButton} or false}
+        local function Bounds(widget)
+            local r=widget:GetAbsoluteLayoutForHitTest()
+            return {r.x,r.y,r.w,r.h}
+        end
+        local detail=inventory.detail
+        data.inventoryState.searchRect=Bounds(inventory.search)
+        data.inventoryState.detail={rows=detail.rows,expanded=detail.expanded or false,
+            rect=Bounds(detail),scrollRect=Bounds(inventory.detailScroll),height=detail.props.height,
+            fontSize=detail.props.compact and 22 or math.min(32,math.max(24,detail.props.viewportWidth*.022)),
+            rowLines=detail.rowLines,description=detail.description,moreRect=detail.more and Bounds(detail.more)}
         Walk(inventory.body,true)
         local close=inventory.closeButton
         local r=close:GetAbsoluteLayoutForHitTest()

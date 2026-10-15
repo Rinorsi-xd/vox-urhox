@@ -1,0 +1,4521 @@
+{
+  "generatedAt": "2026-10-15T14:47:57.126Z",
+  "current": {
+    "directory": "docs/migration/verification/2026-10-15",
+    "manifest": "manifest-d7af571f.json",
+    "reportSha256": "f85a5accec0421c52122300182ca0973d2984c7d5958f510e13a1af2597a3618",
+    "framePhases": {
+      "boot": {
+        "count": 1696,
+        "p50Ms": 13.49,
+        "p95Ms": 69.455,
+        "maxMs": 3639.06,
+        "above100": 68
+      },
+      "match-load": {
+        "count": 2894,
+        "p50Ms": 13.825,
+        "p95Ms": 125,
+        "maxMs": 4708.205,
+        "above100": 182
+      },
+      "match-live": {
+        "count": 173,
+        "p50Ms": 110.99,
+        "p95Ms": 139.1,
+        "maxMs": 215.505,
+        "above100": 130
+      },
+      "match-return": {
+        "count": 577,
+        "p50Ms": 13.69,
+        "p95Ms": 21.04,
+        "maxMs": 1062.785,
+        "above100": 10
+      },
+      "repeat1-match-load": {
+        "count": 3411,
+        "p50Ms": 13.725,
+        "p95Ms": 21.18,
+        "maxMs": 1381.69,
+        "above100": 24
+      },
+      "repeat1-match-live": {
+        "count": 167,
+        "p50Ms": 117.805,
+        "p95Ms": 145.775,
+        "maxMs": 166.74,
+        "above100": 129
+      },
+      "repeat1-match-return": {
+        "count": 512,
+        "p50Ms": 13.63,
+        "p95Ms": 21.005,
+        "maxMs": 1124.615,
+        "above100": 10
+      }
+    },
+    "stages": [
+      {
+        "name": "boot",
+        "at": 1792074742336,
+        "performance": {
+          "arrayBytes": 0,
+          "resourceBytes": 52976425,
+          "primitives": 1785978,
+          "soundBytes": 0,
+          "modelBytes": 16309957,
+          "lifecycle": {
+            "minimap": false,
+            "capture": false,
+            "trial": false
+          },
+          "retiredTargets": 0,
+          "jsonBytes": 215415,
+          "imageBytes": 0,
+          "desktop": false,
+          "api": "GLES",
+          "materialBytes": 100744,
+          "xmlBytes": 242203,
+          "batches": 1208,
+          "luaKiB": 49310.09375,
+          "texture2DBytes": 0
+        }
+      },
+      {
+        "name": "match-load",
+        "at": 1792074875731,
+        "performance": {
+          "arrayBytes": 67109584,
+          "soundBytes": 15221706,
+          "retiredTargets": 0,
+          "focus": true,
+          "imageBytes": 16777216,
+          "batches": 1657,
+          "api": "GLES",
+          "jsonBytes": 0,
+          "droppedSeconds": 0,
+          "maxInactiveFps": 10,
+          "primitives": 6528294,
+          "minimized": false,
+          "modelBytes": 64403628,
+          "maxFps": 60,
+          "lifecycle": {
+            "minimap": {
+              "capture": false,
+              "texture": true,
+              "base": true,
+              "vg": true,
+              "disposed": false
+            },
+            "capture": {
+              "gate": false,
+              "camera": false,
+              "bakePending": false,
+              "baked": true,
+              "node": false,
+              "disposed": true,
+              "uploadTexture": false,
+              "result": false,
+              "scene": false,
+              "image": false,
+              "texture": false,
+              "worker": false,
+              "ready": true,
+              "sequence": 1
+            },
+            "trial": {
+              "scene": true,
+              "world": true,
+              "hud": true,
+              "effects": true,
+              "view": true,
+              "disposed": false
+            }
+          },
+          "fixedSteps": 0,
+          "postPasses": 0,
+          "desktop": false,
+          "resourceBytes": 208085050,
+          "effects": {
+            "flashes": 0,
+            "beams": 0,
+            "smoke": 0,
+            "particles": 0
+          },
+          "xmlBytes": 0,
+          "materialBytes": 116120,
+          "luaKiB": 67144.81640625,
+          "texture2DBytes": 0
+        }
+      },
+      {
+        "name": "match-live",
+        "at": 1792074888052,
+        "performance": {
+          "arrayBytes": 67109584,
+          "soundBytes": 15691354,
+          "retiredTargets": 0,
+          "focus": true,
+          "imageBytes": 16777216,
+          "batches": 1716,
+          "api": "GLES",
+          "jsonBytes": 0,
+          "droppedSeconds": 8.344650237468443e-8,
+          "maxInactiveFps": 10,
+          "primitives": 7631869,
+          "minimized": false,
+          "modelBytes": 64403628,
+          "maxFps": 60,
+          "lifecycle": {
+            "minimap": {
+              "capture": false,
+              "texture": true,
+              "base": true,
+              "vg": true,
+              "disposed": false
+            },
+            "capture": {
+              "gate": false,
+              "camera": false,
+              "bakePending": false,
+              "baked": true,
+              "node": false,
+              "disposed": true,
+              "uploadTexture": false,
+              "result": false,
+              "scene": false,
+              "image": false,
+              "texture": false,
+              "worker": false,
+              "ready": true,
+              "sequence": 1
+            },
+            "trial": {
+              "scene": true,
+              "world": true,
+              "hud": true,
+              "effects": true,
+              "view": true,
+              "disposed": false
+            }
+          },
+          "fixedSteps": 641,
+          "postPasses": 0,
+          "desktop": false,
+          "resourceBytes": 208753753,
+          "effects": {
+            "flashes": 0,
+            "beams": 0,
+            "smoke": 0,
+            "particles": 0
+          },
+          "xmlBytes": 0,
+          "materialBytes": 116120,
+          "luaKiB": 63721.044921875,
+          "texture2DBytes": 0
+        }
+      },
+      {
+        "name": "match-return",
+        "at": 1792074904976,
+        "performance": {
+          "arrayBytes": 0,
+          "resourceBytes": 78305327,
+          "primitives": 1809526,
+          "soundBytes": 8423635,
+          "modelBytes": 16309957,
+          "lifecycle": {
+            "minimap": {
+              "capture": false,
+              "texture": false,
+              "base": false,
+              "vg": false,
+              "disposed": true
+            },
+            "capture": {
+              "gate": false,
+              "camera": false,
+              "bakePending": false,
+              "baked": true,
+              "node": false,
+              "disposed": true,
+              "uploadTexture": false,
+              "result": false,
+              "scene": false,
+              "image": false,
+              "texture": false,
+              "worker": false,
+              "ready": true,
+              "sequence": 1
+            },
+            "trial": {
+              "scene": false,
+              "world": false,
+              "hud": false,
+              "effects": false,
+              "view": false,
+              "disposed": true
+            }
+          },
+          "retiredTargets": 0,
+          "jsonBytes": 0,
+          "imageBytes": 0,
+          "desktop": false,
+          "api": "GLES",
+          "materialBytes": 0,
+          "xmlBytes": 0,
+          "batches": 1234,
+          "luaKiB": 37554.853515625,
+          "texture2DBytes": 0
+        }
+      },
+      {
+        "name": "repeat1-match-load",
+        "at": 1792074959976,
+        "performance": {
+          "arrayBytes": 67109584,
+          "soundBytes": 14830171,
+          "retiredTargets": 0,
+          "focus": true,
+          "imageBytes": 16777216,
+          "batches": 1368,
+          "api": "GLES",
+          "jsonBytes": 0,
+          "droppedSeconds": 0,
+          "maxInactiveFps": 10,
+          "primitives": 4238422,
+          "minimized": false,
+          "modelBytes": 64403628,
+          "maxFps": 60,
+          "lifecycle": {
+            "minimap": {
+              "capture": false,
+              "texture": true,
+              "base": true,
+              "vg": true,
+              "disposed": false
+            },
+            "capture": {
+              "gate": false,
+              "camera": false,
+              "bakePending": false,
+              "baked": true,
+              "node": false,
+              "disposed": true,
+              "uploadTexture": false,
+              "result": false,
+              "scene": false,
+              "image": false,
+              "texture": false,
+              "worker": false,
+              "ready": true,
+              "sequence": 2
+            },
+            "trial": {
+              "scene": true,
+              "world": true,
+              "hud": true,
+              "effects": true,
+              "view": true,
+              "disposed": false
+            }
+          },
+          "fixedSteps": 0,
+          "postPasses": 0,
+          "desktop": false,
+          "resourceBytes": 210365199,
+          "effects": {
+            "flashes": 0,
+            "beams": 0,
+            "smoke": 0,
+            "particles": 0
+          },
+          "xmlBytes": 0,
+          "materialBytes": 116120,
+          "luaKiB": 70695.943359375,
+          "texture2DBytes": 0
+        }
+      },
+      {
+        "name": "repeat1-match-live",
+        "at": 1792074972378,
+        "performance": {
+          "arrayBytes": 67109584,
+          "soundBytes": 15299819,
+          "retiredTargets": 0,
+          "focus": true,
+          "imageBytes": 16777216,
+          "batches": 1905,
+          "api": "GLES",
+          "jsonBytes": 0,
+          "droppedSeconds": 8.642673460235173e-8,
+          "maxInactiveFps": 10,
+          "primitives": 7717201,
+          "minimized": false,
+          "modelBytes": 64403628,
+          "maxFps": 60,
+          "lifecycle": {
+            "minimap": {
+              "capture": false,
+              "texture": true,
+              "base": true,
+              "vg": true,
+              "disposed": false
+            },
+            "capture": {
+              "gate": false,
+              "camera": false,
+              "bakePending": false,
+              "baked": true,
+              "node": false,
+              "disposed": true,
+              "uploadTexture": false,
+              "result": false,
+              "scene": false,
+              "image": false,
+              "texture": false,
+              "worker": false,
+              "ready": true,
+              "sequence": 2
+            },
+            "trial": {
+              "scene": true,
+              "world": true,
+              "hud": true,
+              "effects": true,
+              "view": true,
+              "disposed": false
+            }
+          },
+          "fixedSteps": 637,
+          "postPasses": 0,
+          "desktop": false,
+          "resourceBytes": 210858730,
+          "effects": {
+            "flashes": 0,
+            "beams": 0,
+            "smoke": 0,
+            "particles": 0
+          },
+          "xmlBytes": 0,
+          "materialBytes": 116120,
+          "luaKiB": 66143.978515625,
+          "texture2DBytes": 0
+        }
+      },
+      {
+        "name": "repeat1-match-return",
+        "at": 1792074988805,
+        "performance": {
+          "arrayBytes": 0,
+          "resourceBytes": 79703107,
+          "primitives": 1808230,
+          "soundBytes": 8772839,
+          "modelBytes": 16309957,
+          "lifecycle": {
+            "minimap": {
+              "capture": false,
+              "texture": false,
+              "base": false,
+              "vg": false,
+              "disposed": true
+            },
+            "capture": {
+              "gate": false,
+              "camera": false,
+              "bakePending": false,
+              "baked": true,
+              "node": false,
+              "disposed": true,
+              "uploadTexture": false,
+              "result": false,
+              "scene": false,
+              "image": false,
+              "texture": false,
+              "worker": false,
+              "ready": true,
+              "sequence": 2
+            },
+            "trial": {
+              "scene": false,
+              "world": false,
+              "hud": false,
+              "effects": false,
+              "view": false,
+              "disposed": true
+            }
+          },
+          "retiredTargets": 0,
+          "jsonBytes": 0,
+          "imageBytes": 0,
+          "desktop": false,
+          "api": "GLES",
+          "materialBytes": 0,
+          "xmlBytes": 0,
+          "batches": 1220,
+          "luaKiB": 36039.6552734375,
+          "texture2DBytes": 0
+        }
+      }
+    ],
+    "glInstrumentation": {
+      "methods": 0,
+      "slowCalls": 0
+    },
+    "profiles": [
+      {
+        "file": "docs/migration/verification/2026-10-15/boot.cpuprofile",
+        "sha256": "7742e80abb2b2abc3d89205a65545d9facae7d198dda86813f410b51e6cbd71b",
+        "durationMs": 60559.821,
+        "sampledMs": 60559.511,
+        "sampleCount": 24823,
+        "maxSampleDeltaMs": 3.918,
+        "classes": [
+          {
+            "name": "clock-read-self",
+            "sampledMs": 35416.617,
+            "percent": 58.482
+          },
+          {
+            "name": "wasm-self-other",
+            "sampledMs": 9085.267,
+            "percent": 15.002
+          },
+          {
+            "name": "xhr-callback-subtree-other",
+            "sampledMs": 7488.458,
+            "percent": 12.365
+          },
+          {
+            "name": "js-or-browser-self-other",
+            "sampledMs": 4183.965,
+            "percent": 6.909
+          },
+          {
+            "name": "shader-status-subtree",
+            "sampledMs": 3129.713,
+            "percent": 5.168
+          },
+          {
+            "name": "idle",
+            "sampledMs": 1056.915,
+            "percent": 1.745
+          },
+          {
+            "name": "js-gc",
+            "sampledMs": 198.576,
+            "percent": 0.328
+          }
+        ],
+        "topSelf": [
+          {
+            "name": "_emscripten_get_now",
+            "sampledMs": 35416.617
+          },
+          {
+            "name": "_emscripten_glGetProgramiv",
+            "sampledMs": 2972.863
+          },
+          {
+            "name": "(program)",
+            "sampledMs": 2602.839
+          },
+          {
+            "name": "wasm-function[4618]",
+            "sampledMs": 2057.205
+          },
+          {
+            "name": "wasm-function[14591]",
+            "sampledMs": 1450.673
+          },
+          {
+            "name": "(idle)",
+            "sampledMs": 1056.915
+          },
+          {
+            "name": "wasm-function[1258]",
+            "sampledMs": 1046.447
+          },
+          {
+            "name": "wasm-function[5469]",
+            "sampledMs": 845.848
+          },
+          {
+            "name": "wasm-to-js",
+            "sampledMs": 776.657
+          },
+          {
+            "name": "wasm-function[767]",
+            "sampledMs": 710.644
+          },
+          {
+            "name": "wasm-function[629]",
+            "sampledMs": 555.25
+          },
+          {
+            "name": "wasm-function[1220]",
+            "sampledMs": 541.777
+          },
+          {
+            "name": "wasm-function[9978]",
+            "sampledMs": 487.829
+          },
+          {
+            "name": "fetchXHR",
+            "sampledMs": 407.374
+          },
+          {
+            "name": "wasm-function[14554]",
+            "sampledMs": 388.199
+          },
+          {
+            "name": "fetchLoadCachedData",
+            "sampledMs": 304.601
+          },
+          {
+            "name": "wasm-function[28149]",
+            "sampledMs": 286.979
+          },
+          {
+            "name": "wasm-function[26453]",
+            "sampledMs": 206.244
+          },
+          {
+            "name": "(garbage collector)",
+            "sampledMs": 198.576
+          },
+          {
+            "name": "print",
+            "sampledMs": 198.279
+          },
+          {
+            "name": "wasm-function[15584]",
+            "sampledMs": 163.266
+          },
+          {
+            "name": "wasm-function[909]",
+            "sampledMs": 162.358
+          },
+          {
+            "name": "_emscripten_glGetShaderiv",
+            "sampledMs": 156.85
+          },
+          {
+            "name": "wasm-function[26446]",
+            "sampledMs": 153.021
+          },
+          {
+            "name": "wasm-function[1676]",
+            "sampledMs": 137.063
+          },
+          {
+            "name": "wasm-function[1283]",
+            "sampledMs": 121.197
+          },
+          {
+            "name": "wasm-function[1147]",
+            "sampledMs": 117.064
+          },
+          {
+            "name": "saveResponseAndStatus",
+            "sampledMs": 114.999
+          },
+          {
+            "name": "wasm-function[26450]",
+            "sampledMs": 113.338
+          },
+          {
+            "name": "wasm-function[26432]",
+            "sampledMs": 96.495
+          }
+        ],
+        "topNamedJsSelf": [
+          {
+            "name": "_emscripten_get_now",
+            "sampledMs": 35416.617
+          },
+          {
+            "name": "_emscripten_glGetProgramiv",
+            "sampledMs": 2972.863
+          },
+          {
+            "name": "(program)",
+            "sampledMs": 2602.839
+          },
+          {
+            "name": "(idle)",
+            "sampledMs": 1056.915
+          },
+          {
+            "name": "wasm-to-js",
+            "sampledMs": 776.657
+          },
+          {
+            "name": "fetchXHR",
+            "sampledMs": 407.374
+          },
+          {
+            "name": "fetchLoadCachedData",
+            "sampledMs": 304.601
+          },
+          {
+            "name": "(garbage collector)",
+            "sampledMs": 198.576
+          },
+          {
+            "name": "print",
+            "sampledMs": 198.279
+          },
+          {
+            "name": "_emscripten_glGetShaderiv",
+            "sampledMs": 156.85
+          },
+          {
+            "name": "saveResponseAndStatus",
+            "sampledMs": 114.999
+          },
+          {
+            "name": "UTF8ToString",
+            "sampledMs": 73.808
+          },
+          {
+            "name": "_emscripten_glBindBuffer",
+            "sampledMs": 41.177
+          },
+          {
+            "name": "25915740",
+            "sampledMs": 37.227
+          },
+          {
+            "name": "FS_writeFile",
+            "sampledMs": 36.872
+          },
+          {
+            "name": "XMLHttpRequest.open",
+            "sampledMs": 34.923
+          },
+          {
+            "name": "_emscripten_glCheckFramebufferStatus",
+            "sampledMs": 32.062
+          },
+          {
+            "name": "local",
+            "sampledMs": 31.817
+          },
+          {
+            "name": "_emscripten_glTexImage2D",
+            "sampledMs": 29.658
+          },
+          {
+            "name": "_emscripten_glVertexAttribDivisor",
+            "sampledMs": 27.787
+          },
+          {
+            "name": "_emscripten_glUniform4f",
+            "sampledMs": 27.43
+          },
+          {
+            "name": "requestAnimationFrame",
+            "sampledMs": 24.206
+          },
+          {
+            "name": "_emscripten_glBindFramebuffer",
+            "sampledMs": 22.292
+          },
+          {
+            "name": "_emscripten_glVertexAttribPointer",
+            "sampledMs": 22.036
+          },
+          {
+            "name": "_emscripten_glGetError",
+            "sampledMs": 21.389
+          }
+        ],
+        "clockReadStacks": [
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[4618] > wasm-function[5469] > wasm-function[14591] > wasm-function[5468] > wasm-function[1870] > wasm-function[1551] > wasm-function[21936] > wasm-function[3928] > wasm-function[46089] > wasm-function[4342] > wasm-function[3096] > wasm-function[46138] > js-to-wasm:i: > (anonymous) > callUserCallback > doCallback > reportSuccess > xhr.onload > (root)",
+            "sampledMs": 12051.06
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[4618] > wasm-function[5469] > wasm-function[14591] > wasm-function[5468] > wasm-function[1870] > wasm-function[1551] > wasm-function[12585] > wasm-function[21948] > wasm-function[12606] > wasm-function[1506] > wasm-function[46089] > wasm-function[4342] > wasm-function[3096] > wasm-function[46138] > js-to-wasm:i: > (anonymous) > callUserCallback > doCallback > reportSuccess > xhr.onload > (root)",
+            "sampledMs": 8712.171
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[5469] > wasm-function[14591] > wasm-function[5468] > wasm-function[1870] > wasm-function[1551] > wasm-function[12585] > wasm-function[21948] > wasm-function[12606] > wasm-function[1506] > wasm-function[46089] > wasm-function[4342] > wasm-function[3096] > wasm-function[46138] > js-to-wasm:i: > (anonymous) > callUserCallback > doCallback > reportSuccess > xhr.onload > (root)",
+            "sampledMs": 2957.818
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[5469] > wasm-function[14591] > wasm-function[5468] > wasm-function[1870] > wasm-function[1551] > wasm-function[21936] > wasm-function[3928] > wasm-function[46089] > wasm-function[4342] > wasm-function[3096] > wasm-function[46138] > js-to-wasm:i: > (anonymous) > callUserCallback > doCallback > reportSuccess > xhr.onload > (root)",
+            "sampledMs": 2864.539
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[5468] > wasm-function[1870] > wasm-function[1551] > wasm-function[21936] > wasm-function[3928] > wasm-function[46089] > wasm-function[4342] > wasm-function[3096] > wasm-function[46138] > js-to-wasm:i: > (anonymous) > callUserCallback > doCallback > reportSuccess > xhr.onload > (root)",
+            "sampledMs": 2433.232
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[5468] > wasm-function[1870] > wasm-function[1551] > wasm-function[12585] > wasm-function[21948] > wasm-function[12606] > wasm-function[46089] > wasm-function[4342] > wasm-function[3096] > wasm-function[46138] > js-to-wasm:i: > (anonymous) > callUserCallback > doCallback > reportSuccess > xhr.onload > (root)",
+            "sampledMs": 1881.177
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[5468] > wasm-function[1870] > wasm-function[1551] > wasm-function[12585] > wasm-function[21948] > wasm-function[12606] > wasm-function[1506] > wasm-function[46089] > wasm-function[4342] > wasm-function[3096] > wasm-function[46138] > js-to-wasm:i: > (anonymous) > callUserCallback > doCallback > reportSuccess > xhr.onload > (root)",
+            "sampledMs": 709.418
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[1551] > wasm-function[21953] > wasm-function[1934] > wasm-function[45940] > wasm-function[28102] > wasm-function[28096] > wasm-function[26668] > wasm-function[9961] > wasm-function[15801] > wasm-function[9975] > wasm-function[28149] > wasm-function[2477] > wasm-function[1460] > wasm-function[8587] > wasm-function[12939] > wasm-function[3490] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc",
+            "sampledMs": 475.028
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[5468] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[22003] > wasm-function[45527] > wasm-function[1067] > wasm-function[20985] > wasm-function[45937] > wasm-function[4366] > wasm-function[36772] > wasm-function[9978] > wasm-function[10071] > wasm-function[4135] > wasm-function[26909] > js-to-wasm:ii: > invoke_vii > wasm-to-js > wasm-function[5654] > wasm-function[10068] > wasm-function[1404]",
+            "sampledMs": 324.277
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[1551] > wasm-function[21953] > wasm-function[1934] > wasm-function[1038] > wasm-function[8191] > wasm-function[45940] > wasm-function[28102] > wasm-function[28096] > wasm-function[26668] > wasm-function[9961] > wasm-function[15801] > wasm-function[9975] > wasm-function[28149] > wasm-function[2477] > wasm-function[1460] > wasm-function[8587] > wasm-function[12939] > wasm-function[3490] > wasm-function[5933] > wasm-function[42961]",
+            "sampledMs": 314.203
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[5468] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[22003] > wasm-function[2085] > wasm-function[1934] > wasm-function[1038] > wasm-function[8191] > wasm-function[45940] > wasm-function[20985] > wasm-function[45937] > wasm-function[2917] > wasm-function[17137] > wasm-function[8152] > wasm-function[25942] > wasm-function[12012] > wasm-function[12058] > wasm-function[5158] > wasm-function[5158] > wasm-function[5158]",
+            "sampledMs": 306.708
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[5468] > wasm-function[1870] > wasm-function[1551] > wasm-function[21951] > wasm-function[4439] > wasm-function[22003] > wasm-function[45527] > wasm-function[1067] > wasm-function[20985] > wasm-function[45937] > wasm-function[4366] > wasm-function[36214] > wasm-function[9978] > wasm-function[10071] > wasm-function[4135] > wasm-function[26909] > js-to-wasm:ii: > invoke_vii > wasm-to-js > wasm-function[5654] > wasm-function[10068]",
+            "sampledMs": 236.062
+          }
+        ],
+        "shaderStatusStacks": [
+          {
+            "name": "_emscripten_glGetProgramiv > wasm-to-js > wasm-function[26178] > wasm-function[15547] > wasm-function[15564] > wasm-function[2981] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback > runIter > MainLoop_runner > (root)",
+            "sampledMs": 2930.39
+          },
+          {
+            "name": "_emscripten_glGetShaderiv > wasm-to-js > wasm-function[26180] > wasm-function[15547] > wasm-function[15564] > wasm-function[2981] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback > runIter > MainLoop_runner > (root)",
+            "sampledMs": 151.772
+          },
+          {
+            "name": "_emscripten_glGetProgramiv > wasm-to-js > wasm-function[26178] > wasm-function[15547] > wasm-function[15564] > wasm-function[2981] > wasm-function[7329] > wasm-function[22773] > js-to-wasm > callMain > doRun > run > removeRunDependency > (anonymous) > (root)",
+            "sampledMs": 21.601
+          },
+          {
+            "name": "_emscripten_glGetProgramiv > wasm-to-js > wasm-function[15470] > wasm-function[26178] > wasm-function[15547] > wasm-function[15564] > wasm-function[2981] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback > runIter > MainLoop_runner > (root)",
+            "sampledMs": 18.488
+          },
+          {
+            "name": "_emscripten_glGetShaderiv > wasm-to-js > wasm-function[26180] > wasm-function[15547] > wasm-function[15564] > wasm-function[2981] > wasm-function[7329] > wasm-function[22773] > js-to-wasm > callMain > doRun > run > removeRunDependency > (anonymous) > (root)",
+            "sampledMs": 5.078
+          },
+          {
+            "name": "_emscripten_glGetProgramiv > wasm-to-js > wasm-function[15470] > wasm-function[26178] > wasm-function[15547] > wasm-function[15564] > wasm-function[2981] > wasm-function[7329] > wasm-function[22773] > js-to-wasm > callMain > doRun > run > removeRunDependency > (anonymous) > (root)",
+            "sampledMs": 2.384
+          }
+        ],
+        "selectedInclusive": [
+          {
+            "name": "wasm-function[9978]",
+            "sampledMs": 3364.712
+          },
+          {
+            "name": "wasm-function[3264]",
+            "sampledMs": 71.511
+          },
+          {
+            "name": "wasm-function[14591]",
+            "sampledMs": 41896.452
+          },
+          {
+            "name": "wasm-function[15564]",
+            "sampledMs": 4058.861
+          },
+          {
+            "name": "wasm-function[10071]",
+            "sampledMs": 3369.741
+          },
+          {
+            "name": "_emscripten_get_now",
+            "sampledMs": 35416.617
+          },
+          {
+            "name": "xhr.onload",
+            "sampledMs": 39339.843
+          }
+        ]
+      },
+      {
+        "file": "docs/migration/verification/2026-10-15/match-live.cpuprofile",
+        "sha256": "4b6592ae4deb0597b5c0cbd600760570e3fbaded650c522398755403427fc509",
+        "durationMs": 11559.881,
+        "sampledMs": 11559.612,
+        "sampleCount": 4697,
+        "maxSampleDeltaMs": 65.255,
+        "classes": [
+          {
+            "name": "wasm-self-other",
+            "sampledMs": 11068.895,
+            "percent": 95.755
+          },
+          {
+            "name": "js-or-browser-self-other",
+            "sampledMs": 398.054,
+            "percent": 3.443
+          },
+          {
+            "name": "clock-read-self",
+            "sampledMs": 75.631,
+            "percent": 0.654
+          },
+          {
+            "name": "shader-status-subtree",
+            "sampledMs": 10.247,
+            "percent": 0.089
+          },
+          {
+            "name": "idle",
+            "sampledMs": 4.272,
+            "percent": 0.037
+          },
+          {
+            "name": "js-gc",
+            "sampledMs": 2.513,
+            "percent": 0.022
+          }
+        ],
+        "topSelf": [
+          {
+            "name": "wasm-function[9978]",
+            "sampledMs": 1408.437
+          },
+          {
+            "name": "wasm-function[3264]",
+            "sampledMs": 1248.063
+          },
+          {
+            "name": "wasm-function[767]",
+            "sampledMs": 784.071
+          },
+          {
+            "name": "wasm-function[629]",
+            "sampledMs": 648.547
+          },
+          {
+            "name": "wasm-function[2933]",
+            "sampledMs": 334.259
+          },
+          {
+            "name": "wasm-function[909]",
+            "sampledMs": 281.427
+          },
+          {
+            "name": "wasm-function[14345]",
+            "sampledMs": 231.437
+          },
+          {
+            "name": "wasm-function[5439]",
+            "sampledMs": 217.321
+          },
+          {
+            "name": "wasm-function[33196]",
+            "sampledMs": 211.779
+          },
+          {
+            "name": "wasm-function[1491]",
+            "sampledMs": 209.349
+          },
+          {
+            "name": "wasm-function[5650]",
+            "sampledMs": 198.991
+          },
+          {
+            "name": "wasm-function[14346]",
+            "sampledMs": 149.322
+          },
+          {
+            "name": "wasm-function[3015]",
+            "sampledMs": 136.558
+          },
+          {
+            "name": "wasm-function[1169]",
+            "sampledMs": 135.659
+          },
+          {
+            "name": "wasm-function[6701]",
+            "sampledMs": 124.688
+          },
+          {
+            "name": "wasm-function[2993]",
+            "sampledMs": 113.916
+          },
+          {
+            "name": "(program)",
+            "sampledMs": 113.869
+          },
+          {
+            "name": "wasm-function[14554]",
+            "sampledMs": 108.722
+          },
+          {
+            "name": "wasm-function[17805]",
+            "sampledMs": 107.799
+          },
+          {
+            "name": "wasm-function[15997]",
+            "sampledMs": 92.371
+          },
+          {
+            "name": "wasm-function[4136]",
+            "sampledMs": 91.246
+          },
+          {
+            "name": "wasm-function[2421]",
+            "sampledMs": 87.949
+          },
+          {
+            "name": "wasm-function[10056]",
+            "sampledMs": 83.892
+          },
+          {
+            "name": "wasm-function[2547]",
+            "sampledMs": 81.313
+          },
+          {
+            "name": "wasm-function[33213]",
+            "sampledMs": 79.468
+          },
+          {
+            "name": "wasm-function[8587]",
+            "sampledMs": 76.151
+          },
+          {
+            "name": "wasm-function[31961]",
+            "sampledMs": 72.395
+          },
+          {
+            "name": "_emscripten_get_now",
+            "sampledMs": 70.781
+          },
+          {
+            "name": "wasm-function[45934]",
+            "sampledMs": 69.712
+          },
+          {
+            "name": "wasm-function[17911]",
+            "sampledMs": 68.018
+          }
+        ],
+        "topNamedJsSelf": [
+          {
+            "name": "(program)",
+            "sampledMs": 113.869
+          },
+          {
+            "name": "_emscripten_get_now",
+            "sampledMs": 70.781
+          },
+          {
+            "name": "wasm-to-js",
+            "sampledMs": 35.168
+          },
+          {
+            "name": "bindBuffer",
+            "sampledMs": 30.222
+          },
+          {
+            "name": "_emscripten_glBindBuffer",
+            "sampledMs": 24.562
+          },
+          {
+            "name": "vertexAttribDivisor",
+            "sampledMs": 19.245
+          },
+          {
+            "name": "vertexAttribPointer",
+            "sampledMs": 15.923
+          },
+          {
+            "name": "bufferSubData",
+            "sampledMs": 12.748
+          },
+          {
+            "name": "uniformMatrix4fv",
+            "sampledMs": 11.856
+          },
+          {
+            "name": "uniform1f",
+            "sampledMs": 9.649
+          },
+          {
+            "name": "bindTexture",
+            "sampledMs": 8.812
+          },
+          {
+            "name": "getProgramParameter",
+            "sampledMs": 7.579
+          },
+          {
+            "name": "useProgram",
+            "sampledMs": 7.551
+          },
+          {
+            "name": "webglGetUniformLocation",
+            "sampledMs": 7.541
+          },
+          {
+            "name": "_emscripten_glVertexAttribPointer",
+            "sampledMs": 7.194
+          },
+          {
+            "name": "uniform4f",
+            "sampledMs": 5.447
+          },
+          {
+            "name": "createSampler",
+            "sampledMs": 5.224
+          },
+          {
+            "name": "drawBuffers",
+            "sampledMs": 5.15
+          },
+          {
+            "name": "_emscripten_glVertexAttribDivisor",
+            "sampledMs": 5.078
+          },
+          {
+            "name": "drawElements",
+            "sampledMs": 4.964
+          },
+          {
+            "name": "now",
+            "sampledMs": 4.85
+          },
+          {
+            "name": "invoke_vii",
+            "sampledMs": 4.643
+          },
+          {
+            "name": "get",
+            "sampledMs": 4.636
+          },
+          {
+            "name": "_emscripten_glUseProgram",
+            "sampledMs": 4.588
+          },
+          {
+            "name": "(idle)",
+            "sampledMs": 4.272
+          }
+        ],
+        "clockReadStacks": [
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[6115] > wasm-function[46330] > wasm-function[33021] > wasm-function[17882] > wasm-function[32984] > wasm-function[21256] > wasm-function[38000] > wasm-function[9978] > wasm-function[10071] > wasm-function[4135] > wasm-function[26909] > js-to-wasm:ii: > invoke_vii > wasm-to-js > wasm-function[10068] > wasm-function[1254] > wasm-function[21743] > wasm-function[710] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc",
+            "sampledMs": 16.723
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21953] > wasm-function[1934] > wasm-function[45940] > wasm-function[26668] > wasm-function[9961] > wasm-function[15801] > wasm-function[9975] > wasm-function[28149] > wasm-function[2477] > wasm-function[1460] > wasm-function[8587] > wasm-function[6459] > wasm-function[3490] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback > runIter > MainLoop_runner",
+            "sampledMs": 12.722
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[22003] > wasm-function[2085] > wasm-function[1934] > wasm-function[45940] > wasm-function[20985] > wasm-function[45937] > wasm-function[37456] > wasm-function[9978] > wasm-function[10071] > wasm-function[4135] > wasm-function[26909] > js-to-wasm:ii: > invoke_vii > wasm-to-js > wasm-function[10068] > wasm-function[1254] > wasm-function[21743] > wasm-function[710]",
+            "sampledMs": 7.121
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21953] > wasm-function[1934] > wasm-function[45940] > wasm-function[20985] > wasm-function[45937] > wasm-function[6368] > wasm-function[21767] > wasm-function[9978] > wasm-function[10071] > wasm-function[4135] > wasm-function[26909] > js-to-wasm:ii: > invoke_vii > wasm-to-js > wasm-function[10068] > wasm-function[1254] > wasm-function[21743] > wasm-function[44725] > wasm-function[710] > wasm-function[36940]",
+            "sampledMs": 5.214
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[6115] > wasm-function[15547] > wasm-function[15564] > wasm-function[2981] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback > runIter > MainLoop_runner > (root)",
+            "sampledMs": 4.832
+          },
+          {
+            "name": "now > _emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21953] > wasm-function[1934] > wasm-function[45940] > wasm-function[20985] > wasm-function[45937] > wasm-function[37456] > wasm-function[9978] > wasm-function[10071] > wasm-function[4135] > wasm-function[26909] > js-to-wasm:ii: > invoke_vii > wasm-to-js > wasm-function[10068] > wasm-function[1254] > wasm-function[21743] > wasm-function[710] > wasm-function[5933] > wasm-function[42961]",
+            "sampledMs": 2.577
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[3516] > wasm-function[1812] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback > runIter > MainLoop_runner > (root)",
+            "sampledMs": 2.544
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[3516] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback > runIter > MainLoop_runner > (root)",
+            "sampledMs": 2.543
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[5033] > wasm-function[43416] > wasm-function[9978] > wasm-function[10071] > wasm-function[4135] > wasm-function[26909] > js-to-wasm:ii: > invoke_vii > wasm-to-js > wasm-function[10068] > wasm-function[1254] > wasm-function[21743] > wasm-function[710] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback > runIter > MainLoop_runner > (root)",
+            "sampledMs": 2.53
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[5469] > wasm-function[9403] > wasm-function[767] > wasm-function[20836] > wasm-function[12934] > wasm-function[5283] > wasm-function[22450] > wasm-function[2066] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback > runIter > MainLoop_runner > (root)",
+            "sampledMs": 2.512
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[4350] > wasm-function[26196] > wasm-function[15564] > wasm-function[2981] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback > runIter > MainLoop_runner > (root)",
+            "sampledMs": 2.509
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[46329] > wasm-function[33021] > wasm-function[17882] > wasm-function[32984] > wasm-function[21256] > wasm-function[38000] > wasm-function[9978] > wasm-function[10071] > wasm-function[4135] > wasm-function[26909] > js-to-wasm:ii: > invoke_vii > wasm-to-js > wasm-function[10068] > wasm-function[1254] > wasm-function[21743] > wasm-function[710] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback",
+            "sampledMs": 2.504
+          }
+        ],
+        "shaderStatusStacks": [
+          {
+            "name": "getProgramParameter > _emscripten_glGetProgramiv > wasm-to-js > wasm-function[26178] > wasm-function[15547] > wasm-function[15564] > wasm-function[2981] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback > runIter > MainLoop_runner > (root)",
+            "sampledMs": 7.579
+          },
+          {
+            "name": "getShaderParameter > _emscripten_glGetShaderiv > wasm-to-js > wasm-function[26180] > wasm-function[15547] > wasm-function[15564] > wasm-function[2981] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback > runIter > MainLoop_runner > (root)",
+            "sampledMs": 2.668
+          }
+        ],
+        "selectedInclusive": [
+          {
+            "name": "wasm-function[9978]",
+            "sampledMs": 9832.871
+          },
+          {
+            "name": "wasm-function[3264]",
+            "sampledMs": 1248.063
+          },
+          {
+            "name": "wasm-function[14591]",
+            "sampledMs": 39.424
+          },
+          {
+            "name": "wasm-function[15564]",
+            "sampledMs": 540.757
+          },
+          {
+            "name": "wasm-function[10071]",
+            "sampledMs": 9905.752
+          },
+          {
+            "name": "_emscripten_get_now",
+            "sampledMs": 75.631
+          },
+          {
+            "name": "xhr.onload",
+            "sampledMs": 0
+          }
+        ]
+      },
+      {
+        "file": "docs/migration/verification/2026-10-15/match-load.cpuprofile",
+        "sha256": "769f1dd40a07c80ea7be9f92f9f0072747a2cb6cc10af1082ac3382048d45529",
+        "durationMs": 131331.337,
+        "sampledMs": 131331.074,
+        "sampleCount": 53828,
+        "maxSampleDeltaMs": 26.615,
+        "classes": [
+          {
+            "name": "wasm-self-other",
+            "sampledMs": 55573.543,
+            "percent": 42.316
+          },
+          {
+            "name": "clock-read-self",
+            "sampledMs": 46259.089,
+            "percent": 35.223
+          },
+          {
+            "name": "shader-status-subtree",
+            "sampledMs": 17703.855,
+            "percent": 13.48
+          },
+          {
+            "name": "xhr-callback-subtree-other",
+            "sampledMs": 6479.643,
+            "percent": 4.934
+          },
+          {
+            "name": "js-or-browser-self-other",
+            "sampledMs": 4918.938,
+            "percent": 3.745
+          },
+          {
+            "name": "idle",
+            "sampledMs": 209.403,
+            "percent": 0.159
+          },
+          {
+            "name": "js-gc",
+            "sampledMs": 186.603,
+            "percent": 0.142
+          }
+        ],
+        "topSelf": [
+          {
+            "name": "_emscripten_get_now",
+            "sampledMs": 35861.581
+          },
+          {
+            "name": "getProgramParameter",
+            "sampledMs": 17364.477
+          },
+          {
+            "name": "now",
+            "sampledMs": 10397.508
+          },
+          {
+            "name": "wasm-function[14591]",
+            "sampledMs": 7485.096
+          },
+          {
+            "name": "wasm-function[9978]",
+            "sampledMs": 6451.397
+          },
+          {
+            "name": "wasm-function[767]",
+            "sampledMs": 3939.001
+          },
+          {
+            "name": "wasm-function[629]",
+            "sampledMs": 2801.991
+          },
+          {
+            "name": "wasm-function[909]",
+            "sampledMs": 2046.61
+          },
+          {
+            "name": "wasm-function[3264]",
+            "sampledMs": 1600.909
+          },
+          {
+            "name": "(program)",
+            "sampledMs": 1515.239
+          },
+          {
+            "name": "wasm-function[14554]",
+            "sampledMs": 1238.084
+          },
+          {
+            "name": "wasm-to-js",
+            "sampledMs": 1176.734
+          },
+          {
+            "name": "wasm-function[28149]",
+            "sampledMs": 939.734
+          },
+          {
+            "name": "wasm-function[27447]",
+            "sampledMs": 885.715
+          },
+          {
+            "name": "wasm-function[15584]",
+            "sampledMs": 717.35
+          },
+          {
+            "name": "wasm-function[26196]",
+            "sampledMs": 665.49
+          },
+          {
+            "name": "wasm-function[2993]",
+            "sampledMs": 653.164
+          },
+          {
+            "name": "wasm-function[26453]",
+            "sampledMs": 639.094
+          },
+          {
+            "name": "wasm-function[985]",
+            "sampledMs": 630.202
+          },
+          {
+            "name": "wasm-function[15437]",
+            "sampledMs": 608.29
+          },
+          {
+            "name": "wasm-function[3015]",
+            "sampledMs": 505.758
+          },
+          {
+            "name": "wasm-function[26446]",
+            "sampledMs": 485.536
+          },
+          {
+            "name": "wasm-function[4136]",
+            "sampledMs": 454.616
+          },
+          {
+            "name": "wasm-function[15453]",
+            "sampledMs": 429.287
+          },
+          {
+            "name": "wasm-function[26432]",
+            "sampledMs": 413.563
+          },
+          {
+            "name": "wasm-function[15859]",
+            "sampledMs": 412.674
+          },
+          {
+            "name": "wasm-function[5650]",
+            "sampledMs": 403.695
+          },
+          {
+            "name": "wasm-function[15661]",
+            "sampledMs": 382.805
+          },
+          {
+            "name": "wasm-function[1676]",
+            "sampledMs": 381.205
+          },
+          {
+            "name": "wasm-function[5638]",
+            "sampledMs": 347.966
+          }
+        ],
+        "topNamedJsSelf": [
+          {
+            "name": "_emscripten_get_now",
+            "sampledMs": 35861.581
+          },
+          {
+            "name": "getProgramParameter",
+            "sampledMs": 17364.477
+          },
+          {
+            "name": "now",
+            "sampledMs": 10397.508
+          },
+          {
+            "name": "(program)",
+            "sampledMs": 1515.239
+          },
+          {
+            "name": "wasm-to-js",
+            "sampledMs": 1176.734
+          },
+          {
+            "name": "bufferSubData",
+            "sampledMs": 340.774
+          },
+          {
+            "name": "getShaderParameter",
+            "sampledMs": 334.603
+          },
+          {
+            "name": "print",
+            "sampledMs": 331.356
+          },
+          {
+            "name": "(idle)",
+            "sampledMs": 209.403
+          },
+          {
+            "name": "vertexAttribDivisor",
+            "sampledMs": 198.138
+          },
+          {
+            "name": "vertexAttribPointer",
+            "sampledMs": 189.401
+          },
+          {
+            "name": "(garbage collector)",
+            "sampledMs": 186.603
+          },
+          {
+            "name": "bindBuffer",
+            "sampledMs": 183.805
+          },
+          {
+            "name": "drawArrays",
+            "sampledMs": 136.111
+          },
+          {
+            "name": "uniform4f",
+            "sampledMs": 120.775
+          },
+          {
+            "name": "saveResponseAndStatus",
+            "sampledMs": 100.474
+          },
+          {
+            "name": "texImage2D",
+            "sampledMs": 71.808
+          },
+          {
+            "name": "createSampler",
+            "sampledMs": 70.424
+          },
+          {
+            "name": "send",
+            "sampledMs": 63.883
+          },
+          {
+            "name": "bindTexture",
+            "sampledMs": 59.195
+          },
+          {
+            "name": "deleteSampler",
+            "sampledMs": 57.719
+          },
+          {
+            "name": "get",
+            "sampledMs": 55.728
+          },
+          {
+            "name": "_emscripten_glVertexAttribPointer",
+            "sampledMs": 55.084
+          },
+          {
+            "name": "drawElements",
+            "sampledMs": 51.503
+          },
+          {
+            "name": "__emscripten_throw_longjmp",
+            "sampledMs": 47.107
+          }
+        ],
+        "clockReadStacks": [
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[1551] > wasm-function[21936] > wasm-function[3928] > wasm-function[46089] > wasm-function[4342] > wasm-function[3096] > wasm-function[46138] > js-to-wasm:i: > (anonymous) > callUserCallback > doCallback > reportSuccess > xhr.onload > (root)",
+            "sampledMs": 16228.168
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[1551] > wasm-function[12585] > wasm-function[21948] > wasm-function[12606] > wasm-function[46089] > wasm-function[4342] > wasm-function[3096] > wasm-function[46138] > js-to-wasm:i: > (anonymous) > callUserCallback > doCallback > reportSuccess > xhr.onload > (root)",
+            "sampledMs": 9392.616
+          },
+          {
+            "name": "now > _emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[1551] > wasm-function[21936] > wasm-function[3928] > wasm-function[46089] > wasm-function[4342] > wasm-function[3096] > wasm-function[46138] > js-to-wasm:i: > (anonymous) > callUserCallback > doCallback > reportSuccess > xhr.onload > (root)",
+            "sampledMs": 4585.378
+          },
+          {
+            "name": "now > _emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[1551] > wasm-function[12585] > wasm-function[21948] > wasm-function[12606] > wasm-function[46089] > wasm-function[4342] > wasm-function[3096] > wasm-function[46138] > js-to-wasm:i: > (anonymous) > callUserCallback > doCallback > reportSuccess > xhr.onload > (root)",
+            "sampledMs": 2771.039
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21953] > wasm-function[1934] > wasm-function[45940] > wasm-function[28102] > wasm-function[28096] > wasm-function[26668] > wasm-function[9961] > wasm-function[15801] > wasm-function[9975] > wasm-function[28149] > wasm-function[2477] > wasm-function[1460] > wasm-function[8587] > wasm-function[12939] > wasm-function[3490] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback",
+            "sampledMs": 1703.403
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[27447] > wasm-function[1067] > wasm-function[22693] > wasm-function[1067] > wasm-function[20985] > wasm-function[45937] > wasm-function[13610] > wasm-function[23759] > wasm-function[1067] > wasm-function[20985] > wasm-function[45937] > wasm-function[2310] > wasm-function[13157] > wasm-function[17129] > wasm-function[8152] > wasm-function[25942] > wasm-function[12012] > wasm-function[12058]",
+            "sampledMs": 1160.21
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21953] > wasm-function[1934] > wasm-function[45940] > wasm-function[26668] > wasm-function[9961] > wasm-function[15801] > wasm-function[9975] > wasm-function[28149] > wasm-function[2477] > wasm-function[1460] > wasm-function[8587] > wasm-function[12939] > wasm-function[3490] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback > runIter > MainLoop_runner",
+            "sampledMs": 993.208
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[1551] > wasm-function[12585] > wasm-function[12606] > wasm-function[46089] > wasm-function[4342] > wasm-function[3096] > wasm-function[46138] > js-to-wasm:i: > (anonymous) > callUserCallback > doCallback > reportSuccess > xhr.onload > (root)",
+            "sampledMs": 947.867
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[22003] > wasm-function[2085] > wasm-function[1934] > wasm-function[45940] > wasm-function[20985] > wasm-function[45937] > wasm-function[2917] > wasm-function[17137] > wasm-function[8152] > wasm-function[25942] > wasm-function[12012] > wasm-function[12058] > wasm-function[5158] > wasm-function[5158] > wasm-function[20866] > wasm-function[45725] > wasm-function[710] > wasm-function[5933]",
+            "sampledMs": 821.752
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[22003] > wasm-function[21094] > wasm-function[46053] > wasm-function[1067] > wasm-function[8189] > wasm-function[6452] > wasm-function[22679] > wasm-function[1067] > wasm-function[20985] > wasm-function[45937] > wasm-function[37456] > wasm-function[10071] > wasm-function[4135] > wasm-function[26909] > js-to-wasm:ii: > invoke_vii > wasm-to-js > wasm-function[10068]",
+            "sampledMs": 692.416
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[23664] > wasm-function[1067] > wasm-function[20985] > wasm-function[45937] > wasm-function[2917] > wasm-function[17137] > wasm-function[8152] > wasm-function[25942] > wasm-function[12012] > wasm-function[12058] > wasm-function[5158] > wasm-function[5158] > wasm-function[5158] > wasm-function[5158] > wasm-function[20866] > wasm-function[45725] > wasm-function[710] > wasm-function[5933]",
+            "sampledMs": 515.341
+          },
+          {
+            "name": "now > _emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21953] > wasm-function[1934] > wasm-function[45940] > wasm-function[28102] > wasm-function[28096] > wasm-function[26668] > wasm-function[9961] > wasm-function[15801] > wasm-function[9975] > wasm-function[28149] > wasm-function[2477] > wasm-function[1460] > wasm-function[8587] > wasm-function[12939] > wasm-function[3490] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc",
+            "sampledMs": 500.78
+          }
+        ],
+        "shaderStatusStacks": [
+          {
+            "name": "getProgramParameter > _emscripten_glGetProgramiv > wasm-to-js > wasm-function[26178] > wasm-function[15547] > wasm-function[15564] > wasm-function[2981] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback > runIter > MainLoop_runner > (root)",
+            "sampledMs": 17344.507
+          },
+          {
+            "name": "getShaderParameter > _emscripten_glGetShaderiv > wasm-to-js > wasm-function[26180] > wasm-function[15547] > wasm-function[15564] > wasm-function[2981] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback > runIter > MainLoop_runner > (root)",
+            "sampledMs": 334.603
+          },
+          {
+            "name": "getProgramParameter > _emscripten_glGetProgramiv > wasm-to-js > wasm-function[15470] > wasm-function[26178] > wasm-function[15547] > wasm-function[15564] > wasm-function[2981] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback > runIter > MainLoop_runner > (root)",
+            "sampledMs": 19.97
+          },
+          {
+            "name": "_emscripten_glGetProgramiv > wasm-to-js > wasm-function[15470] > wasm-function[26178] > wasm-function[15547] > wasm-function[15564] > wasm-function[2981] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback > runIter > MainLoop_runner > (root)",
+            "sampledMs": 2.512
+          },
+          {
+            "name": "getActiveUniform > _emscripten_glGetProgramiv > wasm-to-js > wasm-function[15470] > wasm-function[26178] > wasm-function[15547] > wasm-function[15564] > wasm-function[2981] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback > runIter > MainLoop_runner > (root)",
+            "sampledMs": 2.263
+          }
+        ],
+        "selectedInclusive": [
+          {
+            "name": "wasm-function[9978]",
+            "sampledMs": 32735.482
+          },
+          {
+            "name": "wasm-function[3264]",
+            "sampledMs": 1600.909
+          },
+          {
+            "name": "wasm-function[14591]",
+            "sampledMs": 54299.574
+          },
+          {
+            "name": "wasm-function[15564]",
+            "sampledMs": 22738.678
+          },
+          {
+            "name": "wasm-function[10071]",
+            "sampledMs": 33055.368
+          },
+          {
+            "name": "_emscripten_get_now",
+            "sampledMs": 46259.089
+          },
+          {
+            "name": "xhr.onload",
+            "sampledMs": 40908.681
+          }
+        ]
+      },
+      {
+        "file": "docs/migration/verification/2026-10-15/match-return.cpuprofile",
+        "sha256": "e7fab99223376e875f627083322089b0291009fdd70bf1f41dda79acd4acf923",
+        "durationMs": 9081.985,
+        "sampledMs": 9081.709,
+        "sampleCount": 3708,
+        "maxSampleDeltaMs": 33.737,
+        "classes": [
+          {
+            "name": "wasm-self-other",
+            "sampledMs": 5873.109,
+            "percent": 64.67
+          },
+          {
+            "name": "clock-read-self",
+            "sampledMs": 1794.839,
+            "percent": 19.763
+          },
+          {
+            "name": "js-or-browser-self-other",
+            "sampledMs": 920.187,
+            "percent": 10.132
+          },
+          {
+            "name": "idle",
+            "sampledMs": 244.362,
+            "percent": 2.691
+          },
+          {
+            "name": "xhr-callback-subtree-other",
+            "sampledMs": 224.438,
+            "percent": 2.471
+          },
+          {
+            "name": "js-gc",
+            "sampledMs": 24.774,
+            "percent": 0.273
+          }
+        ],
+        "topSelf": [
+          {
+            "name": "_emscripten_get_now",
+            "sampledMs": 1347.21
+          },
+          {
+            "name": "wasm-function[9978]",
+            "sampledMs": 529.191
+          },
+          {
+            "name": "now",
+            "sampledMs": 447.629
+          },
+          {
+            "name": "wasm-function[14591]",
+            "sampledMs": 371.645
+          },
+          {
+            "name": "wasm-function[629]",
+            "sampledMs": 327.362
+          },
+          {
+            "name": "wasm-function[767]",
+            "sampledMs": 317.232
+          },
+          {
+            "name": "(idle)",
+            "sampledMs": 244.362
+          },
+          {
+            "name": "wasm-function[3264]",
+            "sampledMs": 230.03
+          },
+          {
+            "name": "(program)",
+            "sampledMs": 222.991
+          },
+          {
+            "name": "wasm-function[15437]",
+            "sampledMs": 180.375
+          },
+          {
+            "name": "wasm-function[26196]",
+            "sampledMs": 143.107
+          },
+          {
+            "name": "wasm-function[8587]",
+            "sampledMs": 128.145
+          },
+          {
+            "name": "wasm-function[1491]",
+            "sampledMs": 114.946
+          },
+          {
+            "name": "wasm-function[909]",
+            "sampledMs": 111.881
+          },
+          {
+            "name": "wasm-function[2993]",
+            "sampledMs": 111.492
+          },
+          {
+            "name": "wasm-to-js",
+            "sampledMs": 108.676
+          },
+          {
+            "name": "wasm-function[15453]",
+            "sampledMs": 96.221
+          },
+          {
+            "name": "wasm-function[3015]",
+            "sampledMs": 88.46
+          },
+          {
+            "name": "wasm-function[2776]",
+            "sampledMs": 81.774
+          },
+          {
+            "name": "bindBuffer",
+            "sampledMs": 72.765
+          },
+          {
+            "name": "wasm-function[2933]",
+            "sampledMs": 71.288
+          },
+          {
+            "name": "wasm-function[698]",
+            "sampledMs": 65.856
+          },
+          {
+            "name": "wasm-function[2547]",
+            "sampledMs": 59.117
+          },
+          {
+            "name": "wasm-function[12755]",
+            "sampledMs": 58.302
+          },
+          {
+            "name": "wasm-function[4136]",
+            "sampledMs": 57.015
+          },
+          {
+            "name": "wasm-function[12938]",
+            "sampledMs": 56.626
+          },
+          {
+            "name": "wasm-function[10060]",
+            "sampledMs": 56.351
+          },
+          {
+            "name": "wasm-function[13317]",
+            "sampledMs": 56.15
+          },
+          {
+            "name": "vertexAttribDivisor",
+            "sampledMs": 54.978
+          },
+          {
+            "name": "wasm-function[15438]",
+            "sampledMs": 53.334
+          }
+        ],
+        "topNamedJsSelf": [
+          {
+            "name": "_emscripten_get_now",
+            "sampledMs": 1347.21
+          },
+          {
+            "name": "now",
+            "sampledMs": 447.629
+          },
+          {
+            "name": "(idle)",
+            "sampledMs": 244.362
+          },
+          {
+            "name": "(program)",
+            "sampledMs": 222.991
+          },
+          {
+            "name": "wasm-to-js",
+            "sampledMs": 108.676
+          },
+          {
+            "name": "bindBuffer",
+            "sampledMs": 72.765
+          },
+          {
+            "name": "vertexAttribDivisor",
+            "sampledMs": 54.978
+          },
+          {
+            "name": "vertexAttribPointer",
+            "sampledMs": 45.531
+          },
+          {
+            "name": "bufferSubData",
+            "sampledMs": 35.948
+          },
+          {
+            "name": "(garbage collector)",
+            "sampledMs": 24.774
+          },
+          {
+            "name": "_emscripten_glBindBuffer",
+            "sampledMs": 21.998
+          },
+          {
+            "name": "drawElements",
+            "sampledMs": 19.807
+          },
+          {
+            "name": "webglGetUniformLocation",
+            "sampledMs": 18.989
+          },
+          {
+            "name": "uniform4f",
+            "sampledMs": 18.707
+          },
+          {
+            "name": "useProgram",
+            "sampledMs": 18.603
+          },
+          {
+            "name": "checkFramebufferStatus",
+            "sampledMs": 16.213
+          },
+          {
+            "name": "print",
+            "sampledMs": 15.322
+          },
+          {
+            "name": "bindTexture",
+            "sampledMs": 14.722
+          },
+          {
+            "name": "drawElementsInstanced",
+            "sampledMs": 13.727
+          },
+          {
+            "name": "preDrawHandleClientVertexAttribBindings",
+            "sampledMs": 12.615
+          },
+          {
+            "name": "_emscripten_glVertexAttribDivisor",
+            "sampledMs": 12.613
+          },
+          {
+            "name": "uniform1f",
+            "sampledMs": 12.105
+          },
+          {
+            "name": "drawArrays",
+            "sampledMs": 10.006
+          },
+          {
+            "name": "getError",
+            "sampledMs": 9.913
+          },
+          {
+            "name": "invoke_vii",
+            "sampledMs": 9.349
+          }
+        ],
+        "clockReadStacks": [
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[1551] > wasm-function[21936] > wasm-function[3928] > wasm-function[46089] > wasm-function[4342] > wasm-function[3096] > wasm-function[46138] > js-to-wasm:i: > (anonymous) > callUserCallback > doCallback > reportSuccess > xhr.onload > (root)",
+            "sampledMs": 360.395
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[22003] > wasm-function[2085] > wasm-function[1934] > wasm-function[45940] > wasm-function[20985] > wasm-function[45937] > wasm-function[2917] > wasm-function[17137] > wasm-function[8152] > wasm-function[12012] > wasm-function[12058] > wasm-function[5158] > wasm-function[5158] > wasm-function[5158] > wasm-function[20866] > wasm-function[45725] > wasm-function[710] > wasm-function[5933]",
+            "sampledMs": 216.612
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[22003] > wasm-function[45527] > wasm-function[1067] > wasm-function[20985] > wasm-function[45937] > wasm-function[4366] > wasm-function[36772] > wasm-function[9978] > wasm-function[10071] > wasm-function[4135] > wasm-function[26909] > js-to-wasm:ii: > invoke_vii > wasm-to-js > wasm-function[10068] > wasm-function[1404] > wasm-function[26879] > wasm-function[9978]",
+            "sampledMs": 172.12
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[1551] > wasm-function[12585] > wasm-function[12606] > wasm-function[46089] > wasm-function[4342] > wasm-function[3096] > wasm-function[46138] > js-to-wasm:i: > (anonymous) > callUserCallback > doCallback > reportSuccess > xhr.onload > (root)",
+            "sampledMs": 171.967
+          },
+          {
+            "name": "now > _emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[1551] > wasm-function[21936] > wasm-function[3928] > wasm-function[46089] > wasm-function[4342] > wasm-function[3096] > wasm-function[46138] > js-to-wasm:i: > (anonymous) > callUserCallback > doCallback > reportSuccess > xhr.onload > (root)",
+            "sampledMs": 134.619
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[23664] > wasm-function[1067] > wasm-function[20985] > wasm-function[45937] > wasm-function[2917] > wasm-function[17137] > wasm-function[8152] > wasm-function[12012] > wasm-function[12058] > wasm-function[5158] > wasm-function[5158] > wasm-function[5158] > wasm-function[20866] > wasm-function[45725] > wasm-function[710] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i:",
+            "sampledMs": 116.901
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[22003] > wasm-function[11271] > wasm-function[41024] > wasm-function[1067] > wasm-function[20985] > wasm-function[45937] > wasm-function[37456] > wasm-function[9978] > wasm-function[10071] > wasm-function[4135] > wasm-function[26909] > js-to-wasm:ii: > invoke_vii > wasm-to-js > wasm-function[10068] > wasm-function[1254] > wasm-function[38123] > wasm-function[4342]",
+            "sampledMs": 93.095
+          },
+          {
+            "name": "now > _emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[1551] > wasm-function[12585] > wasm-function[12606] > wasm-function[46089] > wasm-function[4342] > wasm-function[3096] > wasm-function[46138] > js-to-wasm:i: > (anonymous) > callUserCallback > doCallback > reportSuccess > xhr.onload > (root)",
+            "sampledMs": 64.684
+          },
+          {
+            "name": "now > _emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[22003] > wasm-function[2085] > wasm-function[1934] > wasm-function[45940] > wasm-function[20985] > wasm-function[45937] > wasm-function[2917] > wasm-function[17137] > wasm-function[8152] > wasm-function[12012] > wasm-function[12058] > wasm-function[5158] > wasm-function[5158] > wasm-function[5158] > wasm-function[20866] > wasm-function[45725] > wasm-function[710]",
+            "sampledMs": 55.555
+          },
+          {
+            "name": "now > _emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[22003] > wasm-function[45527] > wasm-function[1067] > wasm-function[20985] > wasm-function[45937] > wasm-function[4366] > wasm-function[36772] > wasm-function[9978] > wasm-function[10071] > wasm-function[4135] > wasm-function[26909] > js-to-wasm:ii: > invoke_vii > wasm-to-js > wasm-function[10068] > wasm-function[1404] > wasm-function[26879]",
+            "sampledMs": 48.766
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[27447] > wasm-function[1067] > wasm-function[22693] > wasm-function[1067] > wasm-function[20985] > wasm-function[45937] > wasm-function[22017] > wasm-function[8152] > wasm-function[12012] > wasm-function[12058] > wasm-function[5158] > wasm-function[20866] > wasm-function[45725] > wasm-function[710] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc",
+            "sampledMs": 41.145
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[27447] > wasm-function[1067] > wasm-function[8189] > wasm-function[9597] > wasm-function[9628] > wasm-function[15024] > wasm-function[4445] > wasm-function[22017] > wasm-function[8152] > wasm-function[12012] > wasm-function[12058] > wasm-function[5158] > wasm-function[20866] > wasm-function[45725] > wasm-function[710] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i:",
+            "sampledMs": 37.051
+          }
+        ],
+        "shaderStatusStacks": [],
+        "selectedInclusive": [
+          {
+            "name": "wasm-function[9978]",
+            "sampledMs": 3714.081
+          },
+          {
+            "name": "wasm-function[3264]",
+            "sampledMs": 230.03
+          },
+          {
+            "name": "wasm-function[14591]",
+            "sampledMs": 2154.182
+          },
+          {
+            "name": "wasm-function[15564]",
+            "sampledMs": 1431.826
+          },
+          {
+            "name": "wasm-function[10071]",
+            "sampledMs": 3735.243
+          },
+          {
+            "name": "_emscripten_get_now",
+            "sampledMs": 1794.839
+          },
+          {
+            "name": "xhr.onload",
+            "sampledMs": 1086.257
+          }
+        ]
+      },
+      {
+        "file": "docs/migration/verification/2026-10-15/repeat1-match-live.cpuprofile",
+        "sha256": "cb647a102fc6548f5de0099f7e7f6c647a4e0af56b3a45bc9ae26fb2a373d912",
+        "durationMs": 11576.323,
+        "sampledMs": 11576.042,
+        "sampleCount": 4719,
+        "maxSampleDeltaMs": 54.889,
+        "classes": [
+          {
+            "name": "wasm-self-other",
+            "sampledMs": 11233.684,
+            "percent": 97.043
+          },
+          {
+            "name": "js-or-browser-self-other",
+            "sampledMs": 303.404,
+            "percent": 2.621
+          },
+          {
+            "name": "clock-read-self",
+            "sampledMs": 28.396,
+            "percent": 0.245
+          },
+          {
+            "name": "idle",
+            "sampledMs": 10.558,
+            "percent": 0.091
+          }
+        ],
+        "topSelf": [
+          {
+            "name": "wasm-function[9978]",
+            "sampledMs": 1445.808
+          },
+          {
+            "name": "wasm-function[3264]",
+            "sampledMs": 1323.204
+          },
+          {
+            "name": "wasm-function[767]",
+            "sampledMs": 773.259
+          },
+          {
+            "name": "wasm-function[629]",
+            "sampledMs": 759.271
+          },
+          {
+            "name": "wasm-function[909]",
+            "sampledMs": 302.698
+          },
+          {
+            "name": "wasm-function[2933]",
+            "sampledMs": 272.926
+          },
+          {
+            "name": "wasm-function[5439]",
+            "sampledMs": 251.648
+          },
+          {
+            "name": "wasm-function[33196]",
+            "sampledMs": 231.842
+          },
+          {
+            "name": "wasm-function[14345]",
+            "sampledMs": 219.682
+          },
+          {
+            "name": "wasm-function[1491]",
+            "sampledMs": 216.557
+          },
+          {
+            "name": "wasm-function[5650]",
+            "sampledMs": 176.299
+          },
+          {
+            "name": "wasm-function[3015]",
+            "sampledMs": 163.328
+          },
+          {
+            "name": "wasm-function[1169]",
+            "sampledMs": 160.458
+          },
+          {
+            "name": "wasm-function[14346]",
+            "sampledMs": 129.501
+          },
+          {
+            "name": "wasm-function[6701]",
+            "sampledMs": 112.541
+          },
+          {
+            "name": "wasm-function[2993]",
+            "sampledMs": 104.692
+          },
+          {
+            "name": "wasm-function[17805]",
+            "sampledMs": 92.05
+          },
+          {
+            "name": "wasm-function[955]",
+            "sampledMs": 91.817
+          },
+          {
+            "name": "wasm-function[10056]",
+            "sampledMs": 90.189
+          },
+          {
+            "name": "wasm-function[4136]",
+            "sampledMs": 87.99
+          },
+          {
+            "name": "wasm-function[15997]",
+            "sampledMs": 87.337
+          },
+          {
+            "name": "(program)",
+            "sampledMs": 84.439
+          },
+          {
+            "name": "wasm-function[8587]",
+            "sampledMs": 82.69
+          },
+          {
+            "name": "wasm-function[2421]",
+            "sampledMs": 82.525
+          },
+          {
+            "name": "wasm-function[17911]",
+            "sampledMs": 78.964
+          },
+          {
+            "name": "wasm-function[33213]",
+            "sampledMs": 77.595
+          },
+          {
+            "name": "wasm-function[3470]",
+            "sampledMs": 68.233
+          },
+          {
+            "name": "wasm-function[45934]",
+            "sampledMs": 68
+          },
+          {
+            "name": "wasm-function[3659]",
+            "sampledMs": 63.079
+          },
+          {
+            "name": "wasm-function[14554]",
+            "sampledMs": 62.996
+          }
+        ],
+        "topNamedJsSelf": [
+          {
+            "name": "(program)",
+            "sampledMs": 84.439
+          },
+          {
+            "name": "_emscripten_get_now",
+            "sampledMs": 26.306
+          },
+          {
+            "name": "bindBuffer",
+            "sampledMs": 22.591
+          },
+          {
+            "name": "vertexAttribPointer",
+            "sampledMs": 21.332
+          },
+          {
+            "name": "wasm-to-js",
+            "sampledMs": 19.677
+          },
+          {
+            "name": "vertexAttribDivisor",
+            "sampledMs": 17.315
+          },
+          {
+            "name": "(idle)",
+            "sampledMs": 10.558
+          },
+          {
+            "name": "_emscripten_glUseProgram",
+            "sampledMs": 9.785
+          },
+          {
+            "name": "bindTexture",
+            "sampledMs": 7.591
+          },
+          {
+            "name": "bindSampler",
+            "sampledMs": 7.59
+          },
+          {
+            "name": "webglGetUniformLocation",
+            "sampledMs": 7.563
+          },
+          {
+            "name": "drawElements",
+            "sampledMs": 7.266
+          },
+          {
+            "name": "_emscripten_glVertexAttribPointer",
+            "sampledMs": 7.249
+          },
+          {
+            "name": "uniformMatrix4fv",
+            "sampledMs": 7.235
+          },
+          {
+            "name": "bufferSubData",
+            "sampledMs": 6.989
+          },
+          {
+            "name": "drawElementsInstanced",
+            "sampledMs": 6.927
+          },
+          {
+            "name": "disable",
+            "sampledMs": 5.077
+          },
+          {
+            "name": "uniform1f",
+            "sampledMs": 5.051
+          },
+          {
+            "name": "requestAnimationFrame",
+            "sampledMs": 5.048
+          },
+          {
+            "name": "samplerParameteri",
+            "sampledMs": 4.829
+          },
+          {
+            "name": "get",
+            "sampledMs": 4.52
+          },
+          {
+            "name": "depthFunc",
+            "sampledMs": 2.702
+          },
+          {
+            "name": "_emscripten_glBindTexture",
+            "sampledMs": 2.68
+          },
+          {
+            "name": "colorMask",
+            "sampledMs": 2.666
+          },
+          {
+            "name": "invoke_vii",
+            "sampledMs": 2.633
+          }
+        ],
+        "clockReadStacks": [
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[22003] > wasm-function[2085] > wasm-function[1934] > wasm-function[45940] > wasm-function[20985] > wasm-function[45937] > wasm-function[37456] > wasm-function[9978] > wasm-function[10071] > wasm-function[26909] > js-to-wasm:ii: > invoke_vii > wasm-to-js > wasm-function[10068] > wasm-function[1254] > wasm-function[21743] > wasm-function[710] > wasm-function[5933]",
+            "sampledMs": 6.945
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[46329] > wasm-function[33021] > wasm-function[17882] > wasm-function[32984] > wasm-function[21256] > wasm-function[38000] > wasm-function[9978] > wasm-function[10071] > wasm-function[26909] > js-to-wasm:ii: > invoke_vii > wasm-to-js > wasm-function[10068] > wasm-function[1254] > wasm-function[21743] > wasm-function[710] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback > runIter",
+            "sampledMs": 5.044
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[6115] > wasm-function[46330] > wasm-function[33021] > wasm-function[17882] > wasm-function[32984] > wasm-function[21256] > wasm-function[38000] > wasm-function[9978] > wasm-function[10071] > wasm-function[26909] > js-to-wasm:ii: > invoke_vii > wasm-to-js > wasm-function[10068] > wasm-function[1254] > wasm-function[21743] > wasm-function[710] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback",
+            "sampledMs": 4.219
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[6115] > wasm-function[941] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback > runIter > MainLoop_runner > (root)",
+            "sampledMs": 2.544
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[1745] > wasm-function[15547] > wasm-function[15564] > wasm-function[2981] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback > runIter > MainLoop_runner > (root)",
+            "sampledMs": 2.535
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[5469] > wasm-function[9403] > wasm-function[767] > wasm-function[729] > wasm-function[1233] > wasm-function[12934] > wasm-function[5283] > wasm-function[22450] > wasm-function[2066] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback > runIter > MainLoop_runner > (root)",
+            "sampledMs": 2.521
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[3516] > wasm-function[1812] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback > runIter > MainLoop_runner > (root)",
+            "sampledMs": 2.498
+          },
+          {
+            "name": "now > _emscripten_get_now > wasm-to-js > wasm-function[6115] > wasm-function[26196] > wasm-function[15564] > wasm-function[2981] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback > runIter > MainLoop_runner > (root)",
+            "sampledMs": 2.09
+          }
+        ],
+        "shaderStatusStacks": [],
+        "selectedInclusive": [
+          {
+            "name": "wasm-function[9978]",
+            "sampledMs": 9974.634
+          },
+          {
+            "name": "wasm-function[3264]",
+            "sampledMs": 1323.204
+          },
+          {
+            "name": "wasm-function[14591]",
+            "sampledMs": 9.46
+          },
+          {
+            "name": "wasm-function[15564]",
+            "sampledMs": 504.893
+          },
+          {
+            "name": "wasm-function[10071]",
+            "sampledMs": 10042.017
+          },
+          {
+            "name": "_emscripten_get_now",
+            "sampledMs": 28.396
+          },
+          {
+            "name": "xhr.onload",
+            "sampledMs": 0
+          }
+        ]
+      },
+      {
+        "file": "docs/migration/verification/2026-10-15/repeat1-match-load.cpuprofile",
+        "sha256": "28e5c7794c25e8c36397d66f7616315ecc647d3e26fa11a8f45782600478083e",
+        "durationMs": 53964.898,
+        "sampledMs": 53964.638,
+        "sampleCount": 22112,
+        "maxSampleDeltaMs": 20.939,
+        "classes": [
+          {
+            "name": "wasm-self-other",
+            "sampledMs": 42534.683,
+            "percent": 78.82
+          },
+          {
+            "name": "clock-read-self",
+            "sampledMs": 6969.933,
+            "percent": 12.916
+          },
+          {
+            "name": "js-or-browser-self-other",
+            "sampledMs": 4229.304,
+            "percent": 7.837
+          },
+          {
+            "name": "idle",
+            "sampledMs": 148.393,
+            "percent": 0.275
+          },
+          {
+            "name": "js-gc",
+            "sampledMs": 72.601,
+            "percent": 0.135
+          },
+          {
+            "name": "xhr-callback-subtree-other",
+            "sampledMs": 9.724,
+            "percent": 0.018
+          }
+        ],
+        "topSelf": [
+          {
+            "name": "wasm-function[9978]",
+            "sampledMs": 7532.142
+          },
+          {
+            "name": "_emscripten_get_now",
+            "sampledMs": 5443.426
+          },
+          {
+            "name": "wasm-function[767]",
+            "sampledMs": 2385.449
+          },
+          {
+            "name": "wasm-function[909]",
+            "sampledMs": 2287.935
+          },
+          {
+            "name": "wasm-function[629]",
+            "sampledMs": 1820.423
+          },
+          {
+            "name": "wasm-function[3264]",
+            "sampledMs": 1766.309
+          },
+          {
+            "name": "now",
+            "sampledMs": 1526.507
+          },
+          {
+            "name": "wasm-function[14591]",
+            "sampledMs": 1135.633
+          },
+          {
+            "name": "(program)",
+            "sampledMs": 887.468
+          },
+          {
+            "name": "wasm-function[26196]",
+            "sampledMs": 818.689
+          },
+          {
+            "name": "wasm-function[27447]",
+            "sampledMs": 795.812
+          },
+          {
+            "name": "wasm-function[2993]",
+            "sampledMs": 710.586
+          },
+          {
+            "name": "wasm-function[4136]",
+            "sampledMs": 627.915
+          },
+          {
+            "name": "wasm-function[5650]",
+            "sampledMs": 602.51
+          },
+          {
+            "name": "wasm-function[15453]",
+            "sampledMs": 540.549
+          },
+          {
+            "name": "wasm-function[15437]",
+            "sampledMs": 533.2
+          },
+          {
+            "name": "wasm-function[15859]",
+            "sampledMs": 498.984
+          },
+          {
+            "name": "wasm-function[3015]",
+            "sampledMs": 491.129
+          },
+          {
+            "name": "wasm-to-js",
+            "sampledMs": 457.962
+          },
+          {
+            "name": "wasm-function[5638]",
+            "sampledMs": 370.435
+          },
+          {
+            "name": "wasm-function[2122]",
+            "sampledMs": 367.987
+          },
+          {
+            "name": "bufferSubData",
+            "sampledMs": 326.758
+          },
+          {
+            "name": "wasm-function[36989]",
+            "sampledMs": 301.056
+          },
+          {
+            "name": "wasm-function[2933]",
+            "sampledMs": 292.883
+          },
+          {
+            "name": "wasm-function[18684]",
+            "sampledMs": 289.919
+          },
+          {
+            "name": "wasm-function[5439]",
+            "sampledMs": 283.106
+          },
+          {
+            "name": "wasm-function[10753]",
+            "sampledMs": 282.606
+          },
+          {
+            "name": "wasm-function[21094]",
+            "sampledMs": 273.935
+          },
+          {
+            "name": "wasm-function[7771]",
+            "sampledMs": 273.347
+          },
+          {
+            "name": "wasm-function[1822]",
+            "sampledMs": 272.499
+          }
+        ],
+        "topNamedJsSelf": [
+          {
+            "name": "_emscripten_get_now",
+            "sampledMs": 5443.426
+          },
+          {
+            "name": "now",
+            "sampledMs": 1526.507
+          },
+          {
+            "name": "(program)",
+            "sampledMs": 887.468
+          },
+          {
+            "name": "wasm-to-js",
+            "sampledMs": 457.962
+          },
+          {
+            "name": "bufferSubData",
+            "sampledMs": 326.758
+          },
+          {
+            "name": "vertexAttribPointer",
+            "sampledMs": 231.9
+          },
+          {
+            "name": "bindBuffer",
+            "sampledMs": 225.983
+          },
+          {
+            "name": "vertexAttribDivisor",
+            "sampledMs": 201.533
+          },
+          {
+            "name": "drawArrays",
+            "sampledMs": 156.375
+          },
+          {
+            "name": "uniform4f",
+            "sampledMs": 155.485
+          },
+          {
+            "name": "(idle)",
+            "sampledMs": 148.393
+          },
+          {
+            "name": "_emscripten_glVertexAttribPointer",
+            "sampledMs": 101.761
+          },
+          {
+            "name": "createSampler",
+            "sampledMs": 101.228
+          },
+          {
+            "name": "__emscripten_throw_longjmp",
+            "sampledMs": 86.302
+          },
+          {
+            "name": "(garbage collector)",
+            "sampledMs": 72.601
+          },
+          {
+            "name": "_emscripten_glBindBuffer",
+            "sampledMs": 66.589
+          },
+          {
+            "name": "uniformMatrix3fv",
+            "sampledMs": 62.69
+          },
+          {
+            "name": "get",
+            "sampledMs": 60.439
+          },
+          {
+            "name": "bindTexture",
+            "sampledMs": 57.96
+          },
+          {
+            "name": "clear",
+            "sampledMs": 51.069
+          },
+          {
+            "name": "webglGetUniformLocation",
+            "sampledMs": 50.534
+          },
+          {
+            "name": "drawElements",
+            "sampledMs": 48.285
+          },
+          {
+            "name": "_emscripten_glVertexAttribDivisor",
+            "sampledMs": 44.498
+          },
+          {
+            "name": "preDrawHandleClientVertexAttribBindings",
+            "sampledMs": 41.864
+          },
+          {
+            "name": "deleteSampler",
+            "sampledMs": 39.664
+          }
+        ],
+        "clockReadStacks": [
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[27447] > wasm-function[1067] > wasm-function[22693] > wasm-function[1067] > wasm-function[20985] > wasm-function[45937] > wasm-function[13610] > wasm-function[23759] > wasm-function[1067] > wasm-function[20985] > wasm-function[45937] > wasm-function[2310] > wasm-function[13157] > wasm-function[17129] > wasm-function[8152] > wasm-function[12012] > wasm-function[12058] > wasm-function[5158]",
+            "sampledMs": 1345.845
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[22003] > wasm-function[2085] > wasm-function[1934] > wasm-function[45940] > wasm-function[20985] > wasm-function[45937] > wasm-function[2917] > wasm-function[17137] > wasm-function[8152] > wasm-function[12012] > wasm-function[12058] > wasm-function[5158] > wasm-function[5158] > wasm-function[20866] > wasm-function[45725] > wasm-function[710] > wasm-function[5933] > wasm-function[42961]",
+            "sampledMs": 812.638
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[22003] > wasm-function[21094] > wasm-function[46053] > wasm-function[1067] > wasm-function[8189] > wasm-function[6452] > wasm-function[22679] > wasm-function[1067] > wasm-function[20985] > wasm-function[45937] > wasm-function[37456] > wasm-function[10071] > wasm-function[26909] > js-to-wasm:ii: > invoke_vii > wasm-to-js > wasm-function[10068] > wasm-function[1404]",
+            "sampledMs": 723.91
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[23664] > wasm-function[1067] > wasm-function[20985] > wasm-function[45937] > wasm-function[2917] > wasm-function[17137] > wasm-function[8152] > wasm-function[12012] > wasm-function[12058] > wasm-function[5158] > wasm-function[5158] > wasm-function[5158] > wasm-function[5158] > wasm-function[20866] > wasm-function[45725] > wasm-function[710] > wasm-function[5933] > wasm-function[42961]",
+            "sampledMs": 551.482
+          },
+          {
+            "name": "now > _emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[27447] > wasm-function[1067] > wasm-function[22693] > wasm-function[1067] > wasm-function[20985] > wasm-function[45937] > wasm-function[13610] > wasm-function[23759] > wasm-function[1067] > wasm-function[20985] > wasm-function[45937] > wasm-function[2310] > wasm-function[13157] > wasm-function[17129] > wasm-function[8152] > wasm-function[12012] > wasm-function[12058]",
+            "sampledMs": 413.686
+          },
+          {
+            "name": "now > _emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[22003] > wasm-function[2085] > wasm-function[1934] > wasm-function[45940] > wasm-function[20985] > wasm-function[45937] > wasm-function[2917] > wasm-function[17137] > wasm-function[8152] > wasm-function[12012] > wasm-function[12058] > wasm-function[5158] > wasm-function[5158] > wasm-function[20866] > wasm-function[45725] > wasm-function[710] > wasm-function[5933]",
+            "sampledMs": 235.414
+          },
+          {
+            "name": "now > _emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[22003] > wasm-function[21094] > wasm-function[46053] > wasm-function[1067] > wasm-function[8189] > wasm-function[6452] > wasm-function[22679] > wasm-function[1067] > wasm-function[20985] > wasm-function[45937] > wasm-function[37456] > wasm-function[10071] > wasm-function[26909] > js-to-wasm:ii: > invoke_vii > wasm-to-js > wasm-function[10068]",
+            "sampledMs": 218.149
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[22003] > wasm-function[2085] > wasm-function[1934] > wasm-function[45940] > wasm-function[20985] > wasm-function[45937] > wasm-function[2917] > wasm-function[17137] > wasm-function[8152] > wasm-function[12012] > wasm-function[12058] > wasm-function[5158] > wasm-function[5158] > wasm-function[5158] > wasm-function[5158] > wasm-function[20866] > wasm-function[45725] > wasm-function[710]",
+            "sampledMs": 168.144
+          },
+          {
+            "name": "now > _emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[23664] > wasm-function[1067] > wasm-function[20985] > wasm-function[45937] > wasm-function[2917] > wasm-function[17137] > wasm-function[8152] > wasm-function[12012] > wasm-function[12058] > wasm-function[5158] > wasm-function[5158] > wasm-function[5158] > wasm-function[5158] > wasm-function[20866] > wasm-function[45725] > wasm-function[710] > wasm-function[5933]",
+            "sampledMs": 158.684
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[22003] > wasm-function[2085] > wasm-function[1934] > wasm-function[45940] > wasm-function[20985] > wasm-function[45937] > wasm-function[13610] > wasm-function[23759] > wasm-function[1067] > wasm-function[20985] > wasm-function[45937] > wasm-function[2310] > wasm-function[13157] > wasm-function[17129] > wasm-function[8152] > wasm-function[12012] > wasm-function[12058] > wasm-function[5158]",
+            "sampledMs": 143.57
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[22003] > wasm-function[2085] > wasm-function[1934] > wasm-function[45940] > wasm-function[20985] > wasm-function[45937] > wasm-function[37456] > wasm-function[9978] > wasm-function[15996] > wasm-function[26901] > js-to-wasm:ii: > invoke_vii > wasm-to-js > wasm-function[5654] > wasm-function[15967] > wasm-function[26864] > wasm-function[9978] > wasm-function[10071]",
+            "sampledMs": 124.314
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[22003] > wasm-function[24565] > wasm-function[1067] > wasm-function[20985] > wasm-function[45937] > wasm-function[12775] > wasm-function[22056] > wasm-function[8152] > wasm-function[12012] > wasm-function[12058] > wasm-function[5158] > wasm-function[20866] > wasm-function[45725] > wasm-function[710] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc",
+            "sampledMs": 92.043
+          }
+        ],
+        "shaderStatusStacks": [],
+        "selectedInclusive": [
+          {
+            "name": "wasm-function[9978]",
+            "sampledMs": 36891.912
+          },
+          {
+            "name": "wasm-function[3264]",
+            "sampledMs": 1766.309
+          },
+          {
+            "name": "wasm-function[14591]",
+            "sampledMs": 7960.762
+          },
+          {
+            "name": "wasm-function[15564]",
+            "sampledMs": 5708.372
+          },
+          {
+            "name": "wasm-function[10071]",
+            "sampledMs": 37313.294
+          },
+          {
+            "name": "_emscripten_get_now",
+            "sampledMs": 6969.933
+          },
+          {
+            "name": "xhr.onload",
+            "sampledMs": 24.334
+          }
+        ]
+      },
+      {
+        "file": "docs/migration/verification/2026-10-15/repeat1-match-return.cpuprofile",
+        "sha256": "6752aa7e99f8494f966090479ccfe24900c04799365b8f3f4e12ad727a63242e",
+        "durationMs": 8701.807,
+        "sampledMs": 8701.511,
+        "sampleCount": 3551,
+        "maxSampleDeltaMs": 88.954,
+        "classes": [
+          {
+            "name": "wasm-self-other",
+            "sampledMs": 5499.601,
+            "percent": 63.203
+          },
+          {
+            "name": "clock-read-self",
+            "sampledMs": 1916.348,
+            "percent": 22.023
+          },
+          {
+            "name": "js-or-browser-self-other",
+            "sampledMs": 859.922,
+            "percent": 9.882
+          },
+          {
+            "name": "idle",
+            "sampledMs": 257.594,
+            "percent": 2.96
+          },
+          {
+            "name": "xhr-callback-subtree-other",
+            "sampledMs": 150.241,
+            "percent": 1.727
+          },
+          {
+            "name": "js-gc",
+            "sampledMs": 17.805,
+            "percent": 0.205
+          }
+        ],
+        "topSelf": [
+          {
+            "name": "_emscripten_get_now",
+            "sampledMs": 1498.967
+          },
+          {
+            "name": "wasm-function[9978]",
+            "sampledMs": 506
+          },
+          {
+            "name": "now",
+            "sampledMs": 417.381
+          },
+          {
+            "name": "wasm-function[629]",
+            "sampledMs": 292.786
+          },
+          {
+            "name": "wasm-function[14591]",
+            "sampledMs": 288.244
+          },
+          {
+            "name": "wasm-function[767]",
+            "sampledMs": 276.959
+          },
+          {
+            "name": "wasm-function[3264]",
+            "sampledMs": 266.214
+          },
+          {
+            "name": "(idle)",
+            "sampledMs": 257.594
+          },
+          {
+            "name": "(program)",
+            "sampledMs": 233.556
+          },
+          {
+            "name": "wasm-function[26196]",
+            "sampledMs": 149.583
+          },
+          {
+            "name": "wasm-function[15437]",
+            "sampledMs": 134.43
+          },
+          {
+            "name": "wasm-function[8587]",
+            "sampledMs": 129.53
+          },
+          {
+            "name": "wasm-function[1491]",
+            "sampledMs": 93.957
+          },
+          {
+            "name": "wasm-to-js",
+            "sampledMs": 93.933
+          },
+          {
+            "name": "wasm-function[909]",
+            "sampledMs": 80.013
+          },
+          {
+            "name": "wasm-function[15453]",
+            "sampledMs": 79.232
+          },
+          {
+            "name": "wasm-function[2547]",
+            "sampledMs": 75.823
+          },
+          {
+            "name": "wasm-function[3015]",
+            "sampledMs": 74.241
+          },
+          {
+            "name": "wasm-function[12755]",
+            "sampledMs": 69.781
+          },
+          {
+            "name": "wasm-function[2993]",
+            "sampledMs": 69.771
+          },
+          {
+            "name": "wasm-function[2776]",
+            "sampledMs": 67.848
+          },
+          {
+            "name": "wasm-function[2122]",
+            "sampledMs": 59.307
+          },
+          {
+            "name": "wasm-function[10060]",
+            "sampledMs": 57.966
+          },
+          {
+            "name": "bindBuffer",
+            "sampledMs": 55.819
+          },
+          {
+            "name": "wasm-function[13317]",
+            "sampledMs": 54.127
+          },
+          {
+            "name": "wasm-function[26161]",
+            "sampledMs": 49.112
+          },
+          {
+            "name": "wasm-function[12939]",
+            "sampledMs": 48.201
+          },
+          {
+            "name": "wasm-function[5650]",
+            "sampledMs": 46.352
+          },
+          {
+            "name": "wasm-function[15440]",
+            "sampledMs": 46.249
+          },
+          {
+            "name": "wasm-function[32883]",
+            "sampledMs": 44.542
+          }
+        ],
+        "topNamedJsSelf": [
+          {
+            "name": "_emscripten_get_now",
+            "sampledMs": 1498.967
+          },
+          {
+            "name": "now",
+            "sampledMs": 417.381
+          },
+          {
+            "name": "(idle)",
+            "sampledMs": 257.594
+          },
+          {
+            "name": "(program)",
+            "sampledMs": 233.556
+          },
+          {
+            "name": "wasm-to-js",
+            "sampledMs": 93.933
+          },
+          {
+            "name": "bindBuffer",
+            "sampledMs": 55.819
+          },
+          {
+            "name": "vertexAttribPointer",
+            "sampledMs": 37.457
+          },
+          {
+            "name": "vertexAttribDivisor",
+            "sampledMs": 32.845
+          },
+          {
+            "name": "_emscripten_glVertexAttribPointer",
+            "sampledMs": 29.334
+          },
+          {
+            "name": "webglGetUniformLocation",
+            "sampledMs": 29.055
+          },
+          {
+            "name": "uniformMatrix4fv",
+            "sampledMs": 26.956
+          },
+          {
+            "name": "bindTexture",
+            "sampledMs": 22.902
+          },
+          {
+            "name": "drawElements",
+            "sampledMs": 22.425
+          },
+          {
+            "name": "uniform1f",
+            "sampledMs": 21.7
+          },
+          {
+            "name": "uniform4f",
+            "sampledMs": 19.986
+          },
+          {
+            "name": "bindFramebuffer",
+            "sampledMs": 19.886
+          },
+          {
+            "name": "(garbage collector)",
+            "sampledMs": 17.805
+          },
+          {
+            "name": "_emscripten_glBindBuffer",
+            "sampledMs": 16.96
+          },
+          {
+            "name": "checkFramebufferStatus",
+            "sampledMs": 16.353
+          },
+          {
+            "name": "bufferSubData",
+            "sampledMs": 14.047
+          },
+          {
+            "name": "texImage2D",
+            "sampledMs": 10.117
+          },
+          {
+            "name": "_emscripten_glVertexAttribDivisor",
+            "sampledMs": 9.914
+          },
+          {
+            "name": "bindVertexArray",
+            "sampledMs": 9.47
+          },
+          {
+            "name": "drawElementsInstanced",
+            "sampledMs": 9.21
+          },
+          {
+            "name": "preDrawHandleClientVertexAttribBindings",
+            "sampledMs": 8.982
+          }
+        ],
+        "clockReadStacks": [
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[1551] > wasm-function[21936] > wasm-function[3928] > wasm-function[46089] > wasm-function[4342] > wasm-function[3096] > wasm-function[46138] > js-to-wasm:i: > (anonymous) > callUserCallback > doCallback > reportSuccess > xhr.onload > (root)",
+            "sampledMs": 441.965
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[22003] > wasm-function[2085] > wasm-function[1934] > wasm-function[45940] > wasm-function[20985] > wasm-function[45937] > wasm-function[2917] > wasm-function[17137] > wasm-function[8152] > wasm-function[12012] > wasm-function[12058] > wasm-function[5158] > wasm-function[5158] > wasm-function[5158] > wasm-function[20866] > wasm-function[45725] > wasm-function[710] > wasm-function[5933]",
+            "sampledMs": 231.582
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[1551] > wasm-function[12585] > wasm-function[12606] > wasm-function[46089] > wasm-function[4342] > wasm-function[3096] > wasm-function[46138] > js-to-wasm:i: > (anonymous) > callUserCallback > doCallback > reportSuccess > xhr.onload > (root)",
+            "sampledMs": 190.319
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[22003] > wasm-function[45527] > wasm-function[1067] > wasm-function[20985] > wasm-function[45937] > wasm-function[4366] > wasm-function[36772] > wasm-function[9978] > wasm-function[10071] > wasm-function[26909] > js-to-wasm:ii: > invoke_vii > wasm-to-js > wasm-function[10068] > wasm-function[1404] > wasm-function[26879] > wasm-function[9978] > wasm-function[10071]",
+            "sampledMs": 178.859
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[22003] > wasm-function[11271] > wasm-function[41024] > wasm-function[1067] > wasm-function[20985] > wasm-function[45937] > wasm-function[37456] > wasm-function[9978] > wasm-function[10071] > wasm-function[26909] > js-to-wasm:ii: > invoke_vii > wasm-to-js > wasm-function[10068] > wasm-function[1254] > wasm-function[38123] > wasm-function[4342] > wasm-function[2409]",
+            "sampledMs": 130.42
+          },
+          {
+            "name": "now > _emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[1551] > wasm-function[21936] > wasm-function[3928] > wasm-function[46089] > wasm-function[4342] > wasm-function[3096] > wasm-function[46138] > js-to-wasm:i: > (anonymous) > callUserCallback > doCallback > reportSuccess > xhr.onload > (root)",
+            "sampledMs": 100.947
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[23664] > wasm-function[1067] > wasm-function[20985] > wasm-function[45937] > wasm-function[2917] > wasm-function[17137] > wasm-function[8152] > wasm-function[12012] > wasm-function[12058] > wasm-function[5158] > wasm-function[5158] > wasm-function[5158] > wasm-function[20866] > wasm-function[45725] > wasm-function[710] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i:",
+            "sampledMs": 80.545
+          },
+          {
+            "name": "now > _emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[1551] > wasm-function[12585] > wasm-function[12606] > wasm-function[46089] > wasm-function[4342] > wasm-function[3096] > wasm-function[46138] > js-to-wasm:i: > (anonymous) > callUserCallback > doCallback > reportSuccess > xhr.onload > (root)",
+            "sampledMs": 69.395
+          },
+          {
+            "name": "now > _emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[22003] > wasm-function[45527] > wasm-function[1067] > wasm-function[20985] > wasm-function[45937] > wasm-function[4366] > wasm-function[36772] > wasm-function[9978] > wasm-function[10071] > wasm-function[26909] > js-to-wasm:ii: > invoke_vii > wasm-to-js > wasm-function[10068] > wasm-function[1404] > wasm-function[26879] > wasm-function[9978]",
+            "sampledMs": 55.648
+          },
+          {
+            "name": "now > _emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[22003] > wasm-function[2085] > wasm-function[1934] > wasm-function[45940] > wasm-function[20985] > wasm-function[45937] > wasm-function[2917] > wasm-function[17137] > wasm-function[8152] > wasm-function[12012] > wasm-function[12058] > wasm-function[5158] > wasm-function[5158] > wasm-function[5158] > wasm-function[20866] > wasm-function[45725] > wasm-function[710]",
+            "sampledMs": 50.808
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[27447] > wasm-function[1067] > wasm-function[8189] > wasm-function[9597] > wasm-function[9628] > wasm-function[15024] > wasm-function[4445] > wasm-function[22017] > wasm-function[8152] > wasm-function[12012] > wasm-function[12058] > wasm-function[5158] > wasm-function[20866] > wasm-function[45725] > wasm-function[710] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i:",
+            "sampledMs": 40.061
+          },
+          {
+            "name": "now > _emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[23664] > wasm-function[1067] > wasm-function[20985] > wasm-function[45937] > wasm-function[2917] > wasm-function[17137] > wasm-function[8152] > wasm-function[12012] > wasm-function[12058] > wasm-function[5158] > wasm-function[5158] > wasm-function[5158] > wasm-function[20866] > wasm-function[45725] > wasm-function[710] > wasm-function[5933] > wasm-function[42961]",
+            "sampledMs": 38.756
+          }
+        ],
+        "shaderStatusStacks": [],
+        "selectedInclusive": [
+          {
+            "name": "wasm-function[9978]",
+            "sampledMs": 3615.452
+          },
+          {
+            "name": "wasm-function[3264]",
+            "sampledMs": 266.214
+          },
+          {
+            "name": "wasm-function[14591]",
+            "sampledMs": 2183.215
+          },
+          {
+            "name": "wasm-function[15564]",
+            "sampledMs": 1266.331
+          },
+          {
+            "name": "wasm-function[10071]",
+            "sampledMs": 3645.852
+          },
+          {
+            "name": "_emscripten_get_now",
+            "sampledMs": 1916.348
+          },
+          {
+            "name": "xhr.onload",
+            "sampledMs": 1117.951
+          }
+        ]
+      }
+    ]
+  },
+  "reference": {
+    "directory": "docs/migration/evidence/combat-performance-2026-10-15T13-56-49-208Z",
+    "manifest": "manifest-706d3d0b.json",
+    "reportSha256": "fe52e3da2a7dbd67bcbab934339a651ac498b358ec75f1606a1707d2807d47cf",
+    "framePhases": {
+      "boot": {
+        "count": 1696,
+        "p50Ms": 13.71,
+        "p95Ms": 76.425,
+        "maxMs": 3854.36,
+        "above100": 73
+      },
+      "match-load": {
+        "count": 2851,
+        "p50Ms": 13.855,
+        "p95Ms": 125.3,
+        "maxMs": 5104.195,
+        "above100": 185
+      },
+      "match-live": {
+        "count": 183,
+        "p50Ms": 111,
+        "p95Ms": 145.865,
+        "maxMs": 215.405,
+        "above100": 113
+      },
+      "match-return": {
+        "count": 487,
+        "p50Ms": 13.685,
+        "p95Ms": 21.245,
+        "maxMs": 1194.77,
+        "above100": 9
+      }
+    },
+    "stages": [
+      {
+        "name": "boot",
+        "at": 1792072674096,
+        "performance": {
+          "texture2DBytes": 0,
+          "xmlBytes": 242203,
+          "desktop": false,
+          "primitives": 3614488,
+          "arrayBytes": 0,
+          "batches": 2498,
+          "resourceBytes": 52970685,
+          "retiredTargets": 0,
+          "modelBytes": 16309957,
+          "imageBytes": 0,
+          "luaKiB": 48039.8408203125,
+          "api": "GLES",
+          "materialBytes": 100744,
+          "jsonBytes": 215415,
+          "soundBytes": 0
+        }
+      },
+      {
+        "name": "match-load",
+        "at": 1792072808061,
+        "performance": {
+          "materialBytes": 116120,
+          "arrayBytes": 67109584,
+          "resourceBytes": 208821076,
+          "effects": {
+            "smoke": 0,
+            "particles": 0,
+            "beams": 0,
+            "flashes": 0
+          },
+          "primitives": 6583972,
+          "jsonBytes": 0,
+          "batches": 1823,
+          "texture2DBytes": 0,
+          "xmlBytes": 0,
+          "minimized": false,
+          "maxInactiveFps": 10,
+          "droppedSeconds": 0,
+          "fixedSteps": 0,
+          "focus": true,
+          "api": "GLES",
+          "retiredTargets": 0,
+          "soundBytes": 15957732,
+          "imageBytes": 16777216,
+          "modelBytes": 64403628,
+          "luaKiB": 72613.9111328125,
+          "postPasses": 0,
+          "maxFps": 60,
+          "desktop": false
+        }
+      },
+      {
+        "name": "match-live",
+        "at": 1792072820379,
+        "performance": {
+          "materialBytes": 116120,
+          "arrayBytes": 67109584,
+          "resourceBytes": 209489319,
+          "effects": {
+            "smoke": 0,
+            "particles": 0,
+            "beams": 0,
+            "flashes": 0
+          },
+          "primitives": 7678569,
+          "jsonBytes": 0,
+          "batches": 1863,
+          "texture2DBytes": 0,
+          "xmlBytes": 0,
+          "minimized": false,
+          "maxInactiveFps": 10,
+          "droppedSeconds": 7.450580569168253e-8,
+          "fixedSteps": 641,
+          "focus": true,
+          "api": "GLES",
+          "retiredTargets": 0,
+          "soundBytes": 16426920,
+          "imageBytes": 16777216,
+          "modelBytes": 64403628,
+          "luaKiB": 72956.0654296875,
+          "postPasses": 0,
+          "maxFps": 60,
+          "desktop": false
+        }
+      },
+      {
+        "name": "match-return",
+        "at": 1792072837573,
+        "performance": {
+          "texture2DBytes": 0,
+          "xmlBytes": 0,
+          "desktop": false,
+          "primitives": 1808954,
+          "arrayBytes": 0,
+          "batches": 1221,
+          "resourceBytes": 78633007,
+          "retiredTargets": 0,
+          "modelBytes": 16309957,
+          "imageBytes": 0,
+          "luaKiB": 39526.36328125,
+          "api": "GLES",
+          "materialBytes": 0,
+          "jsonBytes": 0,
+          "soundBytes": 8423635
+        }
+      }
+    ],
+    "glInstrumentation": {
+      "methods": 0,
+      "slowCalls": 0
+    },
+    "profiles": [
+      {
+        "file": "docs/migration/evidence/combat-performance-2026-10-15T13-56-49-208Z/boot.cpuprofile",
+        "sha256": "dbf9bb057ed24a2d8ac7499030d2a9c63a75b2edf4b8a73d34fb9381d7c2f766",
+        "durationMs": 64332.209,
+        "sampledMs": 64331.878,
+        "sampleCount": 26191,
+        "maxSampleDeltaMs": 11.999,
+        "classes": [
+          {
+            "name": "clock-read-self",
+            "sampledMs": 37933.891,
+            "percent": 58.966
+          },
+          {
+            "name": "wasm-self-other",
+            "sampledMs": 9471.495,
+            "percent": 14.723
+          },
+          {
+            "name": "xhr-callback-subtree-other",
+            "sampledMs": 8277.251,
+            "percent": 12.866
+          },
+          {
+            "name": "js-or-browser-self-other",
+            "sampledMs": 4219.155,
+            "percent": 6.558
+          },
+          {
+            "name": "shader-status-subtree",
+            "sampledMs": 3171.828,
+            "percent": 4.93
+          },
+          {
+            "name": "idle",
+            "sampledMs": 1018.454,
+            "percent": 1.583
+          },
+          {
+            "name": "js-gc",
+            "sampledMs": 239.804,
+            "percent": 0.373
+          }
+        ],
+        "topSelf": [
+          {
+            "name": "_emscripten_get_now",
+            "sampledMs": 37933.891
+          },
+          {
+            "name": "_emscripten_glGetProgramiv",
+            "sampledMs": 3023.121
+          },
+          {
+            "name": "(program)",
+            "sampledMs": 2743.733
+          },
+          {
+            "name": "wasm-function[4618]",
+            "sampledMs": 2436.387
+          },
+          {
+            "name": "wasm-function[14591]",
+            "sampledMs": 1681.874
+          },
+          {
+            "name": "wasm-function[1258]",
+            "sampledMs": 1200.681
+          },
+          {
+            "name": "wasm-function[5469]",
+            "sampledMs": 1088.624
+          },
+          {
+            "name": "(idle)",
+            "sampledMs": 1018.454
+          },
+          {
+            "name": "wasm-function[767]",
+            "sampledMs": 815.535
+          },
+          {
+            "name": "wasm-to-js",
+            "sampledMs": 746.421
+          },
+          {
+            "name": "wasm-function[629]",
+            "sampledMs": 593.44
+          },
+          {
+            "name": "wasm-function[9978]",
+            "sampledMs": 484.236
+          },
+          {
+            "name": "wasm-function[1220]",
+            "sampledMs": 411.245
+          },
+          {
+            "name": "fetchXHR",
+            "sampledMs": 410.33
+          },
+          {
+            "name": "wasm-function[14554]",
+            "sampledMs": 368.804
+          },
+          {
+            "name": "fetchLoadCachedData",
+            "sampledMs": 332.894
+          },
+          {
+            "name": "wasm-function[28149]",
+            "sampledMs": 269.004
+          },
+          {
+            "name": "(garbage collector)",
+            "sampledMs": 239.804
+          },
+          {
+            "name": "wasm-function[26453]",
+            "sampledMs": 207.294
+          },
+          {
+            "name": "wasm-function[15584]",
+            "sampledMs": 176.857
+          },
+          {
+            "name": "print",
+            "sampledMs": 176.566
+          },
+          {
+            "name": "wasm-function[1676]",
+            "sampledMs": 175.375
+          },
+          {
+            "name": "wasm-function[26446]",
+            "sampledMs": 159.199
+          },
+          {
+            "name": "_emscripten_glGetShaderiv",
+            "sampledMs": 148.707
+          },
+          {
+            "name": "wasm-function[909]",
+            "sampledMs": 144.387
+          },
+          {
+            "name": "wasm-function[1283]",
+            "sampledMs": 128.736
+          },
+          {
+            "name": "wasm-function[12135]",
+            "sampledMs": 112.297
+          },
+          {
+            "name": "saveResponseAndStatus",
+            "sampledMs": 111.943
+          },
+          {
+            "name": "wasm-function[9375]",
+            "sampledMs": 108.738
+          },
+          {
+            "name": "wasm-function[26196]",
+            "sampledMs": 101.462
+          }
+        ],
+        "topNamedJsSelf": [
+          {
+            "name": "_emscripten_get_now",
+            "sampledMs": 37933.891
+          },
+          {
+            "name": "_emscripten_glGetProgramiv",
+            "sampledMs": 3023.121
+          },
+          {
+            "name": "(program)",
+            "sampledMs": 2743.733
+          },
+          {
+            "name": "(idle)",
+            "sampledMs": 1018.454
+          },
+          {
+            "name": "wasm-to-js",
+            "sampledMs": 746.421
+          },
+          {
+            "name": "fetchXHR",
+            "sampledMs": 410.33
+          },
+          {
+            "name": "fetchLoadCachedData",
+            "sampledMs": 332.894
+          },
+          {
+            "name": "(garbage collector)",
+            "sampledMs": 239.804
+          },
+          {
+            "name": "print",
+            "sampledMs": 176.566
+          },
+          {
+            "name": "_emscripten_glGetShaderiv",
+            "sampledMs": 148.707
+          },
+          {
+            "name": "saveResponseAndStatus",
+            "sampledMs": 111.943
+          },
+          {
+            "name": "UTF8ToString",
+            "sampledMs": 101.291
+          },
+          {
+            "name": "XMLHttpRequest.open",
+            "sampledMs": 52.47
+          },
+          {
+            "name": "_emscripten_glBindBuffer",
+            "sampledMs": 42.666
+          },
+          {
+            "name": "25915740",
+            "sampledMs": 40.668
+          },
+          {
+            "name": "FS_writeFile",
+            "sampledMs": 37.687
+          },
+          {
+            "name": "_emscripten_glVertexAttribDivisor",
+            "sampledMs": 36.728
+          },
+          {
+            "name": "_emscripten_glGetError",
+            "sampledMs": 35.199
+          },
+          {
+            "name": "_emscripten_glVertexAttribPointer",
+            "sampledMs": 32.492
+          },
+          {
+            "name": "_emscripten_glTexImage2D",
+            "sampledMs": 21.397
+          },
+          {
+            "name": "_emscripten_glClear",
+            "sampledMs": 19.675
+          },
+          {
+            "name": "_emscripten_glBindVertexArray",
+            "sampledMs": 17.723
+          },
+          {
+            "name": "runEmAsmFunction",
+            "sampledMs": 17.301
+          },
+          {
+            "name": "requestAnimationFrame",
+            "sampledMs": 16.765
+          },
+          {
+            "name": "getRequest.onsuccess",
+            "sampledMs": 15.441
+          }
+        ],
+        "clockReadStacks": [
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[4618] > wasm-function[5469] > wasm-function[14591] > wasm-function[5468] > wasm-function[1870] > wasm-function[1551] > wasm-function[21936] > wasm-function[3928] > wasm-function[46089] > wasm-function[4342] > wasm-function[3096] > wasm-function[46138] > js-to-wasm:i: > (anonymous) > callUserCallback > doCallback > reportSuccess > xhr.onload > (root)",
+            "sampledMs": 12515.198
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[4618] > wasm-function[5469] > wasm-function[14591] > wasm-function[5468] > wasm-function[1870] > wasm-function[1551] > wasm-function[12585] > wasm-function[21948] > wasm-function[12606] > wasm-function[1506] > wasm-function[46089] > wasm-function[4342] > wasm-function[3096] > wasm-function[46138] > js-to-wasm:i: > (anonymous) > callUserCallback > doCallback > reportSuccess > xhr.onload > (root)",
+            "sampledMs": 8796.948
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[5469] > wasm-function[14591] > wasm-function[5468] > wasm-function[1870] > wasm-function[1551] > wasm-function[12585] > wasm-function[21948] > wasm-function[12606] > wasm-function[1506] > wasm-function[46089] > wasm-function[4342] > wasm-function[3096] > wasm-function[46138] > js-to-wasm:i: > (anonymous) > callUserCallback > doCallback > reportSuccess > xhr.onload > (root)",
+            "sampledMs": 3540.51
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[5469] > wasm-function[14591] > wasm-function[5468] > wasm-function[1870] > wasm-function[1551] > wasm-function[21936] > wasm-function[3928] > wasm-function[46089] > wasm-function[4342] > wasm-function[3096] > wasm-function[46138] > js-to-wasm:i: > (anonymous) > callUserCallback > doCallback > reportSuccess > xhr.onload > (root)",
+            "sampledMs": 3277.383
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[5468] > wasm-function[1870] > wasm-function[1551] > wasm-function[21936] > wasm-function[3928] > wasm-function[46089] > wasm-function[4342] > wasm-function[3096] > wasm-function[46138] > js-to-wasm:i: > (anonymous) > callUserCallback > doCallback > reportSuccess > xhr.onload > (root)",
+            "sampledMs": 2725.009
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[5468] > wasm-function[1870] > wasm-function[1551] > wasm-function[12585] > wasm-function[21948] > wasm-function[12606] > wasm-function[46089] > wasm-function[4342] > wasm-function[3096] > wasm-function[46138] > js-to-wasm:i: > (anonymous) > callUserCallback > doCallback > reportSuccess > xhr.onload > (root)",
+            "sampledMs": 2002.323
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[5468] > wasm-function[1870] > wasm-function[1551] > wasm-function[12585] > wasm-function[21948] > wasm-function[12606] > wasm-function[1506] > wasm-function[46089] > wasm-function[4342] > wasm-function[3096] > wasm-function[46138] > js-to-wasm:i: > (anonymous) > callUserCallback > doCallback > reportSuccess > xhr.onload > (root)",
+            "sampledMs": 769.091
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[1551] > wasm-function[21953] > wasm-function[1934] > wasm-function[45940] > wasm-function[28102] > wasm-function[28096] > wasm-function[26668] > wasm-function[9961] > wasm-function[15801] > wasm-function[9975] > wasm-function[28149] > wasm-function[2477] > wasm-function[1460] > wasm-function[8587] > wasm-function[12939] > wasm-function[3490] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc",
+            "sampledMs": 527.41
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[5468] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[22003] > wasm-function[45527] > wasm-function[1067] > wasm-function[20985] > wasm-function[45937] > wasm-function[4366] > wasm-function[36772] > wasm-function[9978] > wasm-function[10071] > wasm-function[4135] > wasm-function[26909] > js-to-wasm:ii: > invoke_vii > wasm-to-js > wasm-function[5654] > wasm-function[10068] > wasm-function[1404]",
+            "sampledMs": 443.004
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[5468] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[22003] > wasm-function[2085] > wasm-function[1934] > wasm-function[1038] > wasm-function[8191] > wasm-function[45940] > wasm-function[20985] > wasm-function[45937] > wasm-function[2917] > wasm-function[17137] > wasm-function[8152] > wasm-function[25942] > wasm-function[12012] > wasm-function[12058] > wasm-function[5158] > wasm-function[5158] > wasm-function[5158]",
+            "sampledMs": 333.819
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[5468] > wasm-function[1870] > wasm-function[1551] > wasm-function[21951] > wasm-function[4439] > wasm-function[22003] > wasm-function[45527] > wasm-function[1067] > wasm-function[20985] > wasm-function[45937] > wasm-function[4366] > wasm-function[36214] > wasm-function[9978] > wasm-function[10071] > wasm-function[4135] > wasm-function[26909] > js-to-wasm:ii: > invoke_vii > wasm-to-js > wasm-function[5654] > wasm-function[10068]",
+            "sampledMs": 329.364
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[1551] > wasm-function[21953] > wasm-function[1934] > wasm-function[1038] > wasm-function[8191] > wasm-function[45940] > wasm-function[28102] > wasm-function[28096] > wasm-function[26668] > wasm-function[9961] > wasm-function[15801] > wasm-function[9975] > wasm-function[28149] > wasm-function[2477] > wasm-function[1460] > wasm-function[8587] > wasm-function[12939] > wasm-function[3490] > wasm-function[5933] > wasm-function[42961]",
+            "sampledMs": 308.481
+          }
+        ],
+        "shaderStatusStacks": [
+          {
+            "name": "_emscripten_glGetProgramiv > wasm-to-js > wasm-function[26178] > wasm-function[15547] > wasm-function[15564] > wasm-function[2981] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback > runIter > MainLoop_runner > (root)",
+            "sampledMs": 2984.137
+          },
+          {
+            "name": "_emscripten_glGetShaderiv > wasm-to-js > wasm-function[26180] > wasm-function[15547] > wasm-function[15564] > wasm-function[2981] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback > runIter > MainLoop_runner > (root)",
+            "sampledMs": 143.786
+          },
+          {
+            "name": "_emscripten_glGetProgramiv > wasm-to-js > wasm-function[26178] > wasm-function[15547] > wasm-function[15564] > wasm-function[2981] > wasm-function[7329] > wasm-function[22773] > js-to-wasm > callMain > doRun > run > removeRunDependency > (anonymous) > (root)",
+            "sampledMs": 19.394
+          },
+          {
+            "name": "_emscripten_glGetProgramiv > wasm-to-js > wasm-function[15470] > wasm-function[26178] > wasm-function[15547] > wasm-function[15564] > wasm-function[2981] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback > runIter > MainLoop_runner > (root)",
+            "sampledMs": 17.106
+          },
+          {
+            "name": "_emscripten_glGetShaderiv > wasm-to-js > wasm-function[26180] > wasm-function[15547] > wasm-function[15564] > wasm-function[2981] > wasm-function[7329] > wasm-function[22773] > js-to-wasm > callMain > doRun > run > removeRunDependency > (anonymous) > (root)",
+            "sampledMs": 4.921
+          },
+          {
+            "name": "_emscripten_glGetProgramiv > wasm-to-js > wasm-function[15470] > wasm-function[26178] > wasm-function[15547] > wasm-function[15564] > wasm-function[2981] > wasm-function[7329] > wasm-function[22773] > js-to-wasm > callMain > doRun > run > removeRunDependency > (anonymous) > (root)",
+            "sampledMs": 2.484
+          }
+        ],
+        "selectedInclusive": [
+          {
+            "name": "wasm-function[9978]",
+            "sampledMs": 3822.786
+          },
+          {
+            "name": "wasm-function[3264]",
+            "sampledMs": 86.271
+          },
+          {
+            "name": "wasm-function[14591]",
+            "sampledMs": 45253.571
+          },
+          {
+            "name": "wasm-function[15564]",
+            "sampledMs": 4079.677
+          },
+          {
+            "name": "wasm-function[10071]",
+            "sampledMs": 3837.177
+          },
+          {
+            "name": "_emscripten_get_now",
+            "sampledMs": 37933.891
+          },
+          {
+            "name": "xhr.onload",
+            "sampledMs": 42159.225
+          }
+        ]
+      },
+      {
+        "file": "docs/migration/evidence/combat-performance-2026-10-15T13-56-49-208Z/match-live.cpuprofile",
+        "sha256": "900a18d38319cc1d9ee11291049479aeec5418c216553e16ce415db50f97be03",
+        "durationMs": 11540.074,
+        "sampledMs": 11539.797,
+        "sampleCount": 4668,
+        "maxSampleDeltaMs": 62.641,
+        "classes": [
+          {
+            "name": "wasm-self-other",
+            "sampledMs": 11099.228,
+            "percent": 96.182
+          },
+          {
+            "name": "js-or-browser-self-other",
+            "sampledMs": 354.143,
+            "percent": 3.069
+          },
+          {
+            "name": "clock-read-self",
+            "sampledMs": 61.386,
+            "percent": 0.532
+          },
+          {
+            "name": "idle",
+            "sampledMs": 12.355,
+            "percent": 0.107
+          },
+          {
+            "name": "js-gc",
+            "sampledMs": 7.594,
+            "percent": 0.066
+          },
+          {
+            "name": "shader-status-subtree",
+            "sampledMs": 5.091,
+            "percent": 0.044
+          }
+        ],
+        "topSelf": [
+          {
+            "name": "wasm-function[9978]",
+            "sampledMs": 1259.77
+          },
+          {
+            "name": "wasm-function[3264]",
+            "sampledMs": 1222.354
+          },
+          {
+            "name": "wasm-function[767]",
+            "sampledMs": 861.251
+          },
+          {
+            "name": "wasm-function[629]",
+            "sampledMs": 742.422
+          },
+          {
+            "name": "wasm-function[2933]",
+            "sampledMs": 373.826
+          },
+          {
+            "name": "wasm-function[909]",
+            "sampledMs": 282.361
+          },
+          {
+            "name": "wasm-function[5439]",
+            "sampledMs": 276.383
+          },
+          {
+            "name": "wasm-function[14345]",
+            "sampledMs": 242.447
+          },
+          {
+            "name": "wasm-function[1491]",
+            "sampledMs": 224.978
+          },
+          {
+            "name": "wasm-function[3015]",
+            "sampledMs": 198.188
+          },
+          {
+            "name": "wasm-function[5650]",
+            "sampledMs": 172.754
+          },
+          {
+            "name": "wasm-function[14346]",
+            "sampledMs": 160.962
+          },
+          {
+            "name": "wasm-function[33196]",
+            "sampledMs": 135.68
+          },
+          {
+            "name": "wasm-function[6701]",
+            "sampledMs": 125.895
+          },
+          {
+            "name": "wasm-function[1169]",
+            "sampledMs": 119.934
+          },
+          {
+            "name": "wasm-function[2993]",
+            "sampledMs": 107.876
+          },
+          {
+            "name": "(program)",
+            "sampledMs": 100.238
+          },
+          {
+            "name": "wasm-function[2421]",
+            "sampledMs": 97.978
+          },
+          {
+            "name": "wasm-function[14554]",
+            "sampledMs": 95.784
+          },
+          {
+            "name": "wasm-function[15997]",
+            "sampledMs": 95.211
+          },
+          {
+            "name": "wasm-function[33213]",
+            "sampledMs": 94.386
+          },
+          {
+            "name": "wasm-function[17911]",
+            "sampledMs": 91.107
+          },
+          {
+            "name": "wasm-function[17805]",
+            "sampledMs": 89.192
+          },
+          {
+            "name": "wasm-function[1962]",
+            "sampledMs": 80.159
+          },
+          {
+            "name": "wasm-function[1923]",
+            "sampledMs": 77.181
+          },
+          {
+            "name": "wasm-function[955]",
+            "sampledMs": 71.053
+          },
+          {
+            "name": "wasm-function[8587]",
+            "sampledMs": 70.571
+          },
+          {
+            "name": "wasm-function[45934]",
+            "sampledMs": 70.294
+          },
+          {
+            "name": "wasm-function[10056]",
+            "sampledMs": 67.563
+          },
+          {
+            "name": "wasm-function[4136]",
+            "sampledMs": 66.637
+          }
+        ],
+        "topNamedJsSelf": [
+          {
+            "name": "(program)",
+            "sampledMs": 100.238
+          },
+          {
+            "name": "_emscripten_get_now",
+            "sampledMs": 53.618
+          },
+          {
+            "name": "bindBuffer",
+            "sampledMs": 36.388
+          },
+          {
+            "name": "wasm-to-js",
+            "sampledMs": 32.548
+          },
+          {
+            "name": "bufferSubData",
+            "sampledMs": 20.867
+          },
+          {
+            "name": "vertexAttribPointer",
+            "sampledMs": 14.686
+          },
+          {
+            "name": "(idle)",
+            "sampledMs": 12.355
+          },
+          {
+            "name": "uniformMatrix4fv",
+            "sampledMs": 11.971
+          },
+          {
+            "name": "drawElements",
+            "sampledMs": 10.136
+          },
+          {
+            "name": "uniform4f",
+            "sampledMs": 9.818
+          },
+          {
+            "name": "uniform1f",
+            "sampledMs": 9.754
+          },
+          {
+            "name": "vertexAttribDivisor",
+            "sampledMs": 9.595
+          },
+          {
+            "name": "now",
+            "sampledMs": 7.768
+          },
+          {
+            "name": "(garbage collector)",
+            "sampledMs": 7.594
+          },
+          {
+            "name": "bindFramebuffer",
+            "sampledMs": 7.34
+          },
+          {
+            "name": "_emscripten_glVertexAttribPointer",
+            "sampledMs": 7.275
+          },
+          {
+            "name": "print",
+            "sampledMs": 7.146
+          },
+          {
+            "name": "webglGetUniformLocation",
+            "sampledMs": 5.195
+          },
+          {
+            "name": "getProgramParameter",
+            "sampledMs": 5.091
+          },
+          {
+            "name": "_emscripten_glUseProgram",
+            "sampledMs": 5.05
+          },
+          {
+            "name": "get",
+            "sampledMs": 5.009
+          },
+          {
+            "name": "drawArrays",
+            "sampledMs": 5.007
+          },
+          {
+            "name": "viewport",
+            "sampledMs": 4.946
+          },
+          {
+            "name": "invoke_vii",
+            "sampledMs": 4.905
+          },
+          {
+            "name": "bindTexture",
+            "sampledMs": 4.292
+          }
+        ],
+        "clockReadStacks": [
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21953] > wasm-function[1934] > wasm-function[45940] > wasm-function[26668] > wasm-function[9961] > wasm-function[15801] > wasm-function[9975] > wasm-function[28149] > wasm-function[2477] > wasm-function[1460] > wasm-function[8587] > wasm-function[6459] > wasm-function[3490] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback > runIter > MainLoop_runner",
+            "sampledMs": 14.333
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[43414] > wasm-function[9978] > wasm-function[10071] > wasm-function[4135] > wasm-function[26909] > js-to-wasm:ii: > invoke_vii > wasm-to-js > wasm-function[10068] > wasm-function[1254] > wasm-function[21743] > wasm-function[44725] > wasm-function[710] > wasm-function[36940] > wasm-function[1536] > wasm-function[36980] > wasm-function[710] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback",
+            "sampledMs": 7.23
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[22003] > wasm-function[2085] > wasm-function[1934] > wasm-function[45940] > wasm-function[20985] > wasm-function[45937] > wasm-function[37456] > wasm-function[9978] > wasm-function[10071] > wasm-function[4135] > wasm-function[26909] > js-to-wasm:ii: > invoke_vii > wasm-to-js > wasm-function[10068] > wasm-function[1254] > wasm-function[21743] > wasm-function[710]",
+            "sampledMs": 5.102
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[6115] > wasm-function[46330] > wasm-function[33021] > wasm-function[17882] > wasm-function[32984] > wasm-function[21256] > wasm-function[38000] > wasm-function[9978] > wasm-function[10071] > wasm-function[4135] > wasm-function[26909] > js-to-wasm:ii: > invoke_vii > wasm-to-js > wasm-function[10068] > wasm-function[1254] > wasm-function[21743] > wasm-function[710] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc",
+            "sampledMs": 5.035
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[46329] > wasm-function[33021] > wasm-function[17882] > wasm-function[32984] > wasm-function[21256] > wasm-function[38000] > wasm-function[9978] > wasm-function[10071] > wasm-function[4135] > wasm-function[26909] > js-to-wasm:ii: > invoke_vii > wasm-to-js > wasm-function[10068] > wasm-function[1254] > wasm-function[21743] > wasm-function[710] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback",
+            "sampledMs": 5.026
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[6115] > wasm-function[26196] > wasm-function[15564] > wasm-function[2981] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback > runIter > MainLoop_runner > (root)",
+            "sampledMs": 4.745
+          },
+          {
+            "name": "now > _emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21953] > wasm-function[1934] > wasm-function[45940] > wasm-function[26668] > wasm-function[9961] > wasm-function[15801] > wasm-function[9975] > wasm-function[28149] > wasm-function[2477] > wasm-function[1460] > wasm-function[8587] > wasm-function[6459] > wasm-function[3490] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback > runIter",
+            "sampledMs": 2.709
+          },
+          {
+            "name": "now > _emscripten_get_now > wasm-to-js > wasm-function[3516] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback > runIter > MainLoop_runner > (root)",
+            "sampledMs": 2.577
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[6115] > wasm-function[16343] > wasm-function[15547] > wasm-function[15564] > wasm-function[2981] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback > runIter > MainLoop_runner > (root)",
+            "sampledMs": 2.55
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21953] > wasm-function[1934] > wasm-function[45940] > wasm-function[20985] > wasm-function[45937] > wasm-function[6368] > wasm-function[21767] > wasm-function[9978] > wasm-function[10071] > wasm-function[4135] > wasm-function[26909] > js-to-wasm:ii: > invoke_vii > wasm-to-js > wasm-function[10068] > wasm-function[1254] > wasm-function[21743] > wasm-function[44725] > wasm-function[710] > wasm-function[36940]",
+            "sampledMs": 2.521
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[12606] > wasm-function[1506] > wasm-function[978] > wasm-function[8400] > wasm-function[622] > wasm-function[16263] > wasm-function[28083] > wasm-function[26668] > wasm-function[9961] > wasm-function[15801] > wasm-function[9975] > wasm-function[28149] > wasm-function[2477] > wasm-function[1460] > wasm-function[8587] > wasm-function[6459] > wasm-function[3490] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i:",
+            "sampledMs": 2.509
+          },
+          {
+            "name": "now > _emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[22003] > wasm-function[2085] > wasm-function[1934] > wasm-function[45940] > wasm-function[20985] > wasm-function[45937] > wasm-function[37456] > wasm-function[9978] > wasm-function[10071] > wasm-function[4135] > wasm-function[26909] > js-to-wasm:ii: > invoke_vii > wasm-to-js > wasm-function[10068] > wasm-function[1254] > wasm-function[21743]",
+            "sampledMs": 2.482
+          }
+        ],
+        "shaderStatusStacks": [
+          {
+            "name": "getProgramParameter > _emscripten_glGetProgramiv > wasm-to-js > wasm-function[26178] > wasm-function[15547] > wasm-function[15564] > wasm-function[2981] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback > runIter > MainLoop_runner > (root)",
+            "sampledMs": 5.091
+          }
+        ],
+        "selectedInclusive": [
+          {
+            "name": "wasm-function[9978]",
+            "sampledMs": 9803.875
+          },
+          {
+            "name": "wasm-function[3264]",
+            "sampledMs": 1222.354
+          },
+          {
+            "name": "wasm-function[14591]",
+            "sampledMs": 39.753
+          },
+          {
+            "name": "wasm-function[15564]",
+            "sampledMs": 533.863
+          },
+          {
+            "name": "wasm-function[10071]",
+            "sampledMs": 9879.933
+          },
+          {
+            "name": "_emscripten_get_now",
+            "sampledMs": 61.386
+          },
+          {
+            "name": "xhr.onload",
+            "sampledMs": 0
+          }
+        ]
+      },
+      {
+        "file": "docs/migration/evidence/combat-performance-2026-10-15T13-56-49-208Z/match-load.cpuprofile",
+        "sha256": "6c3e226bdf99c74d0bd9e0ca698a83e0a1aaff38eb2f057afeb49c515c782c8b",
+        "durationMs": 131584.585,
+        "sampledMs": 131584.362,
+        "sampleCount": 53649,
+        "maxSampleDeltaMs": 28.554,
+        "classes": [
+          {
+            "name": "wasm-self-other",
+            "sampledMs": 54973.321,
+            "percent": 41.778
+          },
+          {
+            "name": "clock-read-self",
+            "sampledMs": 48727.067,
+            "percent": 37.031
+          },
+          {
+            "name": "shader-status-subtree",
+            "sampledMs": 15303.256,
+            "percent": 11.63
+          },
+          {
+            "name": "xhr-callback-subtree-other",
+            "sampledMs": 7205.698,
+            "percent": 5.476
+          },
+          {
+            "name": "js-or-browser-self-other",
+            "sampledMs": 5043.445,
+            "percent": 3.833
+          },
+          {
+            "name": "js-gc",
+            "sampledMs": 169.03,
+            "percent": 0.128
+          },
+          {
+            "name": "idle",
+            "sampledMs": 162.545,
+            "percent": 0.124
+          }
+        ],
+        "topSelf": [
+          {
+            "name": "_emscripten_get_now",
+            "sampledMs": 37370.877
+          },
+          {
+            "name": "getProgramParameter",
+            "sampledMs": 14998.137
+          },
+          {
+            "name": "now",
+            "sampledMs": 11356.19
+          },
+          {
+            "name": "wasm-function[14591]",
+            "sampledMs": 8122.944
+          },
+          {
+            "name": "wasm-function[9978]",
+            "sampledMs": 6590.476
+          },
+          {
+            "name": "wasm-function[767]",
+            "sampledMs": 3825.85
+          },
+          {
+            "name": "wasm-function[629]",
+            "sampledMs": 2807.075
+          },
+          {
+            "name": "wasm-function[909]",
+            "sampledMs": 2096.8
+          },
+          {
+            "name": "wasm-function[3264]",
+            "sampledMs": 1655.972
+          },
+          {
+            "name": "(program)",
+            "sampledMs": 1532.704
+          },
+          {
+            "name": "wasm-to-js",
+            "sampledMs": 1252.824
+          },
+          {
+            "name": "wasm-function[14554]",
+            "sampledMs": 1067.221
+          },
+          {
+            "name": "wasm-function[27447]",
+            "sampledMs": 908.651
+          },
+          {
+            "name": "wasm-function[28149]",
+            "sampledMs": 775.712
+          },
+          {
+            "name": "wasm-function[15584]",
+            "sampledMs": 723.755
+          },
+          {
+            "name": "wasm-function[26196]",
+            "sampledMs": 687.01
+          },
+          {
+            "name": "wasm-function[2993]",
+            "sampledMs": 636.981
+          },
+          {
+            "name": "wasm-function[26453]",
+            "sampledMs": 634.724
+          },
+          {
+            "name": "wasm-function[985]",
+            "sampledMs": 631.19
+          },
+          {
+            "name": "wasm-function[15453]",
+            "sampledMs": 537.513
+          },
+          {
+            "name": "wasm-function[3015]",
+            "sampledMs": 526.281
+          },
+          {
+            "name": "wasm-function[26446]",
+            "sampledMs": 514.111
+          },
+          {
+            "name": "wasm-function[15437]",
+            "sampledMs": 512.168
+          },
+          {
+            "name": "wasm-function[15859]",
+            "sampledMs": 474.387
+          },
+          {
+            "name": "wasm-function[4136]",
+            "sampledMs": 472.54
+          },
+          {
+            "name": "wasm-function[5650]",
+            "sampledMs": 442.688
+          },
+          {
+            "name": "wasm-function[1676]",
+            "sampledMs": 392.623
+          },
+          {
+            "name": "bufferSubData",
+            "sampledMs": 335.995
+          },
+          {
+            "name": "wasm-function[2933]",
+            "sampledMs": 323.616
+          },
+          {
+            "name": "wasm-function[9375]",
+            "sampledMs": 310.957
+          }
+        ],
+        "topNamedJsSelf": [
+          {
+            "name": "_emscripten_get_now",
+            "sampledMs": 37370.877
+          },
+          {
+            "name": "getProgramParameter",
+            "sampledMs": 14998.137
+          },
+          {
+            "name": "now",
+            "sampledMs": 11356.19
+          },
+          {
+            "name": "(program)",
+            "sampledMs": 1532.704
+          },
+          {
+            "name": "wasm-to-js",
+            "sampledMs": 1252.824
+          },
+          {
+            "name": "bufferSubData",
+            "sampledMs": 335.995
+          },
+          {
+            "name": "getShaderParameter",
+            "sampledMs": 297.628
+          },
+          {
+            "name": "print",
+            "sampledMs": 279.189
+          },
+          {
+            "name": "vertexAttribPointer",
+            "sampledMs": 193.352
+          },
+          {
+            "name": "vertexAttribDivisor",
+            "sampledMs": 188.484
+          },
+          {
+            "name": "(garbage collector)",
+            "sampledMs": 169.03
+          },
+          {
+            "name": "bindBuffer",
+            "sampledMs": 166.072
+          },
+          {
+            "name": "(idle)",
+            "sampledMs": 162.545
+          },
+          {
+            "name": "drawArrays",
+            "sampledMs": 125.429
+          },
+          {
+            "name": "saveResponseAndStatus",
+            "sampledMs": 125.363
+          },
+          {
+            "name": "uniform4f",
+            "sampledMs": 88.715
+          },
+          {
+            "name": "get",
+            "sampledMs": 84.135
+          },
+          {
+            "name": "__emscripten_throw_longjmp",
+            "sampledMs": 80.159
+          },
+          {
+            "name": "bindTexture",
+            "sampledMs": 65.793
+          },
+          {
+            "name": "texImage2D",
+            "sampledMs": 63.842
+          },
+          {
+            "name": "createSampler",
+            "sampledMs": 56.932
+          },
+          {
+            "name": "webglGetUniformLocation",
+            "sampledMs": 52.399
+          },
+          {
+            "name": "_emscripten_glVertexAttribPointer",
+            "sampledMs": 49.482
+          },
+          {
+            "name": "_emscripten_glBindBuffer",
+            "sampledMs": 48.773
+          },
+          {
+            "name": "send",
+            "sampledMs": 44.333
+          }
+        ],
+        "clockReadStacks": [
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[1551] > wasm-function[21936] > wasm-function[3928] > wasm-function[46089] > wasm-function[4342] > wasm-function[3096] > wasm-function[46138] > js-to-wasm:i: > (anonymous) > callUserCallback > doCallback > reportSuccess > xhr.onload > (root)",
+            "sampledMs": 16644.702
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[1551] > wasm-function[12585] > wasm-function[21948] > wasm-function[12606] > wasm-function[46089] > wasm-function[4342] > wasm-function[3096] > wasm-function[46138] > js-to-wasm:i: > (anonymous) > callUserCallback > doCallback > reportSuccess > xhr.onload > (root)",
+            "sampledMs": 9703.998
+          },
+          {
+            "name": "now > _emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[1551] > wasm-function[21936] > wasm-function[3928] > wasm-function[46089] > wasm-function[4342] > wasm-function[3096] > wasm-function[46138] > js-to-wasm:i: > (anonymous) > callUserCallback > doCallback > reportSuccess > xhr.onload > (root)",
+            "sampledMs": 5158.101
+          },
+          {
+            "name": "now > _emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[1551] > wasm-function[12585] > wasm-function[21948] > wasm-function[12606] > wasm-function[46089] > wasm-function[4342] > wasm-function[3096] > wasm-function[46138] > js-to-wasm:i: > (anonymous) > callUserCallback > doCallback > reportSuccess > xhr.onload > (root)",
+            "sampledMs": 2866.225
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21953] > wasm-function[1934] > wasm-function[45940] > wasm-function[28102] > wasm-function[28096] > wasm-function[26668] > wasm-function[9961] > wasm-function[15801] > wasm-function[9975] > wasm-function[28149] > wasm-function[2477] > wasm-function[1460] > wasm-function[8587] > wasm-function[12939] > wasm-function[3490] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback",
+            "sampledMs": 1833.057
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[27447] > wasm-function[1067] > wasm-function[22693] > wasm-function[1067] > wasm-function[20985] > wasm-function[45937] > wasm-function[13610] > wasm-function[23759] > wasm-function[1067] > wasm-function[20985] > wasm-function[45937] > wasm-function[2310] > wasm-function[13157] > wasm-function[17129] > wasm-function[8152] > wasm-function[25942] > wasm-function[12012] > wasm-function[12058]",
+            "sampledMs": 1437.986
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21953] > wasm-function[1934] > wasm-function[45940] > wasm-function[26668] > wasm-function[9961] > wasm-function[15801] > wasm-function[9975] > wasm-function[28149] > wasm-function[2477] > wasm-function[1460] > wasm-function[8587] > wasm-function[12939] > wasm-function[3490] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback > runIter > MainLoop_runner",
+            "sampledMs": 963.021
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[1551] > wasm-function[12585] > wasm-function[12606] > wasm-function[46089] > wasm-function[4342] > wasm-function[3096] > wasm-function[46138] > js-to-wasm:i: > (anonymous) > callUserCallback > doCallback > reportSuccess > xhr.onload > (root)",
+            "sampledMs": 955.973
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[22003] > wasm-function[2085] > wasm-function[1934] > wasm-function[45940] > wasm-function[20985] > wasm-function[45937] > wasm-function[2917] > wasm-function[17137] > wasm-function[8152] > wasm-function[25942] > wasm-function[12012] > wasm-function[12058] > wasm-function[5158] > wasm-function[5158] > wasm-function[20866] > wasm-function[45725] > wasm-function[710] > wasm-function[5933]",
+            "sampledMs": 874.535
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[22003] > wasm-function[21094] > wasm-function[46053] > wasm-function[1067] > wasm-function[8189] > wasm-function[6452] > wasm-function[22679] > wasm-function[1067] > wasm-function[20985] > wasm-function[45937] > wasm-function[37456] > wasm-function[10071] > wasm-function[4135] > wasm-function[26909] > js-to-wasm:ii: > invoke_vii > wasm-to-js > wasm-function[10068]",
+            "sampledMs": 800.161
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[23664] > wasm-function[1067] > wasm-function[20985] > wasm-function[45937] > wasm-function[2917] > wasm-function[17137] > wasm-function[8152] > wasm-function[25942] > wasm-function[12012] > wasm-function[12058] > wasm-function[5158] > wasm-function[5158] > wasm-function[5158] > wasm-function[5158] > wasm-function[20866] > wasm-function[45725] > wasm-function[710] > wasm-function[5933]",
+            "sampledMs": 630.123
+          },
+          {
+            "name": "now > _emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21953] > wasm-function[1934] > wasm-function[45940] > wasm-function[28102] > wasm-function[28096] > wasm-function[26668] > wasm-function[9961] > wasm-function[15801] > wasm-function[9975] > wasm-function[28149] > wasm-function[2477] > wasm-function[1460] > wasm-function[8587] > wasm-function[12939] > wasm-function[3490] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc",
+            "sampledMs": 549.017
+          }
+        ],
+        "shaderStatusStacks": [
+          {
+            "name": "getProgramParameter > _emscripten_glGetProgramiv > wasm-to-js > wasm-function[26178] > wasm-function[15547] > wasm-function[15564] > wasm-function[2981] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback > runIter > MainLoop_runner > (root)",
+            "sampledMs": 14973.364
+          },
+          {
+            "name": "getShaderParameter > _emscripten_glGetShaderiv > wasm-to-js > wasm-function[26180] > wasm-function[15547] > wasm-function[15564] > wasm-function[2981] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback > runIter > MainLoop_runner > (root)",
+            "sampledMs": 297.628
+          },
+          {
+            "name": "getProgramParameter > _emscripten_glGetProgramiv > wasm-to-js > wasm-function[15470] > wasm-function[26178] > wasm-function[15547] > wasm-function[15564] > wasm-function[2981] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback > runIter > MainLoop_runner > (root)",
+            "sampledMs": 24.773
+          },
+          {
+            "name": "_emscripten_glGetProgramiv > wasm-to-js > wasm-function[15470] > wasm-function[26178] > wasm-function[15547] > wasm-function[15564] > wasm-function[2981] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc > callUserCallback > runIter > MainLoop_runner > (root)",
+            "sampledMs": 7.491
+          }
+        ],
+        "selectedInclusive": [
+          {
+            "name": "wasm-function[9978]",
+            "sampledMs": 33148.664
+          },
+          {
+            "name": "wasm-function[3264]",
+            "sampledMs": 1655.972
+          },
+          {
+            "name": "wasm-function[14591]",
+            "sampledMs": 57461.232
+          },
+          {
+            "name": "wasm-function[15564]",
+            "sampledMs": 20253.949
+          },
+          {
+            "name": "wasm-function[10071]",
+            "sampledMs": 33492.977
+          },
+          {
+            "name": "_emscripten_get_now",
+            "sampledMs": 48727.067
+          },
+          {
+            "name": "xhr.onload",
+            "sampledMs": 42951.301
+          }
+        ]
+      },
+      {
+        "file": "docs/migration/evidence/combat-performance-2026-10-15T13-56-49-208Z/match-return.cpuprofile",
+        "sha256": "2667df6f3d916cac8eb610d25cd91dc61bca081c9122cdea39c451473b422e2b",
+        "durationMs": 9252.396,
+        "sampledMs": 9252.149,
+        "sampleCount": 3761,
+        "maxSampleDeltaMs": 20.5,
+        "classes": [
+          {
+            "name": "wasm-self-other",
+            "sampledMs": 5747.215,
+            "percent": 62.118
+          },
+          {
+            "name": "clock-read-self",
+            "sampledMs": 2133.681,
+            "percent": 23.061
+          },
+          {
+            "name": "js-or-browser-self-other",
+            "sampledMs": 850.499,
+            "percent": 9.192
+          },
+          {
+            "name": "idle",
+            "sampledMs": 273.385,
+            "percent": 2.955
+          },
+          {
+            "name": "xhr-callback-subtree-other",
+            "sampledMs": 205.285,
+            "percent": 2.219
+          },
+          {
+            "name": "js-gc",
+            "sampledMs": 42.084,
+            "percent": 0.455
+          }
+        ],
+        "topSelf": [
+          {
+            "name": "_emscripten_get_now",
+            "sampledMs": 1659.324
+          },
+          {
+            "name": "wasm-function[9978]",
+            "sampledMs": 550.158
+          },
+          {
+            "name": "now",
+            "sampledMs": 474.357
+          },
+          {
+            "name": "wasm-function[14591]",
+            "sampledMs": 367.761
+          },
+          {
+            "name": "wasm-function[629]",
+            "sampledMs": 306.884
+          },
+          {
+            "name": "wasm-function[767]",
+            "sampledMs": 291.147
+          },
+          {
+            "name": "(idle)",
+            "sampledMs": 273.385
+          },
+          {
+            "name": "wasm-function[3264]",
+            "sampledMs": 197.989
+          },
+          {
+            "name": "(program)",
+            "sampledMs": 182.447
+          },
+          {
+            "name": "wasm-function[15437]",
+            "sampledMs": 179.297
+          },
+          {
+            "name": "wasm-function[26196]",
+            "sampledMs": 156.495
+          },
+          {
+            "name": "wasm-function[909]",
+            "sampledMs": 105.285
+          },
+          {
+            "name": "wasm-function[2776]",
+            "sampledMs": 104.672
+          },
+          {
+            "name": "wasm-to-js",
+            "sampledMs": 102.078
+          },
+          {
+            "name": "wasm-function[1491]",
+            "sampledMs": 99.272
+          },
+          {
+            "name": "wasm-function[2547]",
+            "sampledMs": 98.432
+          },
+          {
+            "name": "wasm-function[3015]",
+            "sampledMs": 91.935
+          },
+          {
+            "name": "wasm-function[8587]",
+            "sampledMs": 89.045
+          },
+          {
+            "name": "wasm-function[15453]",
+            "sampledMs": 83.384
+          },
+          {
+            "name": "wasm-function[10060]",
+            "sampledMs": 73.467
+          },
+          {
+            "name": "wasm-function[12755]",
+            "sampledMs": 71.77
+          },
+          {
+            "name": "wasm-function[13317]",
+            "sampledMs": 68.999
+          },
+          {
+            "name": "wasm-function[2993]",
+            "sampledMs": 67.724
+          },
+          {
+            "name": "wasm-function[12939]",
+            "sampledMs": 62.22
+          },
+          {
+            "name": "vertexAttribPointer",
+            "sampledMs": 53.585
+          },
+          {
+            "name": "wasm-function[5439]",
+            "sampledMs": 53.084
+          },
+          {
+            "name": "wasm-function[26161]",
+            "sampledMs": 51.809
+          },
+          {
+            "name": "wasm-function[5650]",
+            "sampledMs": 49.3
+          },
+          {
+            "name": "wasm-function[2933]",
+            "sampledMs": 48.199
+          },
+          {
+            "name": "wasm-function[1923]",
+            "sampledMs": 47.477
+          }
+        ],
+        "topNamedJsSelf": [
+          {
+            "name": "_emscripten_get_now",
+            "sampledMs": 1659.324
+          },
+          {
+            "name": "now",
+            "sampledMs": 474.357
+          },
+          {
+            "name": "(idle)",
+            "sampledMs": 273.385
+          },
+          {
+            "name": "(program)",
+            "sampledMs": 182.447
+          },
+          {
+            "name": "wasm-to-js",
+            "sampledMs": 102.078
+          },
+          {
+            "name": "vertexAttribPointer",
+            "sampledMs": 53.585
+          },
+          {
+            "name": "bindBuffer",
+            "sampledMs": 46.215
+          },
+          {
+            "name": "(garbage collector)",
+            "sampledMs": 42.084
+          },
+          {
+            "name": "vertexAttribDivisor",
+            "sampledMs": 41.884
+          },
+          {
+            "name": "uniform4f",
+            "sampledMs": 34.155
+          },
+          {
+            "name": "bufferSubData",
+            "sampledMs": 32.946
+          },
+          {
+            "name": "checkFramebufferStatus",
+            "sampledMs": 30.821
+          },
+          {
+            "name": "uniform1f",
+            "sampledMs": 22.437
+          },
+          {
+            "name": "drawElements",
+            "sampledMs": 21.777
+          },
+          {
+            "name": "webglGetUniformLocation",
+            "sampledMs": 20.182
+          },
+          {
+            "name": "bindTexture",
+            "sampledMs": 20.094
+          },
+          {
+            "name": "uniformMatrix4fv",
+            "sampledMs": 18.181
+          },
+          {
+            "name": "print",
+            "sampledMs": 12.707
+          },
+          {
+            "name": "bindSampler",
+            "sampledMs": 12.584
+          },
+          {
+            "name": "_emscripten_glVertexAttribPointer",
+            "sampledMs": 12.088
+          },
+          {
+            "name": "deleteSampler",
+            "sampledMs": 9.711
+          },
+          {
+            "name": "drawArrays",
+            "sampledMs": 8.914
+          },
+          {
+            "name": "_emscripten_glBindTexture",
+            "sampledMs": 7.588
+          },
+          {
+            "name": "_emscripten_glUseProgram",
+            "sampledMs": 7.549
+          },
+          {
+            "name": "uniform3f",
+            "sampledMs": 7.315
+          }
+        ],
+        "clockReadStacks": [
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[1551] > wasm-function[21936] > wasm-function[3928] > wasm-function[46089] > wasm-function[4342] > wasm-function[3096] > wasm-function[46138] > js-to-wasm:i: > (anonymous) > callUserCallback > doCallback > reportSuccess > xhr.onload > (root)",
+            "sampledMs": 437.987
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[22003] > wasm-function[2085] > wasm-function[1934] > wasm-function[45940] > wasm-function[20985] > wasm-function[45937] > wasm-function[2917] > wasm-function[17137] > wasm-function[8152] > wasm-function[12012] > wasm-function[12058] > wasm-function[5158] > wasm-function[5158] > wasm-function[5158] > wasm-function[20866] > wasm-function[45725] > wasm-function[710] > wasm-function[5933]",
+            "sampledMs": 245.433
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[22003] > wasm-function[45527] > wasm-function[1067] > wasm-function[20985] > wasm-function[45937] > wasm-function[4366] > wasm-function[36772] > wasm-function[9978] > wasm-function[10071] > wasm-function[4135] > wasm-function[26909] > js-to-wasm:ii: > invoke_vii > wasm-to-js > wasm-function[10068] > wasm-function[1404] > wasm-function[26879] > wasm-function[9978]",
+            "sampledMs": 224.235
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[1551] > wasm-function[12585] > wasm-function[12606] > wasm-function[46089] > wasm-function[4342] > wasm-function[3096] > wasm-function[46138] > js-to-wasm:i: > (anonymous) > callUserCallback > doCallback > reportSuccess > xhr.onload > (root)",
+            "sampledMs": 199.273
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[22003] > wasm-function[11271] > wasm-function[41024] > wasm-function[1067] > wasm-function[20985] > wasm-function[45937] > wasm-function[37456] > wasm-function[9978] > wasm-function[10071] > wasm-function[4135] > wasm-function[26909] > js-to-wasm:ii: > invoke_vii > wasm-to-js > wasm-function[10068] > wasm-function[1254] > wasm-function[38123] > wasm-function[4342]",
+            "sampledMs": 113.549
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[23664] > wasm-function[1067] > wasm-function[20985] > wasm-function[45937] > wasm-function[2917] > wasm-function[17137] > wasm-function[8152] > wasm-function[12012] > wasm-function[12058] > wasm-function[5158] > wasm-function[5158] > wasm-function[5158] > wasm-function[20866] > wasm-function[45725] > wasm-function[710] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i:",
+            "sampledMs": 108.714
+          },
+          {
+            "name": "now > _emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[1551] > wasm-function[21936] > wasm-function[3928] > wasm-function[46089] > wasm-function[4342] > wasm-function[3096] > wasm-function[46138] > js-to-wasm:i: > (anonymous) > callUserCallback > doCallback > reportSuccess > xhr.onload > (root)",
+            "sampledMs": 101.23
+          },
+          {
+            "name": "now > _emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[22003] > wasm-function[2085] > wasm-function[1934] > wasm-function[45940] > wasm-function[20985] > wasm-function[45937] > wasm-function[2917] > wasm-function[17137] > wasm-function[8152] > wasm-function[12012] > wasm-function[12058] > wasm-function[5158] > wasm-function[5158] > wasm-function[5158] > wasm-function[20866] > wasm-function[45725] > wasm-function[710]",
+            "sampledMs": 87.067
+          },
+          {
+            "name": "now > _emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[1551] > wasm-function[12585] > wasm-function[12606] > wasm-function[46089] > wasm-function[4342] > wasm-function[3096] > wasm-function[46138] > js-to-wasm:i: > (anonymous) > callUserCallback > doCallback > reportSuccess > xhr.onload > (root)",
+            "sampledMs": 64.117
+          },
+          {
+            "name": "now > _emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[22003] > wasm-function[45527] > wasm-function[1067] > wasm-function[20985] > wasm-function[45937] > wasm-function[4366] > wasm-function[36772] > wasm-function[9978] > wasm-function[10071] > wasm-function[4135] > wasm-function[26909] > js-to-wasm:ii: > invoke_vii > wasm-to-js > wasm-function[10068] > wasm-function[1404] > wasm-function[26879]",
+            "sampledMs": 61.666
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[27447] > wasm-function[1067] > wasm-function[8189] > wasm-function[9597] > wasm-function[9628] > wasm-function[15024] > wasm-function[4445] > wasm-function[22017] > wasm-function[8152] > wasm-function[12012] > wasm-function[12058] > wasm-function[5158] > wasm-function[20866] > wasm-function[45725] > wasm-function[710] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i:",
+            "sampledMs": 51.948
+          },
+          {
+            "name": "_emscripten_get_now > wasm-to-js > wasm-function[14591] > wasm-function[1870] > wasm-function[21951] > wasm-function[4439] > wasm-function[27447] > wasm-function[1067] > wasm-function[22693] > wasm-function[1067] > wasm-function[20985] > wasm-function[45937] > wasm-function[22017] > wasm-function[8152] > wasm-function[12012] > wasm-function[12058] > wasm-function[5158] > wasm-function[20866] > wasm-function[45725] > wasm-function[710] > wasm-function[5933] > wasm-function[42961] > js-to-wasm:i: > iterFunc",
+            "sampledMs": 50.222
+          }
+        ],
+        "shaderStatusStacks": [],
+        "selectedInclusive": [
+          {
+            "name": "wasm-function[9978]",
+            "sampledMs": 3771.471
+          },
+          {
+            "name": "wasm-function[3264]",
+            "sampledMs": 197.989
+          },
+          {
+            "name": "wasm-function[14591]",
+            "sampledMs": 2455.918
+          },
+          {
+            "name": "wasm-function[15564]",
+            "sampledMs": 1394.403
+          },
+          {
+            "name": "wasm-function[10071]",
+            "sampledMs": 3791.329
+          },
+          {
+            "name": "_emscripten_get_now",
+            "sampledMs": 2133.681
+          },
+          {
+            "name": "xhr.onload",
+            "sampledMs": 1186.42
+          }
+        ]
+      }
+    ]
+  },
+  "limitations": [
+    "CPU samples are weighted by recorded timeDeltas; they are not GPU timestamps or exact per-call timings.",
+    "Clock-read samples identify an observed stack, not a proven lock owner, mutex or function name.",
+    "Stripped WASM function indexes remain unnamed; identical index/offset comparisons require the same engine binary.",
+    "Shader-status-subtree and XHR categories include descendants; class groups are mutually exclusive, inclusive rankings overlap.",
+    "These reports contain zero direct GL instrumentation records; native program status call parameters and GPU work cannot be recovered.",
+    "Builds differ and AI/game positions may differ; phase comparisons are descriptive, not a controlled optimization A/B or phone acceptance."
+  ]
+}

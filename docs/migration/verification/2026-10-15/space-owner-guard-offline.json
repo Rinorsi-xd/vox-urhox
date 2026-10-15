@@ -1,0 +1,21 @@
+{
+  "nativePhysicsTested": false,
+  "staticBodies": 1500,
+  "candidateEmptyScanVisits": 0,
+  "combatCars": 6,
+  "limitations": "Native-free actual Lua equivalence; no Bullet, Web frame-time or target-device acceptance.",
+  "result": "PASS",
+  "baselineEmptyScanVisits": 903600,
+  "assertions": 85132,
+  "fixedUpdates": 600,
+  "lua": "Lua 5.4",
+  "baseline": "D:\\Rino_Project\\maker\\Vox\\VoxelCraft\\.tmp\\outgame-cached-1792074566364",
+  "production": {
+    "scripts/physics/Space.lua": "37cadd9d962a10531c8230b8f9f7563e367a19107c6bde45594d0ea2fff6e821",
+    "scripts/drive/TrackWorld.lua": "c01e5363cdba4b20930ad1ac168b8229b6270959e0dffc4d0f1d209c740862f7"
+  },
+  "before": {
+    "scripts/physics/Space.lua": "2e4686d5de2d7260886f6210b8787c9f63a65faaf0f5e6f0e1b82b8723c0e2d8",
+    "scripts/drive/TrackWorld.lua": "dd3ddddb3711c51ea1d356e00e22a760a34b8784e2ba1871098c629e52848ce5"
+  }
+}

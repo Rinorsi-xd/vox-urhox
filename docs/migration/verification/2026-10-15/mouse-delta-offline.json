@@ -1,0 +1,19 @@
+{
+  "result": "PASS",
+  "checks": 8757,
+  "scenarios": 32,
+  "frames": 2905,
+  "baseline": {
+    "branch": "2026-10-15",
+    "commit": "b276064942ae09c0227ec28d4cfda1d5ff006455"
+  },
+  "reference": {
+    "file": "shared/controls/cameraRig.js",
+    "hash": "4cc0e11ba101004ab53aa1e99ed9be0315e0a22d92fe61c45f3a36c3345b9c6e"
+  },
+  "production": {
+    "scripts/controls/DrivePointer.lua": "c55c7fb419b74f00691ea548c7540060aaafb27708e07629cf11463ea5e28407",
+    "scripts/controls/MouseDeltaFilter.lua": "5f22bea672b44887641a2a1a4be4239c1d7c334e7976e06b5e8c39acc4ce788a"
+  },
+  "boundary": "Actual frozen H5 Input constructor, document mousemove and pointerlock handlers; production Lua filter and DrivePointer event subscriptions/Poll. Engine delivery stubbed. No native, browser, rendered camera or performance acceptance."
+}
