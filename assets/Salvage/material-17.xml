@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<material>
+  <surfaceshader name="Shaders/BLGL/Outgame/Solid.shader" />
+  <parameter name="tint" value="0.0030352698352941175 0.0030352698352941175 0.0030352698352941175 1" />
+  <parameter name="glow" value="0.02174186919919252 0.4313881647822062 0.605198841255912" />
+  <parameter name="roughness" type="Float" value="0.4" />
+  <parameter name="metallic" type="Float" value="0" />
+</material>

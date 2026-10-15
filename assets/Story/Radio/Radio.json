@@ -1,0 +1,106 @@
+{
+  "source": {
+    "branch": "2026-10-14",
+    "commit": "2b169a9964645f5f346a7158bcb14447f040814a",
+    "files": {
+      "shared/story/radio.js": "efd88e077122285d1766c6a0d2dbbc216e8cb336d9c6655b97e76ed817c7212e",
+      "shared/audio/mixTrim.js": "13ead9a21ca2853c940c9668b0406d037678d2e48237ba351afa1466f18812a3",
+      "shared/audio/battleFlowCues.js": "a7a3532c9f6b1ce039b578fbec4d714a1a0edd80c12e3d5de98976abc4018d9c",
+      "shared/audio/rewardCues.js": "efd7a3f8275710fb71e9c00e13ed59539f8cca334d9098615085291f1da893f6",
+      "shared/audio/completionCues.js": "acaa1640895035145b2905bcf57dac12c69757c98669f13d981ef2773b1e6783",
+      "shared/ui/uiSound.js": "537d35131e7e71d19a14f26f5a03961027db5d5514163ff80464cd9b8f5bd705",
+      "three/src/battle/storyBoss.js": "6bc7a822b0eba9112d505ef69bf22be955e7ff6007d9d16824d55db46991b4cb",
+      "three/src/battle/storyEpilogue.js": "fd082457e061957f83df9e2c251b819d4e6b3aec9114481aacf445bab79b165b",
+      "shared/assets/audio/battle-flow-09-r3/match_found_b.wav": "1139ba6fc0a1fd59b89574dbf28482aea4e32cac956e862a9f9d06182ee02bf7",
+      "shared/assets/audio/completion-10-11/missile_close_a.wav": "e5a5e8c2d71f85ac06b92039c0a4006e80b5b413cd3fbdde873096afc8108be1",
+      "shared/assets/audio/battle-flow-09-r3/objective_loss_a.wav": "a13e3f256c623fd5dda9c781ec4d0a5bf462668c7c32f6ab8fa6f735631e6327",
+      "shared/assets/audio/rewards-pickup-r2/loot_pickup_a.wav": "6d82229584c4bc5edda5454fb7e3d5a498ca3e5c54803e48a0386ef3ec0d66ad",
+      "shared/assets/audio/battle-flow-09-r3/objective_gain_b.wav": "b8b27cd8e6dad7b27891195e087eb9e80e620c8905c079111d42e0f84f13db35",
+      "shared/assets/audio/battle-flow-09-r3/urgent_warning_a.wav": "bfccc318b3b1434e572f3101571a347f1f0798b3ecf8ac6c40719f9580c9af84",
+      "shared/assets/audio/battle-flow-09-r3/match_victory_a.wav": "5febf87b74d58a8ff679ea23b09d970d9d107014f706e1fba732fad168fe264a"
+    }
+  },
+  "master": {
+    "volume": 0.6,
+    "scale": 1.0833333333333335
+  },
+  "cues": {
+    "open": {
+      "id": "match_found",
+      "path": "Story/Radio/match_found_b.wav",
+      "strength": 0.38,
+      "gain": 0.25,
+      "gap": 0.5,
+      "bus": "feedback",
+      "trimDb": 0,
+      "source": "shared/assets/audio/battle-flow-09-r3/match_found_b.wav",
+      "sha256": "1139ba6fc0a1fd59b89574dbf28482aea4e32cac956e862a9f9d06182ee02bf7"
+    },
+    "close": {
+      "id": "missile_close",
+      "path": "Story/Radio/missile_close_a.wav",
+      "strength": 0.3,
+      "gain": 0.5445402616155824,
+      "gap": 0.18,
+      "bus": "weapons",
+      "trimDb": 8.7,
+      "source": "shared/assets/audio/completion-10-11/missile_close_a.wav",
+      "sha256": "e5a5e8c2d71f85ac06b92039c0a4006e80b5b413cd3fbdde873096afc8108be1"
+    },
+    "intercept": {
+      "id": "objective_loss",
+      "path": "Story/Radio/objective_loss_a.wav",
+      "strength": 0.5,
+      "gain": 0.5391726275235821,
+      "gap": 0.4,
+      "bus": "feedback",
+      "trimDb": 7.4,
+      "source": "shared/assets/audio/battle-flow-09-r3/objective_loss_a.wav",
+      "sha256": "a13e3f256c623fd5dda9c781ec4d0a5bf462668c7c32f6ab8fa6f735631e6327"
+    },
+    "pickup": {
+      "id": "loot_pickup",
+      "path": "Story/Radio/loot_pickup_a.wav",
+      "strength": 1,
+      "gain": 0.5484284584743204,
+      "gap": 0.14,
+      "bus": "feedback",
+      "trimDb": 10.7,
+      "source": "shared/assets/audio/rewards-pickup-r2/loot_pickup_a.wav",
+      "sha256": "6d82229584c4bc5edda5454fb7e3d5a498ca3e5c54803e48a0386ef3ec0d66ad"
+    },
+    "install": {
+      "id": "objective_gain",
+      "path": "Story/Radio/objective_gain_b.wav",
+      "strength": 0.85,
+      "gain": 1.2210342217312733,
+      "gap": 0.4,
+      "bus": "feedback",
+      "trimDb": 14.5,
+      "source": "shared/assets/audio/battle-flow-09-r3/objective_gain_b.wav",
+      "sha256": "b8b27cd8e6dad7b27891195e087eb9e80e620c8905c079111d42e0f84f13db35"
+    },
+    "alert": {
+      "id": "urgent_warning",
+      "path": "Story/Radio/urgent_warning_a.wav",
+      "strength": 0.7,
+      "gain": 1.3810558496091767,
+      "gap": 1.2,
+      "bus": "feedback",
+      "trimDb": 15.2,
+      "source": "shared/assets/audio/battle-flow-09-r3/urgent_warning_a.wav",
+      "sha256": "bfccc318b3b1434e572f3101571a347f1f0798b3ecf8ac6c40719f9580c9af84"
+    },
+    "done": {
+      "id": "match_victory",
+      "path": "Story/Radio/match_victory_a.wav",
+      "strength": 1,
+      "gain": 0.8637016796166775,
+      "gap": 0.5,
+      "bus": "feedback",
+      "trimDb": 10.1,
+      "source": "shared/assets/audio/battle-flow-09-r3/match_victory_a.wav",
+      "sha256": "5febf87b74d58a8ff679ea23b09d970d9d107014f706e1fba732fad168fe264a"
+    }
+  }
+}

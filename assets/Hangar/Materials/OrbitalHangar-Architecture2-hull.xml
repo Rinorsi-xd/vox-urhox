@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<material>
+	<surfaceshader name="Shaders/BLGL/Hangar/Surface.shader" />
+	<parameter name="hemi_sky" value="0.445201 0.473531 0.520996 1" />
+	<parameter name="hemi_ground" value="0.174647 0.191202 0.219526 1" />
+	<parameter name="hemi_intensity" type="Double" value="1.85" />
+	<parameter name="base_color" value="0.584078 0.597202 0.62396 1" />
+	<parameter name="roughness_value" type="Double" value="0.4" />
+	<parameter name="metallic_value" type="Double" value="0.12" />
+	<parameter name="coat" type="Double" value="0" />
+	<parameter name="panel_on" type="Double" value="1" />
+	<parameter name="uPanel" value="3.2 1.6" />
+	<parameter name="uSeam" type="Double" value="0.022" />
+	<parameter name="uVary" type="Double" value="0.05" />
+	<parameter name="hangar_time" type="Double" value="10" />
+	<cull value="ccw" />
+	<backsideLighting enable="false" />
+	<shadowcull value="ccw" />
+	<fill value="solid" />
+	<depthbias constant="0" slopescaled="0" />
+	<alphatocoverage enable="false" />
+	<lineantialias enable="false" />
+	<renderorder value="128" />
+	<occlusion enable="true" />
+	<uvTiling value="1 1" />
+	<uvOffset value="0 0" />
+	<uvSpeed value="0 0" />
+	<texRotation value="0" />
+</material>

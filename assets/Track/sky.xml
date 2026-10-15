@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<material>
+	<surfaceshader name="Shaders/BLGL/Track/Sky.shader" />
+	<cull value="cw" />
+	<backsideLighting enable="false" />
+	<shadowcull value="cw" />
+	<fill value="solid" />
+	<depthbias constant="0" slopescaled="0" />
+	<alphatocoverage enable="false" />
+	<lineantialias enable="false" />
+	<renderorder value="0" />
+	<occlusion enable="true" />
+	<uvTiling value="1 1" />
+	<uvOffset value="0 0" />
+	<uvSpeed value="0 0" />
+	<texRotation value="0" />
+</material>

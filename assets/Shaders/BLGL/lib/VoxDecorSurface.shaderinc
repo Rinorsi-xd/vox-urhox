@@ -1,0 +1,26 @@
+#include "PlanarClip.shaderinc"
+#include "VoxHemi.shaderinc"
+#include "VoxDecorMotion.shaderinc"
+uniform vec4 base_color = vec4(0.5, 0.5, 0.5, 1.0);
+uniform float roughness_value = 0.5;
+uniform float metallic_value = 0.0;
+uniform vec4 emission_color = vec4(0.0, 0.0, 0.0, 1.0);
+uniform float emission_strength = 0.0;
+uniform float spin_speed = 0.0;
+uniform float blink = 0.0;
+uniform float pulse_amount = 0.0;
+void vertex() {
+    float angle = vox_decor_time() * spin_speed;
+    VERTEX = vox_decor_spin(VERTEX, angle);
+    NORMAL = vox_decor_spin(NORMAL, angle);
+}
+void fragment() {
+    if (planar_clip_reject(VERTEX, VIEW_MATRIX, IN_SHADOW_PASS)) discard;
+    float t = vox_decor_time();
+    float intensity = emission_strength + (0.5 + 0.5 * sin(t * 1.1)) * pulse_amount;
+    if (blink > 0.5) { intensity = fract(t * 0.9) < 0.14 ? 6.0 : 0.25; }
+    ALBEDO = base_color.rgb;
+    METALLIC = metallic_value;
+    ROUGHNESS = roughness_value;
+    EMISSION = emission_color.rgb * intensity + vox_hemi(ALBEDO, METALLIC, NORMAL);
+}

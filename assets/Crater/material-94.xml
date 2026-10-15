@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='utf-8'?>
+<material>
+  <surfaceshader name="Shaders/BLGL/Crater/Scatter.shader" />
+  <parameter name="tint" value="1 1 1 1" />
+  <parameter name="roughness" type="Float" value="1" />
+  <parameter name="metalness" type="Float" value="0" />
+  <parameter name="alpha_cut" type="Float" value="0" />
+  <parameter name="emission" value="0 0 0" />
+  <surfacetexture name="albedo_map" texture="Crater/texture-8.png" type="Texture2D" />
+  <surfacetexture name="normal_map" texture="Crater/texture-9.png" type="Texture2D" />
+  <parameter name="normal_scale" value="1 -1" />
+  <renderorder value="128" />
+</material>

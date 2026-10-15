@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<material>
+	<surfaceshader name="Shaders/BLGL/Track/Surface.shader" />
+	<parameter name="tint" value="0.0231534 0.0251869 0.0307134 1" />
+	<parameter name="roughness_value" type="Double" value="0.6" />
+	<parameter name="metallic_value" type="Double" value="0.5" />
+	<parameter name="emission_strength" type="Double" value="0" />
+	<parameter name="normal_strength" type="Double" value="0" />
+	<cull value="ccw" />
+	<backsideLighting enable="false" />
+	<shadowcull value="ccw" />
+	<fill value="solid" />
+	<depthbias constant="0" slopescaled="0" />
+	<alphatocoverage enable="false" />
+	<lineantialias enable="false" />
+	<renderorder value="128" />
+	<occlusion enable="true" />
+	<uvTiling value="1 1" />
+	<uvOffset value="0 0" />
+	<uvSpeed value="0 0" />
+	<texRotation value="0" />
+</material>

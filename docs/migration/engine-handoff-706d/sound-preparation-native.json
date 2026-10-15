@@ -1,0 +1,81 @@
+{
+    "version": 2,
+    "script": "_minimap_check.lua",
+    "result": "PASS",
+    "duration_ms": 3886,
+    "frames_completed": 230,
+    "phases": {
+        "load": {
+            "result": "PASS",
+            "errors": []
+        },
+        "init": {
+            "result": "PASS",
+            "errors": []
+        },
+        "run": {
+            "result": "PASS",
+            "errors": []
+        },
+        "scene": {
+            "result": "PASS",
+            "errors": [],
+            "node_count": 0,
+            "component_count": 0,
+            "scene_exists": false
+        }
+    },
+    "state_snapshots": [
+        {
+            "frame": 1,
+            "phase": "init",
+            "nodes": 0,
+            "components": 0,
+            "hash": 0,
+            "frame_time_ms": 17.27280044555664
+        },
+        {
+            "frame": 10,
+            "phase": "run",
+            "nodes": 0,
+            "components": 0,
+            "hash": 0,
+            "frame_time_ms": 17.40959930419922
+        },
+        {
+            "frame": 115,
+            "phase": "run",
+            "nodes": 0,
+            "components": 0,
+            "hash": 0,
+            "frame_time_ms": 17.289600372314454
+        },
+        {
+            "frame": 230,
+            "phase": "run",
+            "nodes": 0,
+            "components": 0,
+            "hash": 0,
+            "frame_time_ms": 16.624099731445314
+        }
+    ],
+    "scene_stalled": true,
+    "max_frame_time_ms": 17.917200088500978,
+    "update_defined": false,
+    "component_census": {},
+    "test_result": "PASSED",
+    "test_assertions": {
+        "total": 140,
+        "passed": 140,
+        "failed": 0
+    },
+    "test_issues": [],
+    "missing_resources": [],
+    "missing_engine_resources": [],
+    "summary": {
+        "lua_errors": 0,
+        "resource_errors": 0,
+        "engine_errors": 0,
+        "total_errors": 0
+    }
+}

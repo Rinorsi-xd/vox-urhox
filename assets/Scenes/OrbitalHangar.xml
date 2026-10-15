@@ -1,0 +1,3364 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<scene id="1">
+  <attribute name="Name" value="" />
+  <attribute name="Time Scale" value="1" />
+  <attribute name="Smoothing Constant" value="50" />
+  <attribute name="Snap Threshold" value="5" />
+  <attribute name="Elapsed Time" value="16.8874" />
+  <attribute name="Next Replicated Node ID" value="603" />
+  <attribute name="Next Replicated Component ID" value="601" />
+  <attribute name="Next Local Node ID" value="16777216" />
+  <attribute name="Next Local Component ID" value="16777216" />
+  <attribute name="Variables" />
+  <attribute name="Variable Names" value="" />
+  <component type="Octree" id="1" />
+  <component type="DebugRenderer" id="2" />
+  <node id="2">
+    <attribute name="Is Enabled" value="true" />
+    <attribute name="Name" value="LightGroup" />
+    <attribute name="Tags" />
+    <attribute name="Position" value="0.00 0.00 0.00" />
+    <attribute name="Rotation" value="1 0 0 0" />
+    <attribute name="Scale" value="1.00 1.00 1.00" />
+    <attribute name="Variables" />
+    <component type="Zone" id="3">
+      <attribute name="Bounding Box Min" value="-500.00 -500.00 -500.00" />
+      <attribute name="Bounding Box Max" value="500.00 500.00 500.00" />
+      <attribute name="Ambient Color" value="0 0.01717 0.05 1" />
+      <attribute name="Fog Color" value="0.00439144 0.00518152 0.00651209 1" />
+      <attribute name="Depth Fog Start" value="3000" />
+      <attribute name="Depth Fog End" value="4300" />
+      <attribute name="Height Fog Falloff" value="0.16" />
+      <attribute name="Height Fog Height" value="-16" />
+      <attribute name="Priority" value="-1" />
+      <attribute name="Vignette Texture" value="Texture2D;Editor/Textures/Engine/Vignetting.png" />
+      <attribute name="Env texture diff intensity" value="1" />
+      <attribute name="Env texture spec intensity" value="1" />
+      <attribute name="Env Cube Angle" value="290" />
+      <attribute name="Env Cube Follow Angle" value="63.9666" />
+      <attribute name="Bloom Threshold" value="1" />
+      <attribute name="SphericalHarmonicsL2" value="139 48 48 63 252 65 123 62 52 40 126 189 186 106 140 62 172 162 210 61 96 34 132 189 180 110 84 188 60 68 185 189 253 226 213 61 186 30 73 63 185 253 186 62 248 191 151 189 113 22 181 62 57 205 248 61 2 128 133 189 24 115 45 188 214 215 222 189 251 106 231 61 6 110 82 63 223 105 1 63 218 32 139 189 129 70 195 62 196 150 2 62 97 126 106 189 176 30 83 187 92 189 242 189 81 185 195 61" />
+      <attribute name="Role SphericalHarmonicsL2" value="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0" />
+      <attribute name="Using Water Reflection Param" value="true" />
+      <attribute name="Using Vignette" value="true" />
+      <attribute name="Vignette Intensity" value="0.3" />
+      <attribute name="Tonemap LUT Enabled" value="false" />
+      <attribute name="Bloom Mode" value="UE" />
+      <attribute name="Bloom UE Intensity" value="0.18" />
+      <attribute name="Bloom UE Threshold" value="1.3" />
+      <attribute name="Environment Source Texture" value="Texture2D;Hangar/HangarEnv.hdr" />
+      <attribute name="Tonemap Mode" value="ACES" />
+    </component>
+  </node>
+  <node id="4">
+    <attribute name="Is Enabled" value="true" />
+    <attribute name="Name" value="OrbitalHangar" />
+    <attribute name="Tags" />
+    <attribute name="Position" value="0.00 0.00 0.00" />
+    <attribute name="Rotation" value="1 0 0 0" />
+    <attribute name="Scale" value="1.00 1.00 1.00" />
+    <attribute name="Variables" />
+    <node id="5">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="FloorAndApron" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="0.00 -0.35 -22.00" />
+      <attribute name="Rotation" value="0.707107 -0.707107 0 0" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <component type="StaticModel" id="5">
+        <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-FloorAndApron.bin" />
+        <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-FloorAndApron.xml" />
+      </component>
+    </node>
+    <node id="6">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="Ceiling" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="0.00 32.00 0.00" />
+      <attribute name="Rotation" value="0.707107 0.707107 0 0" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <component type="StaticModel" id="6">
+        <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Ceiling.bin" />
+        <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Ceiling.xml" />
+      </component>
+    </node>
+    <node id="7">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="BuildDeck" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="0.00 0.00 0.00" />
+      <attribute name="Rotation" value="1 0 0 0" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <component type="StaticModel" id="7">
+        <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-BuildDeck.bin" />
+        <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-BuildDeck.xml" />
+        <attribute name="View Mask" value="2" />
+      </component>
+    </node>
+    <node id="8">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="DeckFrame" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="0.00 0.00 0.00" />
+      <attribute name="Rotation" value="1 0 0 0" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <node id="9">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="glowAccent" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="8">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture1-glowAccent.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-glowAccent.xml" />
+        </component>
+      </node>
+      <node id="10">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="dark" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="9">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture1-dark.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-dark.xml" />
+        </component>
+      </node>
+      <node id="11">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="frame" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="10">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture1-frame.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-frame.xml" />
+        </component>
+      </node>
+    </node>
+    <node id="12">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="Exterior" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="0.00 0.00 0.00" />
+      <attribute name="Rotation" value="1 0 0 0" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <node id="13">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="glowAccent" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="11">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture2-glowAccent.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-glowAccent.xml" />
+        </component>
+      </node>
+      <node id="14">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="orange" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="12">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture2-orange.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-orange.xml" />
+        </component>
+      </node>
+      <node id="15">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="glowAccentDim" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="13">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture2-glowAccentDim.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-glowAccentDim.xml" />
+        </component>
+      </node>
+      <node id="16">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="glowWork" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="14">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture2-glowWork.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-glowWork.xml" />
+        </component>
+      </node>
+      <node id="17">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="dark" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="15">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture2-dark.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-dark.xml" />
+        </component>
+      </node>
+      <node id="18">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="hull" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="16">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture2-hull.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-hull.xml" />
+        </component>
+      </node>
+      <node id="19">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="glowGreen" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="17">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture2-glowGreen.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-glowGreen.xml" />
+        </component>
+      </node>
+      <node id="20">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="glowWorkDim" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="18">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture2-glowWorkDim.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-glowWorkDim.xml" />
+        </component>
+      </node>
+      <node id="21">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="steel" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="19">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture2-steel.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-steel.xml" />
+        </component>
+      </node>
+      <node id="22">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="glowRed" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="20">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture2-glowRed.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-glowRed.xml" />
+        </component>
+      </node>
+      <node id="23">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="hullGrey" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="21">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture2-hullGrey.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-hullGrey.xml" />
+        </component>
+      </node>
+      <node id="24">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="glass" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="22">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture2-glass.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-glass.xml" />
+        </component>
+      </node>
+      <node id="25">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="glowEdge" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="23">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture2-glowEdge.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-glowEdge.xml" />
+        </component>
+      </node>
+      <node id="26">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="glowOrange" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="24">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture2-glowOrange.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-glowOrange.xml" />
+        </component>
+      </node>
+      <node id="27">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="frame" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="25">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture2-frame.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-frame.xml" />
+        </component>
+      </node>
+    </node>
+    <node id="28">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="Interior" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="0.00 0.00 0.00" />
+      <attribute name="Rotation" value="1 0 0 0" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <node id="29">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="hullGrey" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="26">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture3-hullGrey.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-hullGrey.xml" />
+        </component>
+      </node>
+      <node id="30">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="glowWhite" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="27">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture3-glowWhite.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture3-glowWhite.xml" />
+        </component>
+      </node>
+      <node id="31">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="dark" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="28">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture3-dark.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-dark.xml" />
+        </component>
+      </node>
+      <node id="32">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="hull" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="29">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture3-hull.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-hull.xml" />
+        </component>
+      </node>
+      <node id="33">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="glowGreen" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="30">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture3-glowGreen.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-glowGreen.xml" />
+        </component>
+      </node>
+      <node id="34">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="glowAccent" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="31">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture3-glowAccent.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-glowAccent.xml" />
+        </component>
+      </node>
+      <node id="35">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="steel" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="32">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture3-steel.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-steel.xml" />
+        </component>
+      </node>
+      <node id="36">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="glowWork" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="33">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture3-glowWork.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-glowWork.xml" />
+        </component>
+      </node>
+      <node id="37">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="glowPanel" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="34">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture3-glowPanel.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture3-glowPanel.xml" />
+        </component>
+      </node>
+      <node id="38">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="glass" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="35">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture3-glass.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-glass.xml" />
+        </component>
+      </node>
+      <node id="39">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="glowEdge" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="36">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture3-glowEdge.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-glowEdge.xml" />
+        </component>
+      </node>
+      <node id="40">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="glowWorkDim" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="37">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture3-glowWorkDim.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-glowWorkDim.xml" />
+        </component>
+      </node>
+      <node id="41">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="frame" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="38">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture3-frame.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-frame.xml" />
+        </component>
+      </node>
+    </node>
+    <node id="42">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="CeilingStructure" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="0.00 0.00 0.00" />
+      <attribute name="Rotation" value="1 0 0 0" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <node id="43">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="glowAccent" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="39">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture4-glowAccent.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-glowAccent.xml" />
+        </component>
+      </node>
+      <node id="44">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="ceilingDiffuser" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="40">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture4-ceilingDiffuser.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture4-ceilingDiffuser.xml" />
+        </component>
+      </node>
+      <node id="45">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="glowWorkDim" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="41">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture4-glowWorkDim.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-glowWorkDim.xml" />
+        </component>
+      </node>
+      <node id="46">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="steel" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="42">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture4-steel.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-steel.xml" />
+        </component>
+      </node>
+      <node id="47">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="dark" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="43">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture4-dark.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-dark.xml" />
+        </component>
+      </node>
+      <node id="48">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="hull" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="44">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture4-hull.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-hull.xml" />
+        </component>
+      </node>
+      <node id="49">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="frame" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="45">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture4-frame.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-frame.xml" />
+        </component>
+      </node>
+    </node>
+    <node id="50">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="Equipment" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="0.00 0.00 0.00" />
+      <attribute name="Rotation" value="1 0 0 0" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <node id="51">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="glowEnergy" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="46">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture5-glowEnergy.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture5-glowEnergy.xml" />
+        </component>
+      </node>
+      <node id="52">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="glowWhite" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="47">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture5-glowWhite.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture3-glowWhite.xml" />
+        </component>
+      </node>
+      <node id="53">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="dark" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="48">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture5-dark.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-dark.xml" />
+          <attribute name="Cast Shadows" value="true" />
+        </component>
+      </node>
+      <node id="54">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="hull" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="49">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture5-hull.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-hull.xml" />
+          <attribute name="Cast Shadows" value="true" />
+        </component>
+      </node>
+      <node id="55">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="glowGreen" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="50">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture5-glowGreen.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-glowGreen.xml" />
+        </component>
+      </node>
+      <node id="56">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="glowAccent" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="51">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture5-glowAccent.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-glowAccent.xml" />
+        </component>
+      </node>
+      <node id="57">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="steel" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="52">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture5-steel.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-steel.xml" />
+          <attribute name="Cast Shadows" value="true" />
+        </component>
+      </node>
+      <node id="58">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="glowOrange" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="53">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture5-glowOrange.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-glowOrange.xml" />
+        </component>
+      </node>
+      <node id="59">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="hullGrey" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="54">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture5-hullGrey.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-hullGrey.xml" />
+          <attribute name="Cast Shadows" value="true" />
+        </component>
+      </node>
+      <node id="60">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="orange" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="55">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture5-orange.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-orange.xml" />
+          <attribute name="Cast Shadows" value="true" />
+        </component>
+      </node>
+      <node id="61">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="glowAccentDim" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="56">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture5-glowAccentDim.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-glowAccentDim.xml" />
+        </component>
+      </node>
+      <node id="62">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="frame" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="57">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Architecture5-frame.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-frame.xml" />
+          <attribute name="Cast Shadows" value="true" />
+        </component>
+      </node>
+    </node>
+    <node id="63">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="bay" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="0.00 -0.34 -29.60" />
+      <attribute name="Rotation" value="0.707107 -0.707107 0 0" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <component type="StaticModel" id="58">
+        <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-bay.bin" />
+        <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-bay.xml" />
+      </component>
+    </node>
+    <node id="64">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="signDoor" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="0.00 23.75 -32.98" />
+      <attribute name="Rotation" value="1 0 0 0" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <component type="StaticModel" id="59">
+        <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-signDoor.bin" />
+        <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-signDoor.xml" />
+      </component>
+    </node>
+    <node id="65">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="controlRoom" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="-0.00 12.10 32.34" />
+      <attribute name="Rotation" value="0 0 -1 0" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <component type="StaticModel" id="60">
+        <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-controlRoom.bin" />
+        <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-controlRoom.xml" />
+      </component>
+    </node>
+    <node id="66">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="signBack" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="-0.00 19.25 34.53" />
+      <attribute name="Rotation" value="0 0 -1 0" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <component type="StaticModel" id="61">
+        <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-signBack.bin" />
+        <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-signBack.xml" />
+      </component>
+    </node>
+    <node id="67">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="mark" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="28.44 4.40 0.00" />
+      <attribute name="Rotation" value="0.707107 0 -0.707107 0" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <component type="StaticModel" id="62">
+        <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-mark.bin" />
+        <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-mark.xml" />
+      </component>
+    </node>
+    <node id="68">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="screen" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="21.00 1.15 -5.68" />
+      <attribute name="Rotation" value="0.844985 -0.261384 -0.445722 -0.137878" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <component type="StaticModel" id="63">
+        <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-screen.bin" />
+        <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-screen.xml" />
+      </component>
+    </node>
+    <node id="69">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="screen" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="18.51 1.15 -9.31" />
+      <attribute name="Rotation" value="0.844985 -0.261384 -0.445722 -0.137878" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <component type="StaticModel" id="64">
+        <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-screen-2.bin" />
+        <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-screen-2.xml" />
+      </component>
+    </node>
+    <node id="70">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="screen" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="-21.00 1.15 5.68" />
+      <attribute name="Rotation" value="0.445722 -0.137878 0.844985 0.261384" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <component type="StaticModel" id="65">
+        <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-screen-3.bin" />
+        <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-screen-3.xml" />
+      </component>
+    </node>
+    <node id="71">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="screen" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="-18.51 1.15 9.31" />
+      <attribute name="Rotation" value="0.445722 -0.137878 0.844985 0.261384" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <component type="StaticModel" id="66">
+        <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-screen-4.bin" />
+        <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-screen-4.xml" />
+      </component>
+    </node>
+    <node id="72">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="DynamicSpace" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="0.00 40.00 -36.00" />
+      <attribute name="Rotation" value="1 0 0 0" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <component type="StaticModel" id="67">
+        <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DynamicSpace.bin" />
+        <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DynamicSpace.xml" />
+      </component>
+    </node>
+    <node id="73">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="EnergyDoor" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="0.00 10.65 -35.50" />
+      <attribute name="Rotation" value="1 0 0 0" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <component type="StaticModel" id="68">
+        <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-EnergyDoor.bin" />
+        <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-EnergyDoor.xml" />
+      </component>
+    </node>
+    <node id="74">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="CeilingBeam" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="0.00 17.90 -16.00" />
+      <attribute name="Rotation" value="1 0 0 0" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <component type="StaticModel" id="69">
+        <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-CeilingBeam.bin" />
+        <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-CeilingBeam.xml" />
+      </component>
+    </node>
+    <node id="75">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="CeilingBeam" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="0.00 17.90 -8.00" />
+      <attribute name="Rotation" value="1 0 0 0" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <component type="StaticModel" id="70">
+        <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-CeilingBeam-2.bin" />
+        <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-CeilingBeam-2.xml" />
+      </component>
+    </node>
+    <node id="76">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="CeilingBeam" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="0.00 17.90 0.00" />
+      <attribute name="Rotation" value="1 0 0 0" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <component type="StaticModel" id="71">
+        <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-CeilingBeam-3.bin" />
+        <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-CeilingBeam-3.xml" />
+      </component>
+    </node>
+    <node id="77">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="CeilingBeam" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="0.00 17.90 8.00" />
+      <attribute name="Rotation" value="1 0 0 0" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <component type="StaticModel" id="72">
+        <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-CeilingBeam-4.bin" />
+        <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-CeilingBeam-4.xml" />
+      </component>
+    </node>
+    <node id="78">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="CeilingBeam" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="0.00 17.90 16.00" />
+      <attribute name="Rotation" value="1 0 0 0" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <component type="StaticModel" id="73">
+        <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-CeilingBeam-5.bin" />
+        <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-CeilingBeam-5.xml" />
+      </component>
+    </node>
+    <node id="79">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="Holo_stats" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="20.50 6.20 -8.00" />
+      <attribute name="Rotation" value="0.884489 0 -0.466561 0" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <component type="StaticModel" id="74">
+        <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Holo_stats.bin" />
+        <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Holo_stats.xml" />
+      </component>
+    </node>
+    <node id="80">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="HoloProjector" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="0.00 0.00 0.00" />
+      <attribute name="Rotation" value="1 0 0 0" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <component type="StaticModel" id="75">
+        <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-HoloProjector.bin" />
+        <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-HoloProjector.xml" />
+      </component>
+    </node>
+    <node id="81">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="Holo_blueprint" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="-20.50 6.29 8.00" />
+      <attribute name="Rotation" value="0.466561 0 0.884489 0" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <component type="StaticModel" id="76">
+        <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Holo_blueprint.bin" />
+        <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Holo_blueprint.xml" />
+      </component>
+    </node>
+    <node id="82">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="HoloProjector" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="0.00 0.00 0.00" />
+      <attribute name="Rotation" value="1 0 0 0" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <component type="StaticModel" id="77">
+        <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-HoloProjector-2.bin" />
+        <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-HoloProjector-2.xml" />
+      </component>
+    </node>
+    <node id="83">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="DisplayPart1" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="-30.45 1.67 -20.00" />
+      <attribute name="Rotation" value="0.894 -0 -0.448067 -0" />
+      <attribute name="Scale" value="0.43 0.43 0.43" />
+      <attribute name="Variables" />
+      <node id="84">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="78">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart1-PartMesh.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart1-PartMesh.xml" />
+        </component>
+      </node>
+      <node id="85">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="79">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart1-PartMesh-2.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart1-PartMesh-2.xml" />
+        </component>
+      </node>
+      <node id="86">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="80">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart1-PartMesh-3.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart1-PartMesh-3.xml" />
+        </component>
+      </node>
+      <node id="87">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="81">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart1-PartMesh-4.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart1-PartMesh-4.xml" />
+        </component>
+      </node>
+      <node id="88">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="82">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart1-PartMesh-5.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart1-PartMesh-5.xml" />
+        </component>
+      </node>
+      <node id="89">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="83">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart1-PartMesh-6.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart1-PartMesh-6.xml" />
+        </component>
+      </node>
+      <node id="90">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="84">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart1-PartMesh-7.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart1-PartMesh-7.xml" />
+        </component>
+      </node>
+      <node id="91">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="85">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart1-PartMesh-8.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart1-PartMesh-8.xml" />
+        </component>
+      </node>
+      <node id="92">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="86">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart1-PartMesh-9.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart1-PartMesh-9.xml" />
+        </component>
+      </node>
+    </node>
+    <node id="93">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="DisplayPart2" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="-30.45 1.67 -12.00" />
+      <attribute name="Rotation" value="0.569744 -0 -0.821822 -0" />
+      <attribute name="Scale" value="0.47 0.47 0.47" />
+      <attribute name="Variables" />
+      <node id="94">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="87">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart2-PartMesh.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart2-PartMesh.xml" />
+        </component>
+      </node>
+      <node id="95">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="88">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart2-PartMesh-2.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart2-PartMesh-2.xml" />
+        </component>
+      </node>
+      <node id="96">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="89">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart2-PartMesh-3.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart2-PartMesh-3.xml" />
+        </component>
+      </node>
+      <node id="97">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="90">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart2-PartMesh-4.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart2-PartMesh-4.xml" />
+        </component>
+      </node>
+      <node id="98">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="91">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart2-PartMesh-5.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart2-PartMesh-5.xml" />
+        </component>
+      </node>
+      <node id="99">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="92">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart2-PartMesh-6.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart2-PartMesh-6.xml" />
+        </component>
+      </node>
+      <node id="100">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="93">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart2-PartMesh-7.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart2-PartMesh-7.xml" />
+        </component>
+      </node>
+      <node id="101">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="94">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart2-PartMesh-8.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart2-PartMesh-8.xml" />
+        </component>
+      </node>
+    </node>
+    <node id="102">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="DisplayPart3" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="-30.45 1.67 -4.00" />
+      <attribute name="Rotation" value="0.105995 -0 -0.994367 -0" />
+      <attribute name="Scale" value="0.43 0.43 0.43" />
+      <attribute name="Variables" />
+      <node id="103">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="95">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart3-PartMesh.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart3-PartMesh.xml" />
+        </component>
+      </node>
+      <node id="104">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="96">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart3-PartMesh-2.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart3-PartMesh-2.xml" />
+        </component>
+      </node>
+      <node id="105">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="97">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart3-PartMesh-3.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart3-PartMesh-3.xml" />
+        </component>
+      </node>
+      <node id="106">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="98">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart3-PartMesh-4.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart3-PartMesh-4.xml" />
+        </component>
+      </node>
+      <node id="107">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="99">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart3-PartMesh-5.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart3-PartMesh-5.xml" />
+        </component>
+      </node>
+      <node id="108">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="100">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart3-PartMesh-6.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart3-PartMesh-6.xml" />
+        </component>
+      </node>
+      <node id="109">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="101">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart3-PartMesh-7.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart3-PartMesh-7.xml" />
+        </component>
+      </node>
+      <node id="110">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="102">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart3-PartMesh-8.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart3-PartMesh-8.xml" />
+        </component>
+      </node>
+      <node id="111">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="103">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart3-PartMesh-9.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart3-PartMesh-9.xml" />
+        </component>
+      </node>
+    </node>
+    <node id="112">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="DisplayPart4" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="-30.45 1.67 4.00" />
+      <attribute name="Rotation" value="-0.383705 -0 -0.923456 -0" />
+      <attribute name="Scale" value="0.89 0.89 0.89" />
+      <attribute name="Variables" />
+      <node id="113">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="104">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart4-PartMesh.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart4-PartMesh.xml" />
+        </component>
+      </node>
+      <node id="114">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="105">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart4-PartMesh-2.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart4-PartMesh-2.xml" />
+        </component>
+      </node>
+      <node id="115">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="106">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart4-PartMesh-3.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart4-PartMesh-3.xml" />
+        </component>
+      </node>
+      <node id="116">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="107">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart4-PartMesh-4.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart4-PartMesh-4.xml" />
+        </component>
+      </node>
+      <node id="117">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="108">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart4-PartMesh-5.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart4-PartMesh-5.xml" />
+        </component>
+      </node>
+      <node id="118">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="109">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart4-PartMesh-6.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart4-PartMesh-6.xml" />
+        </component>
+      </node>
+      <node id="119">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="110">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart4-PartMesh-7.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart4-PartMesh-7.xml" />
+        </component>
+      </node>
+      <node id="120">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="111">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart4-PartMesh-8.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart4-PartMesh-8.xml" />
+        </component>
+      </node>
+    </node>
+    <node id="121">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="DisplayPart5" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="-30.45 1.67 12.00" />
+      <attribute name="Rotation" value="-0.779462 -0 -0.62645 -0" />
+      <attribute name="Scale" value="0.59 0.59 0.59" />
+      <attribute name="Variables" />
+      <node id="122">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="112">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart5-PartMesh.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart5-PartMesh.xml" />
+        </component>
+      </node>
+      <node id="123">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="113">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart5-PartMesh-2.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart5-PartMesh-2.xml" />
+        </component>
+      </node>
+      <node id="124">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="114">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart5-PartMesh-3.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart5-PartMesh-3.xml" />
+        </component>
+      </node>
+      <node id="125">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="115">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart5-PartMesh-4.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart5-PartMesh-4.xml" />
+        </component>
+      </node>
+      <node id="126">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="116">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart5-PartMesh-5.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart5-PartMesh-5.xml" />
+        </component>
+      </node>
+    </node>
+    <node id="127">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="DisplayPart6" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="-30.45 1.67 20.00" />
+      <attribute name="Rotation" value="-0.984378 -0 -0.176068 -0" />
+      <attribute name="Scale" value="0.46 0.46 0.46" />
+      <attribute name="Variables" />
+      <node id="128">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="117">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart6-PartMesh.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart6-PartMesh.xml" />
+        </component>
+      </node>
+      <node id="129">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="118">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart6-PartMesh-2.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart6-PartMesh-2.xml" />
+        </component>
+      </node>
+      <node id="130">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="119">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart6-PartMesh-3.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart6-PartMesh-3.xml" />
+        </component>
+      </node>
+      <node id="131">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="120">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart6-PartMesh-4.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart6-PartMesh-4.xml" />
+        </component>
+      </node>
+      <node id="132">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="121">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart6-PartMesh-5.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart6-PartMesh-5.xml" />
+        </component>
+      </node>
+      <node id="133">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="122">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart6-PartMesh-6.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart6-PartMesh-6.xml" />
+        </component>
+      </node>
+      <node id="134">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="123">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart6-PartMesh-7.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart6-PartMesh-7.xml" />
+        </component>
+      </node>
+      <node id="135">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="124">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart6-PartMesh-8.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart6-PartMesh-8.xml" />
+        </component>
+      </node>
+      <node id="136">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="PartMesh" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="125">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-DisplayPart6-PartMesh-9.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-DisplayPart6-PartMesh-9.xml" />
+        </component>
+      </node>
+    </node>
+    <node id="137">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="Arm1" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="18.80 0.65 -24.40" />
+      <attribute name="Rotation" value="0.94661 -0 -0.322381 -0" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <node id="138">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="Turret" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="0.980906 -0 -0.194481 -0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <node id="139">
+          <attribute name="Is Enabled" value="true" />
+          <attribute name="Name" value="glowAccent" />
+          <attribute name="Tags" />
+          <attribute name="Position" value="0.00 0.00 0.00" />
+          <attribute name="Rotation" value="1 0 0 0" />
+          <attribute name="Scale" value="1.00 1.00 1.00" />
+          <attribute name="Variables" />
+          <component type="StaticModel" id="126">
+            <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-glowAccent.bin" />
+            <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-glowAccent.xml" />
+          </component>
+        </node>
+        <node id="140">
+          <attribute name="Is Enabled" value="true" />
+          <attribute name="Name" value="steel" />
+          <attribute name="Tags" />
+          <attribute name="Position" value="0.00 0.00 0.00" />
+          <attribute name="Rotation" value="1 0 0 0" />
+          <attribute name="Scale" value="1.00 1.00 1.00" />
+          <attribute name="Variables" />
+          <component type="StaticModel" id="127">
+            <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-steel.bin" />
+            <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-steel.xml" />
+            <attribute name="Cast Shadows" value="true" />
+          </component>
+        </node>
+        <node id="141">
+          <attribute name="Is Enabled" value="true" />
+          <attribute name="Name" value="hull" />
+          <attribute name="Tags" />
+          <attribute name="Position" value="0.00 0.00 0.00" />
+          <attribute name="Rotation" value="1 0 0 0" />
+          <attribute name="Scale" value="1.00 1.00 1.00" />
+          <attribute name="Variables" />
+          <component type="StaticModel" id="128">
+            <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-hull.bin" />
+            <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-hull.xml" />
+            <attribute name="Cast Shadows" value="true" />
+          </component>
+        </node>
+        <node id="142">
+          <attribute name="Is Enabled" value="true" />
+          <attribute name="Name" value="frame" />
+          <attribute name="Tags" />
+          <attribute name="Position" value="0.00 0.00 0.00" />
+          <attribute name="Rotation" value="1 0 0 0" />
+          <attribute name="Scale" value="1.00 1.00 1.00" />
+          <attribute name="Variables" />
+          <component type="StaticModel" id="129">
+            <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-frame.bin" />
+            <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-frame.xml" />
+            <attribute name="Cast Shadows" value="true" />
+          </component>
+        </node>
+        <node id="143">
+          <attribute name="Is Enabled" value="true" />
+          <attribute name="Name" value="Shoulder" />
+          <attribute name="Tags" />
+          <attribute name="Position" value="0.00 1.50 0.00" />
+          <attribute name="Rotation" value="0.89733 0.44136 0 0" />
+          <attribute name="Scale" value="1.00 1.00 1.00" />
+          <attribute name="Variables" />
+          <node id="144">
+            <attribute name="Is Enabled" value="true" />
+            <attribute name="Name" value="glowAccent" />
+            <attribute name="Tags" />
+            <attribute name="Position" value="0.00 0.00 0.00" />
+            <attribute name="Rotation" value="1 0 0 0" />
+            <attribute name="Scale" value="1.00 1.00 1.00" />
+            <attribute name="Variables" />
+            <component type="StaticModel" id="130">
+              <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-glowAccent.bin" />
+              <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-glowAccent.xml" />
+            </component>
+          </node>
+          <node id="145">
+            <attribute name="Is Enabled" value="true" />
+            <attribute name="Name" value="orange" />
+            <attribute name="Tags" />
+            <attribute name="Position" value="0.00 0.00 0.00" />
+            <attribute name="Rotation" value="1 0 0 0" />
+            <attribute name="Scale" value="1.00 1.00 1.00" />
+            <attribute name="Variables" />
+            <component type="StaticModel" id="131">
+              <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-orange.bin" />
+              <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-orange.xml" />
+              <attribute name="Cast Shadows" value="true" />
+            </component>
+          </node>
+          <node id="146">
+            <attribute name="Is Enabled" value="true" />
+            <attribute name="Name" value="hull" />
+            <attribute name="Tags" />
+            <attribute name="Position" value="0.00 0.00 0.00" />
+            <attribute name="Rotation" value="1 0 0 0" />
+            <attribute name="Scale" value="1.00 1.00 1.00" />
+            <attribute name="Variables" />
+            <component type="StaticModel" id="132">
+              <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-hull.bin" />
+              <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-hull.xml" />
+              <attribute name="Cast Shadows" value="true" />
+            </component>
+          </node>
+          <node id="147">
+            <attribute name="Is Enabled" value="true" />
+            <attribute name="Name" value="frame" />
+            <attribute name="Tags" />
+            <attribute name="Position" value="0.00 0.00 0.00" />
+            <attribute name="Rotation" value="1 0 0 0" />
+            <attribute name="Scale" value="1.00 1.00 1.00" />
+            <attribute name="Variables" />
+            <component type="StaticModel" id="133">
+              <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-frame.bin" />
+              <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-frame.xml" />
+              <attribute name="Cast Shadows" value="true" />
+            </component>
+          </node>
+          <node id="148">
+            <attribute name="Is Enabled" value="true" />
+            <attribute name="Name" value="Elbow" />
+            <attribute name="Tags" />
+            <attribute name="Position" value="0.00 4.60 0.00" />
+            <attribute name="Rotation" value="0.886904 0.461954 0 0" />
+            <attribute name="Scale" value="1.00 1.00 1.00" />
+            <attribute name="Variables" />
+            <node id="149">
+              <attribute name="Is Enabled" value="true" />
+              <attribute name="Name" value="glowAccent" />
+              <attribute name="Tags" />
+              <attribute name="Position" value="0.00 0.00 0.00" />
+              <attribute name="Rotation" value="1 0 0 0" />
+              <attribute name="Scale" value="1.00 1.00 1.00" />
+              <attribute name="Variables" />
+              <component type="StaticModel" id="134">
+                <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-Elbow-glowAccent.bin" />
+                <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-glowAccent.xml" />
+              </component>
+            </node>
+            <node id="150">
+              <attribute name="Is Enabled" value="true" />
+              <attribute name="Name" value="orange" />
+              <attribute name="Tags" />
+              <attribute name="Position" value="0.00 0.00 0.00" />
+              <attribute name="Rotation" value="1 0 0 0" />
+              <attribute name="Scale" value="1.00 1.00 1.00" />
+              <attribute name="Variables" />
+              <component type="StaticModel" id="135">
+                <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-Elbow-orange.bin" />
+                <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-orange.xml" />
+                <attribute name="Cast Shadows" value="true" />
+              </component>
+            </node>
+            <node id="151">
+              <attribute name="Is Enabled" value="true" />
+              <attribute name="Name" value="hull" />
+              <attribute name="Tags" />
+              <attribute name="Position" value="0.00 0.00 0.00" />
+              <attribute name="Rotation" value="1 0 0 0" />
+              <attribute name="Scale" value="1.00 1.00 1.00" />
+              <attribute name="Variables" />
+              <component type="StaticModel" id="136">
+                <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-Elbow-hull.bin" />
+                <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-hull.xml" />
+                <attribute name="Cast Shadows" value="true" />
+              </component>
+            </node>
+            <node id="152">
+              <attribute name="Is Enabled" value="true" />
+              <attribute name="Name" value="frame" />
+              <attribute name="Tags" />
+              <attribute name="Position" value="0.00 0.00 0.00" />
+              <attribute name="Rotation" value="1 0 0 0" />
+              <attribute name="Scale" value="1.00 1.00 1.00" />
+              <attribute name="Variables" />
+              <component type="StaticModel" id="137">
+                <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-Elbow-frame.bin" />
+                <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-frame.xml" />
+                <attribute name="Cast Shadows" value="true" />
+              </component>
+            </node>
+            <node id="153">
+              <attribute name="Is Enabled" value="true" />
+              <attribute name="Name" value="Wrist" />
+              <attribute name="Tags" />
+              <attribute name="Position" value="0.00 4.00 0.00" />
+              <attribute name="Rotation" value="0.991327 0.13142 0 0" />
+              <attribute name="Scale" value="1.00 1.00 1.00" />
+              <attribute name="Variables" />
+              <node id="154">
+                <attribute name="Is Enabled" value="true" />
+                <attribute name="Name" value="hull" />
+                <attribute name="Tags" />
+                <attribute name="Position" value="0.00 0.00 0.00" />
+                <attribute name="Rotation" value="1 0 0 0" />
+                <attribute name="Scale" value="1.00 1.00 1.00" />
+                <attribute name="Variables" />
+                <component type="StaticModel" id="138">
+                  <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-Elbow-Wrist-hull.bin" />
+                  <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-hull.xml" />
+                  <attribute name="Cast Shadows" value="true" />
+                </component>
+              </node>
+              <node id="155">
+                <attribute name="Is Enabled" value="true" />
+                <attribute name="Name" value="steel" />
+                <attribute name="Tags" />
+                <attribute name="Position" value="0.00 0.00 0.00" />
+                <attribute name="Rotation" value="1 0 0 0" />
+                <attribute name="Scale" value="1.00 1.00 1.00" />
+                <attribute name="Variables" />
+                <component type="StaticModel" id="139">
+                  <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-Elbow-Wrist-steel.bin" />
+                  <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-steel.xml" />
+                  <attribute name="Cast Shadows" value="true" />
+                </component>
+              </node>
+              <node id="156">
+                <attribute name="Is Enabled" value="true" />
+                <attribute name="Name" value="glowWork" />
+                <attribute name="Tags" />
+                <attribute name="Position" value="0.00 0.00 0.00" />
+                <attribute name="Rotation" value="1 0 0 0" />
+                <attribute name="Scale" value="1.00 1.00 1.00" />
+                <attribute name="Variables" />
+                <component type="StaticModel" id="140">
+                  <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-Elbow-Wrist-glowWork.bin" />
+                  <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-glowWork.xml" />
+                </component>
+              </node>
+              <node id="157">
+                <attribute name="Is Enabled" value="true" />
+                <attribute name="Name" value="frame" />
+                <attribute name="Tags" />
+                <attribute name="Position" value="0.00 0.00 0.00" />
+                <attribute name="Rotation" value="1 0 0 0" />
+                <attribute name="Scale" value="1.00 1.00 1.00" />
+                <attribute name="Variables" />
+                <component type="StaticModel" id="141">
+                  <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-Elbow-Wrist-frame.bin" />
+                  <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-frame.xml" />
+                  <attribute name="Cast Shadows" value="true" />
+                </component>
+              </node>
+            </node>
+          </node>
+        </node>
+      </node>
+    </node>
+    <node id="158">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="Arm2" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="-18.80 0.65 -24.40" />
+      <attribute name="Rotation" value="0.94661 0 0.322381 0" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <node id="159">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="Turret" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="0.983615 -0 -0.180283 -0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <node id="160">
+          <attribute name="Is Enabled" value="true" />
+          <attribute name="Name" value="glowAccent" />
+          <attribute name="Tags" />
+          <attribute name="Position" value="0.00 0.00 0.00" />
+          <attribute name="Rotation" value="1 0 0 0" />
+          <attribute name="Scale" value="1.00 1.00 1.00" />
+          <attribute name="Variables" />
+          <component type="StaticModel" id="142">
+            <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-glowAccent.bin" />
+            <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-glowAccent.xml" />
+          </component>
+        </node>
+        <node id="161">
+          <attribute name="Is Enabled" value="true" />
+          <attribute name="Name" value="steel" />
+          <attribute name="Tags" />
+          <attribute name="Position" value="0.00 0.00 0.00" />
+          <attribute name="Rotation" value="1 0 0 0" />
+          <attribute name="Scale" value="1.00 1.00 1.00" />
+          <attribute name="Variables" />
+          <component type="StaticModel" id="143">
+            <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-steel.bin" />
+            <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-steel.xml" />
+            <attribute name="Cast Shadows" value="true" />
+          </component>
+        </node>
+        <node id="162">
+          <attribute name="Is Enabled" value="true" />
+          <attribute name="Name" value="hull" />
+          <attribute name="Tags" />
+          <attribute name="Position" value="0.00 0.00 0.00" />
+          <attribute name="Rotation" value="1 0 0 0" />
+          <attribute name="Scale" value="1.00 1.00 1.00" />
+          <attribute name="Variables" />
+          <component type="StaticModel" id="144">
+            <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-hull.bin" />
+            <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-hull.xml" />
+            <attribute name="Cast Shadows" value="true" />
+          </component>
+        </node>
+        <node id="163">
+          <attribute name="Is Enabled" value="true" />
+          <attribute name="Name" value="frame" />
+          <attribute name="Tags" />
+          <attribute name="Position" value="0.00 0.00 0.00" />
+          <attribute name="Rotation" value="1 0 0 0" />
+          <attribute name="Scale" value="1.00 1.00 1.00" />
+          <attribute name="Variables" />
+          <component type="StaticModel" id="145">
+            <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-frame.bin" />
+            <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-frame.xml" />
+            <attribute name="Cast Shadows" value="true" />
+          </component>
+        </node>
+        <node id="164">
+          <attribute name="Is Enabled" value="true" />
+          <attribute name="Name" value="Shoulder" />
+          <attribute name="Tags" />
+          <attribute name="Position" value="0.00 1.50 0.00" />
+          <attribute name="Rotation" value="0.94864 0.316358 0 0" />
+          <attribute name="Scale" value="1.00 1.00 1.00" />
+          <attribute name="Variables" />
+          <node id="165">
+            <attribute name="Is Enabled" value="true" />
+            <attribute name="Name" value="glowAccent" />
+            <attribute name="Tags" />
+            <attribute name="Position" value="0.00 0.00 0.00" />
+            <attribute name="Rotation" value="1 0 0 0" />
+            <attribute name="Scale" value="1.00 1.00 1.00" />
+            <attribute name="Variables" />
+            <component type="StaticModel" id="146">
+              <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-glowAccent.bin" />
+              <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-glowAccent.xml" />
+            </component>
+          </node>
+          <node id="166">
+            <attribute name="Is Enabled" value="true" />
+            <attribute name="Name" value="orange" />
+            <attribute name="Tags" />
+            <attribute name="Position" value="0.00 0.00 0.00" />
+            <attribute name="Rotation" value="1 0 0 0" />
+            <attribute name="Scale" value="1.00 1.00 1.00" />
+            <attribute name="Variables" />
+            <component type="StaticModel" id="147">
+              <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-orange.bin" />
+              <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-orange.xml" />
+              <attribute name="Cast Shadows" value="true" />
+            </component>
+          </node>
+          <node id="167">
+            <attribute name="Is Enabled" value="true" />
+            <attribute name="Name" value="hull" />
+            <attribute name="Tags" />
+            <attribute name="Position" value="0.00 0.00 0.00" />
+            <attribute name="Rotation" value="1 0 0 0" />
+            <attribute name="Scale" value="1.00 1.00 1.00" />
+            <attribute name="Variables" />
+            <component type="StaticModel" id="148">
+              <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-hull.bin" />
+              <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-hull.xml" />
+              <attribute name="Cast Shadows" value="true" />
+            </component>
+          </node>
+          <node id="168">
+            <attribute name="Is Enabled" value="true" />
+            <attribute name="Name" value="frame" />
+            <attribute name="Tags" />
+            <attribute name="Position" value="0.00 0.00 0.00" />
+            <attribute name="Rotation" value="1 0 0 0" />
+            <attribute name="Scale" value="1.00 1.00 1.00" />
+            <attribute name="Variables" />
+            <component type="StaticModel" id="149">
+              <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-frame.bin" />
+              <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-frame.xml" />
+              <attribute name="Cast Shadows" value="true" />
+            </component>
+          </node>
+          <node id="169">
+            <attribute name="Is Enabled" value="true" />
+            <attribute name="Name" value="Elbow" />
+            <attribute name="Tags" />
+            <attribute name="Position" value="0.00 4.60 0.00" />
+            <attribute name="Rotation" value="0.931342 0.364146 0 0" />
+            <attribute name="Scale" value="1.00 1.00 1.00" />
+            <attribute name="Variables" />
+            <node id="170">
+              <attribute name="Is Enabled" value="true" />
+              <attribute name="Name" value="glowAccent" />
+              <attribute name="Tags" />
+              <attribute name="Position" value="0.00 0.00 0.00" />
+              <attribute name="Rotation" value="1 0 0 0" />
+              <attribute name="Scale" value="1.00 1.00 1.00" />
+              <attribute name="Variables" />
+              <component type="StaticModel" id="150">
+                <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-Elbow-glowAccent.bin" />
+                <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-glowAccent.xml" />
+              </component>
+            </node>
+            <node id="171">
+              <attribute name="Is Enabled" value="true" />
+              <attribute name="Name" value="orange" />
+              <attribute name="Tags" />
+              <attribute name="Position" value="0.00 0.00 0.00" />
+              <attribute name="Rotation" value="1 0 0 0" />
+              <attribute name="Scale" value="1.00 1.00 1.00" />
+              <attribute name="Variables" />
+              <component type="StaticModel" id="151">
+                <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-Elbow-orange.bin" />
+                <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-orange.xml" />
+                <attribute name="Cast Shadows" value="true" />
+              </component>
+            </node>
+            <node id="172">
+              <attribute name="Is Enabled" value="true" />
+              <attribute name="Name" value="hull" />
+              <attribute name="Tags" />
+              <attribute name="Position" value="0.00 0.00 0.00" />
+              <attribute name="Rotation" value="1 0 0 0" />
+              <attribute name="Scale" value="1.00 1.00 1.00" />
+              <attribute name="Variables" />
+              <component type="StaticModel" id="152">
+                <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-Elbow-hull.bin" />
+                <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-hull.xml" />
+                <attribute name="Cast Shadows" value="true" />
+              </component>
+            </node>
+            <node id="173">
+              <attribute name="Is Enabled" value="true" />
+              <attribute name="Name" value="frame" />
+              <attribute name="Tags" />
+              <attribute name="Position" value="0.00 0.00 0.00" />
+              <attribute name="Rotation" value="1 0 0 0" />
+              <attribute name="Scale" value="1.00 1.00 1.00" />
+              <attribute name="Variables" />
+              <component type="StaticModel" id="153">
+                <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-Elbow-frame.bin" />
+                <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-frame.xml" />
+                <attribute name="Cast Shadows" value="true" />
+              </component>
+            </node>
+            <node id="174">
+              <attribute name="Is Enabled" value="true" />
+              <attribute name="Name" value="Wrist" />
+              <attribute name="Tags" />
+              <attribute name="Position" value="0.00 4.00 0.00" />
+              <attribute name="Rotation" value="0.956687 0.291119 0 0" />
+              <attribute name="Scale" value="1.00 1.00 1.00" />
+              <attribute name="Variables" />
+              <node id="175">
+                <attribute name="Is Enabled" value="true" />
+                <attribute name="Name" value="hull" />
+                <attribute name="Tags" />
+                <attribute name="Position" value="0.00 0.00 0.00" />
+                <attribute name="Rotation" value="1 0 0 0" />
+                <attribute name="Scale" value="1.00 1.00 1.00" />
+                <attribute name="Variables" />
+                <component type="StaticModel" id="154">
+                  <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-Elbow-Wrist-hull.bin" />
+                  <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-hull.xml" />
+                  <attribute name="Cast Shadows" value="true" />
+                </component>
+              </node>
+              <node id="176">
+                <attribute name="Is Enabled" value="true" />
+                <attribute name="Name" value="steel" />
+                <attribute name="Tags" />
+                <attribute name="Position" value="0.00 0.00 0.00" />
+                <attribute name="Rotation" value="1 0 0 0" />
+                <attribute name="Scale" value="1.00 1.00 1.00" />
+                <attribute name="Variables" />
+                <component type="StaticModel" id="155">
+                  <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-Elbow-Wrist-steel.bin" />
+                  <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-steel.xml" />
+                  <attribute name="Cast Shadows" value="true" />
+                </component>
+              </node>
+              <node id="177">
+                <attribute name="Is Enabled" value="true" />
+                <attribute name="Name" value="glowWork" />
+                <attribute name="Tags" />
+                <attribute name="Position" value="0.00 0.00 0.00" />
+                <attribute name="Rotation" value="1 0 0 0" />
+                <attribute name="Scale" value="1.00 1.00 1.00" />
+                <attribute name="Variables" />
+                <component type="StaticModel" id="156">
+                  <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-Elbow-Wrist-glowWork.bin" />
+                  <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-glowWork.xml" />
+                </component>
+              </node>
+              <node id="178">
+                <attribute name="Is Enabled" value="true" />
+                <attribute name="Name" value="frame" />
+                <attribute name="Tags" />
+                <attribute name="Position" value="0.00 0.00 0.00" />
+                <attribute name="Rotation" value="1 0 0 0" />
+                <attribute name="Scale" value="1.00 1.00 1.00" />
+                <attribute name="Variables" />
+                <component type="StaticModel" id="157">
+                  <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-Elbow-Wrist-frame.bin" />
+                  <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-frame.xml" />
+                  <attribute name="Cast Shadows" value="true" />
+                </component>
+              </node>
+            </node>
+          </node>
+        </node>
+      </node>
+    </node>
+    <node id="179">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="Arm3" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="18.80 0.65 24.40" />
+      <attribute name="Rotation" value="0.322381 -0 -0.94661 -0" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <node id="180">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="Turret" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="0.999561 -0 -0.0296309 -0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <node id="181">
+          <attribute name="Is Enabled" value="true" />
+          <attribute name="Name" value="glowAccent" />
+          <attribute name="Tags" />
+          <attribute name="Position" value="0.00 0.00 0.00" />
+          <attribute name="Rotation" value="1 0 0 0" />
+          <attribute name="Scale" value="1.00 1.00 1.00" />
+          <attribute name="Variables" />
+          <component type="StaticModel" id="158">
+            <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-glowAccent.bin" />
+            <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-glowAccent.xml" />
+          </component>
+        </node>
+        <node id="182">
+          <attribute name="Is Enabled" value="true" />
+          <attribute name="Name" value="steel" />
+          <attribute name="Tags" />
+          <attribute name="Position" value="0.00 0.00 0.00" />
+          <attribute name="Rotation" value="1 0 0 0" />
+          <attribute name="Scale" value="1.00 1.00 1.00" />
+          <attribute name="Variables" />
+          <component type="StaticModel" id="159">
+            <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-steel.bin" />
+            <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-steel.xml" />
+            <attribute name="Cast Shadows" value="true" />
+          </component>
+        </node>
+        <node id="183">
+          <attribute name="Is Enabled" value="true" />
+          <attribute name="Name" value="hull" />
+          <attribute name="Tags" />
+          <attribute name="Position" value="0.00 0.00 0.00" />
+          <attribute name="Rotation" value="1 0 0 0" />
+          <attribute name="Scale" value="1.00 1.00 1.00" />
+          <attribute name="Variables" />
+          <component type="StaticModel" id="160">
+            <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-hull.bin" />
+            <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-hull.xml" />
+            <attribute name="Cast Shadows" value="true" />
+          </component>
+        </node>
+        <node id="184">
+          <attribute name="Is Enabled" value="true" />
+          <attribute name="Name" value="frame" />
+          <attribute name="Tags" />
+          <attribute name="Position" value="0.00 0.00 0.00" />
+          <attribute name="Rotation" value="1 0 0 0" />
+          <attribute name="Scale" value="1.00 1.00 1.00" />
+          <attribute name="Variables" />
+          <component type="StaticModel" id="161">
+            <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-frame.bin" />
+            <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-frame.xml" />
+            <attribute name="Cast Shadows" value="true" />
+          </component>
+        </node>
+        <node id="185">
+          <attribute name="Is Enabled" value="true" />
+          <attribute name="Name" value="Shoulder" />
+          <attribute name="Tags" />
+          <attribute name="Position" value="0.00 1.50 0.00" />
+          <attribute name="Rotation" value="0.942608 0.3339 0 0" />
+          <attribute name="Scale" value="1.00 1.00 1.00" />
+          <attribute name="Variables" />
+          <node id="186">
+            <attribute name="Is Enabled" value="true" />
+            <attribute name="Name" value="glowAccent" />
+            <attribute name="Tags" />
+            <attribute name="Position" value="0.00 0.00 0.00" />
+            <attribute name="Rotation" value="1 0 0 0" />
+            <attribute name="Scale" value="1.00 1.00 1.00" />
+            <attribute name="Variables" />
+            <component type="StaticModel" id="162">
+              <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-glowAccent.bin" />
+              <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-glowAccent.xml" />
+            </component>
+          </node>
+          <node id="187">
+            <attribute name="Is Enabled" value="true" />
+            <attribute name="Name" value="orange" />
+            <attribute name="Tags" />
+            <attribute name="Position" value="0.00 0.00 0.00" />
+            <attribute name="Rotation" value="1 0 0 0" />
+            <attribute name="Scale" value="1.00 1.00 1.00" />
+            <attribute name="Variables" />
+            <component type="StaticModel" id="163">
+              <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-orange.bin" />
+              <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-orange.xml" />
+              <attribute name="Cast Shadows" value="true" />
+            </component>
+          </node>
+          <node id="188">
+            <attribute name="Is Enabled" value="true" />
+            <attribute name="Name" value="hull" />
+            <attribute name="Tags" />
+            <attribute name="Position" value="0.00 0.00 0.00" />
+            <attribute name="Rotation" value="1 0 0 0" />
+            <attribute name="Scale" value="1.00 1.00 1.00" />
+            <attribute name="Variables" />
+            <component type="StaticModel" id="164">
+              <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-hull.bin" />
+              <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-hull.xml" />
+              <attribute name="Cast Shadows" value="true" />
+            </component>
+          </node>
+          <node id="189">
+            <attribute name="Is Enabled" value="true" />
+            <attribute name="Name" value="frame" />
+            <attribute name="Tags" />
+            <attribute name="Position" value="0.00 0.00 0.00" />
+            <attribute name="Rotation" value="1 0 0 0" />
+            <attribute name="Scale" value="1.00 1.00 1.00" />
+            <attribute name="Variables" />
+            <component type="StaticModel" id="165">
+              <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-frame.bin" />
+              <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-frame.xml" />
+              <attribute name="Cast Shadows" value="true" />
+            </component>
+          </node>
+          <node id="190">
+            <attribute name="Is Enabled" value="true" />
+            <attribute name="Name" value="Elbow" />
+            <attribute name="Tags" />
+            <attribute name="Position" value="0.00 4.60 0.00" />
+            <attribute name="Rotation" value="0.936153 0.351594 0 0" />
+            <attribute name="Scale" value="1.00 1.00 1.00" />
+            <attribute name="Variables" />
+            <node id="191">
+              <attribute name="Is Enabled" value="true" />
+              <attribute name="Name" value="glowAccent" />
+              <attribute name="Tags" />
+              <attribute name="Position" value="0.00 0.00 0.00" />
+              <attribute name="Rotation" value="1 0 0 0" />
+              <attribute name="Scale" value="1.00 1.00 1.00" />
+              <attribute name="Variables" />
+              <component type="StaticModel" id="166">
+                <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-Elbow-glowAccent.bin" />
+                <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-glowAccent.xml" />
+              </component>
+            </node>
+            <node id="192">
+              <attribute name="Is Enabled" value="true" />
+              <attribute name="Name" value="orange" />
+              <attribute name="Tags" />
+              <attribute name="Position" value="0.00 0.00 0.00" />
+              <attribute name="Rotation" value="1 0 0 0" />
+              <attribute name="Scale" value="1.00 1.00 1.00" />
+              <attribute name="Variables" />
+              <component type="StaticModel" id="167">
+                <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-Elbow-orange.bin" />
+                <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-orange.xml" />
+                <attribute name="Cast Shadows" value="true" />
+              </component>
+            </node>
+            <node id="193">
+              <attribute name="Is Enabled" value="true" />
+              <attribute name="Name" value="hull" />
+              <attribute name="Tags" />
+              <attribute name="Position" value="0.00 0.00 0.00" />
+              <attribute name="Rotation" value="1 0 0 0" />
+              <attribute name="Scale" value="1.00 1.00 1.00" />
+              <attribute name="Variables" />
+              <component type="StaticModel" id="168">
+                <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-Elbow-hull.bin" />
+                <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-hull.xml" />
+                <attribute name="Cast Shadows" value="true" />
+              </component>
+            </node>
+            <node id="194">
+              <attribute name="Is Enabled" value="true" />
+              <attribute name="Name" value="frame" />
+              <attribute name="Tags" />
+              <attribute name="Position" value="0.00 0.00 0.00" />
+              <attribute name="Rotation" value="1 0 0 0" />
+              <attribute name="Scale" value="1.00 1.00 1.00" />
+              <attribute name="Variables" />
+              <component type="StaticModel" id="169">
+                <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-Elbow-frame.bin" />
+                <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-frame.xml" />
+                <attribute name="Cast Shadows" value="true" />
+              </component>
+            </node>
+            <node id="195">
+              <attribute name="Is Enabled" value="true" />
+              <attribute name="Name" value="Wrist" />
+              <attribute name="Tags" />
+              <attribute name="Position" value="0.00 4.00 0.00" />
+              <attribute name="Rotation" value="0.924521 0.381131 0 0" />
+              <attribute name="Scale" value="1.00 1.00 1.00" />
+              <attribute name="Variables" />
+              <node id="196">
+                <attribute name="Is Enabled" value="true" />
+                <attribute name="Name" value="hull" />
+                <attribute name="Tags" />
+                <attribute name="Position" value="0.00 0.00 0.00" />
+                <attribute name="Rotation" value="1 0 0 0" />
+                <attribute name="Scale" value="1.00 1.00 1.00" />
+                <attribute name="Variables" />
+                <component type="StaticModel" id="170">
+                  <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-Elbow-Wrist-hull.bin" />
+                  <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-hull.xml" />
+                  <attribute name="Cast Shadows" value="true" />
+                </component>
+              </node>
+              <node id="197">
+                <attribute name="Is Enabled" value="true" />
+                <attribute name="Name" value="steel" />
+                <attribute name="Tags" />
+                <attribute name="Position" value="0.00 0.00 0.00" />
+                <attribute name="Rotation" value="1 0 0 0" />
+                <attribute name="Scale" value="1.00 1.00 1.00" />
+                <attribute name="Variables" />
+                <component type="StaticModel" id="171">
+                  <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-Elbow-Wrist-steel.bin" />
+                  <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-steel.xml" />
+                  <attribute name="Cast Shadows" value="true" />
+                </component>
+              </node>
+              <node id="198">
+                <attribute name="Is Enabled" value="true" />
+                <attribute name="Name" value="glowWork" />
+                <attribute name="Tags" />
+                <attribute name="Position" value="0.00 0.00 0.00" />
+                <attribute name="Rotation" value="1 0 0 0" />
+                <attribute name="Scale" value="1.00 1.00 1.00" />
+                <attribute name="Variables" />
+                <component type="StaticModel" id="172">
+                  <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-Elbow-Wrist-glowWork.bin" />
+                  <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-glowWork.xml" />
+                </component>
+              </node>
+              <node id="199">
+                <attribute name="Is Enabled" value="true" />
+                <attribute name="Name" value="frame" />
+                <attribute name="Tags" />
+                <attribute name="Position" value="0.00 0.00 0.00" />
+                <attribute name="Rotation" value="1 0 0 0" />
+                <attribute name="Scale" value="1.00 1.00 1.00" />
+                <attribute name="Variables" />
+                <component type="StaticModel" id="173">
+                  <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-Elbow-Wrist-frame.bin" />
+                  <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-frame.xml" />
+                  <attribute name="Cast Shadows" value="true" />
+                </component>
+              </node>
+            </node>
+          </node>
+        </node>
+      </node>
+    </node>
+    <node id="200">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="Arm4" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="-18.80 0.65 24.40" />
+      <attribute name="Rotation" value="0.322381 0 0.94661 0" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <node id="201">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="Turret" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="0.989588 0 0.143929 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <node id="202">
+          <attribute name="Is Enabled" value="true" />
+          <attribute name="Name" value="glowAccent" />
+          <attribute name="Tags" />
+          <attribute name="Position" value="0.00 0.00 0.00" />
+          <attribute name="Rotation" value="1 0 0 0" />
+          <attribute name="Scale" value="1.00 1.00 1.00" />
+          <attribute name="Variables" />
+          <component type="StaticModel" id="174">
+            <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-glowAccent.bin" />
+            <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-glowAccent.xml" />
+          </component>
+        </node>
+        <node id="203">
+          <attribute name="Is Enabled" value="true" />
+          <attribute name="Name" value="steel" />
+          <attribute name="Tags" />
+          <attribute name="Position" value="0.00 0.00 0.00" />
+          <attribute name="Rotation" value="1 0 0 0" />
+          <attribute name="Scale" value="1.00 1.00 1.00" />
+          <attribute name="Variables" />
+          <component type="StaticModel" id="175">
+            <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-steel.bin" />
+            <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-steel.xml" />
+            <attribute name="Cast Shadows" value="true" />
+          </component>
+        </node>
+        <node id="204">
+          <attribute name="Is Enabled" value="true" />
+          <attribute name="Name" value="hull" />
+          <attribute name="Tags" />
+          <attribute name="Position" value="0.00 0.00 0.00" />
+          <attribute name="Rotation" value="1 0 0 0" />
+          <attribute name="Scale" value="1.00 1.00 1.00" />
+          <attribute name="Variables" />
+          <component type="StaticModel" id="176">
+            <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-hull.bin" />
+            <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-hull.xml" />
+            <attribute name="Cast Shadows" value="true" />
+          </component>
+        </node>
+        <node id="205">
+          <attribute name="Is Enabled" value="true" />
+          <attribute name="Name" value="frame" />
+          <attribute name="Tags" />
+          <attribute name="Position" value="0.00 0.00 0.00" />
+          <attribute name="Rotation" value="1 0 0 0" />
+          <attribute name="Scale" value="1.00 1.00 1.00" />
+          <attribute name="Variables" />
+          <component type="StaticModel" id="177">
+            <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-frame.bin" />
+            <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-frame.xml" />
+            <attribute name="Cast Shadows" value="true" />
+          </component>
+        </node>
+        <node id="206">
+          <attribute name="Is Enabled" value="true" />
+          <attribute name="Name" value="Shoulder" />
+          <attribute name="Tags" />
+          <attribute name="Position" value="0.00 1.50 0.00" />
+          <attribute name="Rotation" value="0.891168 0.453674 0 0" />
+          <attribute name="Scale" value="1.00 1.00 1.00" />
+          <attribute name="Variables" />
+          <node id="207">
+            <attribute name="Is Enabled" value="true" />
+            <attribute name="Name" value="glowAccent" />
+            <attribute name="Tags" />
+            <attribute name="Position" value="0.00 0.00 0.00" />
+            <attribute name="Rotation" value="1 0 0 0" />
+            <attribute name="Scale" value="1.00 1.00 1.00" />
+            <attribute name="Variables" />
+            <component type="StaticModel" id="178">
+              <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-glowAccent.bin" />
+              <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-glowAccent.xml" />
+            </component>
+          </node>
+          <node id="208">
+            <attribute name="Is Enabled" value="true" />
+            <attribute name="Name" value="orange" />
+            <attribute name="Tags" />
+            <attribute name="Position" value="0.00 0.00 0.00" />
+            <attribute name="Rotation" value="1 0 0 0" />
+            <attribute name="Scale" value="1.00 1.00 1.00" />
+            <attribute name="Variables" />
+            <component type="StaticModel" id="179">
+              <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-orange.bin" />
+              <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-orange.xml" />
+              <attribute name="Cast Shadows" value="true" />
+            </component>
+          </node>
+          <node id="209">
+            <attribute name="Is Enabled" value="true" />
+            <attribute name="Name" value="hull" />
+            <attribute name="Tags" />
+            <attribute name="Position" value="0.00 0.00 0.00" />
+            <attribute name="Rotation" value="1 0 0 0" />
+            <attribute name="Scale" value="1.00 1.00 1.00" />
+            <attribute name="Variables" />
+            <component type="StaticModel" id="180">
+              <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-hull.bin" />
+              <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-hull.xml" />
+              <attribute name="Cast Shadows" value="true" />
+            </component>
+          </node>
+          <node id="210">
+            <attribute name="Is Enabled" value="true" />
+            <attribute name="Name" value="frame" />
+            <attribute name="Tags" />
+            <attribute name="Position" value="0.00 0.00 0.00" />
+            <attribute name="Rotation" value="1 0 0 0" />
+            <attribute name="Scale" value="1.00 1.00 1.00" />
+            <attribute name="Variables" />
+            <component type="StaticModel" id="181">
+              <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-frame.bin" />
+              <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-frame.xml" />
+              <attribute name="Cast Shadows" value="true" />
+            </component>
+          </node>
+          <node id="211">
+            <attribute name="Is Enabled" value="true" />
+            <attribute name="Name" value="Elbow" />
+            <attribute name="Tags" />
+            <attribute name="Position" value="0.00 4.60 0.00" />
+            <attribute name="Rotation" value="0.899475 0.436972 0 0" />
+            <attribute name="Scale" value="1.00 1.00 1.00" />
+            <attribute name="Variables" />
+            <node id="212">
+              <attribute name="Is Enabled" value="true" />
+              <attribute name="Name" value="glowAccent" />
+              <attribute name="Tags" />
+              <attribute name="Position" value="0.00 0.00 0.00" />
+              <attribute name="Rotation" value="1 0 0 0" />
+              <attribute name="Scale" value="1.00 1.00 1.00" />
+              <attribute name="Variables" />
+              <component type="StaticModel" id="182">
+                <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-Elbow-glowAccent.bin" />
+                <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-glowAccent.xml" />
+              </component>
+            </node>
+            <node id="213">
+              <attribute name="Is Enabled" value="true" />
+              <attribute name="Name" value="orange" />
+              <attribute name="Tags" />
+              <attribute name="Position" value="0.00 0.00 0.00" />
+              <attribute name="Rotation" value="1 0 0 0" />
+              <attribute name="Scale" value="1.00 1.00 1.00" />
+              <attribute name="Variables" />
+              <component type="StaticModel" id="183">
+                <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-Elbow-orange.bin" />
+                <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-orange.xml" />
+                <attribute name="Cast Shadows" value="true" />
+              </component>
+            </node>
+            <node id="214">
+              <attribute name="Is Enabled" value="true" />
+              <attribute name="Name" value="hull" />
+              <attribute name="Tags" />
+              <attribute name="Position" value="0.00 0.00 0.00" />
+              <attribute name="Rotation" value="1 0 0 0" />
+              <attribute name="Scale" value="1.00 1.00 1.00" />
+              <attribute name="Variables" />
+              <component type="StaticModel" id="184">
+                <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-Elbow-hull.bin" />
+                <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-hull.xml" />
+                <attribute name="Cast Shadows" value="true" />
+              </component>
+            </node>
+            <node id="215">
+              <attribute name="Is Enabled" value="true" />
+              <attribute name="Name" value="frame" />
+              <attribute name="Tags" />
+              <attribute name="Position" value="0.00 0.00 0.00" />
+              <attribute name="Rotation" value="1 0 0 0" />
+              <attribute name="Scale" value="1.00 1.00 1.00" />
+              <attribute name="Variables" />
+              <component type="StaticModel" id="185">
+                <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-Elbow-frame.bin" />
+                <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-frame.xml" />
+                <attribute name="Cast Shadows" value="true" />
+              </component>
+            </node>
+            <node id="216">
+              <attribute name="Is Enabled" value="true" />
+              <attribute name="Name" value="Wrist" />
+              <attribute name="Tags" />
+              <attribute name="Position" value="0.00 4.00 0.00" />
+              <attribute name="Rotation" value="0.995004 0.0998351 0 0" />
+              <attribute name="Scale" value="1.00 1.00 1.00" />
+              <attribute name="Variables" />
+              <node id="217">
+                <attribute name="Is Enabled" value="true" />
+                <attribute name="Name" value="hull" />
+                <attribute name="Tags" />
+                <attribute name="Position" value="0.00 0.00 0.00" />
+                <attribute name="Rotation" value="1 0 0 0" />
+                <attribute name="Scale" value="1.00 1.00 1.00" />
+                <attribute name="Variables" />
+                <component type="StaticModel" id="186">
+                  <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-Elbow-Wrist-hull.bin" />
+                  <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-hull.xml" />
+                  <attribute name="Cast Shadows" value="true" />
+                </component>
+              </node>
+              <node id="218">
+                <attribute name="Is Enabled" value="true" />
+                <attribute name="Name" value="steel" />
+                <attribute name="Tags" />
+                <attribute name="Position" value="0.00 0.00 0.00" />
+                <attribute name="Rotation" value="1 0 0 0" />
+                <attribute name="Scale" value="1.00 1.00 1.00" />
+                <attribute name="Variables" />
+                <component type="StaticModel" id="187">
+                  <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-Elbow-Wrist-steel.bin" />
+                  <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-steel.xml" />
+                  <attribute name="Cast Shadows" value="true" />
+                </component>
+              </node>
+              <node id="219">
+                <attribute name="Is Enabled" value="true" />
+                <attribute name="Name" value="glowWork" />
+                <attribute name="Tags" />
+                <attribute name="Position" value="0.00 0.00 0.00" />
+                <attribute name="Rotation" value="1 0 0 0" />
+                <attribute name="Scale" value="1.00 1.00 1.00" />
+                <attribute name="Variables" />
+                <component type="StaticModel" id="188">
+                  <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-Elbow-Wrist-glowWork.bin" />
+                  <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-glowWork.xml" />
+                </component>
+              </node>
+              <node id="220">
+                <attribute name="Is Enabled" value="true" />
+                <attribute name="Name" value="frame" />
+                <attribute name="Tags" />
+                <attribute name="Position" value="0.00 0.00 0.00" />
+                <attribute name="Rotation" value="1 0 0 0" />
+                <attribute name="Scale" value="1.00 1.00 1.00" />
+                <attribute name="Variables" />
+                <component type="StaticModel" id="189">
+                  <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Arm1-Turret-Shoulder-Elbow-Wrist-frame.bin" />
+                  <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-frame.xml" />
+                  <attribute name="Cast Shadows" value="true" />
+                </component>
+              </node>
+            </node>
+          </node>
+        </node>
+      </node>
+    </node>
+    <node id="237">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="CraneBridge" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="0.00 25.45 -5.42" />
+      <attribute name="Rotation" value="1 0 0 0" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <node id="238">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="glowAccent" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="204">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-CraneBridge-glowAccent.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-glowAccent.xml" />
+        </component>
+      </node>
+      <node id="239">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="orange" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="205">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-CraneBridge-orange.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-orange.xml" />
+        </component>
+      </node>
+      <node id="240">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="glowAmber" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="206">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-CraneBridge-glowAmber.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-CraneBridge-glowAmber.xml" />
+        </component>
+      </node>
+      <node id="241">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="dark" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="207">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-CraneBridge-dark.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-dark.xml" />
+        </component>
+      </node>
+      <node id="242">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="hull" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="208">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-CraneBridge-hull.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-hull.xml" />
+        </component>
+      </node>
+      <node id="243">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="frame" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="0.00 0.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <component type="StaticModel" id="209">
+          <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-CraneBridge-frame.bin" />
+          <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-frame.xml" />
+        </component>
+      </node>
+      <node id="244">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="CraneTrolley" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="-2.88 2.00 0.00" />
+        <attribute name="Rotation" value="1 0 0 0" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <node id="245">
+          <attribute name="Is Enabled" value="true" />
+          <attribute name="Name" value="hullGrey" />
+          <attribute name="Tags" />
+          <attribute name="Position" value="0.00 0.00 0.00" />
+          <attribute name="Rotation" value="1 0 0 0" />
+          <attribute name="Scale" value="1.00 1.00 1.00" />
+          <attribute name="Variables" />
+          <component type="StaticModel" id="210">
+            <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-CraneBridge-CraneTrolley-hullGrey.bin" />
+            <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-hullGrey.xml" />
+          </component>
+        </node>
+        <node id="246">
+          <attribute name="Is Enabled" value="true" />
+          <attribute name="Name" value="steel" />
+          <attribute name="Tags" />
+          <attribute name="Position" value="0.00 0.00 0.00" />
+          <attribute name="Rotation" value="1 0 0 0" />
+          <attribute name="Scale" value="1.00 1.00 1.00" />
+          <attribute name="Variables" />
+          <component type="StaticModel" id="211">
+            <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-CraneBridge-CraneTrolley-steel.bin" />
+            <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-steel.xml" />
+          </component>
+        </node>
+        <node id="247">
+          <attribute name="Is Enabled" value="true" />
+          <attribute name="Name" value="orange" />
+          <attribute name="Tags" />
+          <attribute name="Position" value="0.00 0.00 0.00" />
+          <attribute name="Rotation" value="1 0 0 0" />
+          <attribute name="Scale" value="1.00 1.00 1.00" />
+          <attribute name="Variables" />
+          <component type="StaticModel" id="212">
+            <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-CraneBridge-CraneTrolley-orange.bin" />
+            <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-orange.xml" />
+          </component>
+        </node>
+        <node id="248">
+          <attribute name="Is Enabled" value="true" />
+          <attribute name="Name" value="frame" />
+          <attribute name="Tags" />
+          <attribute name="Position" value="0.00 0.00 0.00" />
+          <attribute name="Rotation" value="1 0 0 0" />
+          <attribute name="Scale" value="1.00 1.00 1.00" />
+          <attribute name="Variables" />
+          <component type="StaticModel" id="213">
+            <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-CraneBridge-CraneTrolley-frame.bin" />
+            <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-frame.xml" />
+          </component>
+        </node>
+      </node>
+    </node>
+    <node id="249">
+      <attribute name="Is Enabled" value="false" />
+      <attribute name="Name" value="WelcomeScanner" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="-0.00 2.35 -5.25" />
+      <attribute name="Rotation" value="1 0 0 0" />
+      <attribute name="Scale" value="5.10 4.70 1.00" />
+      <attribute name="Variables" />
+      <component type="StaticModel" id="214">
+        <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-WelcomeScanner.bin" />
+        <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-WelcomeScanner.xml" />
+      </component>
+    </node>
+    <node id="250">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="HangarLight_spot" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="-2.00 22.50 7.00" />
+      <attribute name="Rotation" value="0.112599 0.0809909 0.803962 -0.57828" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <component type="Light" id="215">
+        <attribute name="Light Type" value="Spot" />
+        <attribute name="Color" value="0.904661 0.913099 0.930111 1" />
+        <attribute name="Brightness Multiplier" value="1650" />
+        <attribute name="Range" value="70" />
+        <attribute name="Spot FOV" value="82.5059" />
+        <attribute name="Cast Shadows" value="true" />
+        <attribute name="Normal Offset" value="0.2" />
+        <attribute name="Outer Cone Angle" value="41.253" />
+        <attribute name="Inner Cone Angle" value="6.18794" />
+      </component>
+    </node>
+    <node id="251">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="HangarLight_rect" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="12.00 23.50 0.00" />
+      <attribute name="Rotation" value="0.589821 0.390014 -0.589821 0.390014" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <component type="Light" id="216">
+        <attribute name="Light Type" value="Rect" />
+        <attribute name="Color" value="0.854993 0.871367 0.896269 1" />
+        <attribute name="Brightness Multiplier" value="99" />
+        <attribute name="Source Width" value="22" />
+        <attribute name="Source Height" value="3" />
+        <attribute name="Range" value="90" />
+      </component>
+    </node>
+    <node id="252">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="HangarLight_rect" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="-12.00 23.50 0.00" />
+      <attribute name="Rotation" value="0.589821 0.390014 0.589821 -0.390014" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <component type="Light" id="217">
+        <attribute name="Light Type" value="Rect" />
+        <attribute name="Color" value="0.854993 0.871367 0.896269 1" />
+        <attribute name="Brightness Multiplier" value="99" />
+        <attribute name="Source Width" value="22" />
+        <attribute name="Source Height" value="3" />
+        <attribute name="Range" value="90" />
+      </component>
+    </node>
+    <node id="253">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="HangarLight_rect" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="0.00 10.65 -35.80" />
+      <attribute name="Rotation" value="0.998453 0.0556065 0 0" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <component type="Light" id="218">
+        <attribute name="Light Type" value="Rect" />
+        <attribute name="Color" value="0.323143 0.351533 0.412543 1" />
+        <attribute name="Brightness Multiplier" value="633.6" />
+        <attribute name="Source Width" value="36" />
+        <attribute name="Source Height" value="22" />
+        <attribute name="Range" value="90" />
+      </component>
+    </node>
+    <node id="254">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="HangarLight_rect" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="-23.00 6.15 0.00" />
+      <attribute name="Rotation" value="0.680455 0.192304 -0.680455 0.192304" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <component type="Light" id="219">
+        <attribute name="Light Type" value="Rect" />
+        <attribute name="Color" value="0.791298 0.814847 0.854993 1" />
+        <attribute name="Brightness Multiplier" value="147.2" />
+        <attribute name="Source Width" value="46" />
+        <attribute name="Source Height" value="2" />
+        <attribute name="Range" value="90" />
+      </component>
+    </node>
+    <node id="256">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="Glow" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="0.00 0.00 0.00" />
+      <attribute name="Rotation" value="1 0 0 0" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <component type="StaticModel" id="221">
+        <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Glow.bin" />
+        <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Glow.xml" />
+      </component>
+    </node>
+    <node id="257">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="Glow" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="0.00 0.00 0.00" />
+      <attribute name="Rotation" value="1 0 0 0" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <component type="StaticModel" id="222">
+        <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Glow-2.bin" />
+        <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Glow-2.xml" />
+      </component>
+    </node>
+    <node id="258">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="Glow" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="0.00 0.00 0.00" />
+      <attribute name="Rotation" value="1 0 0 0" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <component type="StaticModel" id="223">
+        <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Glow-3.bin" />
+        <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Glow-3.xml" />
+      </component>
+    </node>
+    <node id="259">
+      <attribute name="Is Enabled" value="true" />
+      <attribute name="Name" value="HangarDust" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="0.00 0.00 0.00" />
+      <attribute name="Rotation" value="1 0 0 0" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <component type="StaticModel" id="224">
+        <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-HangarDust.bin" />
+        <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-HangarDust.xml" />
+      </component>
+    </node>
+    <node id="554">
+      <attribute name="Is Enabled" value="false" />
+      <attribute name="Name" value="BuildBoundary" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="0.00 0.00 0.00" />
+      <attribute name="Rotation" value="1 0 0 0" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <component type="StaticModel" id="526">
+        <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-BuildBoundary.bin" />
+        <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-BuildBoundary.xml" />
+      </component>
+    </node>
+    <node id="555">
+      <attribute name="Is Enabled" value="false" />
+      <attribute name="Name" value="BuildHeightGuides" />
+      <attribute name="Tags" />
+      <attribute name="Position" value="0.00 0.00 0.00" />
+      <attribute name="Rotation" value="1 0 0 0" />
+      <attribute name="Scale" value="1.00 1.00 1.00" />
+      <attribute name="Variables" />
+      <component type="CustomGeometry" id="527">
+        <attribute name="Geometry Data" value="1 1 0 0 0 240 1 1 0 0 116 65 0 0 0 0 0 0 162 193 0 0 116 65 0 0 164 65 0 0 162 193 0 0 116 65 0 0 164 65 0 0 162 193 113 61 106 65 0 0 164 65 0 0 162 193 225 122 96 65 0 0 164 65 0 0 162 193 82 184 86 65 0 0 164 65 0 0 162 193 195 245 76 65 0 0 164 65 0 0 162 193 51 51 67 65 0 0 164 65 0 0 162 193 164 112 57 65 0 0 164 65 0 0 162 193 20 174 47 65 0 0 164 65 0 0 162 193 133 235 37 65 0 0 164 65 0 0 162 193 246 40 28 65 0 0 164 65 0 0 162 193 102 102 18 65 0 0 164 65 0 0 162 193 215 163 8 65 0 0 164 65 0 0 162 193 143 194 253 64 0 0 164 65 0 0 162 193 113 61 234 64 0 0 164 65 0 0 162 193 82 184 214 64 0 0 164 65 0 0 162 193 51 51 195 64 0 0 164 65 0 0 162 193 20 174 175 64 0 0 164 65 0 0 162 193 246 40 156 64 0 0 164 65 0 0 162 193 215 163 136 64 0 0 164 65 0 0 162 193 113 61 106 64 0 0 164 65 0 0 162 193 51 51 67 64 0 0 164 65 0 0 162 193 246 40 28 64 0 0 164 65 0 0 162 193 113 61 234 63 0 0 164 65 0 0 162 193 246 40 156 63 0 0 164 65 0 0 162 193 246 40 28 63 0 0 164 65 0 0 162 193 0 0 0 128 0 0 164 65 0 0 162 193 246 40 28 191 0 0 164 65 0 0 162 193 246 40 156 191 0 0 164 65 0 0 162 193 113 61 234 191 0 0 164 65 0 0 162 193 246 40 28 192 0 0 164 65 0 0 162 193 51 51 67 192 0 0 164 65 0 0 162 193 113 61 106 192 0 0 164 65 0 0 162 193 215 163 136 192 0 0 164 65 0 0 162 193 246 40 156 192 0 0 164 65 0 0 162 193 20 174 175 192 0 0 164 65 0 0 162 193 51 51 195 192 0 0 164 65 0 0 162 193 82 184 214 192 0 0 164 65 0 0 162 193 113 61 234 192 0 0 164 65 0 0 162 193 143 194 253 192 0 0 164 65 0 0 162 193 215 163 8 193 0 0 164 65 0 0 162 193 102 102 18 193 0 0 164 65 0 0 162 193 246 40 28 193 0 0 164 65 0 0 162 193 133 235 37 193 0 0 164 65 0 0 162 193 20 174 47 193 0 0 164 65 0 0 162 193 164 112 57 193 0 0 164 65 0 0 162 193 51 51 67 193 0 0 164 65 0 0 162 193 195 245 76 193 0 0 164 65 0 0 162 193 82 184 86 193 0 0 164 65 0 0 162 193 225 122 96 193 0 0 164 65 0 0 162 193 113 61 106 193 0 0 164 65 0 0 162 193 0 0 116 193 0 0 0 0 0 0 162 193 0 0 116 193 0 0 164 65 0 0 162 193 0 0 116 193 0 0 164 65 0 0 162 193 0 0 116 193 0 0 164 65 70 23 157 193 0 0 116 193 0 0 164 65 140 46 152 193 0 0 116 193 0 0 164 65 209 69 147 193 0 0 116 193 0 0 164 65 23 93 142 193 0 0 116 193 0 0 164 65 93 116 137 193 0 0 116 193 0 0 164 65 163 139 132 193 0 0 116 193 0 0 164 65 209 69 127 193 0 0 116 193 0 0 164 65 93 116 117 193 0 0 116 193 0 0 164 65 233 162 107 193 0 0 116 193 0 0 164 65 116 209 97 193 0 0 116 193 0 0 164 65 0 0 88 193 0 0 116 193 0 0 164 65 140 46 78 193 0 0 116 193 0 0 164 65 23 93 68 193 0 0 116 193 0 0 164 65 163 139 58 193 0 0 116 193 0 0 164 65 47 186 48 193 0 0 116 193 0 0 164 65 186 232 38 193 0 0 116 193 0 0 164 65 70 23 29 193 0 0 116 193 0 0 164 65 209 69 19 193 0 0 116 193 0 0 164 65 93 116 9 193 0 0 116 193 0 0 164 65 209 69 255 192 0 0 116 193 0 0 164 65 233 162 235 192 0 0 116 193 0 0 164 65 0 0 216 192 0 0 116 193 0 0 164 65 23 93 196 192 0 0 116 193 0 0 164 65 47 186 176 192 0 0 116 193 0 0 164 65 70 23 157 192 0 0 116 193 0 0 164 65 93 116 137 192 0 0 116 193 0 0 164 65 233 162 107 192 0 0 116 193 0 0 164 65 23 93 68 192 0 0 116 193 0 0 164 65 70 23 29 192 0 0 116 193 0 0 164 65 233 162 235 191 0 0 116 193 0 0 164 65 70 23 157 191 0 0 116 193 0 0 164 65 70 23 29 191 0 0 116 193 0 0 164 65 0 0 0 0 0 0 116 193 0 0 164 65 70 23 29 63 0 0 116 193 0 0 164 65 70 23 157 63 0 0 116 193 0 0 164 65 233 162 235 63 0 0 116 193 0 0 164 65 70 23 29 64 0 0 116 193 0 0 164 65 23 93 68 64 0 0 116 193 0 0 164 65 233 162 107 64 0 0 116 193 0 0 164 65 93 116 137 64 0 0 116 193 0 0 164 65 70 23 157 64 0 0 116 193 0 0 164 65 47 186 176 64 0 0 116 193 0 0 164 65 23 93 196 64 0 0 116 193 0 0 164 65 0 0 216 64 0 0 116 193 0 0 164 65 233 162 235 64 0 0 116 193 0 0 164 65 209 69 255 64 0 0 116 193 0 0 164 65 93 116 9 65 0 0 116 193 0 0 164 65 209 69 19 65 0 0 116 193 0 0 164 65 70 23 29 65 0 0 116 193 0 0 164 65 186 232 38 65 0 0 116 193 0 0 164 65 47 186 48 65 0 0 116 193 0 0 164 65 163 139 58 65 0 0 116 193 0 0 164 65 23 93 68 65 0 0 116 193 0 0 164 65 140 46 78 65 0 0 116 193 0 0 164 65 0 0 88 65 0 0 116 193 0 0 164 65 116 209 97 65 0 0 116 193 0 0 164 65 233 162 107 65 0 0 116 193 0 0 164 65 93 116 117 65 0 0 116 193 0 0 164 65 209 69 127 65 0 0 116 193 0 0 164 65 163 139 132 65 0 0 116 193 0 0 164 65 93 116 137 65 0 0 116 193 0 0 164 65 23 93 142 65 0 0 116 193 0 0 164 65 209 69 147 65 0 0 116 193 0 0 164 65 140 46 152 65 0 0 116 193 0 0 164 65 70 23 157 65 0 0 116 193 0 0 0 0 0 0 162 65 0 0 116 193 0 0 164 65 0 0 162 65 0 0 116 193 0 0 164 65 0 0 162 65 113 61 106 193 0 0 164 65 0 0 162 65 225 122 96 193 0 0 164 65 0 0 162 65 82 184 86 193 0 0 164 65 0 0 162 65 195 245 76 193 0 0 164 65 0 0 162 65 51 51 67 193 0 0 164 65 0 0 162 65 164 112 57 193 0 0 164 65 0 0 162 65 20 174 47 193 0 0 164 65 0 0 162 65 133 235 37 193 0 0 164 65 0 0 162 65 246 40 28 193 0 0 164 65 0 0 162 65 102 102 18 193 0 0 164 65 0 0 162 65 215 163 8 193 0 0 164 65 0 0 162 65 143 194 253 192 0 0 164 65 0 0 162 65 113 61 234 192 0 0 164 65 0 0 162 65 82 184 214 192 0 0 164 65 0 0 162 65 51 51 195 192 0 0 164 65 0 0 162 65 20 174 175 192 0 0 164 65 0 0 162 65 246 40 156 192 0 0 164 65 0 0 162 65 215 163 136 192 0 0 164 65 0 0 162 65 113 61 106 192 0 0 164 65 0 0 162 65 51 51 67 192 0 0 164 65 0 0 162 65 246 40 28 192 0 0 164 65 0 0 162 65 113 61 234 191 0 0 164 65 0 0 162 65 246 40 156 191 0 0 164 65 0 0 162 65 246 40 28 191 0 0 164 65 0 0 162 65 0 0 0 128 0 0 164 65 0 0 162 65 246 40 28 63 0 0 164 65 0 0 162 65 246 40 156 63 0 0 164 65 0 0 162 65 113 61 234 63 0 0 164 65 0 0 162 65 246 40 28 64 0 0 164 65 0 0 162 65 51 51 67 64 0 0 164 65 0 0 162 65 113 61 106 64 0 0 164 65 0 0 162 65 215 163 136 64 0 0 164 65 0 0 162 65 246 40 156 64 0 0 164 65 0 0 162 65 20 174 175 64 0 0 164 65 0 0 162 65 51 51 195 64 0 0 164 65 0 0 162 65 82 184 214 64 0 0 164 65 0 0 162 65 113 61 234 64 0 0 164 65 0 0 162 65 143 194 253 64 0 0 164 65 0 0 162 65 215 163 8 65 0 0 164 65 0 0 162 65 102 102 18 65 0 0 164 65 0 0 162 65 246 40 28 65 0 0 164 65 0 0 162 65 133 235 37 65 0 0 164 65 0 0 162 65 20 174 47 65 0 0 164 65 0 0 162 65 164 112 57 65 0 0 164 65 0 0 162 65 51 51 67 65 0 0 164 65 0 0 162 65 195 245 76 65 0 0 164 65 0 0 162 65 82 184 86 65 0 0 164 65 0 0 162 65 225 122 96 65 0 0 164 65 0 0 162 65 113 61 106 65 0 0 164 65 0 0 162 65 0 0 116 65 0 0 0 0 0 0 162 65 0 0 116 65 0 0 164 65 0 0 162 65 0 0 116 65 0 0 164 65 0 0 162 65 0 0 116 65 0 0 164 65 70 23 157 65 0 0 116 65 0 0 164 65 140 46 152 65 0 0 116 65 0 0 164 65 209 69 147 65 0 0 116 65 0 0 164 65 23 93 142 65 0 0 116 65 0 0 164 65 93 116 137 65 0 0 116 65 0 0 164 65 163 139 132 65 0 0 116 65 0 0 164 65 209 69 127 65 0 0 116 65 0 0 164 65 93 116 117 65 0 0 116 65 0 0 164 65 233 162 107 65 0 0 116 65 0 0 164 65 116 209 97 65 0 0 116 65 0 0 164 65 0 0 88 65 0 0 116 65 0 0 164 65 140 46 78 65 0 0 116 65 0 0 164 65 23 93 68 65 0 0 116 65 0 0 164 65 163 139 58 65 0 0 116 65 0 0 164 65 47 186 48 65 0 0 116 65 0 0 164 65 186 232 38 65 0 0 116 65 0 0 164 65 70 23 29 65 0 0 116 65 0 0 164 65 209 69 19 65 0 0 116 65 0 0 164 65 93 116 9 65 0 0 116 65 0 0 164 65 209 69 255 64 0 0 116 65 0 0 164 65 233 162 235 64 0 0 116 65 0 0 164 65 0 0 216 64 0 0 116 65 0 0 164 65 23 93 196 64 0 0 116 65 0 0 164 65 47 186 176 64 0 0 116 65 0 0 164 65 70 23 157 64 0 0 116 65 0 0 164 65 93 116 137 64 0 0 116 65 0 0 164 65 233 162 107 64 0 0 116 65 0 0 164 65 23 93 68 64 0 0 116 65 0 0 164 65 70 23 29 64 0 0 116 65 0 0 164 65 233 162 235 63 0 0 116 65 0 0 164 65 70 23 157 63 0 0 116 65 0 0 164 65 70 23 29 63 0 0 116 65 0 0 164 65 0 0 0 0 0 0 116 65 0 0 164 65 70 23 29 191 0 0 116 65 0 0 164 65 70 23 157 191 0 0 116 65 0 0 164 65 233 162 235 191 0 0 116 65 0 0 164 65 70 23 29 192 0 0 116 65 0 0 164 65 23 93 68 192 0 0 116 65 0 0 164 65 233 162 107 192 0 0 116 65 0 0 164 65 93 116 137 192 0 0 116 65 0 0 164 65 70 23 157 192 0 0 116 65 0 0 164 65 47 186 176 192 0 0 116 65 0 0 164 65 23 93 196 192 0 0 116 65 0 0 164 65 0 0 216 192 0 0 116 65 0 0 164 65 233 162 235 192 0 0 116 65 0 0 164 65 209 69 255 192 0 0 116 65 0 0 164 65 93 116 9 193 0 0 116 65 0 0 164 65 209 69 19 193 0 0 116 65 0 0 164 65 70 23 29 193 0 0 116 65 0 0 164 65 186 232 38 193 0 0 116 65 0 0 164 65 47 186 48 193 0 0 116 65 0 0 164 65 163 139 58 193 0 0 116 65 0 0 164 65 23 93 68 193 0 0 116 65 0 0 164 65 140 46 78 193 0 0 116 65 0 0 164 65 0 0 88 193 0 0 116 65 0 0 164 65 116 209 97 193 0 0 116 65 0 0 164 65 233 162 107 193 0 0 116 65 0 0 164 65 93 116 117 193 0 0 116 65 0 0 164 65 209 69 127 193 0 0 116 65 0 0 164 65 163 139 132 193 0 0 116 65 0 0 164 65 93 116 137 193 0 0 116 65 0 0 164 65 23 93 142 193 0 0 116 65 0 0 164 65 209 69 147 193 0 0 116 65 0 0 164 65 140 46 152 193 0 0 116 65 0 0 164 65 70 23 157 193" />
+        <attribute name="Materials" value="Material;Hangar/Materials/OrbitalHangar-BuildHeightGuides.xml" />
+      </component>
+    </node>
+    <node id="601">
+      <attribute name="Name" value="DronePatrol1" />
+      <attribute name="Position" value="0 0 0" />
+      <node id="221">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="Drone1" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="-10.61 6.26 6.75" />
+        <attribute name="Rotation" value="0.889809 0.0711828 -0.449312 0.035944" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <node id="222">
+          <attribute name="Is Enabled" value="true" />
+          <attribute name="Name" value="glowAccent" />
+          <attribute name="Tags" />
+          <attribute name="Position" value="0.00 0.00 0.00" />
+          <attribute name="Rotation" value="1 0 0 0" />
+          <attribute name="Scale" value="1.00 1.00 1.00" />
+          <attribute name="Variables" />
+          <component type="StaticModel" id="190">
+            <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Drone1-glowAccent.bin" />
+            <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-glowAccent.xml" />
+          </component>
+        </node>
+        <node id="223">
+          <attribute name="Is Enabled" value="true" />
+          <attribute name="Name" value="glowAccentDim" />
+          <attribute name="Tags" />
+          <attribute name="Position" value="0.00 0.00 0.00" />
+          <attribute name="Rotation" value="1 0 0 0" />
+          <attribute name="Scale" value="1.00 1.00 1.00" />
+          <attribute name="Variables" />
+          <component type="StaticModel" id="191">
+            <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Drone1-glowAccentDim.bin" />
+            <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-glowAccentDim.xml" />
+          </component>
+        </node>
+        <node id="224">
+          <attribute name="Is Enabled" value="true" />
+          <attribute name="Name" value="steel" />
+          <attribute name="Tags" />
+          <attribute name="Position" value="0.00 0.00 0.00" />
+          <attribute name="Rotation" value="1 0 0 0" />
+          <attribute name="Scale" value="1.00 1.00 1.00" />
+          <attribute name="Variables" />
+          <component type="StaticModel" id="192">
+            <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Drone1-steel.bin" />
+            <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-steel.xml" />
+          </component>
+        </node>
+        <node id="225">
+          <attribute name="Is Enabled" value="true" />
+          <attribute name="Name" value="glowWhite" />
+          <attribute name="Tags" />
+          <attribute name="Position" value="0.00 0.00 0.00" />
+          <attribute name="Rotation" value="1 0 0 0" />
+          <attribute name="Scale" value="1.00 1.00 1.00" />
+          <attribute name="Variables" />
+          <component type="StaticModel" id="193">
+            <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Drone1-glowWhite.bin" />
+            <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture3-glowWhite.xml" />
+          </component>
+        </node>
+        <node id="226">
+          <attribute name="Is Enabled" value="true" />
+          <attribute name="Name" value="dark" />
+          <attribute name="Tags" />
+          <attribute name="Position" value="0.00 0.00 0.00" />
+          <attribute name="Rotation" value="1 0 0 0" />
+          <attribute name="Scale" value="1.00 1.00 1.00" />
+          <attribute name="Variables" />
+          <component type="StaticModel" id="194">
+            <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Drone1-dark.bin" />
+            <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-dark.xml" />
+          </component>
+        </node>
+        <node id="227">
+          <attribute name="Is Enabled" value="true" />
+          <attribute name="Name" value="hull" />
+          <attribute name="Tags" />
+          <attribute name="Position" value="0.00 0.00 0.00" />
+          <attribute name="Rotation" value="1 0 0 0" />
+          <attribute name="Scale" value="1.00 1.00 1.00" />
+          <attribute name="Variables" />
+          <component type="StaticModel" id="195">
+            <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Drone1-hull.bin" />
+            <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-hull.xml" />
+          </component>
+        </node>
+        <node id="228">
+          <attribute name="Is Enabled" value="true" />
+          <attribute name="Name" value="frame" />
+          <attribute name="Tags" />
+          <attribute name="Position" value="0.00 0.00 0.00" />
+          <attribute name="Rotation" value="1 0 0 0" />
+          <attribute name="Scale" value="1.00 1.00 1.00" />
+          <attribute name="Variables" />
+          <component type="StaticModel" id="196">
+            <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Drone1-frame.bin" />
+            <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-frame.xml" />
+          </component>
+        </node>
+      </node>
+    </node>
+    <node id="602">
+      <attribute name="Name" value="DronePatrol2" />
+      <attribute name="Position" value="0 0 0" />
+      <node id="229">
+        <attribute name="Is Enabled" value="true" />
+        <attribute name="Name" value="Drone2" />
+        <attribute name="Tags" />
+        <attribute name="Position" value="10.61 8.16 -6.75" />
+        <attribute name="Rotation" value="0.542546 0.0430136 0.8363 -0.0663028" />
+        <attribute name="Scale" value="1.00 1.00 1.00" />
+        <attribute name="Variables" />
+        <node id="230">
+          <attribute name="Is Enabled" value="true" />
+          <attribute name="Name" value="glowAccent" />
+          <attribute name="Tags" />
+          <attribute name="Position" value="0.00 0.00 0.00" />
+          <attribute name="Rotation" value="1 0 0 0" />
+          <attribute name="Scale" value="1.00 1.00 1.00" />
+          <attribute name="Variables" />
+          <component type="StaticModel" id="197">
+            <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Drone1-glowAccent.bin" />
+            <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-glowAccent.xml" />
+          </component>
+        </node>
+        <node id="231">
+          <attribute name="Is Enabled" value="true" />
+          <attribute name="Name" value="glowAccentDim" />
+          <attribute name="Tags" />
+          <attribute name="Position" value="0.00 0.00 0.00" />
+          <attribute name="Rotation" value="1 0 0 0" />
+          <attribute name="Scale" value="1.00 1.00 1.00" />
+          <attribute name="Variables" />
+          <component type="StaticModel" id="198">
+            <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Drone1-glowAccentDim.bin" />
+            <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-glowAccentDim.xml" />
+          </component>
+        </node>
+        <node id="232">
+          <attribute name="Is Enabled" value="true" />
+          <attribute name="Name" value="steel" />
+          <attribute name="Tags" />
+          <attribute name="Position" value="0.00 0.00 0.00" />
+          <attribute name="Rotation" value="1 0 0 0" />
+          <attribute name="Scale" value="1.00 1.00 1.00" />
+          <attribute name="Variables" />
+          <component type="StaticModel" id="199">
+            <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Drone1-steel.bin" />
+            <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-steel.xml" />
+          </component>
+        </node>
+        <node id="233">
+          <attribute name="Is Enabled" value="true" />
+          <attribute name="Name" value="glowWhite" />
+          <attribute name="Tags" />
+          <attribute name="Position" value="0.00 0.00 0.00" />
+          <attribute name="Rotation" value="1 0 0 0" />
+          <attribute name="Scale" value="1.00 1.00 1.00" />
+          <attribute name="Variables" />
+          <component type="StaticModel" id="200">
+            <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Drone1-glowWhite.bin" />
+            <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture3-glowWhite.xml" />
+          </component>
+        </node>
+        <node id="234">
+          <attribute name="Is Enabled" value="true" />
+          <attribute name="Name" value="dark" />
+          <attribute name="Tags" />
+          <attribute name="Position" value="0.00 0.00 0.00" />
+          <attribute name="Rotation" value="1 0 0 0" />
+          <attribute name="Scale" value="1.00 1.00 1.00" />
+          <attribute name="Variables" />
+          <component type="StaticModel" id="201">
+            <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Drone1-dark.bin" />
+            <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-dark.xml" />
+          </component>
+        </node>
+        <node id="235">
+          <attribute name="Is Enabled" value="true" />
+          <attribute name="Name" value="hull" />
+          <attribute name="Tags" />
+          <attribute name="Position" value="0.00 0.00 0.00" />
+          <attribute name="Rotation" value="1 0 0 0" />
+          <attribute name="Scale" value="1.00 1.00 1.00" />
+          <attribute name="Variables" />
+          <component type="StaticModel" id="202">
+            <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Drone1-hull.bin" />
+            <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture2-hull.xml" />
+          </component>
+        </node>
+        <node id="236">
+          <attribute name="Is Enabled" value="true" />
+          <attribute name="Name" value="frame" />
+          <attribute name="Tags" />
+          <attribute name="Position" value="0.00 0.00 0.00" />
+          <attribute name="Rotation" value="1 0 0 0" />
+          <attribute name="Scale" value="1.00 1.00 1.00" />
+          <attribute name="Variables" />
+          <component type="StaticModel" id="203">
+            <attribute name="Model" value="Model;Hangar/Models/OrbitalHangar-Drone1-frame.bin" />
+            <attribute name="Material" value="Material;Hangar/Materials/OrbitalHangar-Architecture1-frame.xml" />
+          </component>
+        </node>
+      </node>
+    </node>
+  </node>
+  <node id="553">
+    <attribute name="Is Enabled" value="true" />
+    <attribute name="Name" value="Camera" />
+    <attribute name="Tags" />
+    <attribute name="Position" value="0.00 11.65 23.30" />
+    <attribute name="Rotation" value="-8.69439e-08 -9.13817e-09 0.994522 -0.104528" />
+    <attribute name="Scale" value="1.00 1.00 1.00" />
+    <attribute name="Variables" />
+    <component type="Camera" id="525">
+      <attribute name="Near Clip" value="0.05" />
+      <attribute name="Far Clip" value="320" />
+      <attribute name="FOV" value="65" />
+      <attribute name="Aspect Ratio" value="1.86998" />
+    </component>
+  </node>
+  <node id="600">
+    <attribute name="Is Enabled" value="true" />
+    <attribute name="Name" value="GameplayEntry" />
+    <attribute name="Tags" />
+    <attribute name="Position" value="0.00 0.00 0.00" />
+    <attribute name="Rotation" value="1 0 0 0" />
+    <attribute name="Scale" value="1.00 1.00 1.00" />
+    <attribute name="Variables" />
+    <component type="LuaScriptInstance" id="600">
+      <attribute name="Script File" value="LuaFile;app/HangarEntry.lua" />
+      <attribute name="Script Object Type" value="HangarEntry" />
+    </component>
+  </node>
+</scene>

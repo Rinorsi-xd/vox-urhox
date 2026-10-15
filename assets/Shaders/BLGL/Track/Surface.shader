@@ -1,0 +1,3 @@
+shader_type spatial;
+render_mode shading_model_pbr, cull_back;
+#include "Surface.shaderinc"

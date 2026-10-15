@@ -1,0 +1,5277 @@
+{
+  "commit": "90862445074e7e146da900037979ad97899ecf6c",
+  "cases": [
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 0,
+        "status": "idle",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "冷却",
+        "tone": "busy",
+        "frac": 0,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 0,
+        "status": "fire",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "冷却",
+        "tone": "busy",
+        "frac": 0,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 0,
+        "status": "offline",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "能量耗尽",
+        "tone": "warn",
+        "frac": 0.17,
+        "sub": "停火等能量回来"
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 0,
+        "status": "limited",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "射界外",
+        "tone": "warn",
+        "frac": 0,
+        "sub": "炮塔转不到这边"
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 0,
+        "status": "blocked",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "被挡住",
+        "tone": "warn",
+        "frac": 0,
+        "sub": "炮口前有东西"
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 0,
+        "status": "far",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "冷却",
+        "tone": "busy",
+        "frac": 0,
+        "sub": "超出 250 米 · 伤害衰减"
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 0,
+        "status": "windup",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0.6,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "冷却",
+        "tone": "busy",
+        "frac": 0,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 0,
+        "status": "reload",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": true,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "冷却",
+        "tone": "busy",
+        "frac": 0,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 0,
+        "status": "volley",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": true
+        }
+      },
+      "expected": {
+        "word": "冷却",
+        "tone": "busy",
+        "frac": 0,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 0,
+        "status": "poor",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": false,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "冷却",
+        "tone": "busy",
+        "frac": 0,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 0,
+        "status": "locked",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": true,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "冷却",
+        "tone": "busy",
+        "frac": 0,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 0,
+        "status": "locking",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0.4,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "冷却",
+        "tone": "busy",
+        "frac": 0,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 0.25,
+        "status": "idle",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "冷却",
+        "tone": "busy",
+        "frac": 0.25,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 0.25,
+        "status": "fire",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "冷却",
+        "tone": "busy",
+        "frac": 0.25,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 0.25,
+        "status": "offline",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "能量耗尽",
+        "tone": "warn",
+        "frac": 0.17,
+        "sub": "停火等能量回来"
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 0.25,
+        "status": "limited",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "射界外",
+        "tone": "warn",
+        "frac": 0.25,
+        "sub": "炮塔转不到这边"
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 0.25,
+        "status": "blocked",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "被挡住",
+        "tone": "warn",
+        "frac": 0.25,
+        "sub": "炮口前有东西"
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 0.25,
+        "status": "far",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "冷却",
+        "tone": "busy",
+        "frac": 0.25,
+        "sub": "超出 250 米 · 伤害衰减"
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 0.25,
+        "status": "windup",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0.6,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "冷却",
+        "tone": "busy",
+        "frac": 0.25,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 0.25,
+        "status": "reload",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": true,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "冷却",
+        "tone": "busy",
+        "frac": 0.25,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 0.25,
+        "status": "volley",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": true
+        }
+      },
+      "expected": {
+        "word": "冷却",
+        "tone": "busy",
+        "frac": 0.25,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 0.25,
+        "status": "poor",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": false,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "冷却",
+        "tone": "busy",
+        "frac": 0.25,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 0.25,
+        "status": "locked",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": true,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "冷却",
+        "tone": "busy",
+        "frac": 0.25,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 0.25,
+        "status": "locking",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0.4,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "冷却",
+        "tone": "busy",
+        "frac": 0.25,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 0.8,
+        "status": "idle",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "冷却",
+        "tone": "busy",
+        "frac": 0.8,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 0.8,
+        "status": "fire",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "冷却",
+        "tone": "busy",
+        "frac": 0.8,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 0.8,
+        "status": "offline",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "能量耗尽",
+        "tone": "warn",
+        "frac": 0.17,
+        "sub": "停火等能量回来"
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 0.8,
+        "status": "limited",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "射界外",
+        "tone": "warn",
+        "frac": 0.8,
+        "sub": "炮塔转不到这边"
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 0.8,
+        "status": "blocked",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "被挡住",
+        "tone": "warn",
+        "frac": 0.8,
+        "sub": "炮口前有东西"
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 0.8,
+        "status": "far",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "冷却",
+        "tone": "busy",
+        "frac": 0.8,
+        "sub": "超出 250 米 · 伤害衰减"
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 0.8,
+        "status": "windup",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0.6,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "冷却",
+        "tone": "busy",
+        "frac": 0.8,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 0.8,
+        "status": "reload",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": true,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "冷却",
+        "tone": "busy",
+        "frac": 0.8,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 0.8,
+        "status": "volley",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": true
+        }
+      },
+      "expected": {
+        "word": "冷却",
+        "tone": "busy",
+        "frac": 0.8,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 0.8,
+        "status": "poor",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": false,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "冷却",
+        "tone": "busy",
+        "frac": 0.8,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 0.8,
+        "status": "locked",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": true,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "冷却",
+        "tone": "busy",
+        "frac": 0.8,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 0.8,
+        "status": "locking",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0.4,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "冷却",
+        "tone": "busy",
+        "frac": 0.8,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 1,
+        "status": "idle",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 1,
+        "status": "fire",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 1,
+        "status": "offline",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "能量耗尽",
+        "tone": "warn",
+        "frac": 0.17,
+        "sub": "停火等能量回来"
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 1,
+        "status": "limited",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "射界外",
+        "tone": "warn",
+        "frac": 1,
+        "sub": "炮塔转不到这边"
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 1,
+        "status": "blocked",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "被挡住",
+        "tone": "warn",
+        "frac": 1,
+        "sub": "炮口前有东西"
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 1,
+        "status": "far",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": "超出 250 米 · 伤害衰减"
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 1,
+        "status": "windup",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0.6,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 1,
+        "status": "reload",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": true,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 1,
+        "status": "volley",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": true
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 1,
+        "status": "poor",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": false,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 1,
+        "status": "locked",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": true,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "laser",
+        "ready": 1,
+        "status": "locking",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0.4,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 0,
+        "status": "idle",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 0,
+        "status": "fire",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "预热",
+        "tone": "busy",
+        "frac": 0,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 0,
+        "status": "offline",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "能量耗尽",
+        "tone": "warn",
+        "frac": 0.17,
+        "sub": "停火等能量回来"
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 0,
+        "status": "limited",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "射界外",
+        "tone": "warn",
+        "frac": 0,
+        "sub": "炮塔转不到这边"
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 0,
+        "status": "blocked",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "被挡住",
+        "tone": "warn",
+        "frac": 0,
+        "sub": "炮口前有东西"
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 0,
+        "status": "far",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": "超出 250 米 · 伤害衰减"
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 0,
+        "status": "windup",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0.6,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "预热",
+        "tone": "busy",
+        "frac": 0,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 0,
+        "status": "reload",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": true,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 0,
+        "status": "volley",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": true
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 0,
+        "status": "poor",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": false,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 0,
+        "status": "locked",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": true,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 0,
+        "status": "locking",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0.4,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 0.25,
+        "status": "idle",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 0.25,
+        "status": "fire",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "预热",
+        "tone": "busy",
+        "frac": 0.25,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 0.25,
+        "status": "offline",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "能量耗尽",
+        "tone": "warn",
+        "frac": 0.17,
+        "sub": "停火等能量回来"
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 0.25,
+        "status": "limited",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "射界外",
+        "tone": "warn",
+        "frac": 0.25,
+        "sub": "炮塔转不到这边"
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 0.25,
+        "status": "blocked",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "被挡住",
+        "tone": "warn",
+        "frac": 0.25,
+        "sub": "炮口前有东西"
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 0.25,
+        "status": "far",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": "超出 250 米 · 伤害衰减"
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 0.25,
+        "status": "windup",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0.6,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "预热",
+        "tone": "busy",
+        "frac": 0.25,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 0.25,
+        "status": "reload",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": true,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 0.25,
+        "status": "volley",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": true
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 0.25,
+        "status": "poor",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": false,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 0.25,
+        "status": "locked",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": true,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 0.25,
+        "status": "locking",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0.4,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 0.8,
+        "status": "idle",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 0.8,
+        "status": "fire",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "预热",
+        "tone": "busy",
+        "frac": 0.8,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 0.8,
+        "status": "offline",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "能量耗尽",
+        "tone": "warn",
+        "frac": 0.17,
+        "sub": "停火等能量回来"
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 0.8,
+        "status": "limited",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "射界外",
+        "tone": "warn",
+        "frac": 0.8,
+        "sub": "炮塔转不到这边"
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 0.8,
+        "status": "blocked",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "被挡住",
+        "tone": "warn",
+        "frac": 0.8,
+        "sub": "炮口前有东西"
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 0.8,
+        "status": "far",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": "超出 250 米 · 伤害衰减"
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 0.8,
+        "status": "windup",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0.6,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "预热",
+        "tone": "busy",
+        "frac": 0.8,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 0.8,
+        "status": "reload",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": true,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 0.8,
+        "status": "volley",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": true
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 0.8,
+        "status": "poor",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": false,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 0.8,
+        "status": "locked",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": true,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 0.8,
+        "status": "locking",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0.4,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 1,
+        "status": "idle",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 1,
+        "status": "fire",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 1,
+        "status": "offline",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "能量耗尽",
+        "tone": "warn",
+        "frac": 0.17,
+        "sub": "停火等能量回来"
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 1,
+        "status": "limited",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "射界外",
+        "tone": "warn",
+        "frac": 1,
+        "sub": "炮塔转不到这边"
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 1,
+        "status": "blocked",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "被挡住",
+        "tone": "warn",
+        "frac": 1,
+        "sub": "炮口前有东西"
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 1,
+        "status": "far",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": "超出 250 米 · 伤害衰减"
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 1,
+        "status": "windup",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0.6,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 1,
+        "status": "reload",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": true,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 1,
+        "status": "volley",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": true
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 1,
+        "status": "poor",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": false,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 1,
+        "status": "locked",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": true,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "mg",
+        "ready": 1,
+        "status": "locking",
+        "stats": {
+          "range": 250,
+          "spinUp": 0.6
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0.4,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 0,
+        "status": "idle",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "充能",
+        "tone": "busy",
+        "frac": 0,
+        "sub": "0%"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 0,
+        "status": "fire",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "充能",
+        "tone": "busy",
+        "frac": 0,
+        "sub": "0%"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 0,
+        "status": "offline",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "能量耗尽",
+        "tone": "warn",
+        "frac": 0.17,
+        "sub": "停火等能量回来"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 0,
+        "status": "limited",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "射界外",
+        "tone": "warn",
+        "frac": 0,
+        "sub": "炮塔转不到这边"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 0,
+        "status": "blocked",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "被挡住",
+        "tone": "warn",
+        "frac": 0,
+        "sub": "炮口前有东西"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 0,
+        "status": "far",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "充能",
+        "tone": "busy",
+        "frac": 0,
+        "sub": "超出 250 米 · 伤害衰减"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 0,
+        "status": "windup",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0.6,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "蓄力",
+        "tone": "ok",
+        "frac": 0.6,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 0,
+        "status": "reload",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": true,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "充能",
+        "tone": "busy",
+        "frac": 0,
+        "sub": "0%"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 0,
+        "status": "volley",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": true
+        }
+      },
+      "expected": {
+        "word": "充能",
+        "tone": "busy",
+        "frac": 0,
+        "sub": "0%"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 0,
+        "status": "poor",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": false,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "充能",
+        "tone": "busy",
+        "frac": 0,
+        "sub": "0%"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 0,
+        "status": "locked",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": true,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "充能",
+        "tone": "busy",
+        "frac": 0,
+        "sub": "0%"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 0,
+        "status": "locking",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0.4,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "充能",
+        "tone": "busy",
+        "frac": 0,
+        "sub": "0%"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 0.25,
+        "status": "idle",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "充能",
+        "tone": "busy",
+        "frac": 0.25,
+        "sub": "25%"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 0.25,
+        "status": "fire",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "充能",
+        "tone": "busy",
+        "frac": 0.25,
+        "sub": "25%"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 0.25,
+        "status": "offline",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "能量耗尽",
+        "tone": "warn",
+        "frac": 0.17,
+        "sub": "停火等能量回来"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 0.25,
+        "status": "limited",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "射界外",
+        "tone": "warn",
+        "frac": 0.25,
+        "sub": "炮塔转不到这边"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 0.25,
+        "status": "blocked",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "被挡住",
+        "tone": "warn",
+        "frac": 0.25,
+        "sub": "炮口前有东西"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 0.25,
+        "status": "far",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "充能",
+        "tone": "busy",
+        "frac": 0.25,
+        "sub": "超出 250 米 · 伤害衰减"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 0.25,
+        "status": "windup",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0.6,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "蓄力",
+        "tone": "ok",
+        "frac": 0.6,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 0.25,
+        "status": "reload",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": true,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "充能",
+        "tone": "busy",
+        "frac": 0.25,
+        "sub": "25%"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 0.25,
+        "status": "volley",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": true
+        }
+      },
+      "expected": {
+        "word": "充能",
+        "tone": "busy",
+        "frac": 0.25,
+        "sub": "25%"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 0.25,
+        "status": "poor",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": false,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "充能",
+        "tone": "busy",
+        "frac": 0.25,
+        "sub": "25%"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 0.25,
+        "status": "locked",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": true,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "充能",
+        "tone": "busy",
+        "frac": 0.25,
+        "sub": "25%"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 0.25,
+        "status": "locking",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0.4,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "充能",
+        "tone": "busy",
+        "frac": 0.25,
+        "sub": "25%"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 0.8,
+        "status": "idle",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "充能",
+        "tone": "busy",
+        "frac": 0.8,
+        "sub": "80%"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 0.8,
+        "status": "fire",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "充能",
+        "tone": "busy",
+        "frac": 0.8,
+        "sub": "80%"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 0.8,
+        "status": "offline",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "能量耗尽",
+        "tone": "warn",
+        "frac": 0.17,
+        "sub": "停火等能量回来"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 0.8,
+        "status": "limited",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "射界外",
+        "tone": "warn",
+        "frac": 0.8,
+        "sub": "炮塔转不到这边"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 0.8,
+        "status": "blocked",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "被挡住",
+        "tone": "warn",
+        "frac": 0.8,
+        "sub": "炮口前有东西"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 0.8,
+        "status": "far",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "充能",
+        "tone": "busy",
+        "frac": 0.8,
+        "sub": "超出 250 米 · 伤害衰减"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 0.8,
+        "status": "windup",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0.6,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "蓄力",
+        "tone": "ok",
+        "frac": 0.6,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 0.8,
+        "status": "reload",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": true,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "充能",
+        "tone": "busy",
+        "frac": 0.8,
+        "sub": "80%"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 0.8,
+        "status": "volley",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": true
+        }
+      },
+      "expected": {
+        "word": "充能",
+        "tone": "busy",
+        "frac": 0.8,
+        "sub": "80%"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 0.8,
+        "status": "poor",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": false,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "充能",
+        "tone": "busy",
+        "frac": 0.8,
+        "sub": "80%"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 0.8,
+        "status": "locked",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": true,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "充能",
+        "tone": "busy",
+        "frac": 0.8,
+        "sub": "80%"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 0.8,
+        "status": "locking",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0.4,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "充能",
+        "tone": "busy",
+        "frac": 0.8,
+        "sub": "80%"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 1,
+        "status": "idle",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": "按住左键蓄力开火"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 1,
+        "status": "fire",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": "按住左键蓄力开火"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 1,
+        "status": "offline",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "能量耗尽",
+        "tone": "warn",
+        "frac": 0.17,
+        "sub": "停火等能量回来"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 1,
+        "status": "limited",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "射界外",
+        "tone": "warn",
+        "frac": 1,
+        "sub": "炮塔转不到这边"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 1,
+        "status": "blocked",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "被挡住",
+        "tone": "warn",
+        "frac": 1,
+        "sub": "炮口前有东西"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 1,
+        "status": "far",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": "超出 250 米 · 伤害衰减"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 1,
+        "status": "windup",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0.6,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "蓄力",
+        "tone": "ok",
+        "frac": 0.6,
+        "sub": ""
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 1,
+        "status": "reload",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": true,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": "按住左键蓄力开火"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 1,
+        "status": "volley",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": true
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": "按住左键蓄力开火"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 1,
+        "status": "poor",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": false,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": "按住左键蓄力开火"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 1,
+        "status": "locked",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": true,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": "按住左键蓄力开火"
+      }
+    },
+    {
+      "args": {
+        "kind": "sniper",
+        "ready": 1,
+        "status": "locking",
+        "stats": {
+          "range": 250,
+          "windup": 1.4
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0.4,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "就绪",
+        "tone": "ok",
+        "frac": 1,
+        "sub": "按住左键蓄力开火"
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 0,
+        "status": "idle",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "无目标",
+        "tone": "busy",
+        "frac": 0,
+        "sub": "框住 100–350 米的敌人"
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 0,
+        "status": "fire",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "无目标",
+        "tone": "busy",
+        "frac": 0,
+        "sub": "框住 100–350 米的敌人"
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 0,
+        "status": "offline",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "能量耗尽",
+        "tone": "warn",
+        "frac": 0.17,
+        "sub": "停火等能量回来"
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 0,
+        "status": "limited",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "无目标",
+        "tone": "busy",
+        "frac": 0,
+        "sub": "框住 100–350 米的敌人"
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 0,
+        "status": "blocked",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "无目标",
+        "tone": "busy",
+        "frac": 0,
+        "sub": "框住 100–350 米的敌人"
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 0,
+        "status": "far",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "无目标",
+        "tone": "busy",
+        "frac": 0,
+        "sub": "框住 100–350 米的敌人"
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 0,
+        "status": "windup",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0.6,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "无目标",
+        "tone": "busy",
+        "frac": 0,
+        "sub": "框住 100–350 米的敌人"
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 0,
+        "status": "reload",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": true,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "装填",
+        "tone": "busy",
+        "frac": 0.35
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 0,
+        "status": "volley",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": true
+        }
+      },
+      "expected": {
+        "word": "齐射",
+        "tone": "ok",
+        "frac": 1
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 0,
+        "status": "poor",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": false,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "能量不足",
+        "tone": "warn",
+        "frac": 0,
+        "sub": "至少够一枚"
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 0,
+        "status": "locked",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": true,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "已锁定",
+        "tone": "ok",
+        "frac": 1,
+        "sub": "开火 · 齐射 3/6 枚"
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 0,
+        "status": "locking",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0.4,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "锁定中",
+        "tone": "busy",
+        "frac": 0.4,
+        "sub": "目标留在框里 · 齐射 3/6 枚"
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 0.25,
+        "status": "idle",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "无目标",
+        "tone": "busy",
+        "frac": 0,
+        "sub": "框住 100–350 米的敌人"
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 0.25,
+        "status": "fire",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "无目标",
+        "tone": "busy",
+        "frac": 0,
+        "sub": "框住 100–350 米的敌人"
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 0.25,
+        "status": "offline",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "能量耗尽",
+        "tone": "warn",
+        "frac": 0.17,
+        "sub": "停火等能量回来"
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 0.25,
+        "status": "limited",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "无目标",
+        "tone": "busy",
+        "frac": 0,
+        "sub": "框住 100–350 米的敌人"
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 0.25,
+        "status": "blocked",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "无目标",
+        "tone": "busy",
+        "frac": 0,
+        "sub": "框住 100–350 米的敌人"
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 0.25,
+        "status": "far",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "无目标",
+        "tone": "busy",
+        "frac": 0,
+        "sub": "框住 100–350 米的敌人"
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 0.25,
+        "status": "windup",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0.6,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "无目标",
+        "tone": "busy",
+        "frac": 0,
+        "sub": "框住 100–350 米的敌人"
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 0.25,
+        "status": "reload",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": true,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "装填",
+        "tone": "busy",
+        "frac": 0.35
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 0.25,
+        "status": "volley",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": true
+        }
+      },
+      "expected": {
+        "word": "齐射",
+        "tone": "ok",
+        "frac": 1
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 0.25,
+        "status": "poor",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": false,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "能量不足",
+        "tone": "warn",
+        "frac": 0,
+        "sub": "至少够一枚"
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 0.25,
+        "status": "locked",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": true,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "已锁定",
+        "tone": "ok",
+        "frac": 1,
+        "sub": "开火 · 齐射 3/6 枚"
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 0.25,
+        "status": "locking",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0.4,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "锁定中",
+        "tone": "busy",
+        "frac": 0.4,
+        "sub": "目标留在框里 · 齐射 3/6 枚"
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 0.8,
+        "status": "idle",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "无目标",
+        "tone": "busy",
+        "frac": 0,
+        "sub": "框住 100–350 米的敌人"
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 0.8,
+        "status": "fire",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "无目标",
+        "tone": "busy",
+        "frac": 0,
+        "sub": "框住 100–350 米的敌人"
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 0.8,
+        "status": "offline",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "能量耗尽",
+        "tone": "warn",
+        "frac": 0.17,
+        "sub": "停火等能量回来"
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 0.8,
+        "status": "limited",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "无目标",
+        "tone": "busy",
+        "frac": 0,
+        "sub": "框住 100–350 米的敌人"
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 0.8,
+        "status": "blocked",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "无目标",
+        "tone": "busy",
+        "frac": 0,
+        "sub": "框住 100–350 米的敌人"
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 0.8,
+        "status": "far",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "无目标",
+        "tone": "busy",
+        "frac": 0,
+        "sub": "框住 100–350 米的敌人"
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 0.8,
+        "status": "windup",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0.6,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "无目标",
+        "tone": "busy",
+        "frac": 0,
+        "sub": "框住 100–350 米的敌人"
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 0.8,
+        "status": "reload",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": true,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "装填",
+        "tone": "busy",
+        "frac": 0.35
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 0.8,
+        "status": "volley",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": true
+        }
+      },
+      "expected": {
+        "word": "齐射",
+        "tone": "ok",
+        "frac": 1
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 0.8,
+        "status": "poor",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": false,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "能量不足",
+        "tone": "warn",
+        "frac": 0,
+        "sub": "至少够一枚"
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 0.8,
+        "status": "locked",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": true,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "已锁定",
+        "tone": "ok",
+        "frac": 1,
+        "sub": "开火 · 齐射 3/6 枚"
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 0.8,
+        "status": "locking",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0.4,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "锁定中",
+        "tone": "busy",
+        "frac": 0.4,
+        "sub": "目标留在框里 · 齐射 3/6 枚"
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 1,
+        "status": "idle",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "无目标",
+        "tone": "busy",
+        "frac": 0,
+        "sub": "框住 100–350 米的敌人"
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 1,
+        "status": "fire",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "无目标",
+        "tone": "busy",
+        "frac": 0,
+        "sub": "框住 100–350 米的敌人"
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 1,
+        "status": "offline",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "能量耗尽",
+        "tone": "warn",
+        "frac": 0.17,
+        "sub": "停火等能量回来"
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 1,
+        "status": "limited",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "无目标",
+        "tone": "busy",
+        "frac": 0,
+        "sub": "框住 100–350 米的敌人"
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 1,
+        "status": "blocked",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "无目标",
+        "tone": "busy",
+        "frac": 0,
+        "sub": "框住 100–350 米的敌人"
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 1,
+        "status": "far",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "无目标",
+        "tone": "busy",
+        "frac": 0,
+        "sub": "框住 100–350 米的敌人"
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 1,
+        "status": "windup",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0.6,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "无目标",
+        "tone": "busy",
+        "frac": 0,
+        "sub": "框住 100–350 米的敌人"
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 1,
+        "status": "reload",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": true,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "装填",
+        "tone": "busy",
+        "frac": 0.35
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 1,
+        "status": "volley",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": true
+        }
+      },
+      "expected": {
+        "word": "齐射",
+        "tone": "ok",
+        "frac": 1
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 1,
+        "status": "poor",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": false,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "能量不足",
+        "tone": "warn",
+        "frac": 0,
+        "sub": "至少够一枚"
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 1,
+        "status": "locked",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0,
+          "locked": true,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "已锁定",
+        "tone": "ok",
+        "frac": 1,
+        "sub": "开火 · 齐射 3/6 枚"
+      }
+    },
+    {
+      "args": {
+        "kind": "missile",
+        "ready": 1,
+        "status": "locking",
+        "stats": {
+          "range": 250
+        },
+        "windup": 0,
+        "lock": {
+          "energyOk": true,
+          "count": 3,
+          "tubes": 6,
+          "progress": 0.4,
+          "locked": false,
+          "cooling": false,
+          "reload": 0.35,
+          "firing": false
+        }
+      },
+      "expected": {
+        "word": "锁定中",
+        "tone": "busy",
+        "frac": 0.4,
+        "sub": "目标留在框里 · 齐射 3/6 枚"
+      }
+    }
+  ]
+}

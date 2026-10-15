@@ -1,0 +1,497 @@
+[
+  {
+    "arrivedAt": 1792073028274,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071665821,
+    "killed": false,
+    "ms": 20,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073028451,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071666013,
+    "killed": false,
+    "ms": 5,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073028940,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071666502,
+    "killed": false,
+    "ms": 5,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073029452,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071667009,
+    "killed": false,
+    "ms": 10,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073029781,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071667344,
+    "killed": false,
+    "ms": 4,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073030700,
+    "phase": "proof-target-broken",
+    "name": "赤焰 GT",
+    "at": 1071668263,
+    "killed": false,
+    "ms": 4,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073031915,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071669478,
+    "killed": false,
+    "ms": 4,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073032843,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071670406,
+    "killed": false,
+    "ms": 3,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073032989,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071670552,
+    "killed": false,
+    "ms": 4,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073033050,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071670613,
+    "killed": false,
+    "ms": 4,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073033174,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071670738,
+    "killed": false,
+    "ms": 3,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073033558,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071671121,
+    "killed": false,
+    "ms": 4,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073033820,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071671383,
+    "killed": false,
+    "ms": 4,
+    "removed": 2
+  },
+  {
+    "arrivedAt": 1792073033864,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071671428,
+    "killed": false,
+    "ms": 3,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073033930,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071671493,
+    "killed": false,
+    "ms": 4,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073033995,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071671559,
+    "killed": false,
+    "ms": 3,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073034454,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071672017,
+    "killed": false,
+    "ms": 4,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073034553,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071672117,
+    "killed": false,
+    "ms": 3,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073034992,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071672555,
+    "killed": false,
+    "ms": 4,
+    "removed": 2
+  },
+  {
+    "arrivedAt": 1792073035125,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071672688,
+    "killed": false,
+    "ms": 4,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073035136,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071672699,
+    "killed": false,
+    "ms": 4,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073035855,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071673418,
+    "killed": false,
+    "ms": 4,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073035944,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071673507,
+    "killed": false,
+    "ms": 4,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073036047,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071673610,
+    "killed": false,
+    "ms": 4,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073036305,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071673869,
+    "killed": false,
+    "ms": 3,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073036371,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071673935,
+    "killed": false,
+    "ms": 3,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073036568,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071674132,
+    "killed": false,
+    "ms": 4,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073036768,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071674308,
+    "killed": false,
+    "ms": 27,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073036994,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071674557,
+    "killed": false,
+    "ms": 4,
+    "removed": 2
+  },
+  {
+    "arrivedAt": 1792073037646,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071675208,
+    "killed": false,
+    "ms": 5,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073038004,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071675567,
+    "killed": false,
+    "ms": 5,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073038046,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071675611,
+    "killed": false,
+    "ms": 3,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073040826,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071678390,
+    "killed": false,
+    "ms": 4,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073041017,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071678581,
+    "killed": false,
+    "ms": 4,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073041677,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071679242,
+    "killed": false,
+    "ms": 3,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073041814,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071679378,
+    "killed": false,
+    "ms": 3,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073041978,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071679542,
+    "killed": false,
+    "ms": 3,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073042755,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071680319,
+    "killed": false,
+    "ms": 4,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073042821,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071680385,
+    "killed": false,
+    "ms": 4,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073043058,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071680623,
+    "killed": false,
+    "ms": 3,
+    "removed": 2
+  },
+  {
+    "arrivedAt": 1792073043617,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071681181,
+    "killed": false,
+    "ms": 4,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073043770,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071681333,
+    "killed": false,
+    "ms": 4,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073044022,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071681587,
+    "killed": false,
+    "ms": 3,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073044320,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071681885,
+    "killed": false,
+    "ms": 3,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073044460,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071682025,
+    "killed": false,
+    "ms": 3,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073044589,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071682152,
+    "killed": false,
+    "ms": 4,
+    "removed": 2
+  },
+  {
+    "arrivedAt": 1792073044745,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071682309,
+    "killed": false,
+    "ms": 3,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073044840,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071682403,
+    "killed": false,
+    "ms": 4,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073044986,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071682551,
+    "killed": false,
+    "ms": 3,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073045292,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071682856,
+    "killed": false,
+    "ms": 3,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073045386,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071682951,
+    "killed": false,
+    "ms": 3,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073045537,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071683102,
+    "killed": false,
+    "ms": 3,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073045730,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071683294,
+    "killed": false,
+    "ms": 3,
+    "removed": 1
+  },
+  {
+    "arrivedAt": 1792073046142,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071683706,
+    "killed": false,
+    "ms": 4,
+    "removed": 2
+  },
+  {
+    "arrivedAt": 1792073046233,
+    "phase": "fire",
+    "name": "赤焰 GT",
+    "at": 1071683799,
+    "killed": true,
+    "ms": 2,
+    "removed": 0
+  }
+]

@@ -1,0 +1,28 @@
+{
+  "$schema": "../schemas/resources.schema.json",
+  "preload_groups": ["boot"],
+  "groups": {
+    "boot": [
+      "Fonts/**",
+      "Shaders/**",
+      "Rendering/**",
+      "Hangar/**",
+      "!Hangar/Models/**",
+      "Cube/**",
+      "UI/**",
+      "Endless/Rules.json",
+      "!UI/Parts/**",
+      "!UI/Prefabs/**",
+      "!UI/Modes/**",
+      "!UI/Salvage/**",
+      "!UI/Faces/**",
+      "!UI/Avatars/**",
+      "!UI/Music/**",
+      "!Parts/Dependencies.json",
+      "Editor/Textures/Engine/Vignetting.png"
+    ],
+    "default": [
+      "**"
+    ]
+  }
+}

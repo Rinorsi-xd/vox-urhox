@@ -1,0 +1,79 @@
+{
+  "schema": 1,
+  "independentReviewUtc": "2026-10-15T14:08:00.890Z",
+  "inputHashes": {
+    "report.json": "91fc93f94cd9aaf1fa06ced0be6b54678df0e00a2d05e46554a395f1f9d82d21",
+    "frames.json": "ce22ac11c173463df21c17beeaaf7a56f3b79e35ab74f282c9346aba29b6b6f5",
+    "console.log": "5ce4b23dc137dddaa135d28774ca2b5896d98806c70a06fcbcaa53cad97f0772",
+    "damage-events.json": "0c777960c8890392b1df25bcd4612ec1e2181c4ca52d0ba9472c5dc0dc51331e"
+  },
+  "sourceCommit": "b276064942ae09c0227ec28d4cfda1d5ff006455",
+  "servedManifest": "manifest-706d3d0b.json",
+  "warmupHash": "586a68be3404dc7cbd8636b663c6dabcde7a7a01cfc6ed528dbc7af610e8639b",
+  "firstLiveUtc": "2026-10-15T14:03:27.253Z",
+  "fireStartUtc": "2026-10-15T14:03:35.291Z",
+  "stencil": [
+    {
+      "line": 1523,
+      "wallAt": 1792073003724,
+      "utc": "2026-10-15T14:03:23.724Z",
+      "observedPhase": "trial-load",
+      "text": "[2026-10-15 22_03_23_724][2138] INFO: Succeed to compile shader [/home/web_user/ResCache/shadercache_runtime/essl/Stencil_00000000.vs],defines [URHO3D_EMSCRIPTEN;DESKTOP_SHADOW_CASCADE;BGFX_SHADER;COMPILEVS;BGFX_CONFIG_MAX_BONES=1]"
+    },
+    {
+      "line": 1525,
+      "wallAt": 1792073003743,
+      "utc": "2026-10-15T14:03:23.743Z",
+      "observedPhase": "trial-load",
+      "text": "[2026-10-15 22_03_23_743][2138] INFO: Succeed to compile shader [/home/web_user/ResCache/shadercache_runtime/essl/Stencil_00000000.fs],defines [URHO3D_EMSCRIPTEN;DESKTOP_SHADOW_CASCADE;BGFX_SHADER;COMPILEPS;BGFX_CONFIG_MAX_BONES=1]"
+    }
+  ],
+  "instancedPoint": [
+    {
+      "line": 1542,
+      "wallAt": 1792073004256,
+      "utc": "2026-10-15T14:03:24.256Z",
+      "observedPhase": "trial-load",
+      "text": "[2026-10-15 22_03_24_256][2145] INFO: Succeed to compile shader [/home/web_user/ResCache/shadercache_runtime/essl/Generated_Surface_surface_pbr_FIJGacrvO5aEcLp0K6C43qPV_11eeca77_61464CF2_a6f7752c.vs],defines [AO;INSTANCED;PERPIXEL;POINTLIGHT;RENDER_QUALITY=2;REVERSED_Z;URHO3D_EMSCRIPTEN;DESKTOP_SHADOW_CASCADE;BGFX_SHADER;COMPILEVS;BGFX_CONFIG_MAX_BONES=1]"
+    }
+  ],
+  "compiledAfterLoading": [],
+  "compiledDuringFire": [],
+  "checks": {
+    "stencilVsAndFsCompiledDuringLoading": true,
+    "exactInstancedAoPointVertexCompiledDuringLoading": true,
+    "noShaderFirstUseAfterLoading": true,
+    "noShaderFirstUseDuringFire": true,
+    "allFunctionalAssertionsPassed": true,
+    "inclusiveFireBelow100ms": true,
+    "allObservedFlushesBelow100ms": true
+  },
+  "functionalAssertions": 17,
+  "flushCount": 55,
+  "maxFlushMs": 27,
+  "inclusiveFireFrames": {
+    "count": 945,
+    "maxMs": 69.69000000000233,
+    "over100ms": 0
+  },
+  "loadingFailuresRetained": {
+    "boot": {
+      "count": 1661,
+      "medianMs": 13.680000000000291,
+      "p95Ms": 69.8799999999992,
+      "p99Ms": 736.4300000000003,
+      "maxMs": 3875.1949999999997,
+      "over100ms": 69
+    },
+    "trialLoad": {
+      "count": 640,
+      "medianMs": 7.080000000001746,
+      "p95Ms": 111.27000000000407,
+      "p99Ms": 514.0550000000076,
+      "maxMs": 2159.4449999999924,
+      "over100ms": 36
+    }
+  },
+  "boundary": "Desktop Chrome public-input destruction fixture only. Shader timestamps are native log time Asia/Shanghai, aligned to requestAnimationFrame wall times. No exclusive CPU/GPU causal attribution, whole-run/boot/load PASS, audible-quality review, mobile acceptance, or ShellMaterials candidate acceptance.",
+  "reviewResult": "PASS"
+}

@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<material>
+	<surfaceshader name="Shaders/BLGL/Track/Surface.shader" />
+	<surfacetexture name="albedo_map" texture="Track/texture-20.png" type="Texture2D" />
+	<texture unit="diffuse" name="Track/texture-20.png" />
+	<parameter name="tint" value="1 1 1 1" />
+	<parameter name="roughness_value" type="Double" value="0.7" />
+	<parameter name="metallic_value" type="Double" value="0" />
+	<parameter name="emission_strength" type="Double" value="0.12" />
+	<parameter name="normal_strength" type="Double" value="0" />
+	<parameter name="albedo_repeat" value="1 1" />
+	<cull value="ccw" />
+	<backsideLighting enable="false" />
+	<shadowcull value="ccw" />
+	<fill value="solid" />
+	<depthbias constant="0" slopescaled="0" />
+	<alphatocoverage enable="false" />
+	<lineantialias enable="false" />
+	<renderorder value="128" />
+	<occlusion enable="true" />
+	<uvTiling value="1 1" />
+	<uvOffset value="0 0" />
+	<uvSpeed value="0 0" />
+	<texRotation value="0" />
+</material>

@@ -1,0 +1,11 @@
+// This project has one planar reflector: the hangar floor at world Y=0.
+// Reflection reverses the view basis, whereas main and shadow views do not.
+// Keep the normal camera's full geometry, including partially submerged cars.
+uniform vec4 planar_clip_plane = vec4(0.0, 1.0, 0.0, 0.0);
+bool planar_clip_active(mat4 view, bool shadow_pass) {
+    float orientation = dot(cross(view[0].xyz, view[1].xyz), view[2].xyz);
+    return !shadow_pass && orientation < 0.0;
+}
+bool planar_clip_reject(vec3 world_position, mat4 view, bool shadow_pass) {
+    return planar_clip_active(view, shadow_pass) && dot(vec4(world_position, 1.0), planar_clip_plane) < 0.0;
+}
