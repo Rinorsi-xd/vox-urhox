@@ -13,11 +13,22 @@ function M.Spoke(vg,x,y,r0,r1,a,c,w)
     local ca,sa=math.cos(a*math.pi/180),math.sin(a*math.pi/180)
     D.Line(vg,x+ca*r0,y+sa*r0,x+ca*r1,y+sa*r1,c,w)
 end
-function M.Text(vg,text,x,y,size,color,align,story,medium)
-    -- Source text outline and the frozen font pair. No blur texture per label.
-    local font=story and 'vox-display' or medium and 'vox-hud-medium' or 'vox-hud'
-    D.Text(vg,text,x,y+1,size,{0,0,0,170},font,align,0,true)
-    D.Text(vg,text,x,y,size,color or M.white,font,align,0,true)
+local textScale=1
+local outline={{-1,0},{1,0},{0,-1},{0,1},{-.707107,-.707107},{.707107,-.707107},{-.707107,.707107},{.707107,.707107}}
+local outlineColor={0,0,0,170}
+function M.SetTextScale(scale) textScale=scale end
+function M.Width(vg,text,size,medium,spacing)
+    return D.Width(vg,text,size,medium and 'vox-hud-medium' or 'vox-hud',(spacing or 1)*textScale)
+end
+function M.Text(vg,text,x,y,size,color,align,story,medium,spacing)
+    -- Final source reticle CSS uses Chakra + Industrial in story and free drive.
+    -- NanoVG has no text stroke; use the UI library's eight-offset outline method.
+    local font=medium and 'vox-hud-medium' or 'vox-hud'
+    local tracking=(spacing or 1)*textScale;local radius=1.5*textScale
+    for _,offset in ipairs(outline) do
+        D.Text(vg,text,x+offset[1]*radius,y+offset[2]*radius,size,outlineColor,font,align,tracking,true)
+    end
+    D.Text(vg,text,x,y,size,color or M.white,font,align,tracking,true)
 end
 function M.Poly(vg,points,fill,stroke,width)
     D.Path(vg,points)

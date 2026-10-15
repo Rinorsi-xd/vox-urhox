@@ -5,10 +5,17 @@ local Shield=require 'combat.ShieldQuery'
 local M={};M.__index=M
 local function Other(team) return team=='blue' and 'red' or 'blue' end
 local function Flat(a,b) return math.sqrt((a[1]-b[1])^2+(a[3]-b[3])^2) end
+-- A vehicle touching a zone counts: horizontal radius includes half its bounds,
+-- and tall chassis get the source's vertical allowance (both edges are strict).
+function M.InPoint(unit,point)
+    local radius=unit.spec.bounds.radius or 0
+    local pos=unit:Position()
+    return Flat(pos,point.pos)<point.radius+radius*.5 and math.abs(pos[2]-point.pos[2])<8+radius
+end
 function M.New(battle,id)
     local self=setmetatable({battle=battle,world=battle.world,id=id,assignAt={},goals={}},M);local L=self.world.layout
     if id=='conquest' then
-        local n=L.nav.nodes;self.points={{id='A',pos=n.wa1},{id='B',pos=n.dD1},{id='C',pos={0,n.iC1[2],0}}};self.bases={}
+        local n=L.nav.nodes;self.points={{id='A',pos=n.wa1,radius=22},{id='B',pos=n.dD1,radius=22},{id='C',pos={0,n.iC1[2],0},radius=22}};self.bases={}
         for _,team in ipairs({'blue','red'}) do
             local core=false;for _,b in ipairs(L.blocks) do if b.kind==(team=='blue' and 'core' or 'enemyCore') then core=b;break end end
             assert(core,'Missing source reactor')
@@ -78,13 +85,13 @@ end
 function M:WorldState(out)
     if self.id=='conquest' then
         out.inPoint={};for _,p in ipairs(self.points) do out.inPoint[p.id]={blue=0,red=0} end
-        for _,e in ipairs(self.battle.entries) do if e.unit.alive then local pos=e.unit:Position()
-            for _,p in ipairs(self.points) do if Flat(pos,p.pos)<16 and math.abs(pos[2]-p.pos[2])<8 then out.inPoint[p.id][e.unit.team]=out.inPoint[p.id][e.unit.team]+1 end end
+        for _,e in ipairs(self.battle.entries) do if e.unit.alive then
+            for _,p in ipairs(self.points) do if M.InPoint(e.unit,p) then out.inPoint[p.id][e.unit.team]=out.inPoint[p.id][e.unit.team]+1 end end
         end end
     elseif self.id=='escort' then
         out.near={blue=0,red=0};local cart=self:At(self.battle.rules.s).pos
-        for _,e in ipairs(self.battle.entries) do local u=e.unit;if u.alive then local p=u:Position()
-            if Flat(p,cart)<Data.escort.push and math.abs(p[2]-cart[2])<8 then out.near[u.team]=out.near[u.team]+1 end
+        for _,e in ipairs(self.battle.entries) do local u=e.unit;if u.alive then
+            if M.InPoint(u,{pos=cart,radius=Data.escort.push}) then out.near[u.team]=out.near[u.team]+1 end
         end end
     end
     return out
@@ -130,14 +137,22 @@ function M:Explode(unit,point,radius,damage)
 end
 function M:UnitTick(entry,dt)
     local u=entry.unit;local rule=self.battle.rules
+    local cfg=rule.cfg;local allow=self.id~='elimination' or not rule.sudden
+    entry.regen=allow and self.world.time-u.hitAt>=(cfg.regenDelay or 5)
+    if entry.regen then
+        u.repairing=u:Health()<.995 or u:Integrity()<.995
+        if u:Health()<.999 then u:Heal((cfg.regen or .15)*dt) end
+        entry.repair=(entry.repair or 0)+dt
+        if entry.repair>=.5 then entry.repair=0;u:RestoreMissing(1) end
+    end
     if self.id=='conquest' then
         local home=Shield.Contains(self.bases[u.team].zone,u:Position())
-        u.repairing=home and (u:Health()<.995 or u:Integrity()<.995)
-        if home then u:Heal(.15*dt);entry.repair=entry.repair+dt;if entry.repair>=.4 then entry.repair=entry.repair-.4;u:RestoreMissing(1) end else entry.repair=0 end
+        u.repairing=u.repairing or home and (u:Health()<.995 or u:Integrity()<.995)
+        if home then u:Heal(.15*dt);entry.repair=(entry.repair or 0)+dt;if entry.repair>=.4 then entry.repair=0;u:RestoreMissing(1) end end
         if rule.shield[Other(u.team)] and Shield.Contains(self.bases[Other(u.team)].zone,u:Position()) then
             local core=u.bp:CoreParts()[1];if core then u:Damage(core.id,require('parts.Defs').PARTS.core.hp*u.partScale*.04*dt,u:Position()) end
         end
-    elseif self.id=='escort' and u.team==rule.attack and Flat(u:Position(),self:At(rule.s).pos)<Data.escort.push then u:Heal(Data.escort.heal*dt) end
+    elseif self.id=='escort' and u.team==rule.attack and M.InPoint(u,{pos=self:At(rule.s).pos,radius=Data.escort.push}) then u:Heal(Data.escort.heal*dt) end
 end
 function M:Goal(entry,enemy)
     if self.id=='elimination' then return enemy end
@@ -162,7 +177,7 @@ function M:Goal(entry,enemy)
             end end
         end
         local job=self.goals[entry] or {point=3}
-        if job.reactor then pos=self.bases[Other(team)].aim;radius=45;shoot=true else pos=self.points[job.point].pos;radius=16 end
+        if job.reactor then pos=self.bases[Other(team)].aim;radius=45;shoot=true else pos=self.points[job.point].pos;radius=self.points[job.point].radius end
     else
         local attack=u.team==rule.attack;local role=entry.member.role
         if attack and (role=='heavy' or role=='assault') or not attack and role~='sniper' then pos=self:At(rule.s).pos;radius=Data.escort.push

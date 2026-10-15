@@ -5,13 +5,17 @@ local M={}
 local function Vec(v) return {x=v[1],y=v[2],z=v[3]} end
 local function Array(v) return {v.x,v.y,v.z} end
 local function Falloff(speed,limit) return C(1-(math.max(0,speed)/math.max(.01,limit))^3,0,1) end
+local function JetEfficiency(speed,limit)
+    local s=math.max(0,speed)/math.max(.01,limit)
+    return s<=.9 and 1 or math.max(.15,1-.65*(s-.9)/.45)
+end
 local function Tilted(t,angle)
     local pivot=t.pivot or t.pos;local r=Math.Sub(t.pos,pivot);local c,s=math.cos(angle),math.sin(angle)
     return {pivot[1]+r[1],pivot[2]+c*r[2]-s*r[3],pivot[3]+s*r[2]+c*r[3]}
 end
 function M.Step(v,cmd,dt,contact,supportForce)
     local body=v.body;local q=body.rotation();local p,lv,av=body.translation(),body.linvel(),body.angvel()
-    local mg=v.mass*9.81;local ts=v.spec.thrusters;local lifts={}
+    local mg=v.mass*9.81;local ts=v.spec.thrusters;local lifts={};local jet=v.spec.wings and #v.spec.wings>0
     local thinX=C((p.y-140)/60,0,1);local thin=math.sqrt(1-thinX*thinX)
     for _,t in ipairs(ts) do if t.dir[2]>.7 then lifts[#lifts+1]=t end end
     local climb,throttle,strafe,steer=C(cmd.climb or 0,-1,1),C(cmd.throttle or 0,-1,1),C(cmd.strafe or 0,-1,1),C(cmd.steer or 0,-1,1)
@@ -48,7 +52,16 @@ function M.Step(v,cmd,dt,contact,supportForce)
         if t.dir[2]<-.7 and v.flightTarget==nil then out=math.max(out,-climb) end
         local wd=Math.Rotate(q,t.dir);local speed=Math.Dot(Array(lv),wd)
         local governed=speed>0 and math.max(speed,math.sqrt(wd[1]^2+wd[3]^2)>.001 and horizontalSpeed or 0) or 0
-        Apply(t,t.dir,t.thrust*out*Falloff(governed,t.speedLimit))
+        Apply(t,t.dir,t.thrust*out*(jet and JetEfficiency(governed,t.speedLimit) or Falloff(governed,t.speedLimit)))
+        if jet and t.dir[3]>.7 and throttle<0 then
+            local back=Math.Scale(wd,-1);local bs=math.max(0,Math.Dot(Array(lv),back))
+            local force=t.thrust*.6*(-throttle)*Falloff(bs,t.speedLimit*.35)
+            if force>.001 then
+                local r=Math.Rotate(q,t.pos);local fy=back[2]>0 and back[2]*thin or back[2]
+                body.addForceAtPoint({x=back[1]*force,y=fy*force,z=back[3]*force},{x=p.x+r[1],y=p.y+r[2],z=p.z+r[3]},true)
+                v.thrusterOutputs[t.partId]=.35*(-throttle);v.thrusterDirections[t.partId]=t.dir;outputCount=outputCount+1
+            end
+        end
     end end
     local capacity=0
     for _,t in ipairs(lifts) do capacity=capacity+math.max(0,Math.Rotate(q,t.dir)[2])*t.thrust end

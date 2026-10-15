@@ -71,11 +71,11 @@ end
 function Modal:EntryState()
     if self.sourceClosing then
         local progress=Motion.Ease(self.sourceCloseTime/.16,'ease')
-        return 1-progress,1-progress,10*progress
+        return 1-progress,1-progress,10*progress*(self.props.source.sourceScale or 1)
     end
     local time=self.sourceEntryTime or .26
     local card=Motion.Ease(time/.26,false)
-    return Motion.Ease((self.sourceOverlayTime or .18)/.18,'ease'),card,18*(1-card)
+    return Motion.Ease((self.sourceOverlayTime or .18)/.18,'ease'),card,18*(1-card)*(self.props.source.sourceScale or 1)
 end
 function Modal:OnPointerDown(event)
     if not self.isOpen_ then return false end
@@ -94,9 +94,13 @@ end
 function Modal:RenderModalContent(vg)
     if self:IsVisible() and self.visual then self.visual:Draw(vg) end
 end
-function Modal.DrawHeading(vg,x,y,w,title,subtitle)
-    D.Rect(vg,x,y,4,74,D.orange);D.Rect(vg,x,y+73,w,1,{255,255,255,20})
-    D.Text(vg,title,x+28,y+20,30,nil,nil,nil,1)
-    if subtitle then D.Text(vg,subtitle,x+40+D.Width(vg,title,30,nil,1),y+33,13,D.muted,'vox-body') end
+function Modal.DrawHeading(vg,x,y,w,title,subtitle,compact)
+    local h,padx,pady,size=compact and 54 or 74,compact and 18 or 28,compact and 12 or 20,compact and 24 or 30
+    local shape={x,y,x+w-20,y,x+w,y+20,x+w,y+h,x,y+h}
+    D.Path(vg,shape);nvgFillColor(vg,nvgRGBA(29,56,82,255));nvgFill(vg)
+    require('ui.SourceRelief').Halftone(vg,x,y,w,h,false,h*2,shape)
+    D.Rect(vg,x,y,4,h,{155,215,250,255});D.Rect(vg,x,y+h-1,w,1,{255,255,255,20})
+    D.Text(vg,title,x+padx,y+pady,size,nil,'vox-title',nil,1)
+    if subtitle then D.Text(vg,subtitle,x+padx+12+D.Width(vg,title,size,'vox-title',1),y+pady+(compact and 9 or 13),13,{174,196,218,255},'vox-body') end
 end
 return Modal

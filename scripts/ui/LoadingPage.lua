@@ -31,7 +31,9 @@ function Page:OnClick(event)
     local cancel=self.cancelRect
     if self.owner.match and self.owner.match.stage=='queue' and cancel and event.x>=cancel.x and event.x<=cancel.x+cancel.w and event.y>=cancel.y and event.y<=cancel.y+cancel.h then self.owner:Back();return true end
     local r=self.backRect
-    if self.owner.failed and r and event.x>=r.x and event.x<=r.x+r.w and event.y>=r.y and event.y<=r.y+r.h then self.owner:Back() end
+    if self.owner.failed and r and event.x>=r.x and event.x<=r.x+r.w and event.y>=r.y and event.y<=r.y+r.h then
+        if self.owner.map.boot then self.owner:Retry() else self.owner:Back() end
+    end
     return true
 end
 local function Fade(vg,x,y,w,h,a,b,horizontal)
@@ -119,7 +121,11 @@ function Page:Render(vg)
     self.backRect=nil;self.cancelRect=nil
     nvgSave(vg);nvgScale(vg,k,k);nvgScissor(vg,0,0,logicalW,logicalH)
     if self.owner.pageVisible then
-        if self.owner.match then require('ui.MatchLobby').Draw(self,vg,logicalW,logicalH) else self:DrawPage(vg,logicalW,logicalH) end
+        if self.owner.map.boot then
+            if self.owner.phase=='boot-exit' then nvgGlobalAlpha(vg,math.max(0,1-self.owner.time/.8)) end
+            require('ui.BootLoading').Draw(self,vg,logicalW,logicalH)
+        elseif self.owner.match then require('ui.MatchLobby').Draw(self,vg,logicalW,logicalH) else self:DrawPage(vg,logicalW,logicalH) end
+        self.owner:PageRendered()
     end
     self:DrawTransition(vg,logicalW,logicalH);nvgRestore(vg)
     if self.backRect then local r=self.backRect;self.backRect={x=r.x*k,y=r.y*k,w=r.w*k,h=r.h*k} end

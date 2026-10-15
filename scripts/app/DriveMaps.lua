@@ -31,4 +31,11 @@ capture.id='story4';capture.name='偷家';capture.storyLevel=4;capture.loadingBr
 capture.loadingSub='任务 04 · TAKE IT BACK · RECLAIM A / B / C'
 capture.loadingTips={'清掉圈附近的海盗，在圈里夺回采集器','顶住反扑后，按住 G 擦掉涂鸦','狐狐的小狐号受损后会撤退'}
 maps.story4=capture
+maps.story5={id='story5',name='主引擎坑',storyLevel=5,scene='Scenes/EnginePit.xml',world='drive.EnginePitWorld',environment='scene.EnginePit',assets='scene.EnginePit',resources='EnginePit/Resources.json',prepareWorld='drive.CraterPhysics',
+    webWarmup=maps.crater.webWarmup,loadingArt='UI/Modes/crater.jpg',loadingBrand='剧情模式 · 主引擎坑',loadingSub='任务 05 · BOSS · 主引擎残骸',loadingTips={'利用引擎残骸和顶棚躲避飞弹','寻找 Boss 的弱点','击败海盗首领，夺回要塞'}}
+local endless={};for key,value in pairs(maps.crater) do endless[key]=value end
+endless.id='endless';endless.name='无尽模式';endless.endless=true;endless.loadingBrand='无尽模式'
+endless.loadingSub='坠舰陨坑 · 敌人一波波来 · 本局仓库与改装'
+endless.loadingTips={'开过去吸收敌人掉落的零件','回到基地护盾内，在休整期按 G 改装','三条命耗尽后结算'}
+maps.endless=endless
 return maps

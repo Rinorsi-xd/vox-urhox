@@ -18,6 +18,17 @@ local function Near(a,b)
     return true
 end
 local function Source()
+    for _,c in ipairs(fixture.hoverSpecs) do
+        local spec=Spec.Build(BP.New():Load(c.data))
+        V.assert(spec.ok and #spec.hovers==1,'source connected hover '..c.type..'/'..c.rot)
+        local function Pick(value,expected)
+            local out={};for key in pairs(expected) do out[key]=value[key] end;return out
+        end
+        V.assert(Near(Pick(spec.hovers[1],c.hover),c.hover),'source mount, lift height and emitters '..c.type..'/'..c.rot)
+        local hull
+        for _,h in ipairs(spec.hulls) do if h.partId==c.hover.partId then hull=h end end
+        V.assert(hull~=nil and Near(Pick(hull,c.hull),c.hull),'source clipped hover collider '..c.type..'/'..c.rot)
+    end
     for i,c in ipairs(fixture.forces) do V.assert(Near(Hover.Force(c.h,c.d,c.speed,c.share,c.scale),c.result),'source hover force '..i) end
     for i,c in ipairs(fixture.hoverMotion) do
         local v=c.initial;local applied={};v.hoverStates={[10]={G=v.ground}}
@@ -63,16 +74,18 @@ V.atFrame(55,function()
     Source()
     for _,name in ipairs({'HoverBottom','HoverSide'}) do
         local spec=Spec.Build(BP.New():Load(Data.Read('Blueprints/'..name..'.json')))
+        local target=spec.hovers[1].height
         Native(name,spec,function(v,Step)
-            Step(8);local rest=v.body.translation();local up=Math.Rotate(v.body.rotation(),{0,1,0})
-            V.assert(v.telemetry.hovers==4 and math.abs(v.telemetry.hoverHeight-.75)<.04,name..' four emitters hold source height')
+            Step(15);local rest=v.body.translation();local up=Math.Rotate(v.body.rotation(),{0,1,0})
+            V.assert(v.telemetry.hovers==4 and math.abs(v.telemetry.hoverHeight-target)<.04,name..' four emitters hold source height')
             V.assert(up[2]>.995 and math.abs(v.body.linvel().y)<.05,name..' settles upright')
             Step(2);local p=v.body.translation()
+            measurements[name..'Rest']={rest=rest,after=p,drift=Math.Length({p.x-rest.x,p.y-rest.y,p.z-rest.z})}
             V.assert(Math.Length({p.x-rest.x,p.y-rest.y,p.z-rest.z})<.05,name..' neutral remains stationary')
             Step(2,{climb=1});Step(5)
-            V.assert(v.hoverHeightScale==1.7 and math.abs(v.telemetry.hoverHeight-1.7*.75)<.05,name..' raises hover height to current source cap')
+            V.assert(v.hoverHeightScale==1.7 and math.abs(v.telemetry.hoverHeight-1.7*target)<.05,name..' raises hover height to current source cap')
             Step(2,{climb=-1});Step(5)
-            V.assert(v.hoverHeightScale==.6 and math.abs(v.telemetry.hoverHeight-.6*.75)<.05,name..' lowers hover height')
+            V.assert(v.hoverHeightScale==.6 and math.abs(v.telemetry.hoverHeight-.6*target)<.05,name..' lowers hover height')
             local start=v.body.translation();Step(3,{throttle=1});p=v.body.translation()
             V.assert(p.z-start.z>8 and math.abs(p.x-start.x)<.3,name..' held throttle drives straight')
             local coastSpeed=math.abs(v.speed);Step(6)

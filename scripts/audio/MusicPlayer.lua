@@ -1,6 +1,7 @@
 -- Original catalog/queue semantics; at most two compressed tracks are resident.
 local Gate=require 'app.ResourceGate'
 local Catalog=require('core.ResourceData').Read('UI/Music/Catalog.json')
+local Levels=require 'audio.AudioLevels'
 local M={};M.__index=M
 local BUS='VoxMusic'
 local serial=0
@@ -30,11 +31,18 @@ function M:init(store,backend)
     end
     self.lastVolume=self.volume>0 and self.volume or .75;self.userPaused=false;self.unlocked=false;self.hidden=false
     self.libraryMode=false;self.time=0;self.serial=0;self.retryAt=0;self.errors={};self.failed={};self.history={}
+    self.duckLevel=1;self.duck=1
     self.current=nil ---@type integer|nil
     self.pending=nil ---@type integer|nil
     self.scene=Scene();self.root=self.scene:CreateChild('Music')
     self.slots={}
     for i=1,2 do self.slots[i]={gate=Gate.New(self.backend),level=0,target=0} end
+    self.unwatch={Levels.On('music',function(value)
+        self.volume=value;if value>0 then self.lastVolume=value end
+        for _,slot in ipairs(self.slots) do if slot.source then slot.source.gain=M.Gain(value)*slot.level*self.duckLevel end end
+        self:PauseBus()
+    end),
+        Levels.On('musicEnabled',function(value) self.enabled=value;self:PauseBus() end)}
     self:PauseBus()
 end
 function M:Save()
@@ -50,14 +58,19 @@ function M:Unlock() self.unlocked=true;self:PauseBus() end
 function M:SetVolume(v)
     if type(v)~='number' or v~=v or v==math.huge or v==-math.huge then return end
     self.volume=Clamp(v);if self.volume>0 then self.lastVolume=self.volume;self:Unlock() end
+    Levels.Set('music',self.volume)
     self:PauseBus();self.saveDelay=.3
 end
 function M:Resume()
     local changed=not self.enabled or self.volume==0
     self.enabled=true;self.userPaused=false;if self.volume==0 then self.volume=self.lastVolume end
+    Levels.SetMusicEnabled(true);if self.volume>0 then Levels.Set('music',self.volume) end
     self:Unlock();if changed then self:Save() end
 end
 function M:SetPaused(paused) self.userPaused=paused;self:PauseBus() end
+function M:SetEnabled(enabled)
+    self.enabled=enabled==true;Levels.SetMusicEnabled(self.enabled);self:PauseBus();self:Save()
+end
 function M:SetPlayMode(mode)
     if mode~='shuffle' and mode~='sequence' and mode~='repeat' then return end
     self.playMode=mode;self:Save()
@@ -178,6 +191,9 @@ function M:Status()
     return '正在播放'
 end
 function M:Update(dt,group,hidden)
+    local duck=not self.libraryMode and Levels.Speaking() and .5 or 1
+    self.duck=duck;local response=duck<self.duckLevel and .12 or 1.2
+    self.duckLevel=self.duckLevel+(duck-self.duckLevel)*(1-math.exp(-math.max(0,dt)/response))
     if self.disposed then return end
     if self.saveDelay then self.saveDelay=self.saveDelay-dt;if self.saveDelay<=0 then self.saveDelay=nil;self:Save() end end
     self.hidden=hidden==true;self:PauseBus();if self:CanPlay() then self.time=self.time+math.max(0,dt) end
@@ -190,18 +206,19 @@ function M:Update(dt,group,hidden)
         self.advanceRequested=not belongs;self.retryAt=0
     end
     for i,slot in ipairs(self.slots) do if slot.source then
-        slot.level=self:Level(slot);slot.source.gain=M.Gain(self.volume)*slot.level
+        slot.level=self:Level(slot);slot.source.gain=M.Gain(self.volume)*slot.level*self.duckLevel
         if slot.target==0 and slot.level==0 and self.current~=i and self.pending~=i then self:Clear(i) end
     end end
     if not self:CanPlay() then return end
     local slot=self.slots[self.current]
     if slot and slot.source and self.libraryMode and self.playMode=='repeat' and not slot.source.playing and not self.pending then
-        slot.source:Play(slot.sound,0,M.Gain(self.volume)*slot.level)
+        slot.source:Play(slot.sound,0,M.Gain(self.volume)*slot.level*self.duckLevel)
     elseif not self.pending and self.time>=self.retryAt and (self.advanceRequested or not slot or not slot.source.playing or
         not self.continuationId and self:Duration()-self:Position()<2.6 and not (self.libraryMode and self.playMode=='repeat')) then self:Next() end
 end
 function M:Dispose()
     if self.disposed then return end
+    for _,off in ipairs(self.unwatch) do off() end;self.unwatch={}
     self.disposed=true;self:Save();for i=1,2 do self:Clear(i) end
     self.current=nil;self.pending=nil;self.scene:Dispose();audio:ResumeSoundType(self.bus)
 end

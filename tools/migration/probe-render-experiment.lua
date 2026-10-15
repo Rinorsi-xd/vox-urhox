@@ -61,13 +61,13 @@ if G0_WARM_EXPERIMENT then
     local function Batch(flow)
         local warm=flow.qaWarm
         for _,item in ipairs(warm.items) do item.drawable.viewMask=0 end
-        local last=math.min(#warm.items,warm.next+31)
+        local last=math.min(#warm.items,warm.next+7)
         for i=warm.next,last do local item=warm.items[i];item.drawable.viewMask=item.mask end
         warm.next=last+1;warm.batches=warm.batches+1
     end
     function Flow:Finish()
         finish(self)
-        if not self.active or not self.app.trial then return end
+        if not self.active or not self.app.scene then return end
         local scene=self.app.scene
         local items={}
         -- Resolve concrete types rather than relying on abstract Component lookup.

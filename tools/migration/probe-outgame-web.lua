@@ -2,16 +2,155 @@ local original=HandleUpdate
 VOX_SKIP_TUTORIAL=true
 VOX_CLOUD_VALIDATION=true
 local UI=require 'urhox-libs/UI'
+local captureModule=require 'render.MatchMapShot'
+local originalMapCapture=captureModule.New
+local observedCapture
+local captureSequence=0
+local observedOwners=setmetatable({},{__mode='v'})
+captureModule.New=function(...)
+    local value=originalMapCapture(...);observedCapture=value;captureSequence=captureSequence+1
+    return value
+end
+local wheelTrace={}
+local originalWheel=UI.HandleWheel
+UI.HandleWheel=function(dx,dy)
+    local owner=require('ui.GarageHud').GetState()
+    local modal=owner and owner.dialog
+    if not (modal and modal.helpContent) then return originalWheel(dx,dy) end
+    local chain={};local widget=UI.GetHoveredWidget()
+    while widget do
+        chain[#chain+1]={class=widget._className,id=widget.props.id,wheel=widget.OnWheel~=nil}
+        widget=widget.parent
+    end
+    local _,before=modal.scroll:GetScroll()
+    originalWheel(dx,dy)
+    local _,after=modal.scroll:GetScroll()
+    wheelTrace={dx=dx,dy=dy,chain=chain,before=before,after=after}
+    print('OUTGAME_HELP_WHEEL '..cjson.encode(wheelTrace))
+end
 local frames=0;local previous='';local samples={}
 local sampleMode=''
+local pendingTrialDump=false
+local destruction=setmetatable({},{__mode='k'})
+local function DamageProbe(session)
+    local stats=destruction[session]
+    if not stats then
+        stats={flushes=0,removed=0,killed=0,totalMs=0,maxMs=0,samples={},seen=setmetatable({},{__mode='k'})}
+        destruction[session]=stats
+    end
+    for _,unit in ipairs(session.world.units) do if not stats.seen[unit] then
+        stats.seen[unit]=true
+        local event=unit.Event;local lost=0
+        unit.Event=function(self,kind,...)
+            if kind=='partRemoved' then stats.removed=stats.removed+1;lost=lost+1 end
+            if kind=='unitKilled' then stats.killed=stats.killed+1 end
+            return event(self,kind,...)
+        end
+        local flush=unit.Flush
+        unit.Flush=function(self,...)
+            if not self.dirty or not self.alive then return flush(self,...) end
+            local alive=self.alive;local at=Time:GetSystemTime()
+            local result=table.pack(flush(self,...));local ms=Time:GetSystemTime()-at
+            local removed=lost;lost=0
+            stats.flushes=stats.flushes+1
+            stats.totalMs=stats.totalMs+ms;stats.maxMs=math.max(stats.maxMs,ms)
+            local sample={at=at,ms=ms,name=self.name,removed=removed,killed=alive and not self.alive}
+            stats.samples[#stats.samples+1]=sample
+            if #stats.samples>60 then table.remove(stats.samples,1) end
+            print('DAMAGE_REBUILD '..cjson.encode(sample))
+            return table.unpack(result,1,result.n)
+        end
+    end end
+    return {flushes=stats.flushes,removed=stats.removed,killed=stats.killed,totalMs=stats.totalMs,maxMs=stats.maxMs,samples=stats.samples}
+end
+local function MeasureOpening(I)
+    if not I.ready or not I.host.state or not I.host.state.session then return nil end
+    local profile=I.qaTiming
+    if not profile then profile={seen=setmetatable({},{__mode='k'}),totals={}};I.qaTiming=profile end
+    local function Wrap(object,method,label)
+        if not object or type(object[method])~='function' then return end
+        local methods=profile.seen[object]
+        if not methods then methods={};profile.seen[object]=methods end
+        if methods[method]==object[method] then return end
+        local originalMethod=object[method]
+        local stats=profile.totals[label]
+        if not stats then stats={calls=0,totalMs=0,maxMs=0,lastMs=0};profile.totals[label]=stats end
+        local wrapped=function(self,...)
+            local started=Time:GetSystemTime()
+            local result,second,third,fourth=originalMethod(self,...)
+            local elapsed=Time:GetSystemTime()-started
+            stats.calls=stats.calls+1;stats.totalMs=stats.totalMs+elapsed;stats.lastMs=elapsed
+            if elapsed>stats.maxMs then stats.maxMs=elapsed;stats.maxShot=I.shot;stats.maxAge=I.age end
+            return result,second,third,fourth
+        end
+        object[method]=wrapped;methods[method]=wrapped
+    end
+    local session=I.host.state.session
+    Wrap(session,'Tick','sessionTick');Wrap(session.world,'Step','worldStep')
+    Wrap(session.world and session.world.space,'Step','bulletStep')
+    Wrap(session.world and session.world.debris,'Advance','debrisAdvance')
+    Wrap(session.world and session.world.debris,'CapturePoses','debrisCapture')
+    Wrap(session.world and session.world.metrics,'Step','trialMetrics')
+    Wrap(session.combat,'BeforeStep','actorsBeforeStep');Wrap(session.combatView,'Update','enemyView')
+    Wrap(session.view,'Update','playerView');Wrap(session.effects,'Update','combatEffects')
+    Wrap(session.effects,'Consume','effectConsume');Wrap(session.weaponAudio,'Consume','weaponAudioConsume')
+    Wrap(I.page,'Render','openingPage');Wrap(I.audio,'Update','introAudio');Wrap(I.audio,'Voice','voiceStart')
+    for _,entry in ipairs(session.combat and session.combat.entries or {}) do
+        Wrap(entry.unit,'Flush','actorFlush');Wrap(entry.driver,'Step','enemyDriver')
+        Wrap(entry.unit,'Step','actorStep');Wrap(entry.unit,'SavePose','actorSavePose')
+        Wrap(entry.unit.vehicle,'Step','vehicleStep');Wrap(entry.unit.vehicle,'StepRotors','rotorStep')
+        Wrap(entry.unit.weapons,'Step','weaponsStep')
+    end
+    return profile.totals
+end
+local function SalvageInventory(app)
+    local lobby=app.salvageLobby;if not lobby then return nil end
+    local source=app.trial and app.trial.salvage and app.trial.salvage.original or app.blueprint:ToTable()
+    local installed={}
+    for _,part in ipairs(source.parts) do if part[1]~='core' then
+        local id='part:'..part[1];installed[id]=(installed[id] or 0)+1
+    end end
+    return {items=lobby.data.items,stats=lobby.data.stats,lastRun=lobby.data.lastRun,lastStartedRun=lobby.data.lastStartedRun,
+        credits=lobby.data.credits,installed=installed,name=source.name,bayActive=app.bays.active}
+end
+local function AudioState(owner,app)
+    local levels=require('audio.AudioLevels')
+    local data={levels=levels.Snapshot(),music={volume=app.music.volume,enabled=app.music.enabled,paused=app.music.userPaused},rects={}}
+    local modal=owner and owner.dialog
+    if not modal or not modal.controls or not modal.controls.voice then return data end
+    data.open=true;data.status=modal.status:GetText();data.modal=modal.modalLayout_
+    data.sourceScale=modal.sourceScale;data.compact=modal.compact
+    for key,widget in pairs(modal.controls) do local r=widget:GetAbsoluteLayoutForHitTest();data.rects[key]={r.x,r.y,r.w,r.h} end
+    for key,widget in pairs(modal.actions) do local r=widget:GetAbsoluteLayoutForHitTest();data.rects[key]={r.x,r.y,r.w,r.h} end
+    data.nextDisabled=modal.actions.next.props.disabled;return data
+end
+local function PauseState(owner)
+    local modal=owner and owner.dialog
+    if not modal or not modal.actions or not modal.actions.modeIntro then return nil end
+    local data={modal=modal.modalLayout_,compact=modal.compact,scale=modal.sourceScale,rows={}}
+    for id,widget in pairs(modal.actions) do
+        local r=widget:GetAbsoluteLayoutForHitTest()
+        data.rows[id]={text=widget.props.text,subtitle=widget.props.subtitle,disabled=widget.props.disabled,rect={r.x,r.y,r.w,r.h}}
+    end
+    return data
+end
 local function TouchState(layer)
     if not layer then return nil end
     local data={menu=layer.menu,expanded=layer.expanded==true,blocked=layer.blocked,aux=layer.aux,contacts=0,rects={}}
+    if layer.Snapshot then
+        local snapshot=layer.Snapshot();data.editor=snapshot;data.prefs=layer.prefs
+        for _ in pairs(layer.pointers) do data.contacts=data.contacts+1 end
+        for id,r in pairs(snapshot.buttons) do data.rects[id]={r.x,r.y,r.w,r.h} end
+        for i,r in pairs(snapshot.slots) do data.rects['slot-'..i]={r.x,r.y,r.w,r.h} end
+        return data
+    end
     for _ in pairs(layer.gestures.pointers) do data.contacts=data.contacts+1 end
     local function Rect(id,widget) local r=widget:GetAbsoluteLayoutForHitTest();data.rects[id]={r.x,r.y,r.w,r.h} end
     Rect('stick',layer.stick);Rect('menu',layer.toggle)
     for id,widget in pairs(layer.buttons) do Rect(id,widget) end
     for id,widget in pairs(layer.menuButtons) do Rect('option-'..id,widget) end
+    data.prefs=layer.prefs
+    if layer.settings then for key,entries in pairs(layer.settings.refs) do for i,entry in ipairs(entries) do Rect('pref-'..key..'-'..i,entry.button) end end end
     return data
 end
 local function FrameStats()
@@ -24,20 +163,54 @@ local function ResourceStats()
     local data={luaKiB=collectgarbage('count'),resourceBytes=cache:GetTotalMemoryUse(),
         api=graphics.apiName,desktop=require('urhox-libs.Platform.PlatformUtils').IsDesktopPlatform(),
         modelBytes=cache:GetMemoryUse(StringHash('Model')),arrayBytes=cache:GetMemoryUse(StringHash('Texture2DArray')),
+        texture2DBytes=cache:GetMemoryUse(StringHash('Texture2D')),imageBytes=cache:GetMemoryUse(StringHash('Image')),
+        materialBytes=cache:GetMemoryUse(StringHash('Material')),xmlBytes=cache:GetMemoryUse(StringHash('XMLFile')),
+        soundBytes=cache:GetMemoryUse(StringHash('Sound')),jsonBytes=cache:GetMemoryUse(StringHash('JSONFile')),
         retiredTargets=require('render.RenderTargetLifetime').PendingCount()}
+    local trial,minimap=observedOwners.trial,observedOwners.minimap
+    local capture=observedCapture
+    data.lifecycle={
+        trial=trial and {disposed=trial.disposed==true,scene=trial.scene~=nil,world=trial.world~=nil,
+            effects=trial.effects~=nil,view=trial.view~=nil,hud=trial.hud~=nil} or false,
+        minimap=minimap and {disposed=minimap.disposed==true,texture=minimap.texture~=nil,
+            base=minimap.base~=nil,vg=minimap.vg~=nil,capture=minimap.capture~=nil} or false,
+        capture=capture and {sequence=captureSequence,disposed=capture.disposed==true,
+            baked=capture.baked==true,ready=capture.ready==true,bakePending=capture.bakePending==true,
+            gate=capture.bakeGate~=nil,scene=capture.scene~=nil,worker=capture.worker~=nil,
+            texture=capture.texture~=nil,result=capture.result~=nil,node=capture.node~=nil,
+            camera=capture.camera~=nil,image=capture.image~=nil,uploadTexture=capture.uploadTexture~=nil} or false}
     return data
 end
 local function DumpTrial(app)
     local s=app.trial;local w,h=UI.GetViewportSize()
+    observedOwners.trial=s
+    local match=s.hud and s.hud.match and s.hud.match.layer
+    if match and match.minimap then observedOwners.minimap=match.minimap end
     local p=(not s.combat or s.combat.player.alive) and s.vehicle and s.vehicle.body.translation();local c=s.camera:GetNode().position
+    local center=p and s.vehicle.body.center()
     local data={mode='trial',map=s.map.id,width=w,height=h,touch=s.touch,
         loadingFlow=app.loadingFlow:Snapshot(),sceneVisible=renderer:GetViewport(0)~=nil,
         pointer={captured=s.pointer.captured,pending=s.pointer.pending,ready=s.pointer.ready,skip=s.pointer.skip,left=input:GetMouseButtonDown(MOUSEB_LEFT),fire=s.controls.held.fire},
-        camera={position={c.x,c.y,c.z},yaw=s.yaw,pitch=s.pitch,dist=s.cameraDistance},
-        vehicle=p and {position={p.x,p.y,p.z},speed=s.vehicle.speed} or false,
+        camera={position={c.x,c.y,c.z},yaw=s.yaw,pitch=s.pitch,dist=s.cameraDistance},samplePhase='post-update',
+        vehicle=p and {position={p.x,p.y,p.z},center={center.x,center.y,center.z},speed=s.vehicle.speed,yaw=s.vehicle:Yaw()} or false,
         weapons={energy=s.weapons.energy,shots=s.world.stats.shots,hits=s.world.stats.hits,kills=s.world.stats.kills,blocked=s.weapons.blocked,turning=s.weapons.turning},
         widgets={},performance=ResourceStats(),frames=FrameStats()}
     data.performance.batches=renderer.numBatches;data.performance.primitives=renderer.numPrimitives
+    data.camera.feedback={trauma=s.trauma,rumble=s.rumble,stompY=s.stompY,nodY=s.nodY,drillImpact=s.drillImpact}
+    data.audioSettings=AudioState(s,app);data.pauseMenu=PauseState(s)
+    data.safeReset={active=s.resetChan~=nil,t=s.resetChan and s.resetChan.t or 0,dur=s.resetChan and s.resetChan.dur or 0,
+        ready=s.resetReady or 0,history=s.safeReset and #s.safeReset.safeHist or 0,now=Time:GetSystemTime()}
+    if s.practice then
+        local count=0;for _,unit in ipairs(s.world.units) do if unit==s.practice.player then count=count+1 end end
+        data.practice={alive=s.practice.player.alive,life=s.practice.player:Life(),parts=s.practice.player.bp:Size(),playerCount=count}
+    end
+    data.salvageInventory=SalvageInventory(app)
+    data.camera.firstPerson=s.firstPerson==true
+    local visible,models=0,0
+    for _,model in ipairs(s.view.view.root:GetComponents('StaticModel',true)) do
+        models=models+1;if model.enabledEffective then visible=visible+1 end
+    end
+    data.camera.playerModels={total=models,visible=visible}
     data.performance.postPasses=app.graphicsSettings.post and app.graphicsSettings.post.graph.passCount or 0
     if s.drivingAudio then data.drivingAudio=s.drivingAudio:Snapshot() end
     data.rotors={}
@@ -45,7 +218,7 @@ local function DumpTrial(app)
     data.drill={kind=dg and dg.kind,phase=drill.active and drill.active.phase,grinding=drill.active and drill.active.grinding,
         charge=drill.held and drill.held.windup or 0,held=drill.held~=nil,cool=dw and dw.cool,hint=drill:Hint(),
         rush=s.drillSpeed.rush,visible=s.drillSpeed.visible,meshEnabled=s.drillSpeed.mesh and s.drillSpeed.mesh.enabled,
-        viewports=renderer.numViewports,nativeKinematic=s.vehicle.native.kinematic,
+        viewports=renderer.numViewports,nativeKinematic=s.vehicle.native and s.vehicle.native.kinematic or false,
         queryCasts=s.world.drillSweep and s.world.drillSweep.casts or 0,querySensors=s.world.drillSweep and #s.world.drillSweep.sensors or 0}
     if not s.combat and s.world.units[1] then data.drill.targetHealth=s.world.units[1]:Health() end
     for _,r in ipairs(s.vehicle.rotors) do data.rotors[#data.rotors+1]={id=r.partId,mode=r.mode,angle=r.angle,target=r.target} end
@@ -54,10 +227,22 @@ local function DumpTrial(app)
     data.reticle={hp=rt.hp,structure=rt.structure,fire=rt.fire,clock=rt.clock,hit=rt.hit,repair=rt.repair,
         scope=s.scope,fov=s.camera:GetCamera().fov,selected=s.weapons.current,groups=#s.weapons.groups,
         layout=require('ui.ReticleState').Layout(w,h),legacyMeter=s.hud.meter:IsVisible()}
+    data.reticle.assist=s.assist and {point=s.assist.point,ref=s.assist.ref and s.assist.ref.name,slow=s.assist.slow} or false
     local feedback=s.hud.overlay.feedback
-    data.combatFeedback={hits=#feedback.hits,cubes=#feedback.cubes,repairAge=feedback.repairAge,repairFull=feedback.repairFull,score=feedback.score and feedback.score.shown or false}
+    data.combatFeedback={hits=#feedback.hits,cubes=#feedback.cubes,repairAge=feedback.repairAge,repairFull=feedback.repairFull,
+        score=feedback.score and feedback.score.shown or false,scoreTarget=feedback.score and feedback.score.target or false,streak=feedback.streak}
     data.performance.fixedSteps=s.fixedSteps;data.performance.droppedSeconds=s.droppedTime
+    data.performance.maxFps=engine.maxFps;data.performance.maxInactiveFps=engine.maxInactiveFps
+    data.performance.focus=input.focus;data.performance.minimized=input.minimized
     data.performance.effects={particles=#s.effects.particles,smoke=#s.effects.smoke,beams=#s.effects.beams,flashes=#s.effects.flashes}
+    data.destruction=DamageProbe(s)
+    data.aimTargets={}
+    for _,unit in ipairs(s.world.units) do if unit~=(s.combat and s.combat.player) and unit.alive then
+        local pos=unit:Position();local point=require('core.Coord').Vec(pos[1],pos[2]+1,pos[3])
+        local camera=s.camera:GetCamera();local uv=camera:WorldToScreenPoint(point)
+        data.aimTargets[#data.aimTargets+1]={name=unit.name,team=unit.team,pos=pos,
+            x=uv.x,y=uv.y,behind=camera.node:WorldToLocal(point).z<0,parts=unit.bp:Size()}
+    end end
     local mouse=input.mousePosition;local hit=UI.FindWidgetAt(mouse.x/UI.GetScale(),mouse.y/UI.GetScale())
     local lock=s.weapons:LockInfo()
     local models=0;for _,vis in pairs(s.view.view.visuals) do if vis.weaponMotion and vis.weaponMotion.kind=='missile' then models=models+#vis.models end end
@@ -85,7 +270,16 @@ local function DumpTrial(app)
         if overlay.contentContainer_ then Walk(overlay.contentContainer_) end
         if overlay.footerWidget_ then Walk(overlay.footerWidget_) end
     end
-    if s.battle then data.battle=s.battle:Snapshot() end
+    if s.battle then
+        data.battle=s.battle:Snapshot()
+        local match=s.hud.match and s.hud.match.layer
+        local mm=match and match.minimap
+        local k=require('ui.MatchBanner').Scale(w,h,s.touch)
+        data.matchHud={scale=k,touch=s.touch==true,sourceCompassOffset=100*k,
+            minimap=mm and {frames=mm.frames,base=mm.base~=nil,style=mm.style,
+                rect={14*k,52*k,236*k,236*k},disposed=mm.disposed==true} or false}
+    end
+    if s.endless then data.endless=s.endless:Snapshot() end
     if s.salvage then
         data.salvageRun=s.salvage:Snapshot();data.salvageRun.cine.skipRect=s.hud.cinema.skipRect
         data.salvageRun.cine.pauseVisible=s.hud.pause:IsVisible();data.salvageRun.cine.reticleVisible=s.hud.vitals:IsVisible()
@@ -94,11 +288,32 @@ local function DumpTrial(app)
     if s.story then
         data.story=s.story:Snapshot()
         data.story.collectorModels=#s.story.view.collectors
+        data.story.beaconModelsVisible=0
+        for _,node in ipairs(s.story.view.beacon.nodes) do
+            local model=node:GetComponent('StaticModel')
+            if model and model.enabledEffective then data.story.beaconModelsVisible=data.story.beaconModelsVisible+1 end
+        end
+        data.story.storyGlowCount=s.story.view.glow.count
         data.story.voicePlayed=#s.story.voice.log
         data.story.voicePlaying=s.story.voice.source.playing
         data.story.saved=s.story.saved
         data.story.target=s.story.rules:Target()
+        local marker=require('story.MarkerRules').Select(s.story)
+        if marker then data.story.marker={target=marker.target,label=marker.label,kind=marker.kind,lift=marker.lift,enemy=marker.enemy,close=marker.close} end
+        if s.story.boss then
+            local boss=s.story.boss;local feet=boss.unit.vehicle and boss.unit.vehicle.mechControl
+            data.story.boss.parts=boss.unit.bp:Size();data.story.boss.feet=feet and #feet.list or 0
+            data.story.boss.planes=boss.raid and #boss.view.planes or 0
+        end
+        if s.story.qaEpilogue then local ep=s.story.qaEpilogue;data.story.epilogue={active=ep.active,panels=#ep.panels,kind=ep.rules.current.kind,time=ep.rules.time} end
+        data.story.naturalEpilogue=s.story.epilogue and s.story.epilogue.active or false
+        if s.story.epilogue then local ep=s.story.epilogue;data.story.naturalEpilogueDetail={active=ep.active,index=ep.rules.index,total=#ep.rules.steps,
+            panels=#ep.panels,kind=ep.rules.current and ep.rules.current.kind,time=ep.rules.time,voicePlayed=#ep.voice.log,voicePlaying=ep.voice.source.playing,
+            voiceDone=#ep.voice.queue==0 and (not ep.voice.card or ep.voice.card.age>ep.voice.card.length),
+            voice=ep.voice.card and {text=ep.voice.card.text,age=ep.voice.card.age,typing=ep.voice.card.typing,speakEnd=ep.voice.card.speakEnd}} end
     end
+    data.boundary=s.boundary and {walls=#s.boundary.spec.walls,ceiling=s.boundary.spec.ceiling~=nil,enabled=s.boundary.root.enabled} or false
+    data.wing={count=#s.view.wings,telemetry=s.vehicle.telemetry,state=s.vehicle.wingState and s.vehicle.wingState.phase}
     data.intro=s.intro and {active=not s.intro.done,shot=s.intro.index,time=s.intro.time,full=s.intro.full,skipRect=s.intro.page and s.intro.page.skipRect} or false
     print('OUTGAME_STATE '..cjson.encode(data))
 end
@@ -111,6 +326,8 @@ local function Dump(app)
         widgets={},quality=require('render.Quality').current.name}
     if app.tutorial then data.tutorial=app.tutorial:Snapshot() end
     data.storage=require('storage.CloudStorage').Snapshot()
+    data.audioSettings=AudioState(app.build or home,app);data.pauseMenu=PauseState(app.build or home)
+    data.salvageInventory=SalvageInventory(app)
     data.performance=ResourceStats();data.performance.batches=renderer.numBatches;data.performance.primitives=renderer.numPrimitives
     local c=app.camera;local p=c.node.position;local t=c.cur.target
     data.camera={position={p.x,p.y,p.z},target={t.x,t.y,t.z},yaw=c.cur.yaw,pitch=c.cur.pitch,dist=c.cur.dist,fov=c.camera.fov}
@@ -126,6 +343,12 @@ local function Dump(app)
         end
         data.buildInput={mode=b.buildCamera.mode,captured=b.buildCamera.captured,slot=b.inventory.active,
             tool=b.editor.tool,channel=b.editor.paintChannel,color=b.editor.color,autoColor=b.editor.autoColor}
+        data.buildTargets={}
+        for _,part in ipairs(b.editor.bp:List()) do if #data.buildTargets<32 then
+            local cell=part._cells[1];local unit=require('Config').CELL
+            local point=c.camera:WorldToScreenPoint(Vector3(-cell[1]*unit,(cell[2]+.5)*unit,cell[3]*unit))
+            data.buildTargets[#data.buildTargets+1]={id=part.id,type=part.type,x=point.x,y=point.y}
+        end end
         local preview=b.editor.preview
         data.buildInput.preview=preview and preview.type and {type=preview.type,pos=preview.pos,rot=preview.rot,ok=preview.res.ok,reason=preview.res.reason} or false
         local stretch=b.editor.stretch
@@ -240,12 +463,26 @@ local function Dump(app)
         end end
     end
     data.modeChoice=home and home.modeChoice;data.storyLevel=home and home.storyLevel
+    local help=home and home.dialog and home.dialog.helpContent
+    if help then
+        local modal=home.dialog;local _,offset=modal.scroll:GetScroll()
+        local scroll=modal.scroll
+        data.help={scrollY=offset,bodyHeight=help.bodyHeight,card=modal.modalLayout_,naturalHeight=scroll.props.sourceNaturalHeight,
+            wheelTrace=wheelTrace,scrollLayout=scroll:GetAbsoluteLayoutForHitTest(),scrollState=scroll.state,scrollYEnabled=scroll.props.scrollY}
+    end
     data.salvage=home and home.salvage;data.lobby=app.lobby or 'arena';data.mapPreview=app.mapPreview~=nil
     data.previewMap=app.mapPreview and app.mapPreview.map.id;data.sceneVisible=renderer:GetViewport(0)~=nil
     data.loading={state=app.loader.state,phase=app.loader.phase,progress=app.loader.progress,
         pending=app.pendingMap and app.pendingMap.id,downloads=app.loader.gate.total,completed=app.loader.gate.completed,
         prepareFrames=app.loader.prepareFrames,prepareStage=app.loader.prepareStage,
         maxPrepareMs=app.loader.maxPrepareMs,prepareStageMax=app.loader.prepareStageMax,phaseTimes=app.loader.phaseTimes}
+    if observedCapture then
+        local capture=observedCapture
+        data.loading.mapCapture={disposed=capture.disposed==true,views=capture.views,
+            captured=capture.captured==true,ready=capture.ready==true,progress=capture.progress,
+            captureFrame=capture.captureFrame,currentFrame=GetTime().frameNumber,
+            worker=capture.worker and coroutine.status(capture.worker)}
+    end
     data.mode='hangar';data.loadingFlow=app.loadingFlow:Snapshot()
     data.loadingFlow.backRect=app.loadingFlow.page.backRect
     data.craterModelResident=cache:GetExistingResource('Model','Crater/mesh-0.bin')~=nil
@@ -264,6 +501,16 @@ local function Dump(app)
     if app.warehouse then data.warehouse={ready=app.warehouse.ready,cursor=app.warehouse.cursor,hallVisible=app.hangar.root.enabled,
         motion=app.warehouse.ready and app.warehouse.motion:Snapshot() or nil,
         effects=app.warehouse.effects and {time=app.warehouse.effects.time,uploads=app.warehouse.effects.uploads,particles=#app.warehouse.effectData.dust.positions}} end
+    if app.warehouse and app.warehouse.ready then
+        data.warehouse.cameraSafety=app.camera.safety and app.camera.safety.root==app.warehouse.root or false
+        data.warehouse.surfaces={}
+        for _,y in ipairs({.02,.05,.1,.15,.2}) do
+            local hits=app.scene:GetComponent('Octree'):Raycast(app.camera.camera:GetScreenRay(.5,y),RAY_TRIANGLE,100,DRAWABLE_GEOMETRY)
+            local hit=hits[1];local drawable=hit and hit.drawable
+            data.warehouse.surfaces[#data.warehouse.surfaces+1]={y=y,node=drawable and drawable.node.name or '',
+                parent=drawable and drawable.node.parent.name or '',model=drawable and drawable.model and drawable.model.name or '',distance=hit and hit.distance or -1}
+        end
+    end
     local scale=app.graphicsSettings.sceneScale
     if scale then data.render={scale.graph.width,scale.graph.height} end
     local preview=home and home.workshopPreview
@@ -325,10 +572,47 @@ function HandleUpdate(et,ed)
     local app=VOX_HANGAR and VOX_HANGAR.app or VOX_TRIAL and VOX_TRIAL.app
     if not app then return end
     frames=frames+1
+    if app.opening and app.opening.active then
+        local I=app.opening;local w,h=UI.GetViewportSize()
+        local openingTiming=MeasureOpening(I)
+        if frames%30==0 or input:GetKeyPress(KEY_F8) then
+            local session=I.host.state and I.host.state.session
+            local sortieStatus=I.ready and session and session.combat and session.combat.player and session.combat.easy and I.host.SortieStatus and I.host.SortieStatus(I) or nil
+            if sortieStatus and sortieStatus.target and session then
+                local target=sortieStatus.target
+                local point=session.camera:GetCamera():WorldToScreenPoint(require('core.Coord').Vec(target[1],target[2],target[3]))
+                sortieStatus.targetScreen={point.x*w,point.y*h}
+            end
+            print('OUTGAME_STATE '..cjson.encode({mode='opening',width=w,height=h,stage=I.stage,shot=I.shot,age=I.age,time=I.time,
+                ready=I.ready,failed=I.failed,error=I.error,sceneReady=I.sceneReady,downloaded=I.downloaded,
+                playing=I.playing,signed=I.signed,voice=I.voiceDuration,line=I.line,lineAge=I.lineAge,
+                sortie=I.sortie and {step=I.sortie.step,elapsed=I.sortie.elapsed,controlling=I.sortie.controlling,
+                    tip=I.sortie.tip,pending=I.sortie.pending,left=I.sortie.left,mine=I.sortie.mine,reason=I.sortie.reason,done=I.sortie.done} or nil,
+                sortieStatus=sortieStatus,
+                audio=I.audio and I.audio.Snapshot and I.audio:Snapshot() or nil,
+                page=I.page and I.page:Snapshot() or nil,performance=ResourceStats(),openingTiming=openingTiming,
+                timingInstrumentation=openingTiming and 'QA instance method wrappers; Time:GetSystemTime milliseconds; includes wrapper overhead, not an uninstrumented performance baseline' or nil}))
+        end
+        return
+    end
     local mode=app.trial and app.trial.map.id or app.build and 'build' or 'hangar'
     if mode~=sampleMode or app.loadingFlow.active then samples={};sampleMode=mode
     else local dt=ed:GetFloat('TimeStep');if dt>0 then samples[#samples+1]=dt end end
     if app.trial then
+        if app.trial.endless and input:GetKeyPress(KEY_F2) then
+            local e=app.trial.endless
+            for i=2,#e.entries do local u=e.entries[i].unit;u.kill='QA focus UI wave clear';u.dirty=true;u:Flush() end
+        end
+        if app.trial.endless and input:GetKeyPress(KEY_F3) then
+            local e=app.trial.endless
+            local base=app.trial.world.layout.base.pos or app.trial.world.layout.spawn.pos
+            e.player.vehicle:Place({base[1],base[2]+1,base[3]},0)
+            e.player:SavePose();e.player.previous=e.player.current;app.trial.view:ResetPose();app.trial:ResetCamera()
+        end
+        if input:GetKeyPress(KEY_HOME) and not app.trial.combat then
+            local s=app.trial;local pos=#s.view.wings>0 and {0,75,0} or {298,10,0}
+            s.vehicle:Place(pos,0);s.view:ResetPose();s.yaw=90;s.pitch=0;s.follow=false;s:PostUpdate(.1)
+        end
         if input:GetKeyPress(KEY_PAGEUP) and not app.trial.combat then
             local t=app.trial
             if t.qaDrillFrozen then
@@ -382,6 +666,26 @@ function HandleUpdate(et,ed)
         end
         local story=app.trial.story
         if story then
+            if story.qaEpilogue and story.qaEpilogue.active then story.qaEpilogue:Update(ed:GetFloat('TimeStep'),true) end
+            if story.level.id=='s5' then
+                if input:GetKeyPress(KEY_HOME) and not story.boss then
+                    story.voice:Hide();story.rules:Go(2);story:Events();app.trial.combatView:Consume(story.world);story.boss.rules:Go('fight');story.boss.flow.stage='fight'
+                    local target=story.boss.unit:Position();local pos=story.boss:OpenNode(target,40,80) or {target[1]+45,target[2],target[3]-40}
+                    pos={pos[1],story.world:GroundAt(pos[1],pos[3])+2,pos[3]};local yaw=math.atan(target[1]-pos[1],target[3]-pos[3])
+                    story:Place({pos=pos,yaw=yaw});app.trial.view:ResetPose();app.trial.yaw=-yaw*180/math.pi;app.trial.pitch=10;app.trial.follow=false;app.trial:PostUpdate(.1)
+                end
+                local boss=story.boss
+                if boss and input:GetKeyPress(KEY_F9) then boss:Nodes();local n=boss.rules.nodes[1];boss:Hit(n.pos,n.hp) end
+                if boss and input:GetKeyPress(KEY_F10) then boss.rules:Phase(2);boss:Events();boss:StartRaid() end
+                if boss and input:GetKeyPress(KEY_F11) then boss.rules.state='kneel';boss.rules.kneelDealt=0;boss.rules.hp=1;boss:Hit(boss:Cockpit(),1) end
+                if boss and input:GetKeyPress(KEY_F12) then
+                    if story.qaEpilogue and story.qaEpilogue.active then story.qaEpilogue:Dispose()
+                    else
+                        local ep=require('ui.Epilogue').Attach(app.trial.scene,UI.GetRoot(),function() end);story.qaEpilogue=ep
+                        ep.rules:Next();ep.rules:Next();ep.rules:Next();ep:Update(.01,true)
+                    end
+                end
+            end
             if input:GetKeyPress(KEY_F3) and story.player.alive then
                 local u=story.player;u.struct=0
                 u:Damage(u.bp:CoreParts()[1].id,u.bodyHpMax*.2,u:Position());u:Flush()
@@ -428,7 +732,7 @@ function HandleUpdate(et,ed)
             for i,g in ipairs(s.weapons.groups) do if g.kind=='missile' then s.weapons:Select(i) end end
         end
         local key=app.loadingFlow.phase..':'..tostring(app.trial.pointer.captured)..':'..tostring(app.trial.pointer.pending)
-        if frames%30==0 or input:GetKeyPress(KEY_F8) then previous=key;DumpTrial(app) end
+        if frames%30==0 or input:GetKeyPress(KEY_F8) then previous=key;pendingTrialDump=app end
         return
     end
     if input:GetKeyPress(KEY_F2) then
@@ -461,6 +765,22 @@ function HandleUpdate(et,ed)
         end
     end
     local home=require('ui.GarageHud').GetState()
+    if home and home.tab=='hangar' and not app.build and not app.loadingFlow.active then
+        if input:GetKeyPress(KEY_F4) then app:EnterTrial('story5');return end
+        if input:GetKeyPress(KEY_DELETE) then app:EnterTrial('crater');return end
+        if input:GetKeyPress(KEY_END) then
+            local bp=require('construction.Prefab').Create(require('construction.Blueprint').New(),'feather')
+            app.qaWingGate=require('app.ResourceGate').New();local scene=app.scene
+            app.qaWingGate:Start(require('parts.Dependencies').For(bp:List()),function(ready,message)
+                assert(ready,message);if app.scene~=scene or app.stopped then return end
+                local ok,why=app:LoadBlueprint(bp:ToTable());assert(ok,why);print('[WingQA] Source pair ready')
+            end)
+        end
+    end
+    if home and home.tab=='hangar' and not app.build and not app.loadingFlow.active then
+        if input:GetKeyPress(KEY_PAGEUP) then app:StartOpening();return end
+        if input:GetKeyPress(KEY_PAGEDOWN) then app:SelectEndless() end
+    end
     if input:GetKeyPress(KEY_HOME) and home and home.tab=='hangar' and not app.build then
         app.qaDrillVariant=app.qaDrillVariant=='tianyuan' and 'fuyuan' or 'tianyuan'
         local bp=require('construction.Prefab').Create(require('construction.Blueprint').New(),app.qaDrillVariant)
@@ -528,4 +848,12 @@ function HandleUpdate(et,ed)
     local mb=home and home.musicBox
     if mb then key=key..':'..tostring(mb.player.pending)..':'..tostring(mb.player:Track() and mb.player:Track().id)..':'..mb.filter..':'..mb.query..':'..tostring(mb.player.userPaused)..':'..mb.player.playMode..':'..tostring(mb.modeMenu:IsVisible())..':'..tostring(mb.player.volume) end
     if frames%30==0 and key~=previous or input:GetKeyPress(KEY_F8) then previous=key;Dump(app) end
+end
+local originalPostUpdate=HandlePostUpdate
+function HandlePostUpdate(et,ed)
+    originalPostUpdate(et,ed)
+    -- Animated weapon nodes are updated before the production camera hides them.
+    -- Sample the state which will render, while preserving production event order.
+    local app=pendingTrialDump;pendingTrialDump=false
+    if app and app.trial and not app.trial.disposed then DumpTrial(app) end
 end

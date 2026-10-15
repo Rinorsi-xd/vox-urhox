@@ -40,7 +40,7 @@ local function Bounds(vehicle)
     local function Grow(center,half)
         for i=1,3 do lo[i]=math.min(lo[i],center[i]-half[i]);hi[i]=math.max(hi[i],center[i]+half[i]) end
     end
-    for _,list in ipairs({vehicle.spec.boxes,vehicle.spec.hulls,vehicle.spec.sensors,vehicle.legHitboxes and vehicle.legHitboxes.items or {}}) do for _,s in ipairs(list) do
+    for _,list in ipairs({vehicle.spec.boxes,vehicle.spec.hulls,vehicle.spec.sensors,vehicle.legHitboxes and vehicle.legHitboxes.items or {},vehicle.mechHitboxes and vehicle.mechHitboxes.items or {}}) do for _,s in ipairs(list) do
         local half={table.unpack(s.half)}
         if s.quat then
             local x=V.Rotate(s.quat,{s.half[1],0,0});local y=V.Rotate(s.quat,{0,s.half[2],0});local z=V.Rotate(s.quat,{0,0,s.half[3]})
@@ -65,7 +65,7 @@ function M.Cast(vehicle,origin,direction,length)
     local function Accept(distance,normal,id)
         if distance and distance<=limit then limit=distance;best={dist=distance,normal=V.Rotate(q,normal),partId=id} end
     end
-    for _,list in ipairs({vehicle.spec.boxes,vehicle.spec.hulls,vehicle.spec.sensors,vehicle.legHitboxes and vehicle.legHitboxes.items or {}}) do for _,shape in ipairs(list) do
+    for _,list in ipairs({vehicle.spec.boxes,vehicle.spec.hulls,vehicle.spec.sensors,vehicle.legHitboxes and vehicle.legHitboxes.items or {},vehicle.mechHitboxes and vehicle.mechHitboxes.items or {}}) do for _,shape in ipairs(list) do
         local localOrigin=V.Sub(o,shape.center);local localDir=d
         if shape.quat then localOrigin=V.Unrotate(shape.quat,localOrigin);localDir=V.Unrotate(shape.quat,d) end
         local distance,normal=Box(localOrigin,localDir,shape.half,limit)

@@ -14,7 +14,11 @@ local function Rect(vg,x,y,w,h)
 end
 function M:ReleaseTexture()
     for context,handles in pairs(self.images) do for _,handle in ipairs(handles) do nvgDeleteVideo(context,handle) end end
-    self.images={};self.texture=nil;self.rgbTexture=nil;self.ready=false;self.bytes=0
+    self.images={}
+    for _,key in ipairs({'texture','rgbTexture'}) do
+        if self[key] then require('render.RenderTargetLifetime').Retire(self[key]);self[key]=nil end
+    end
+    self.ready=false;self.bytes=0
 end
 function M:Resize(width,height,scale)
     local pw,ph=math.ceil(width*scale),math.ceil(height*scale)

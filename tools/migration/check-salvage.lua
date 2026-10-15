@@ -1,5 +1,6 @@
 local stage='boot';local app=nil ---@type HangarApp|nil
 local work=nil ---@type thread|nil
+local retired=nil ---@type table|nil
 local Loot=require 'salvage.Loot'
 local Rules=require 'salvage.RunRules'
 local GP=require('core.ResourceData').Read('Salvage/Gameplay.json')
@@ -68,14 +69,19 @@ end
 local function Exercise(s)
     local update=s.Update;s.Update=function() end
     V.assert(s.salvage.begun and s.combat==s.salvage and s.hud.salvage~=nil,'production loading begins salvage and attaches HUD')
-    local run=s.salvage;local before=run.rules.time
+    local run=s.salvage;retired={run=run,director=run.director,entries=run.entries,cine=run.cine,view=run.view,fx=run.fx,explosion=run.explosion,world=run.world};local before=run.rules.time
     dofile('tools/migration/check-salvage-cine.lua').Drop(s);before=run.rules.time
     run.audio.focus=function() return true end
     s.pointer.captured=true
     for i=1,120 do s:Tick(1/60,{throttle=0,steer=0});if i%20==0 then coroutine.yield() end end
     V.assert(run.rules.time>before+1.9 and s.vehicle.body.translation().y> -100,'production physics and clock run')
     local o;for _,it in ipairs(run.rules.objects) do if it.ctype=='supply' then o=it;break end end
-    s.vehicle:Place({o.g[1],o.g[2]+2,o.g[3]},0);s.view:ResetPose();s:HandleKey(KEY_E)
+    s.vehicle:Place({o.g[1],o.g[2]+2,o.g[3]},0)
+    local origin,center=s.vehicle.body.translation(),s.vehicle.body.center()
+    s.vehicle.body.setTranslation({x=origin.x+o.g[1]-center.x,y=origin.y+o.g[2]+2-center.y,z=origin.z+o.g[3]-center.z})
+    run.player:SavePose();s.view:ResetPose();local at=run.player:Position()
+    V.assert(math.abs(at[1]-o.g[1])<.01 and math.abs(at[3]-o.g[3])<.01 and math.abs(at[2]-o.g[2]-2)<.01,'native search fixture places actual center of mass within source interaction height and radius')
+    s:HandleKey(KEY_E)
     s:Tick(1/60,{throttle=0,steer=0});V.assert(run.rules.search~=nil,'session E routes to search')
     for i=1,480 do s:Tick(1/60,{throttle=0,steer=0});if i%30==0 then coroutine.yield() end end
     V.assert(Loot.Used(run.rules.cargo)>0,'production search adds loot')
@@ -99,17 +105,23 @@ local function Exercise(s)
 end
 local function Poll()
     if stage=='boot' and VOX_HANGAR then
-        app=VOX_HANGAR.app;Logic();AudioLogic(app.scene);V.assert(app.bays:Save(1),'validation draft saved before lobby switch');require('ui.GarageHud').GetState().SetLobby('salvage');stage='warehouse'
+        app=VOX_HANGAR.app;Logic();AudioLogic(app.scene)
+        local source=require('endless.Data').starters[1].source;app.blueprint:Load(source)
+        V.assert(app.blueprint:Size()==#source.parts,'native salvage fixture uses frozen source starter rather than a previous test vehicle')
+        V.assert(app.bays:Save(1),'validation draft saved before lobby switch');require('ui.GarageHud').GetState().SetLobby('salvage');stage='warehouse'
     elseif stage=='warehouse' and app.warehouse and app.warehouse.ready then
         V.assert(app.warehouse.effects.uploads==1 and #app.warehouse.effectData.dust.positions==900,'warehouse dust uploads once')
         V.assert(app:EnterTrial('salvage'),'production salvage entry');stage='loading'
     elseif stage=='loading' and app.trial and not app.loadingFlow.active then
         work=coroutine.create(function() Exercise(app.trial) end);stage='exercise'
     elseif stage=='exercise' then
-        local ok,err=coroutine.resume(work);if not ok then V.assert(false,tostring(err));stage='failed';V.finish() end
+        local ok,err=coroutine.resume(work);if not ok then V.assert(false,debug.traceback(work,tostring(err)));stage='failed';app:Stop();V.finish();engine.maxInactiveFps=1000;engine.maxFps=1000 end
     elseif stage=='return' and not app.trial and not app.loadingFlow.active then
         V.assert(VOX_QA_SALVAGE_AUDIO.disposed and not next(VOX_QA_SALVAGE_AUDIO.voices),'return disposes production salvage sound sources')
-        V.assert(app.lobby=='salvage','return preserves salvage lobby');stage='done';V.finish()
+        retired.run:Dispose();retired.cine:Dispose();retired.view:Dispose();retired.fx:Dispose();retired.explosion:Dispose()
+        V.assert(retired.run.disposed and not retired.run.world and not retired.run.session and not retired.run.player and #retired.entries==0 and not retired.director.world and not retired.director.run and #retired.director.encounters==0,'actual salvage return clears original director and player/world references')
+        V.assert(not retired.cine.run and not retired.cine.session and not retired.cine.view and not retired.view.data and not retired.view.run and not retired.view.root and not retired.fx.root and not VOX_QA_SALVAGE_AUDIO.root,'actual salvage repeated Dispose releases cinematic map FX and audio native wrappers')
+        V.assert(app.lobby=='salvage','return preserves salvage lobby');stage='done';app:Stop();V.finish();engine.maxInactiveFps=1000;engine.maxFps=1000
     end
 end
 for i=45,1950 do V.atFrame(i,Poll) end

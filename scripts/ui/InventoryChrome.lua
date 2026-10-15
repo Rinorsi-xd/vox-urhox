@@ -118,7 +118,9 @@ function M.Card:Render(vg)
         while D.Width(vg,name..'…',fs)>w-20 and utf8.len(name)>1 do name=name:sub(1,utf8.offset(name,-1)-1) end
         name=name..'…'
     end
-    D.Text(vg,name,x+w/2,y+h-(p.compact and 22 or 31),fs,nil,nil,NVG_ALIGN_CENTER)
+    local remaining=self.inventoryOwner and self.inventoryOwner.Remaining and self.inventoryOwner:Remaining(def.id)
+    local out=remaining~=nil and remaining<=0
+    D.Text(vg,name,x+w/2,y+h-(p.compact and 22 or 31),fs,out and {238,247,255,166} or nil,nil,NVG_ALIGN_CENTER)
     if focused then
         nvgBeginPath(vg);nvgRect(vg,x-3,y-3,w+6,h+6);nvgStrokeWidth(vg,2);nvgStrokeColor(vg,D.Color(D.orange));nvgStroke(vg)
     end
@@ -128,6 +130,12 @@ function M.Card:Render(vg)
         local cost=def.budget>0 and ('预算 '..def.budget) or '免费';local cw=D.Width(vg,cost,10,'vox-body')+26
         D.Rect(vg,x+8,y+8,cw,19,{219,238,255,255});D.Icon(vg,'chip',x+14,y+11,12,{36,91,145,255})
         D.Text(vg,cost,x+29,y+11,10,{24,60,92,255},'vox-body');nvgRestore(vg)
+    end
+    if remaining~=nil then
+        local text=out and '购买' or ('×'..remaining);local bw=D.Width(vg,text,10,'vox-body')+10+(out and 15 or 0)
+        local bx=x+w-8-bw;D.Rect(vg,bx,y+7,bw,20,out and {214,185,126,255} or {17,38,61,255})
+        if out then D.Icon(vg,'plus',bx+5,y+11,12,{25,37,52,255}) end
+        D.Text(vg,text,bx+5+(out and 15 or 0),y+8,10,out and {25,37,52,255} or {219,238,255,255},'vox-body',nil,nil,false,18)
     end
 end
 function M.Title(owner)

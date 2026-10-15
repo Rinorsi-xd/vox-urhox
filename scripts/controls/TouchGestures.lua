@@ -7,14 +7,24 @@ function M:Down(action,id,x,y,rect)
     for _,p in pairs(self.pointers) do if p.action==action and action~='look' then return false end end
     local held=action~='move' and action~='look' and self.adapter.Hold(action,true) or false
     self.pointers[id]={action=action,x=x,y=y,ox=x,oy=y,rect=rect,held=held}
-    if action=='move' then self:Stick(x,y,rect) end
+    if action=='move' then
+        if self.adapter.floating then
+            local radius=rect.w/2
+            rect={x=math.max(radius+6,math.min(self.adapter.width*.5,x))-radius,
+                y=math.max(radius+6,math.min(self.adapter.height-radius-6,y))-radius,w=rect.w,h=rect.h}
+            self.pointers[id].rect=rect
+            if self.adapter.PlaceStick then self.adapter.PlaceStick(rect,true) end
+        end
+        self:Stick(x,y,rect)
+    end
     return true
 end
 function M:Stick(x,y,r)
-    local radius=r.w*.36;local dx,dy=(x-r.x-r.w/2)/radius,(y-r.y-r.h/2)/radius
+    local radius=r.w*(self.adapter.floating and .42 or .36);local dx,dy=(x-r.x-r.w/2)/radius,(y-r.y-r.h/2)/radius
     local length=math.sqrt(dx*dx+dy*dy);local power=math.min(1,math.max(0,(length-.12)/.88))
     if length>0 then dx,dy=dx/length*power,dy/length*power else dx,dy=0,0 end
     self.adapter.Move(dx,-dy)
+    if self.adapter.Dash then self.adapter.Dash(length>1.15) end
 end
 function M:Move(id,x,y)
     local p=self.pointers[id];if not p then return end
@@ -28,7 +38,7 @@ function M:Move(id,x,y)
             if before>8 and after>8 then self.adapter.Zoom(math.log(before/after)/math.log(1.0012)) end
             if self.adapter.mode=='edit' then self.adapter.Pan(dx/2,dy/2) end
         else
-            local gain=math.min(3,600/math.max(240,math.min(self.adapter.width,self.adapter.height)))
+            local gain=math.min(3,600/math.max(240,math.min(self.adapter.width,self.adapter.height)))*(self.adapter.sensitivity or 1)
             self.adapter.Look(dx*gain,dy*gain)
         end
     end
@@ -37,7 +47,7 @@ end
 function M:Up(id,x,y,cancelled)
     local p=self.pointers[id];if not p then return end
     self.pointers[id]=nil
-    if p.action=='move' then self.adapter.Move(0,0)
+    if p.action=='move' then self.adapter.Move(0,0);if self.adapter.Dash then self.adapter.Dash(false) end;if self.adapter.HomeStick then self.adapter.HomeStick() end
     elseif p.held then self.adapter.Hold(p.action,false,cancelled)
     elseif p.action~='look' and not cancelled then
         local r=p.rect
@@ -50,6 +60,8 @@ function M:Reset()
         if p.held then self.adapter.Hold(p.action,false,true) end
     end
     self.adapter.Move(0,0)
+    if self.adapter.Dash then self.adapter.Dash(false) end
+    if self.adapter.HomeStick then self.adapter.HomeStick() end
 end
 function M:Held(action) for _,p in pairs(self.pointers) do if p.action==action then return true end end;return false end
 return M

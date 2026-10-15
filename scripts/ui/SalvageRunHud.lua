@@ -35,6 +35,25 @@ function Panel:Render(vg)
     Text(vg,Fmt(900-r.time),tx+62,36,26,900-r.time<120 and {255,106,77,255} or white,NVG_ALIGN_CENTER)
     Text(vg,'热度',tx+142,31,11,muted);Text(vg,math.floor(r.heat),tx+292,31,11,muted,NVG_ALIGN_RIGHT)
     D.Rect(vg,tx+142,50,150,6,{255,255,255,26});D.Rect(vg,tx+142,50,150*r.heat/100,6,gold)
+    local objective=run.hudObjective
+    if objective and run.player.alive and run.landed and not r.ex then
+        local pos=run.player:Position();local f=self.session.camera:GetNode().worldDirection
+        local angle=-math.atan(objective.g[1]-pos[1],objective.g[3]-pos[3])+math.atan(-f.x,f.z)
+        local distance=math.floor(objective.dist+.5)..' m'
+        local labelWidth=D.Width(vg,objective.text,14,'vox-story');local width=labelWidth+D.Width(vg,distance,14,'vox-story')+62
+        local x=w/2-width/2
+        D.Rect(vg,x,74,width,26,{17,21,26,179})
+        nvgBeginPath(vg);nvgRect(vg,x,74,width,26);nvgStrokeColor(vg,D.Color({62,230,255,51}));nvgStrokeWidth(vg,1);nvgStroke(vg)
+        nvgSave(vg);nvgTranslate(vg,x+19,87);nvgRotate(vg,angle);D.Path(vg,{-7,6,0,-7,7,6});nvgFillColor(vg,D.Color(cyan));nvgFill(vg);nvgRestore(vg)
+        Text(vg,objective.text,x+34,78,14);Text(vg,distance,x+width-12,78,14,cyan,NVG_ALIGN_RIGHT)
+    end
+    if run.threat then
+        local threat=run.threat
+        local text=threat.name..' · '..threat.n..' 辆 · '..math.floor(threat.d+.5)..' 米 · '..(threat.alerted and '已警觉' or '没发现你')
+        local width=D.Width(vg,text,13,'vox-story')+23;local x=w/2-width/2
+        D.Rect(vg,x,104,width,23,{17,21,26,153});D.Rect(vg,x,104,3,23,threat.alerted and {255,90,60,255} or gold)
+        Text(vg,text,x+13,106,13,threat.alerted and {255,138,106,255} or {240,217,160,255})
+    end
     local cargo=run.hudCargo or {};local cx,cy=w-436,h-(self.session.touch and 304 or 184)
     Frame(vg,cx,cy,418,130)
     Text(vg,'货舱',cx+12,cy+12,16,gold);Text(vg,Loot.Used(r.cargo)..' / 20',cx+65,cy+13,15)
@@ -152,6 +171,7 @@ function M.Attach(session,root)
         if run.hudRefresh<=0 then
             run.hudRefresh=.1;local list={};for id,n in pairs(r.cargo) do list[#list+1]={id=id,n=n} end
             table.sort(list,function(a,b) local ar,br=Data.items[a.id].rarity,Data.items[b.id].rarity;return ar==br and a.id<b.id or ar>br end);run.hudCargo=list
+            run.hudObjective=r:Objective(run.player:Position())
         end
         layer:SetVisible(not r.finished)
         if run.result and not session.dialog and not session.wantsReturn then M.Result(session) end

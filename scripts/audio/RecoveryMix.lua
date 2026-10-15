@@ -13,7 +13,7 @@ function M:Consume(events,unit,emit)
     if self.unit~=unit then
         self:Reset();self.unit=unit;self.dead=not unit.alive
     end
-    local now=unit.env.time;local hp=unit:Health();local position=unit:Position()
+    local now=unit.env.time;local hp=unit.Life and unit:Life() or unit:Health();local position=unit:Position()
     for _,event in ipairs(events) do if event.unit==unit and not self.seen[event] then
         self.seen[event]=true
         if event.type=='unitKilled' then self.dead=true

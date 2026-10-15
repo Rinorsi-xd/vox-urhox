@@ -21,7 +21,7 @@ function M.Step(v,dt,frame,contact)
     v.airT=contact>0 and 0 or (v.airT or 0)+dt
     local near=v.airT<S.coyote
     local t=body.translation();local p=Math.Add({t.x,t.y,t.z},Math.Rotate(q,v.com))
-    local hit=v.space:Raycast(p,{0,-1,0},v.cgH+S.reach+2,body,nil,false,0x7fff)
+    local hit=v.space:Raycast(p,{0,-1,0},v.cgH+S.reach+2,body,nil,false,require('drive.TerrainObstacles').SUPPORT_MASK)
     local n=hit and hit.normal or {0,1,0}
     local gap=hit and hit.dist-v.cgH or math.huge
     local hugging=near and gap<S.reach

@@ -18,7 +18,8 @@ function M.New(scene,deferred)
 end
 function M:GroundAt(x,z) return self.visualGround:Sample(x,z) end
 function M:Dispose()
-    if self.visualGround then self.visualGround:Dispose() end
+    if self.disposed then return end
+    if self.visualGround then self.visualGround:Dispose();self.visualGround=nil end
     Base.Dispose(self)
     self.layout=nil
 end

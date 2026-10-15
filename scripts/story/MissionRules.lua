@@ -4,7 +4,7 @@ local function Copy(p) return {p[1],p[2],p[3]} end
 local function Flat(a,b) return math.sqrt((a[1]-b[1])^2+(a[3]-b[3])^2) end
 function M.New(level,convoy)
     return setmetatable({level=level,convoy=convoy,time=0,index=0,begun=false,finished=false,events={},phase='boot',install=0,
-        stats={intel=0,collectors=0,kills=0,deaths=0,fails=0,checkpoints=0},checkpoint=level.spawn,flags={},beatsFired={},stepT=0,progress=0},M)
+        stats={intel=0,collectors=0,kills=0,deaths=0,fails=0,checkpoints=0,kneels=0,missileHits=0},checkpoint=level.spawn,flags={},beatsFired={},stepT=0,progress=0},M)
 end
 function M:Emit(kind,props) props=props or {};props.type=kind;self.events[#self.events+1]=props end
 function M:Drain() local events=self.events;self.events={};return events end
@@ -23,7 +23,20 @@ end
 function M:Target()
     local s=self:StepSpec();if not s then return nil end
     if s.kind=='pickup' then local it=self.level.intel[s.intel];return it.drop and self.dropPos or it.pos end
-    if s.kind=='escort' then return self.convoy.pos end
+    local function Nearest(from)
+        local nearest,distance=nil,math.huge
+        for _,p in ipairs(self.enemyPositions or {}) do local d=Flat(from,p);if d<distance then nearest=p;distance=d end end
+        return nearest
+    end
+    if s.kind=='talk' then return nil end
+    if s.kind=='escort' then return self.convoy.blocked and Nearest(self.convoy.pos) or self.convoy.pos end
+    if s.kind=='hold' then return self.playerPos and Flat(self.playerPos,s.pos)<s.healR*1.8 and Nearest(self.playerPos) or s.pos end
+    if s.kind=='boss' then return self.bossTarget end
+    if s.kind=='clear' and self.phase=='fight' then
+        local nearest,distance=nil,math.huge
+        for _,p in ipairs(self.enemyPositions or {}) do local d=Flat(self.playerPos,p);if d<distance then nearest=p;distance=d end end
+        return nearest
+    end
     if s.kind=='capture' and self.cap and (self.cap.phase=='counter' or self.cap.phase=='cap' and self.playerPos and Flat(self.playerPos,s.pos)<s.r*2.5) then
         local closest,distance=nil,math.huge
         for _,p in ipairs(self.enemyPositions or {}) do local d=Flat(self.playerPos,p);if d<distance then closest=p;distance=d end end
@@ -38,7 +51,7 @@ end
 function M:Done(world,lines)
     local s=self:StepSpec()
     if s.kind=='hold' then self:Emit('clearEnemies') end
-    self:Emit('objectiveDone',{step=s,lines=lines or s.done})
+    self:Emit('objectiveDone',{step=s,lines=lines or s.doneLines or s.done})
     self.checkpoint={pos={world.pos[1],world.pos[2]+1,world.pos[3]},yaw=world.yaw or 0}
     self:Go(self.index+1)
 end
@@ -46,7 +59,7 @@ function M:Killed(pos) self.stats.kills=self.stats.kills+1;self.lastKill=Copy(po
 function M:Ask(spec) self.choice=spec;self.choiceUntil=self.time+(spec.timeout or 14);self:Emit('choice') end
 function M:Choose(index)
     local choice=self.choice;local option=choice and choice.options[index];if not option then return false end
-    self.flags[choice.id or 'ask']=index-1;self.choice=nil;self:Emit('say',{lines=option.reply,urgent=true});return true
+    self.flags[choice.id or 'ask']=index-1;self.choice=nil;self:Emit('radio',{cue='pickup'});self:Emit('say',{lines=option.reply,urgent=true});return true
 end
 function M:Beats(dt,world)
     self.stepT=self.stepT+dt;local step=self:StepSpec()
@@ -59,8 +72,8 @@ function M:Beats(dt,world)
         if ready and not self.beatsFired[k] and condition then
             self.beatsFired[k]=true
             if beat.say then self:Emit('say',{lines=beat.say,urgent=beat.urgent}) end
-            if beat.spawn then self:Emit('spawn',{enemies=beat.spawn,tag=beat.tag}) end
-            if beat.banner then self:Emit('banner',{title=beat.banner[2],sub=beat.banner[3]}) end
+            if beat.spawn then self:Emit('spawn',{enemies=beat.spawn,tag=beat.tag});if beat.alert~=false then self:Emit('radio',{cue='alert'}) end end
+            if beat.banner then self:Emit('banner',{kick=beat.banner[1],title=beat.banner[2],sub=beat.banner[3],kind=beat.banner[4],ms=beat.banner[5]}) end
             if beat.ask then self.pendingAsk={spec=beat.ask,at=self.time+.3} end
             if beat.run=='dropCoupon' then self.dropPos={0,6.2,-214};self:Emit('dropIntel',{id='coupon',pos=self.dropPos}) end
         end
@@ -68,12 +81,13 @@ function M:Beats(dt,world)
 end
 function M:Fail(title,lines)
     if self.failAt then return end;self.failAt=self.time;self.stats.fails=self.stats.fails+1
-    self:Emit('say',{lines=lines,urgent=true});self:Emit('banner',{title=title,sub='3 秒后从存档点重来'})
+    self:Emit('say',{lines=lines,urgent=true});self:Emit('banner',{kick='任务受挫',title=title,sub='3 秒后从存档点重来',kind='enemy',ms=3000})
+    self:Emit('radio',{cue='alert'})
 end
 function M:Step(dt,world)
     if not self.begun or self.finished then return end
     self.time=self.time+dt
-    self.playerPos=world.pos;self.enemyPositions=world.enemyPositions
+    self.playerPos=world.pos;self.enemyPositions=world.enemyPositions;self.bossTarget=world.bossTarget
     if self.index==0 then if self.time>=1.4 then self:Go(1) end;return end
     local step=self:StepSpec()
     if self.failAt and self.time-self.failAt>=3 then
@@ -104,6 +118,7 @@ function M:Step(dt,world)
     end
     local s=self:StepSpec();local target=self:Target();self.distance=target and Flat(world.pos,target) or 0
     self:Beats(dt,world)
+    if s.kind=='boss' then if world.bossDone then self:Done(world) end;return end
     if s.kind=='talk' then
         if self.stepT>1 and self.asked and not self.choice and not world.talking then self:Done(world) end
         return
@@ -123,7 +138,8 @@ function M:Step(dt,world)
             self.phase='fight';self.fightAt=self.time;self:Emit('fight',{step=s});return
         end
         if self.phase=='fight' then
-            self.enemyCount=world.enemies or 0;local timeout=self.time-self.fightAt>s.timeout
+            self.enemyCount=world.enemies or 0;self.retitle=s.fightTitle..' '..(#s.enemies-self.enemyCount)..' / '..#s.enemies
+            local timeout=self.time-self.fightAt>s.timeout
             if self.enemyCount==0 or timeout then
                 self.dropPos=Copy(self.lastKill or s.pos);self.dropPos[2]=self.dropPos[2]+.2
                 self:Emit('clear',{timeout=timeout and self.enemyCount>0,pos=self.dropPos})

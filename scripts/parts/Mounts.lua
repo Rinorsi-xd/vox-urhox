@@ -6,10 +6,13 @@ local M={}
 M.RetiredWheels={}
 for _,name in ipairs(rules.retiredWheels) do M.RetiredWheels[name]=true end
 function M.LegStance(type,pos,rotation)
-    local cells=rules.legStances[type];if not cells then return nil end
+    local cells=rules.legStances[type] or (rules.mechStances or {})[type];if not cells then return nil end
     local result={}
     for i,c in ipairs(cells) do local p=Rot.ApplyRot(rotation,c);result[i]={p[1]+pos[1],p[2]+pos[2],p[3]+pos[3]} end
     return result
+end
+function M.MechWorks(rotation)
+    return Rot.ApplyRot(rotation,{0,1,0})[2]<-.99 and Rot.ApplyRot(rotation,{0,0,1})[3]>.99
 end
 function M.HoverInfo(type,rotation)
     local mounts=variants[type]

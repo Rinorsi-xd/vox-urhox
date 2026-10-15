@@ -5,6 +5,7 @@ local V=require "core.Math3"
 local Batch=require "render.EffectBatch"
 local Quality=require "render.Quality"
 local Chips=require "render.ChipEffects"
+local SourceFx=require 'render.CombatSourceFx'
 local M={};M.__index=M
 local LASER={glow={.2,.8,3.1},helix={.18,.65,2.7},spark={2,4,8},flare={.5,1.6,4.4}}
 local RAIL={core={2.1,2.8,4.4},glow={.16,.5,2.3},helix={.28,.85,3.3},spark={3.5,4.5,7},flare={1.6,2.3,4.2}}
@@ -36,6 +37,19 @@ function M.New(scene,groundAt)
     self.missiles=require('render.MissileEffects').New(self)
     self:Clear();return self
 end
+function M:Reserve(options)
+    options=options or {}
+    if options.arc and not self.batches.Arc then
+        self.batches.Arc=Batch.New(self.root,'Ribbon',Quality.current.weaponArcSegments,'Shaders/BLGL/WeaponFx/')
+    end
+    if (options.chips or 0)>0 then self.chips:Reserve(options.chips) end
+    if (options.missiles or 0)>0 then
+        if not self.missiles.view then
+            self.missiles.view=require('render.MissileView').New(self.root,Quality.current.name=='mobile' and 64 or 128)
+        end
+        self.missiles.view:Reserve(options.missiles)
+    end
+end
 function M:Clear()
     self.light:Clear()
     self.chips:Clear()
@@ -49,9 +63,12 @@ end
 function M:Ring(p,d,r0,r1,life,color,alpha,thick,delay)
     Add(self.rings,{pos=p,dir=d,r0=r0,r1=r1,life=life,color=color,alpha=alpha or 1,thick=thick or .18,delay=delay or 0,age=0},40)
 end
-function M:Burst(p,n,speed,color,normal,size,life,gravity)
+function M:Spark(p,vel,color,size,life,drag,gravity,grow)
+    Add(self.particles,{pos={table.unpack(p)},vel=vel,color=color,size=size,life=life,age=0,drag=drag or 0,grav=gravity or 0,grow=grow or 0},self.maxParticles)
+end
+function M:Burst(p,n,speed,color,normal,size,life,gravity,up)
     for _=1,n do
-        local d={math.random()*2-1,math.random()*2-.6,math.random()*2-1}
+        local d={math.random()*2-1,math.random()*2-1+(up or .4),math.random()*2-1}
         if normal then d=At(d,normal,1.2) end
         Add(self.particles,{pos={table.unpack(p)},vel=V.Scale(V.Normalize(d),speed*(.4+math.random()*.8)),color=color,
             size=(size or .08)*(.6+math.random()*.8),life=(life or .45)*(.5+math.random()),age=0,drag=2,grav=gravity or 12},self.maxParticles)
@@ -67,7 +84,7 @@ function M:Puff(p,n,size,life,gray)
 end
 function M:EquipmentEmit(kind,p)
     if kind=='fizzle' then self:Burst(p,10,4,{3,4.5,8},nil,.04,.35,5);self:Puff(p,2,.25,1,.35)
-    elseif kind=='boot' then self:Flash(p,.5,.1,{.347,.658,1});self:Burst(p,4,2,{2,4,8},nil,.03,.25,0)
+    elseif kind=='boot' then self:Flash(p,.5,.1,SourceFx.Color(0x9fd4ff));self:Burst(p,4,2,{2,4,8},nil,.03,.25,0)
     elseif kind=='spark' then
         Add(self.particles,{pos=p,vel={(math.random()-.5)*3,math.random()*2,(math.random()-.5)*3},color=BOLT.spark,
             size=.03+math.random()*.02,life=.15+math.random()*.15,age=0,drag=3,grav=3},self.maxParticles)
@@ -77,8 +94,10 @@ function M:EquipmentEmit(kind,p)
     end
 end
 function M:Flare(p,d,n,len,width,color,spread,life)
+    local u,v=Basis(d)
     for _=1,n do
-        local dir=V.Jitter(d,spread,math.random)
+        local angle=math.random()*math.pi*2;local s=spread*math.sqrt(math.random())
+        local dir=V.Normalize(V.Add(d,V.Scale(V.Add(V.Scale(u,math.cos(angle)),V.Scale(v,math.sin(angle))),s)))
         Add(self.flares,{base=p,tip=At(p,dir,len*(.6+math.random()*.6)),width=width*(.75+math.random()*.5),color=color,
             life=life*(.8+math.random()*.4),age=0},128)
     end
@@ -86,26 +105,27 @@ end
 function M:Shot(e)
     local t=e.tier or 1;local big=t>=4;local p=At(e.pos,e.dir,e.kind=="sniper" and .1 or .06)
     if e.kind=="mg" then
-        self:Flash(At(p,e.dir,.12),.22+t*.04,.07,{1,.76,.43})
+        self:Flash(At(p,e.dir,.12),.22+t*.04,.07,SourceFx.Color(0xffe2b0))
         self.light:Emit(p,(5+t*2.5)*(.85+math.random()*.25),0xffa050,7,.6)
         self:Flare(p,e.dir,t==5 and 5 or 3,.45+t*.1,.16+t*.025,BOLT.flare,.16,.065)
         if t==4 then self:Flare(p,e.dir,4,.35,.14,BOLT.flare,1.1,.045) end
-        if (e.spin or 0)>.9 then self:Burst(p,big and 3 or 1,12,BOLT.spark,e.dir,.05,.1,0) end
+        if (e.spin or 0)>.9 then SourceFx.ForwardSparks(self,p,e.dir,big and 3 or 1,9,7,4,BOLT.spark,.05,.1,5) end
+        if big then SourceFx.VentSparks(self,e,BOLT.spark) end
     elseif e.kind=="laser" then
-        self:Flash(At(p,e.dir,.1),.25+t*.05,.06,{.15,.58,1})
-        self.light:Emit(p,12+t*5,0x4aa8ff)
+        self:Flash(At(p,e.dir,.1),.25+t*.05,.06,SourceFx.Color(0x6cc8ff))
         self:Flare(p,e.dir,4,.35+t*.08,.13+t*.02,LASER.flare,.22,.07)
+        self.light:Emit(p,12+t*5,0x4aa8ff)
         self:Ring(p,e.dir,.06,.24+t*.04,.1,LASER.glow,.55,.2)
         if big then
             self:Ring(At(p,e.dir,.25),e.dir,.1,.6+(t-4)*.2,.2,LASER.glow,.9,.2,.02)
-            self:Burst(p,8,12,LASER.spark,e.dir,.05,.14,0)
+            SourceFx.ForwardSparks(self,p,e.dir,8,8,8,4,LASER.spark,.05,.14,4)
         end
     elseif e.kind=='missile' then self.missiles:Shot(e)
     else
-        self:Flash(At(p,e.dir,.2),.6+t*.18,.1,{.72,.86,1})
-        self.light:Emit(p,40+t*15,0x9fd4ff)
+        self:Flash(At(p,e.dir,.2),.6+t*.18,.1,SourceFx.Color(0xdcefff))
         self:Flare(p,e.dir,5+t,.9+t*.25,.22+t*.04,RAIL.flare,.12,.09)
         self:Flare(p,e.dir,4,.5,.18,RAIL.flare,1.3,.07)
+        self.light:Emit(p,40+t*15,0x9fd4ff)
         self:Ring(p,e.dir,.15,.7+t*.18,.24,RAIL.glow,1,.22)
         self:Ring(At(p,e.dir,.4),e.dir,.1,1.1+t*.25,.34,RAIL.glow,.7,.12,.04)
         self:Burst(p,8+t*3,7,RAIL.spark,e.dir,.06,.3,4);self:Puff(p,2+t,.35,.9,.55)
@@ -128,21 +148,25 @@ function M:Beam(e)
 end
 function M:Hit(e)
     local t=e.tier or 1;local rail=e.kind=="sniper";local n=e.normal or V.Scale(e.dir,-1);local p=At(e.to,n,.04)
+    self:Flash(p,rail and (1.6+t*.4) or (.5+t*.1),rail and .16 or .08,SourceFx.Color(rail and 0xdcefff or 0x6cc8ff))
+    self:Flash(p,rail and .7 or (.22+t*.03),rail and .5 or .42,SourceFx.Color(rail and 0x6cb8ff or 0x3f9dff))
     self.light:Emit(p,rail and (50+t*20) or (8+t*3),rail and 0x9fd4ff or 0x4aa8ff)
-    self:Flash(p,rail and (1.6+t*.4) or (.5+t*.1),rail and .16 or .08,rail and {.72,.86,1} or {.15,.58,1})
-    self:Flash(p,rail and .7 or (.22+t*.03),rail and .5 or .42,{.1,.34,1})
-    self:Burst(p,rail and (18+t*5) or (6+t*2),rail and 10 or 6,rail and RAIL.spark or LASER.spark,n,rail and .07 or .045,rail and .5 or .32)
+    self:Burst(p,rail and (18+t*5) or (6+t*2),rail and 10 or 6,rail and RAIL.spark or e.target and {3,4,9} or LASER.spark,n,rail and .07 or .045,rail and .5 or .32)
     if rail then
         self:Puff(p,3+t,.5,1.4,.4);self:Ring(p,n,.2,1.4+t*.35,.32,RAIL.glow,.9,.16)
         local u,v=Basis(n)
         for _=1,t>=4 and 7 or 3 do
             local a=math.random()*math.pi*2;local d=V.Normalize(At(V.Add(V.Scale(u,math.cos(a)),V.Scale(v,math.sin(a))),n,.3+math.random()*.9))
-            Add(self.zaps,{a=p,b=At(p,d,.5+math.random()*(t>=4 and 1.1 or .6)),age=0,life=.14+math.random()*.14,width=.05+t*.008},64)
+            Add(self.zaps,{a=p,b=At(p,d,.5+math.random()*math.max(t>=4 and 1.1 or .6,(e.splash or 0)*.8)),age=0,life=.14+math.random()*.14,width=.05+t*.008},64)
         end
-    elseif t>=4 then self:Ring(p,n,.08,.45+(t-4)*.12,.18,LASER.glow,.8,.25) end
+    else
+        if t>=4 then self:Ring(p,n,.08,.45+(t-4)*.12,.18,LASER.glow,.8,.25) end
+        if math.random()<.4 then self:Puff(p,1,.22,.6,.45) end
+    end
 end
-function M:Consume(events)
+function M:Consume(events,remote)
     for _,e in ipairs(events) do
+        if self.onEvent then self.onEvent(e,remote) end
         self.events=self.events+1
         if e.type=='drill' then require('render.DrillEffects').Event(self,e)
         elseif e.type=="shot" then self:Shot(e)
@@ -150,7 +174,7 @@ function M:Consume(events)
         elseif e.type=="beam" then self:Beam(e)
         elseif e.type=="impact" then
             local t=e.tier or 3;local n=e.normal or V.Scale(e.dir,-1);local p=At(e.pos,n,.03)
-            self:Flash(p,(.6+t*.09)*(e.bright and 1.4 or 1),.09,{1,.63,.22})
+            self:Flash(p,(.6+t*.09)*(e.bright and 1.4 or 1),.09,SourceFx.Color(0xffd080))
             self.light:Emit(p,40+t*12,0xffb050,14)
             self:Burst(p,9+t*2,8.5,e.target and {7,2.4,.7} or BOLT.spark,n,.06,.38)
             self:Ring(p,n,.05,.35+(t-3)*.1,.13,{4,1.6,.4},.75,.3)
@@ -161,13 +185,14 @@ function M:Consume(events)
             if math.random()<.4 then self:Puff(p,1,.3,.8,.35) end
         elseif e.type=="dry" then
             local p=At(e.pos,e.dir,.05);self:Flash(p,.3,.05,{1,1,1})
-            self:Burst(p,5,3.5,e.kind=="mg" and {5,2.4,.8} or LASER.spark,e.dir,.035,.22,6);self:Puff(p,1,.18,.7,.32)
+            self:Burst(p,5,3.5,e.kind=="mg" and {5,2.4,.8} or e.kind=='sniper' and RAIL.spark or LASER.spark,e.dir,.035,.22,6);self:Puff(p,1,.18,.7,.32)
+        elseif e.type=='plateBreak' or e.type=='repair' or e.type=='heal' then SourceFx.Recovery(self,e)
         elseif e.type=="break" then
             self.chips:Break(e);self:Burst(e.pos,10,6,{5,2.6,.9},nil,.08,.4);self:Puff(e.pos,3,.45,1.1,.4)
         elseif e.type=="explode" then
             local radius=e.radius or 2
             self.light:Emit(e.pos,140)
-            self:Flash(e.pos,radius*3.2,.2,{1,.35,.05});self:Burst(e.pos,46,12,{6,2.4,.6},nil,.14,.7)
+            self:Flash(e.pos,radius*3.2,.2,SourceFx.Color(0xffa040));self:Burst(e.pos,46,12,{6,2.4,.6},nil,.14,.7)
             self:Puff(e.pos,16,radius*.8,2.2,.3)
         end
     end
@@ -206,18 +231,12 @@ function M:Update(dt,projectiles,camera)
     local function Glow(pos,size,color,alpha) b.Glow:Disc(pos,size,color,alpha or 1,right,up) end
     for _,proj in ipairs(projectiles) do
         if proj.fx=="bolt" then
-            local t=proj.s.tier;local dir=V.Normalize(proj.vel);local k=(proj.bright and 1.2 or 1)*(.9+(proj.seed or .5)*.2)
-            local function Back(d) return At(proj.pos,dir,-math.min(d,proj.dist+.05)) end
-            Glow(proj.pos,(.32+t*.04)*k*(.9+math.random()*.2),BOLT.halo)
-            Glow(proj.pos,(.19+t*.025)*k,BOLT.inner);Glow(proj.pos,(.09+t*.012)*k,BOLT.core)
-            b.Streak:Segment(Back((.55+t*.06)*k),proj.pos,(.12+t*.016)*k,BOLT.glow,1,.55,0,1,true)
-            local u,v=Basis(dir);local r=(.09+t*.012)*k;local ph=proj.dist*1.6+(proj.seed or .5)*6.28
-            for _,off in ipairs({0,math.pi}) do Glow(At(At(Back(.12),u,math.cos(ph+off)*r),v,math.sin(ph+off)*r),.05+t*.006,BOLT.mote) end
+            SourceFx.Bolt(b.Streak,Glow,proj,BOLT)
         end
     end
     self.missiles:Update(dt,projectiles,Glow)
     Advance(self.flares,dt,function(f)
-        local k=f.age/f.life;b.Streak:Segment(f.tip,f.base,f.width*(1-.3*k),f.color,1-k*k,.45,0,1,true)
+        local k=f.age/f.life;b.Streak:Segment(f.tip,f.base,f.width*(1-.3*k),f.color,1-k*k,.45,0,1,true,.95)
     end)
     Advance(self.trails,dt,function(e)
         local f=1-e.age/e.life;b.Ribbon:Segment(e.from,e.to,.5,RAIL.glow,f*f*.22*(.7+.3*math.random()),0)
@@ -237,7 +256,7 @@ function M:Update(dt,projectiles,camera)
         local tip=At(e.from,V.Sub(e.to,e.from),f);local len=e.len*f
         if f<1 or fade<.15 then
             local a=f<1 and 1 or 1-fade/.15
-            b.Streak:Segment(At(tip,e.dir,-math.min(len,rail and 3 or 1.6)),tip,rail and (.5+t*.08) or (.32+t*.05),rail and RAIL.core or LASER.flare,a,.5,0,1,true)
+            b.Streak:Segment(At(tip,e.dir,-math.min(len,rail and 3 or 1.6)),tip,rail and (.5+t*.08) or (.32+t*.05),rail and RAIL.core or LASER.flare,a,.5,0,1,true,.9)
             Glow(tip,(rail and (1.2+t*.15) or (.7+t*.1))*a,rail and RAIL.glow or LASER.glow,.6*a)
             Glow(tip,(rail and .4 or .25)*a+.05,{6,7,9},a)
         end
@@ -263,7 +282,7 @@ function M:Update(dt,projectiles,camera)
         local t=(e.age-e.delay)/e.life;local r=e.r0+(e.r1-e.r0)*(1-(1-t)^2);local u,v=Basis(e.dir)
         b.Ring:Disc(e.pos,r*2,e.color,e.alpha*(1-t)^1.5,u,v,e.thick)
     end)
-    Advance(self.flashes,dt,function(e) local t=e.age/e.life;Glow(e.pos,e.size*(1+t*.6),e.color,1-t) end)
+    Advance(self.flashes,dt,function(e) local t=e.age/e.life;b.Glow:Disc(e.pos,e.size*(.6+t*.6),e.color,1-t,right,up,nil,1) end)
     local function Particles(list,smoke)
         Advance(list,dt,function(e)
             local k=math.max(0,1-e.drag*dt)
@@ -278,7 +297,7 @@ function M:Update(dt,projectiles,camera)
             end
             e.size=e.size+(e.grow or 0)*dt;local t=e.age/e.life
             if smoke then b.Smoke:Disc(e.pos,e.size,e.color,math.min(1,t*6)*(1-t),right,up)
-            else Glow(e.pos,e.size,e.color,1-t*t) end
+            else b.Glow:Disc(e.pos,e.size,e.color,1-t*t,right,up,nil,1) end
         end)
     end
     Particles(self.particles,false);Particles(self.smoke,true)

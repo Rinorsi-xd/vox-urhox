@@ -61,6 +61,6 @@ function M:Snapshot()
 end
 function M:Dispose()
     if self.disposed then return end;self.disposed=true;self.root:Dispose()
-    for _,m in ipairs(self.materials) do m:Dispose() end;self.materials={};self.nodes={}
+    for _,m in ipairs(self.materials) do m:Dispose() end;self.materials={};self.nodes={};self.root=nil
 end
 return M

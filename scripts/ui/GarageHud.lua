@@ -94,6 +94,7 @@ function M.Create(app)
     end
     s.CreateVehicle=function(id)
         s.SetNew(false)
+        if app.lobby=='salvage' and id~='empty' then return require('ui.SalvageBuy').Car(s,id) end
         s.Run(function(discard) return app.bays:CreateVehicle(id,nil,discard) end,function()
             s.SetTab('hangar');if id=='empty' then app:EnterBuild() end
         end,require('construction.Prefab').Create(require('construction.Blueprint').New(),id):ToTable())
@@ -102,7 +103,7 @@ function M.Create(app)
     local chrome=require('ui.HomeChrome'){position='absolute',width='100%',height='100%',pointerEvents='none'};chrome.owner=s;s.root:AddChild(chrome)
     s.nav=UI.Panel{position='absolute',pointerEvents='box-none'};s.root:AddChild(s.nav)
     for _,tab in ipairs({{'hangar','机库'},{'livery','涂装'},{'workshop','创意工坊'},{'shop','商店'}}) do AddButton(s.nav,tab[1],tab[2],tab[1],'tab',function() s.SetTab(tab[1]) end) end
-    AddButton(s.nav,'intro','开场动画','play','intro',function() end)
+    AddButton(s.nav,'intro','开场动画','play','intro',function() app:StartOpening() end)
     AddButton(s.nav,'help','','help','icon',function() Dialogs.Help(s) end)
     AddButton(s.nav,'settings','','gear','icon',function() require('ui.PauseMenu').Open(s) end)
     local Info=UI.ScrollView
@@ -183,7 +184,7 @@ function M.Update(dt)
     if s.revision~=s.app.bays.revision or s.tier~=s.app.tier then Rebuild(s) end
     s.previews:Update(dt)
     if s.salvagePreviews then s.salvagePreviews:Update(dt) end
-    if s.tab=='workshop' then require('ui.Workshop').Update(s,dt) end
+    if s.tab=='workshop' or s.tab=='salvage' and s.salvage and s.salvage.tab=='workshop' then require('ui.Workshop').Update(s,dt) end
     if s.tab=='story' then require('ui.StoryPage').Update(s,dt) end
     if s.tab=='livery' then require('ui.LiveryPage').Update(s,dt) end
     if s.workshopPreview then s.workshopPreview:Update(dt) end

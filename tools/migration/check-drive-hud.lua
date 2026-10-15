@@ -14,10 +14,12 @@ local function Click(widget)
 end
 local function Shot(name)
     local img=Image:new();V.assert(graphics:TakeScreenShot(img),'native drive frame captured')
-    local crop=img:GetSubimage(IntRect(0,0,w,h));V.assert(crop:SavePNG('docs/migration/evidence/pc-drive-'..name..'.png'),'saved '..name);crop:Dispose();img:Dispose()
+    V.assert(img:SavePNG('docs/migration/evidence/pc-drive-'..name..'.png'),'saved actual framebuffer '..name);img:Dispose()
 end
 local function Bound()
-    hud=s.hud;hud.root:SetStyle({width=w,height=h});renderer:GetViewport(0):SetRect(IntRect(0,0,w,h))
+    UI.SetScale(1)
+    hud=s.hud;hud.root:SetStyle({width=w,height=h});UI.MarkLayoutDirty();UI.Layout()
+    renderer:GetViewport(0):SetRect(IntRect(0,0,w,h))
 end
 local function Keys()
     local key
@@ -148,6 +150,9 @@ At(133,function()
     hud.overlay:Pop({-p.x,p.y,p.z},135,false);V.assert(hud.overlay.pops[hud.overlay.index].t==0,'damage feedback projects into actual camera')
     for _=1,50 do hud.overlay:Pop({-p.x,p.y,p.z},25,false) end
     V.assert(#hud.overlay.pops==40,'damage events reuse bounded 40-entry pool')
+    hud.overlay:Clear()
+    hud.overlay:PopDamage({cells0=200,lostCells=30,lostMajor=1},{point={-p.x,p.y,p.z},normal=135,pierce=80,shield=55,cells0=0,major0=0})
+    V.assert(hud.overlay.pops[hud.overlay.index].shield,'real HUD renders source shield-resist channel')
     s.weapons.energy=s.weapons.energyMax*.1;s.weapons.offline=true
     s.details=false;hud.Update(s,0)
     V.assert(hud.vitals.fire.word=='能量耗尽','current reticle reads actual offline weapon state')
@@ -174,7 +179,7 @@ At(188,function()
     Click(hud.buttons['return']);V.assert(s.wantsReturn,'original return button works without source selector bug')
     UI.GetViewportSize=viewportSize;UI.GetWidth=getWidth;UI.GetHeight=getHeight;UI.SetScale(oldScale)
 end)
-At(235,function()
+At(370,function()
     V.assert(app.mode=='hangar' and s.disposed and not hud.root.node,'return releases PC trial UI and simulation')
     V.assert(not app.scene:GetChild('TrialPhysics',true),'trial physics and feedback do not remain in hangar');V.finish()
 end)

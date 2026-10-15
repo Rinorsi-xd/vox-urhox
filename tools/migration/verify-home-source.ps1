@@ -4,7 +4,7 @@ Push-Location $projectRoot
 try {
     $report=$projectRoot+'/docs/migration/evidence/pc-home-source.json'
     if(Test-Path -LiteralPath $report){Remove-Item -LiteralPath $report}
-    $runtimeArgs=@('main.lua',('-tapcode_dir='+$projectRoot),'-tool_mode','-quality=desktop','-validate','-validate-frames=205','-validate-timeout=90','-validate-spike-threshold=30000',('-validate-test='+$PSScriptRoot+'/check-home-source.lua'),('-validate-output='+$report),'-log','info')
+    $runtimeArgs=@('main.lua',('-tapcode_dir='+$projectRoot),'-tool_mode','-quality=desktop','-validate','-validate-frames=605','-validate-timeout=90','-validate-spike-threshold=30000',('-validate-test='+$PSScriptRoot+'/check-home-source.lua'),('-validate-output='+$report),'-log','info')
     $p=Start-Process -FilePath ($projectRoot+'/.cli/UrhoXRuntime.exe') -WorkingDirectory $projectRoot -WindowStyle Hidden -PassThru -ArgumentList $runtimeArgs -RedirectStandardOutput ($projectRoot+'/.tmp/pc-home-out.txt') -RedirectStandardError ($projectRoot+'/.tmp/pc-home-err.txt')
     $timer=[Diagnostics.Stopwatch]::StartNew()
     while(-not $p.WaitForExit(1000)){if($timer.Elapsed.TotalSeconds -gt 105){$p.Kill();throw 'PC home verification timeout'}}

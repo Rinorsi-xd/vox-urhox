@@ -122,7 +122,8 @@ local function Poll()
     elseif stage=='retry' and app.trial then
         restoreNew()
         local expected=0
-        for _,rock in ipairs(data.Read('Crater/Boulders.json')) do if rock.r>=.9 then expected=expected+1 end end
+        -- Frozen shared/combat/tuning.js TERRAIN.minObstacleRadius is 1.6 m.
+        for _,rock in ipairs(data.Read('Crater/Boulders.json')) do if rock.r>=1.6 then expected=expected+1 end end
         V.assert(app.trial.world.boulderCount==expected,'retry installs every qualifying boulder from the current exported data')
         local layout=app.trial.world.layout
         V.assert(#layout.blocks==layout.dataParts.blocks and #layout.terrain.heights==layout.dataParts.heights,'partitioned layout restores every collider and height declared in the current manifest')

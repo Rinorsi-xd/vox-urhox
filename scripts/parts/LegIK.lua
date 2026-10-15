@@ -42,10 +42,12 @@ function M.Solve(g,target,bladeAngle)
         error=Hypot(tx-target[1],ty-target[2],tz-target[3]),toe={tx,ty,tz},
         points={hip={table.unpack(h)},shoulderJoint=To3(s[1],s[2]),elbow=To3(ex,ey),knee=To3(kx,ky),toe={tx,ty,tz}}}
 end
-function M.Reachable(g,target)
+function M.Reachable(g,target,evaluation)
     if not target or target[1]<g.origins.hip[1]+.12 then return false end
     for _,value in ipairs(target) do if value~=value or math.abs(value)==math.huge then return false end end
-    local pose=M.Solve(g,target);local rad=math.pi/180
+    -- Optional caller-owned evaluation is tied to this exact target for one Step.
+    local pose=evaluation and evaluation.pose or M.Solve(g,target);local rad=math.pi/180
+    if evaluation then evaluation.pose=pose end
     return pose.error<.035 and math.abs(pose.yaw)<105*rad and pose.first> -105*rad and pose.first<125*rad
         and math.abs(pose.second)<155*rad and math.abs(pose.blade)<170*rad
 end

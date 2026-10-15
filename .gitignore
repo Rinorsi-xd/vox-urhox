@@ -4,6 +4,7 @@
 !/.gitattributes
 !/README.md
 !/AGENTS.md
+!/preview-hangar.ps1
 !/.project/
 !/.maker-mcp/
 !/scripts/

@@ -1,6 +1,7 @@
 -- Frozen approved WAV samples and event/state mixing; ten voices, three loops.
 local Data=require('core.ResourceData').Read('Combat/WeaponSounds.json')
 local V=require 'core.Math3'
+local Levels=require 'audio.AudioLevels'
 local M={};M.__index=M
 function M.Dependencies()
     local paths={};for _,cue in pairs(Data.cues) do paths[#paths+1]=cue.path end;return paths
@@ -42,7 +43,7 @@ function M:Play(id,amount,pan)
     if not source then source=self:Source('Voice'..index);self.slots[index]=source end
     self.voiceIds[index]=id;self.started[index]=self.cursor
     source:StopImmediate();local sound=self.sounds[id];local pitch=cue.jitter and .97+math.random()*.06 or 1
-    source:Play(sound,sound:GetFrequency()*pitch,math.min(1,cue.gain*(amount or 1)*self.volume*self.duck),pan or 0)
+    Levels.Play(source,sound,sound:GetFrequency()*pitch,math.min(1,cue.gain*(amount or 1)*self.volume*self.duck),pan or 0)
     self.counts[id]=(self.counts[id] or 0)+1;return true
 end
 function M:Loop(id,amount,pitch,pan,dt)
@@ -54,8 +55,8 @@ function M:Loop(id,amount,pitch,pan,dt)
     local alpha=1-math.exp(-math.max(0,dt)/(target>loop.amount and cue.attack or cue.release))
     loop.amount=loop.amount+(target-loop.amount)*alpha
     local sound=self.sounds[id]
-    if amount>0 and not loop.source.playing then loop.source:Play(sound,sound:GetFrequency()*(pitch or 1),loop.amount,pan or 0) end
-    loop.source.gain=loop.amount;loop.source.frequency=sound:GetFrequency()*V.Clamp(pitch or 1,.65,1.5);loop.source.panning=pan or 0
+    if amount>0 and not loop.source.playing then Levels.Play(loop.source,sound,sound:GetFrequency()*(pitch or 1),loop.amount,pan or 0) end
+    Levels.SetGain(loop.source,loop.amount);loop.source.frequency=sound:GetFrequency()*V.Clamp(pitch or 1,.65,1.5);loop.source.panning=pan or 0
     if amount==0 and loop.amount<.0001 then loop.source:StopImmediate();loop.amount=0 end
 end
 function M:Stop()

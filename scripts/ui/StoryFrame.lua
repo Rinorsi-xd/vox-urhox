@@ -2,6 +2,8 @@
 local D=require 'ui.SourceDraw'
 local M={ice={214,240,255,153},secondary={214,240,255,77},cyan={110,214,255,217},white={238,250,255,255}}
 local K=2-math.sqrt(2)
+local elapsed=0
+function M.SetTime(value) elapsed=value end
 local function Ring(w,h,c,o)
     o=o or 0;local x0,y0,x1,y1=-o,-o,w+o,h+o;local points={}
     local function Add(x,y) points[#points+1]=math.floor(x+.5)+.5;points[#points+1]=math.floor(y+.5)+.5 end
@@ -26,9 +28,10 @@ local function Corner(w,h,key,cut,o,l1,l2)
     else return {a+c+l1,t,a+c,t,a,t-c,a,t-c-l2} end
 end
 local function Hatch(vg,x,y,n,gap,len)
-    for i=0,n-1 do D.Line(vg,x+i*gap,y+len,x+i*gap+len,y,{110,214,255,153},1.5) end
+    local phase=elapsed%3.2/3.2;local alpha=phase>=.08 and phase<.16 and 38 or 153
+    for i=0,n-1 do D.Line(vg,x+i*gap,y+len,x+i*gap+len,y,{110,214,255,alpha},1.5) end
 end
-local function Node(vg,x,y,size) local s=size or 4;D.Rect(vg,x-s/2,y-s/2,s,s,{214,240,255,191}) end
+local function Node(vg,x,y,size) local s=size or 4;D.Rect(vg,x-s/2,y-s/2,s,s,{214,240,255,elapsed%2.6<1.3 and 191 or 38}) end
 function M.Fill(vg,x,y,w,h,cut,reverse,alpha)
     nvgSave(vg);nvgTranslate(vg,x,y)
     D.Path(vg,Ring(w,h,reverse and {0,cut,0,cut} or {cut,0,cut,0}))

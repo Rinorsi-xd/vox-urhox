@@ -41,6 +41,8 @@ function M.Compute(bp,tier)
     if #st.badHovers>0 then Push('warn','悬浮器升力轴装歪，无法提供托力',st.badHovers) end
     if st.legCount>0 and st.legCount<4 then Push('warn','能工作的节足少于 4 条，只能拖行；不足 2 条无法站立') end
     if st.legCount>0 and st.L>1 then Push('warn','节足车负载率超过 1，无法爬墙') end
+    if st.mechCount==1 then Push('warn','只装了 1 条机械足：只能单腿蹦着挪、跑不快，至少装 2 条') end
+    if st.mechCount>0 and st.legCount>0 then Push('warn','机械足和节足混装：两套步态各走各的，建议只用一种腿') end
     local legs={};for _,p in ipairs(parts) do if PARTS[p.type].leg and Rot.ROTATIONS[p.rot].up[2]>.99 then legs[#legs+1]=p end end
     local crowded,gap={},0
     for i,a in ipairs(legs) do for j=i+1,#legs do

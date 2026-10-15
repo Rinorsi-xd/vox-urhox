@@ -80,13 +80,13 @@ function M:NewVehicle(spec,unit)
     self.space.bodies[vehicle.node:GetID()].owner={type="car",ref=unit}
     return vehicle
 end
-function M:SetUnits(bp)
+function M:SetUnits(bp,combat)
     for _,unit in ipairs(self.units) do unit:Dispose() end
     self.units={};self.debris:Clear()
     local source=bp:ToTable()
     local prefab=require("construction.Prefab").BuildRaceCar(require("construction.Blueprint").New()):ToTable()
     for _,spot in ipairs(self.layout.unitSpots) do
-        self.units[#self.units+1]=CarUnit.New(self,spot.who=="self" and source or prefab,{name=spot.name,spawn=spot})
+        self.units[#self.units+1]=CarUnit.New(self,spot.who=="self" and source or prefab,{name=spot.name,spawn=spot,combat=combat==true})
     end
 end
 function M:CastRay(origin,direction,length,excluded)
@@ -142,14 +142,16 @@ function M:Explode(point,radius,damage,excluded,accept,cast)
     for _,c in ipairs(self.cones) do Push(c.body,25,4) end
     for _,p in ipairs(self.debris.pieces) do Push(p.body,6*p.mass,p.mass) end
 end
-function M:RecordDamage(unit,amount,point)
-    if self.feedbackPlayer and self.attacker~=self.feedbackPlayer then return end
-    self.stats.damage=self.stats.damage+amount;self.metrics:Damage(self.time,unit,amount,point,false)
+function M:RecordDamage(unit,amount,point,opts)
+    if self.feedbackPlayer and (unit==self.feedbackPlayer or self.attacker and self.attacker~=self.feedbackPlayer) then return end
+    self.stats.damage=self.stats.damage+amount;self.metrics:Damage(self.time,unit,amount,point,false,opts)
 end
 function M:RecordKill(unit,pos)
     if unit==self.feedbackPlayer then self.fx[#self.fx+1]={type='explode',pos=pos,radius=3};return end
-    self.stats.kills=self.stats.kills+1;self.fx[#self.fx+1]={type="explode",pos=pos,radius=3}
-    local p=self.metrics.pending[unit];if p then p.killed=true end
+    self.fx[#self.fx+1]={type="explode",pos=pos,radius=3}
+    if unit.lastHitBy and unit.lastHitBy~=self.feedbackPlayer then return end
+    self.stats.kills=self.stats.kills+1
+    self.metrics:Damage(self.time,unit,0,pos,true)
 end
 function M:Hit(hit,damage,direction,impulse,pierce)
     local o=hit.owner;if not o then return end
@@ -200,9 +202,12 @@ function M:Reset()
     self.metrics:Reset();self.fx={}
 end
 function M:Dispose()
+    if self.disposed then return end;self.disposed=true
     if self.drillSweep then self.drillSweep:Dispose();self.drillSweep=nil end
     for _,unit in ipairs(self.units) do unit:Dispose() end
     self.units={};self.debris:Clear();self.fx={};self.viewEvents={};self.debris.events={}
-    self.root:Remove();self.space.bodies={};self.cones={};self.targets={}
+    self.root:Dispose();self.space:Dispose();self.cones={};self.targets={}
+    self.root=nil;self.scene=nil;self.env=nil;self.metrics=nil;self.feedbackPlayer=nil;self.attacker=nil
+    self.debris.space=nil;self.space=nil;self.layout=nil
 end
 return M

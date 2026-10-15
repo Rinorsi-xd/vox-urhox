@@ -9,13 +9,20 @@ function M.New(root,limit,groundAt)
     self.material=Material:new();assert(self.material:SetSurfaceShader("Shaders/BLGL/Combat/Chip.shader"))
     self.model=assert(cache:GetResource("Model","Models/Box.mdl"));return self
 end
+function M:Reserve(count)
+    local target=math.max(0,math.min(self.limit,math.floor(count or 0)))
+    for i=#self.slots+1,target do
+        local node=self.root:CreateChild("Chip");local model=node:CreateComponent("StaticModel")
+        model.model=self.model;model.material=self.material;model.castShadows=true
+        node.enabled=false;self.slots[i]={node=node,model=model,active=false}
+    end
+    return #self.slots
+end
 function M:Emit(p,v,size,color,life)
     local slot=nil ---@type table|nil
     for _,s in ipairs(self.slots) do if not s.active then slot=s;break end end
     if not slot and #self.slots<self.limit then
-        local node=self.root:CreateChild("Chip");local model=node:CreateComponent("StaticModel")
-        model.model=self.model;model.material=self.material;model.castShadows=true
-        slot={node=node,model=model};self.slots[#self.slots+1]=slot
+        self:Reserve(#self.slots+1);slot=self.slots[#self.slots]
     end
     if not slot then
         slot=self.slots[1];for _,s in ipairs(self.slots) do if s.sequence<slot.sequence then slot=s end end

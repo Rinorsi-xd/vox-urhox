@@ -1,4 +1,8 @@
-<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><style>html,body{margin:0;overflow:hidden;background:#111}canvas{display:block;width:100vw;height:100vh;touch-action:none;outline:none}</style><canvas id="canvas" width="1280" height="720" tabindex="0"></canvas>
+<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="stylesheet" href="/baseline/shared/css/style.css"><link rel="stylesheet" href="/baseline/shared/css/new-ui-tokens.css">
+<style>html,body{margin:0;overflow:hidden;background:#111}canvas{display:block;width:100vw;height:100vh;touch-action:none;outline:none}.ld-core{max-width:calc(100vw - 48px)}@media(max-height:600px){.ld-core{transform:scale(.6)}}</style>
+<canvas id="canvas" width="1280" height="720" tabindex="0"></canvas>
+<div id="loading"><div class="ld-core"><div class="logo big"><span></span><span></span><span></span><span></span></div><b>方块战车</b><div class="ld-row"><span class="msg">正在启动</span><span class="ld-pct">0</span></div><div class="ld-bar"><i></i></div><div class="ld-tip"><em>提示</em><span>按 M 开启镜像建造，左右两边一起搭</span></div></div></div>
 <script>
 (async()=>{
  if(new URLSearchParams(location.search).get('cached')==='1'){
@@ -9,8 +13,13 @@
   const openRemote=XMLHttpRequest.prototype.open;
   XMLHttpRequest.prototype.open=function(method,url,...args){return openRemote.call(this,method,local(url),...args)};
  }
- const engine=await fetch('UrhoXRuntime.data').then(r=>r.arrayBuffer());
- window.Module={canvas:document.querySelector('canvas'),getPreloadedPackage:()=>engine,print:console.log,printErr:console.error};
+ const overlay=document.querySelector('#loading'),message=overlay.querySelector('.msg');
+ message.textContent='正在加载引擎与资源';
+ const engine=await fetch('UrhoXRuntime.data').then(r=>{if(!r.ok)throw Error('引擎资源下载失败');return r.arrayBuffer()});
+ window.Module={canvas:document.querySelector('canvas'),getPreloadedPackage:()=>engine,print:line=>{
+  console.log(line);
+  if(String(line).includes('[LoadingFlow] Boot page presented'))overlay.remove();
+ },printErr:console.error,onAbort:()=>{message.textContent='启动失败，请刷新重试';}};
  const script=document.createElement('script');script.src='UrhoXRuntime.js';document.body.append(script);
-})();
+})().catch(error=>{console.error(error);document.querySelector('#loading .msg').textContent='启动失败，请刷新重试';});
 </script>

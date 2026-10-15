@@ -9,8 +9,8 @@ function Panel:Render(vg)
     D.Begin(vg);local r=self:GetAbsoluteLayout();local s=self.owner;local x,y,w,h=r.x,r.y,r.w,r.h
     D.Path(vg,{x,y,x+w-12,y,x+w,y+12,x+w,y+h,x,y+h});nvgFillColor(vg,nvgRGBA(10,22,37,214));nvgFill(vg);D.Rect(vg,x,y,w-12,1,{83,123,156,68})
     local right=self.props.side=='right';D.Icon(vg,right and 'sliders' or 'livery',x+16,y+16.5,18,D.orange)
-    D.Text(vg,right and '贴纸属性' or '贴纸库',x+42,y+16,19,D.white,nil,nil,0,false,19)
-    D.Text(vg,right and 'PROPERTIES' or 'STICKERS',x+w-16,y+20.5,10,{122,216,255,191},'vox-body',NVG_ALIGN_RIGHT,0,false,10)
+    D.Text(vg,right and '贴纸属性' or '贴纸库',x+42,y+16,19,D.white,nil,nil,1,false,19)
+    D.Text(vg,right and 'PROPERTIES' or 'STICKERS',x+w-16,y+20.5,10,{122,216,255,191},'vox-body',NVG_ALIGN_RIGHT,2.5,false,10)
     if not right then D.Text(vg,'点一张贴纸，再点车身贴上去',x+w/2,y+h-31,12,{127,154,180,255},'vox-body',NVG_ALIGN_CENTER,0,false,16.8);return end
     local d=s.session:List()[s.session.sel];local st=d and Data.Catalog().byId[d.s]
     if not d then

@@ -8,16 +8,17 @@ function M:Measure(vg,content,width,color)
     width=math.max(1,width);color=color or D.muted
     local colorKey=table.concat(color,',')
     if self.layout and self.content==content and self.width==width and self.colorKey==colorKey and self.context==vg
-        and self.measuredSize==self.size and self.measuredLineHeight==self.lineHeight and self.measuredMaxLines==self.maxLines then return self.layout end
+        and self.measuredSize==self.size and self.measuredLineHeight==self.lineHeight and self.measuredMaxLines==self.maxLines
+        and self.measuredFont==self.font and self.measuredSpacing==self.spacing then return self.layout end
     local runs={}
     if type(content)=='string' then
-        runs[1]={text=content:gsub('%s+',' '):gsub('^ ',''):gsub(' $',''),font='vox-body',size=self.size,color=color}
+        runs[1]={text=content:gsub('%s+',' '):gsub('^ ',''):gsub(' $',''),font=self.font or 'vox-body',size=self.size,color=color,spacing=self.spacing}
     else
         for i,source in ipairs(content) do
             runs[i]={text=source.text,font=source.font or 'vox-body',size=source.size or self.size,color=source.color or color}
         end
     end
-    self.layout=Rich.Layout(vg,{runs},width,self.lineHeight,{font='vox-body',size=self.size})
+    self.layout=Rich.Layout(vg,{runs},width,self.lineHeight,{font=self.font or 'vox-body',size=self.size})
     if self.maxLines and #self.layout.lines>self.maxLines then
         local line=self.layout.lines[self.maxLines]
         local ellipsis='\u{2026}'
@@ -41,6 +42,7 @@ function M:Measure(vg,content,width,color)
     self.content=content;self.width=width;self.colorKey=colorKey;self.context=vg;self.measurements=self.measurements+1
     self.measuredSize=self.size;self.measuredLineHeight=self.lineHeight
     self.measuredMaxLines=self.maxLines
+    self.measuredFont=self.font;self.measuredSpacing=self.spacing
     return self.layout
 end
 function M:Draw(vg,content,x,y,width,color,center)

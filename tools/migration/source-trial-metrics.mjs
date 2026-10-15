@@ -1,6 +1,11 @@
 import fs from 'node:fs';
 import { pathToFileURL } from 'node:url';
-const { TrackSim }=await import(pathToFileURL('D:/Rino_Project/Vox/shared/drive/trackSim.js'));
+import path from 'node:path';
+import {createHash} from 'node:crypto';
+const baseline=JSON.parse(fs.readFileSync('docs/migration/outgame-baseline.json'));
+const sourceFile='shared/drive/trackSim.js',sourcePath=path.resolve(baseline.snapshot,sourceFile);
+if(createHash('sha256').update(fs.readFileSync(sourcePath)).digest('hex')!==baseline.files[sourceFile]?.sha256)throw Error('Frozen metrics source changed');
+const { TrackSim }=await import(pathToFileURL(sourcePath));
 const drag={x0:-8,x1:8,start:0,finish:100};
 const sim=Object.create(TrackSim.prototype);
 Object.assign(sim,{layout:{drag},timing:{state:'idle',t0:0,last:null},events:[],time:0,stats:{recent:[]}});

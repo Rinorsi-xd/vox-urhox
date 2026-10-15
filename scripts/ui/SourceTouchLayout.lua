@@ -1,6 +1,30 @@
 -- Source physical CSS-pixel sizes remain independent of the scaled HUD.
 local M={}
+function M.Drive(width,height,cssWidth,cssHeight,safe,planeKeys,size)
+    local k=width/math.max(1,cssWidth);safe=safe or {}
+    local left,top=(safe.left or 0)/k,(safe.top or 0)/k
+    local w=cssWidth-left-(safe.right or 0)/k;local h=cssHeight-top-(safe.bottom or 0)/k
+    local u=math.max(.78,math.min(1.35,math.min(w,h)/390))*(size or 1)
+    local fx,fy=w-74*u,h-82*u
+    local function Rect(x,y,rw,rh)
+        return {left=(left+x-rw*u/2)*k,top=(top+y-rh*u/2)*k,width=rw*u*k,height=rh*u*k}
+    end
+    local actions={primary=Rect(fx,fy,76,76),interact=Rect(fx+6*u,fy-150*u,108,40),
+        ['rudder-l']=Rect(fx-168*u,fy-40*u,46,40),['rudder-r']=Rect(fx-168*u,fy+14*u,46,40)}
+    local order=planeKeys and {'aux','up','scope'} or {'scope','up','aux'}
+    for i,id in ipairs(order) do local a=math.rad(({182,222,262})[i]);actions[id]=Rect(fx+82*u*math.cos(a),fy+82*u*math.sin(a),54,46) end
+    local a=math.rad(142);actions.weapon=Rect(fx+82*u*math.cos(a),fy+82*u*math.sin(a),54,46)
+    local toggle={left=(left+w-50*u)*k,top=(top+88*u)*k,width=40*u*k,height=36*u*k}
+    actions.board={left=toggle.left-48*u*k,top=toggle.top,width=40*u*k,height=36*u*k}
+    local pw=math.min(540*k,width-16*k)
+    return {k=k,u=u,cssWidth=cssWidth,cssHeight=cssHeight,actions=actions,toggle=toggle,
+        stick=Rect(100*u,h-96*u,108,108),home={left+100*u,top+h-96*u},
+        zone={left,top+h*.22,left+w*.45,top+h},
+        readiness={left=(left+fx-30*u)*k,top=(top+fy+46*u)*k,width=60*u*k,height=5*u*k},
+        panel={left=(width-pw)/2,top=52*u*k,width=pw,height=height-52*u*k-8*k},padding=14*k,columns=3}
+end
 function M.Calculate(width,height,cssWidth,cssHeight,safe,mode,actions)
+    if mode=='drive' then return M.Drive(width,height,cssWidth,cssHeight,safe) end
     local k=width/math.max(1,cssWidth);safe=safe or {};local compact=cssWidth<=600 or cssHeight<=360
     local tiny=cssWidth<=360 and cssHeight<=360
     local stick=cssWidth<=300 and 76 or compact and 88 or 112

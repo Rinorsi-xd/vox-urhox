@@ -2,7 +2,7 @@
 -- cancellation, leaving the field, focus loss and scene switches release holds.
 local M={};M.__index=M
 function M.New(session) return setmetatable({session=session,pointer=nil,inside=false,dirty=true},M) end
-function M:Cancel() self.pointer=nil;self.inside=false;self.dirty=true;self.selectionBox=nil;self.dragSelection=nil;self.touchPrimary=false end
+function M:Cancel() self.pointer=nil;self.inside=false;self.dirty=true;self.selectionBox=nil;self.dragSelection=nil;self.touchPrimary=false;self.touchTarget=false end
 function M:Position(e)
     if self.session.dialog or self.session.inventoryPanel then self:Cancel();return end
     self.x,self.y=e.x,e.y;self.inside=true;self.dirty=true
@@ -113,13 +113,27 @@ function M:FirstPerson(dt)
     end
     if self.dragSelection then e:DragPreview(self.dragSelection) end
 end
+function M:TouchTarget(x,y)
+    if self.session.dialog or self.session.inventoryPanel then self:Cancel();return false end
+    self.x,self.y=x,y;self.inside=true;self.dirty=true;self.touchTarget=true
+    self.session:Trace(x,y,true)
+    return true
+end
+function M:TouchAt(x,y,button)
+    if not self:TouchTarget(x,y) then return false end
+    local e=self.session.editor;local ok
+    if button==2 then ok=e:Remove();self.session:Refresh()
+    elseif self.session.selecting and not e.pasting then ok=e:ToggleSelectTarget();self.session:Refresh()
+    else ok=self.session:Act() end
+    return ok
+end
 function M:TouchPrimary(on,cancelled)
     if not on then
         if self.dragSelection and not cancelled then self.session.editor:AddSelection(self.dragSelection.parts) end
         self.dragSelection=nil;self.pointer=nil;self.touchPrimary=false;return
     end
     if self.session.dialog or self.session.inventoryPanel then return end
-    self.touchPrimary=true;self:TouchEdit(0,true)
+    self.touchTarget=false;self.touchPrimary=true;self:TouchEdit(0,true)
 end
 function M:TouchEdit(dt,initial)
     local UI=require 'urhox-libs/UI';local w,h=UI.GetViewportSize();local e=self.session.editor
@@ -147,7 +161,11 @@ function M:TouchEdit(dt,initial)
 end
 function M:Update(dt)
     if not input.focus or input.minimized then self:Cancel();return end
-    if self.session.buildCamera.touch then self:TouchEdit(dt,false);return end
+    if self.session.buildCamera.touch then
+        local layer=self.session.hud.touchControls
+        if self.touchPrimary or not layer or not layer.prefs or layer.prefs.build=='aim' then self:TouchEdit(dt,false) end
+        return
+    end
     if self.session.buildCamera.mode=='fp' then
         self:FirstPerson(dt)
         if self.inside and input.mouseMoveWheel~=0 then self.session:Wheel(input.mouseMoveWheel) end

@@ -29,8 +29,8 @@ function M.Pose(parent,pivot,axis,a)
     local q=M.AxisQuat(axis,a);local t=V.Sub(pivot,V.Rotate(q,pivot))
     return {q=V.QMul(parent.q,q),t=V.Add(V.Rotate(parent.q,t),parent.t)}
 end
-function M.Loads(bp,adj)
-    adj=adj or bp:Graph();local out={};local cores={};for _,p in ipairs(bp:CoreParts()) do cores[p.id]=true end
+function M.Loads(bp,adj,checkpoint)
+    adj=adj or bp:Graph(checkpoint);local out={};local cores={};for _,p in ipairs(bp:CoreParts()) do cores[p.id]=true end
     for _,r in ipairs(bp:List()) do if M.Is(r.type) then
         local f=M.Frame(r);local top={}
         for _,c in ipairs(r._cells) do top[bp.Key(c[1]+f.axis[1],c[2]+f.axis[2],c[3]+f.axis[3])]=true end
@@ -51,6 +51,7 @@ function M.Loads(bp,adj)
         local ending=nil ---@type number|nil
         local i=1
         while i<=#queue do local cur=queue[i];i=i+1
+            if checkpoint then checkpoint() end
             if not ending and (base[cur] or cores[cur]) then ending=cur end
             for _,n in ipairs(M.Keys(adj[cur])) do if n~=r.id and not load[n] and Linked(cur,n) then
                 load[n]=true;from[n]=cur;queue[#queue+1]=n
@@ -69,6 +70,7 @@ function M.Loads(bp,adj)
         if reachedBase then
             load={};queue={};for _,id in ipairs(seeds) do if not cores[id] then queue[#queue+1]=id;load[id]=true end end
             i=1;while i<=#queue do local cur=queue[i];i=i+1
+                if checkpoint then checkpoint() end
                 for _,n in ipairs(M.Keys(adj[cur])) do if n~=r.id and not load[n] and not base[n] and not cores[n] and Above(n) and Linked(cur,n) then
                     load[n]=true;queue[#queue+1]=n
                 end end
@@ -109,20 +111,22 @@ end
 -- Contact sweep: cell centre plus eight corners inset to 0.3 cell.
 --   [base] -- pivot/+Y -- [load]  -> rotate samples -> occupied cell lookup
 -- Touching faces are allowed; core/legs and structural loops are diagnosed first.
-function M.Range(bp,r,load)
+function M.Range(bp,r,load,checkpoint)
     local f=M.Frame(r);local samples={};local offsets={{0,0,0}}
     for _,x in ipairs({-.3,.3}) do for _,y in ipairs({-.3,.3}) do for _,z in ipairs({-.3,.3}) do offsets[#offsets+1]={x,y,z} end end end
     for _,id in ipairs(M.Keys(load)) do for _,c in ipairs(bp.parts[id]._cells) do for _,o in ipairs(offsets) do
         samples[#samples+1]={c[1]+o[1],c[2]+.5+o[2],c[3]+o[3]}
-    end end end
+    end;if checkpoint then checkpoint() end end end
     local function Reach(dir)
         for i=1,71 do
             local q=M.AxisQuat(f.spin,dir*i*M.RANGE_STEP);local hit={}
-            for _,s in ipairs(samples) do local p=V.Add(V.Rotate(q,V.Sub(s,f.pivot)),f.pivot)
+            for n,s in ipairs(samples) do local p=V.Add(V.Rotate(q,V.Sub(s,f.pivot)),f.pivot)
                 for _,id in ipairs(bp.cellIds[bp.Key(math.floor(p[1]+.5),math.floor(p[2]),math.floor(p[3]+.5))] or {}) do
                     if id~=r.id and not load[id] then hit[id]=true end
                 end
+                if checkpoint and n%64==0 then checkpoint() end
             end
+            if checkpoint then checkpoint() end
             if next(hit) then return dir*(i-1)*M.RANGE_STEP,M.Keys(hit) end
         end
         return nil,{}
@@ -142,10 +146,10 @@ function M.Inspect(bp,adj)
     for id,r in pairs(loads) do if not r.problem and r.count>0 then r.range=M.Range(bp,bp.parts[id],r.load) end end
     return loads
 end
-function M.Spec(bp,adj,reached)
-    local loads=M.Loads(bp,adj);local tree=M.Tree(loads);local list,owner,index={},{},{}
+function M.Spec(bp,adj,reached,checkpoint)
+    local loads=M.Loads(bp,adj,checkpoint);local tree=M.Tree(loads);local list,owner,index={},{},{}
     for _,id in ipairs(tree.order) do if reached[id] then local p=bp.parts[id];local f=M.Frame(p);local l=loads[id]
-        local range=l.stuck and {free=false,lo=0,hi=0} or M.Range(bp,p,l.load)
+        local range=l.stuck and {free=false,lo=0,hi=0} or M.Range(bp,p,l.load,checkpoint)
         local r={index=#list+1,partId=id,parent=index[tree.parent[id]],mode=Defs[p.type].rotor,pivot=V.Scale(f.pivot,require('Config').CELL),
             axis=f.spin,sign=f.sign,ref=M.AimRef(p),load=M.Keys(l.load),own=tree.own[id],range=range}
         list[#list+1]=r;index[id]=r.index;for _,partId in ipairs(r.own) do owner[partId]=r.index end

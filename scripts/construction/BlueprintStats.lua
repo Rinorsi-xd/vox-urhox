@@ -24,7 +24,7 @@ end
 function M.Compute(bp)
     local inf=math.huge
     local s={budget=0,mass=0,load=0,weapons=0,thrusters=0,count=0,decor=0,comY=0,
-        loadL=0,loadR=0,hoverLoad=0,badHovers={},legCount=0,legLoad=0,fire={},
+        loadL=0,loadR=0,hoverLoad=0,badHovers={},legCount=0,legLoad=0,mechCount=0,mechLoad=0,fire={},
         bb={minX=inf,maxX=-inf,minY=inf,maxY=-inf,minZ=inf,maxZ=-inf}}
     local speedW,forwardLimit,liftNewton,maxTier,comX,comZ=0,0,0,0,0,0
     local minX,maxX=inf,-inf
@@ -34,7 +34,7 @@ function M.Compute(bp)
         s.count=s.count+1;s.budget=s.budget+d.budget;s.mass=s.mass+d.mass
         local hover=Mounts.HoverInfo(p.type,p.rot)
         local hoverWorks=not hover or Rot.ApplyRot(p.rot,hover.liftDir)[2]>=math.cos(35*math.pi/180)
-        local legWorks=not d.leg or Rot.ROTATIONS[p.rot].up[2]>0.99
+        local legWorks=(not d.leg or Rot.ROTATIONS[p.rot].up[2]>0.99) and (not d.mech or Mounts.MechWorks(p.rot))
         if hover then
             if hoverWorks then
                 s.hoverLoad=s.hoverLoad+d.load
@@ -43,6 +43,7 @@ function M.Compute(bp)
             else s.badHovers[#s.badHovers+1]=p.id end
         end
         if d.leg and legWorks then s.legCount=s.legCount+1;s.legLoad=s.legLoad+d.load end
+        if d.mech and legWorks then s.mechCount=s.mechCount+1;s.mechLoad=s.mechLoad+d.load end
         if d.load>0 and hoverWorks and legWorks then
             s.load=s.load+d.load;speedW=speedW+d.load*d.speed
             for _,c in ipairs(p._cells) do minX=math.min(minX,c[1]);maxX=math.max(maxX,c[1]) end

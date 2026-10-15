@@ -97,8 +97,28 @@ function M:CreateVehicle(kind,name,discard)
     if name then candidate.name=name end
     local ok,err,reason=self:KeepCurrent(discard);if not ok then return false,err,reason end
     local slot=self:FirstEmpty();if not slot then return false,'20 个车位都满了，先删除一个车位','full' end
-    ok,err=self.store:SaveSlot(slot,candidate);if not ok then return false,err end
-    return self:Switch(candidate:ToTable(),slot)
+    local previous=self.bp:ToTable();local active,unsaved=self.active,self.unsaved
+    local called,saved,saveError=pcall(self.store.SaveSlot,self.store,slot,candidate)
+    local switched=false
+    if called and saved then
+        called,switched,err=pcall(self.Switch,self,candidate:ToTable(),slot)
+        if called and switched then return true end
+        if not called then err=switched end
+    else err=called and saveError or saved end
+    -- SaveSlot may have written before reporting failure. Retire both slot
+    -- generations before callers refund a purchase, including thrown failures.
+    local cleaned,deleted=pcall(self.store.DeleteSlot,self.store,slot)
+    local restored,restoreOk=pcall(function()
+        local replaced=self.replace(previous);if not replaced then return false end
+        local metadata=self.store:SaveGarageState(active);if not metadata then return false end
+        self.store:Queue(self.bp)
+        return self.store:Flush()
+    end)
+    self.active=active;self.unsaved=unsaved;self.revision=self.revision+1
+    if not cleaned or not deleted or not restored or not restoreOk then
+        return false,'新车创建失败且存档回滚未完成，请保留当前存档重试','rollback'
+    end
+    return false,tostring(err or '无法创建战车')
 end
 function M:Copy(discard) return self:CreateVehicle(self.bp:ToTable(),self.bp.name..' 副本',discard) end
 function M:Rename(name)

@@ -3,6 +3,7 @@
 -- WASM memory files are session-only; cloud persistence is a separate adapter.
 local M={};M.__index=M
 local Code=require 'storage.BlueprintCode'
+local Numbers=require 'storage.RecordNumbers'
 local stores=setmetatable({},{__mode='k'})
 local function Read(path)
     if not fileSystem:FileExists(path) then return nil end
@@ -21,7 +22,7 @@ function M:Read(key,validator)
     local a,b=Read(self.prefix..key..'-a.json'),Read(self.prefix..key..'-b.json')
     local valid=function(v)
         local ok,result=pcall(validator or Code.Validate,v and v.data)
-        return v and v.v==1 and type(v.generation)=='number' and v.generation%1==0 and v.generation>0 and (v.deleted==true or ok and result)
+        return Numbers.Metadata(v) and (v.deleted==true or ok and result)
     end
     if a and not valid(a) then require('storage.CloudStorage').Invalid(self.namespace);a=nil end
     if b and not valid(b) then require('storage.CloudStorage').Invalid(self.namespace);b=nil end
@@ -29,7 +30,9 @@ function M:Read(key,validator)
     return best and not best.deleted and best.data or nil,best and best.generation or 0,best and best.time or nil,best and best.capture or nil
 end
 function M:Write(key,data,validator,deleted,savedTime,capture)
-    local _,generation=self:Read(key,validator);generation=generation+1
+    local _,generation=self:Read(key,validator)
+    if generation>=Numbers.MAX_INTEGER then return false,'存档版本号已超出安全范围，保留上一版' end
+    generation=generation+1
     local path=self.prefix..key..(generation%2==1 and '-a.json' or '-b.json')
     local text=cjson.encode({v=1,generation=generation,data=data,deleted=deleted or nil,time=savedTime,capture=capture})
     local file=File(path,FILE_WRITE)
@@ -41,6 +44,7 @@ function M:Write(key,data,validator,deleted,savedTime,capture)
     return true
 end
 function M.Hydrate(namespace,key,record)
+    if not Numbers.Metadata(record) then return false end
     local text=cjson.encode(record)
     for _,suffix in ipairs({'-a.json','-b.json'}) do
         local path=namespace..'-'..key..suffix;local file=File(path,FILE_WRITE)

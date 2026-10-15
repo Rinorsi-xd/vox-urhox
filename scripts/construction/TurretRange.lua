@@ -26,7 +26,7 @@ local function Samples(type)
     end
     samplesByType[type]=out;return out
 end
-function M.Compute(parts,part,owner)
+local function Prepare(parts,part,owner,checkpoint)
     local def=Defs[part.type]
     if not def or not def.weapon or def.drill then return nil end
     local t=Assets.Get(part.type,part.rot).weapon;local samples=Samples(part.type)
@@ -43,20 +43,46 @@ function M.Compute(parts,part,owner)
                 end
             end
         end
+        if checkpoint then checkpoint() end
     end
-    if not next(occ) then return nil end
-    local m=Rot.ROTATIONS[part.rot].m;local blockers,order={},{}
+    return {def=def,samples=samples,pv=pv,occ=occ,rot=part.rot,
+        key=part.type..':'..part.rot..':'..table.concat(part.pos,',')}
+end
+local function Evaluate(context,checkpoint)
+    if not context or not next(context.occ) then return nil end
+    local def,samples,pv,occ=context.def,context.samples,context.pv,context.occ
+    local m=Rot.ROTATIONS[context.rot].m;local blockers,order={},{}
+    local rays=context.rays or {};context.rays=rays
     local function Hit(yaw,pitch,record)
-        local cp,sp,cy,sy=math.cos(pitch),math.sin(pitch),math.cos(yaw),math.sin(yaw)
-        for _,s in ipairs(samples) do
-            local y1,z1=s[2]*cp+s[3]*sp,-s[2]*sp+s[3]*cp
-            local x,y,z=s[1]*cy+z1*sy,y1,-s[1]*sy+z1*cy
-            local id=occ[Hash(Round(m[1]*x+m[2]*y+m[3]*z+pv[1]),
-                math.floor(m[4]*x+m[5]*y+m[6]*z+pv[2]),Round(m[7]*x+m[8]*y+m[9]*z+pv[3]))]
-            if id then
-                if record and not blockers[id] then blockers[id]=true;order[#order+1]=id end
-                return true
+        if checkpoint then checkpoint() end
+        local row=rays[yaw];if not row then row={};rays[yaw]=row end
+        local ray=row[pitch]
+        if not ray then ray={cells={},seen={},nextSample=1};row[pitch]=ray end
+        local hit
+        if type(ray)=='string' then
+            for offset=1,#ray,8 do local hash=string.unpack('<i8',ray,offset);local id=occ[hash];if id then hit=id;break end end
+        else
+            for _,hash in ipairs(ray.cells) do local id=occ[hash];if id then hit=id;break end end
+        end
+        if not hit and type(ray)~='string' and ray.nextSample then
+            local cp,sp,cy,sy=math.cos(pitch),math.sin(pitch),math.cos(yaw),math.sin(yaw)
+            for i=ray.nextSample,#samples do
+                local s=samples[i]
+                local y1,z1=s[2]*cp+s[3]*sp,-s[2]*sp+s[3]*cp
+                local x,y,z=s[1]*cy+z1*sy,y1,-s[1]*sy+z1*cy
+                local hash=Hash(Round(m[1]*x+m[2]*y+m[3]*z+pv[1]),
+                    math.floor(m[4]*x+m[5]*y+m[6]*z+pv[2]),Round(m[7]*x+m[8]*y+m[9]*z+pv[3]))
+                if not ray.seen[hash] then ray.seen[hash]=true;ray.cells[#ray.cells+1]=hash end
+                ray.nextSample=i+1
+                local id=occ[hash];if id then hit=id;break end
             end
+            if ray.nextSample>#samples then
+                row[pitch]=string.pack('<'..string.rep('i8',#ray.cells),table.unpack(ray.cells))
+            end
+        end
+        if hit then
+            if record and not blockers[hit] then blockers[hit]=true;order[#order+1]=hit end
+            return true
         end
         return false
     end
@@ -89,25 +115,36 @@ function M.Compute(parts,part,owner)
     while pmin[(lo-1)%N+1] do lo=lo-1 end
     out.lo=lo*M.YAW_STEP;out.hi=hi*M.YAW_STEP;return out
 end
-function M.For(bp,owner)
-    local parts=bp:List();local old=cached[bp];local signatures={}
-    for _,p in ipairs(parts) do signatures[p.id]=p.type..':'..p.rot..':'..table.concat(p.pos,',')..':'..tostring(owner[p.id] or 0) end
-    local changed={}
-    if old then
-        for id,s in pairs(signatures) do if old.signatures[id]~=s then changed[id]=true end end
-        for id,s in pairs(old.signatures) do if signatures[id]~=s then changed[id]=true end end
+function M.Compute(parts,part,owner,checkpoint)
+    return Evaluate(Prepare(parts,part,owner,checkpoint),checkpoint)
+end
+local function SameContext(a,b)
+    if not a or not b or a.key~=b.key then return false end
+    for key,id in pairs(a.occ) do if b.occ[key]~=id then return false end end
+    for key,id in pairs(b.occ) do if a.occ[key]~=id then return false end end
+    return true
+end
+function M.For(bp,owner,checkpoint)
+    local parts=bp:List();local old=cached[bp];local signatures={};local changed=not old
+    for _,p in ipairs(parts) do
+        local key=p.type..':'..p.rot..':'..table.concat(p.pos,',')..':'..tostring(owner and owner[p.id])
+        signatures[p.id]=key;if not old or old.signatures[p.id]~=key then changed=true end
     end
-    local ranges=old and old.ranges or {}
-    if old then for id in pairs(changed) do ranges[id]=nil end end
-    if old then for _,p in ipairs(parts) do if Defs[p.type].weapon then
-        for id in pairs(changed) do if owner[id]==owner[p.id] or old.owner[id]==old.owner[p.id] then ranges[p.id]=nil;break end end
-    end end end
-    local result={}
+    if old then for id in pairs(old.signatures) do if not signatures[id] then changed=true;break end end end
+    local entries,result={},{}
     for _,p in ipairs(parts) do if Defs[p.type].weapon then
-        if ranges[p.id]==nil then ranges[p.id]=M.Compute(parts,p,owner) or false end
-        result[p.id]=ranges[p.id] or nil
+        local previous=old and old.entries[p.id]
+        if not changed then entries[p.id]=previous;result[p.id]=previous.range or nil
+        else
+            local context=Prepare(parts,p,owner,checkpoint)
+            if previous and previous.context and context and previous.context.key==context.key then context.rays=previous.context.rays end
+            local range=nil ---@type table|boolean|nil
+            if previous and SameContext(previous.context,context) then range=previous.range end
+            if range==nil then range=Evaluate(context,checkpoint) or false end
+            entries[p.id]={context=context,range=range};result[p.id]=range or nil
+        end
     end end
-    cached[bp]={signatures=signatures,owner=owner,ranges=ranges};return result
+    cached[bp]={signatures=signatures,entries=entries};return result
 end
 function M.PitchLimits(range,yaw)
     -- Preserve JS remainder/add/modulo ordering at exact five-degree bins.

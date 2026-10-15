@@ -1,16 +1,16 @@
 {
   "schema": 1,
   "source": "D:/Rino_Project/Vox",
-  "branch": "2026-10-14",
-  "commit": "2b169a9964645f5f346a7158bcb14447f040814a",
-  "subject": "fix(render): 窗口 0×0 时打开（后台标签页 / 最小化）渲染目标按 1×1 建，不再刷 WebGL「Attachment has zero size」，窗口恢复后照常 resize",
-  "frozenAt": "2026-10-14T10:09:57.754Z",
-  "snapshot": "D:\\Rino_Project\\maker\\Vox\\VoxelCraft\\.tmp\\outgame-source-2026-10-14T10-09-50-505Z",
-  "workingTree": "M index.html\n M review/performance/PLAN.md\n M review/performance/README.md\n M review/performance/build/crater.png\n M review/performance/build/home.png\n M review/performance/modes/endless.png\n M review/performance/modes/match.png\n M review/performance/modes/mobile-story.png\n M review/performance/modes/results.json\n M review/performance/regression/mobile-hangar.png\n M review/performance/regression/results.json\n M review/performance/regression/test-drive.png\n M review/performance/workflows/damaged-mega.png\n M shared/build/editor.js\n M shared/combat/carUnit.js\n M shared/combat/weapons.js\n M shared/controls/cameraRig.js\n M shared/controls/touchControls.js\n M shared/css/touch-controls.css\n M shared/drive/controls.js\n M shared/story/tutorial.js\n M shared/ui/combatFeedback.js\n M shared/ui/endlessHud.js\n M shared/ui/home.js\n M shared/ui/homeScale.js\n M shared/ui/reticle.js\n M shared/ui/salvageHub.js\n M shared/ui/shell.js\n M shared/ui/storyHud.js\n M shared/ui/storyPage.js\n M shared/ui/tutorial.js\n M shared/ui/ui.js\n M shared/ui/uiScale.js\n M three/index.html\n M three/src/battle/endlessSession.js\n M three/src/battle/matchSession.js\n M three/src/battle/matchView.js\n M three/src/battle/storyKinds.js\n M three/src/debug/debugPanel.js\n M three/src/drive/combatView.js\n M three/src/drive/testDrive.js\n M three/src/main.js\n M three/src/render/pipeline.js\n M three/src/render/warmup.js\n M three/src/salvage/salvageRun.js\n M tools/mobile-input-check.mjs\n M tools/performance-modes-smoke.mjs\n M tools/site-build.mjs\n?? .claude/worktrees/\n?? review/audio/music-audition-20-22/\n?? review/audio/music-audition-23-24/\n?? review/mobile/\n?? review/performance/stutter/\n?? shared/assets/ui/touch/\n?? shared/controls/mobileEditor.js\n?? shared/css/mobile-editor.css\n?? shared/css/mobile.css\n?? shared/ui/perfMeter.js\n?? shared/ui/touchCopy.js\n?? three/manifest.webmanifest\n?? tools/mobile-shot.mjs\n?? tools/mobile-survey.mjs\n?? tools/mobile-touch-check.mjs\n?? tools/performance-first-frame-profile.mjs\n?? tools/performance-physics-warm-check.mjs\n?? tools/performance-ready-check.mjs\n?? tools/performance-repair-check.mjs\n?? tools/performance-soak-check.mjs\n?? tools/performance-stutter-check.mjs\n?? tools/touch-icons-slice.mjs\n?? 策划案/移动端适配方案-2026-10-13.md",
+  "branch": "2026-10-15",
+  "commit": "b276064942ae09c0227ec28d4cfda1d5ff006455",
+  "subject": "Merge remote-tracking branch 'origin/huhutest' into 2026-10-15",
+  "frozenAt": "2026-10-15T12:36:03.105Z",
+  "snapshot": "D:\\Rino_Project\\maker\\Vox\\VoxelCraft\\.tmp\\outgame-source-2026-10-15T12-35-57-243Z",
+  "workingTree": "?? .claude/worktrees/",
   "scope": [
-    "full H5 Git baseline"
+    "selected migration inputs: shared, three, docs, planning, performance and root metadata"
   ],
-  "excluded": [],
+  "excluded": ["tracked paths outside selected roots; see candidate-baseline-b276064942ae.json for complete omitted path inventory"],
   "files": {
     "AGENTS.md": {
       "sha256": "92ecac1ef3d02d3e4ba601721d33de158f9a63b43e6ddadd089e7ed80a9d4a12",
@@ -277,8 +277,8 @@
       "bytes": 1192
     },
     "README.md": {
-      "sha256": "545a14ea565bdd2f9644ad29c069a70781092f505825dd67f89687290ddf2905",
-      "bytes": 16075
+      "sha256": "98d9a760d494117513357b7b7446a6f41821a45ca02c7bd86e7a24f2148f842c",
+      "bytes": 16089
     },
     "review/performance/after/crater.png": {
       "sha256": "5e5f51b71975d0eb46f730928c8f08d541d028f1b1a93e73c18bb7b92c4fb05a",
@@ -2656,6 +2656,10 @@
       "sha256": "c0020ecdb8e52968700ae37b1d3c5af1531f411225264eeda55871c0633246c0",
       "bytes": 2871
     },
+    "shared/assets/manta/manta.glb": {
+      "sha256": "e9b85aa81dc0300cdc5a624347f6e6c8ed38f866d7e2ad2f198a040563540266",
+      "bytes": 888584
+    },
     "shared/assets/maps/crater/debris.glb": {
       "sha256": "cbaf2297f612e9a5e0b399b0b6c693906ca95a1428fcd82ffc6a3428df2a6ab2",
       "bytes": 659056
@@ -3339,6 +3343,14 @@
     "shared/assets/props/ref_tank.glb": {
       "sha256": "53ba3b52ab358b43bc9831f30db3a436bacad8ab2d4d091ec4afa30e55ec9120",
       "bytes": 2427912
+    },
+    "shared/assets/rat/rat.glb": {
+      "sha256": "33a107b892e8dacb02edacaced7a8e5475550633f67759715391c8157bfbdc18",
+      "bytes": 477060
+    },
+    "shared/assets/roach/roach.glb": {
+      "sha256": "539aac638eaea44b71a48c82be91ad43aceafa300c3b2342efdac60e7bfb30dc",
+      "bytes": 739664
     },
     "shared/assets/rotor/rotor.glb": {
       "sha256": "77d852d170d24623ac1f1b6f39e40545327b9edf70e070250bb99ef1213c2ab3",
@@ -4365,8 +4377,8 @@
       "bytes": 185238
     },
     "shared/assets/ui/prefabs/fox.jpg": {
-      "sha256": "451379c64f8e19dfd65dc583dfca938575d4303b56e6457e0fe0364c23c5dd10",
-      "bytes": 234800
+      "sha256": "679a88c82d8fdbf453dadaa60d1c2e00368a798ebe2f2068a362bd463cf51e27",
+      "bytes": 232747
     },
     "shared/assets/ui/prefabs/fuyuan.jpg": {
       "sha256": "dc10ed4ba2537cc2312d054e4d8e9df2ea25cfd2a2c37a7c293ee77a6e33da4b",
@@ -4383,6 +4395,10 @@
     "shared/assets/ui/prefabs/hawk.jpg": {
       "sha256": "ad79171a4d65b586116e9b7ecb34edcd1516011a3e231c902d20bd11e7f1556f",
       "bytes": 176534
+    },
+    "shared/assets/ui/prefabs/manta.jpg": {
+      "sha256": "29b89e451200f35ea1ec56623c252597fe27514941bae48e4b60ef783ae7c4fa",
+      "bytes": 195307
     },
     "shared/assets/ui/prefabs/megaMech.jpg": {
       "sha256": "314227474dac1fc42f67be0e9d9e41f34a8acf2d148a5a42b6b563459ab6111a",
@@ -4403,6 +4419,14 @@
     "shared/assets/ui/prefabs/raceCar.jpg": {
       "sha256": "d0870ef3db0e0c2c75f13a991df45ae27e6f61c86719231df7f5205bcdb6d213",
       "bytes": 181059
+    },
+    "shared/assets/ui/prefabs/rat.jpg": {
+      "sha256": "8d75da5088ec5888ffdefcddc4b1cf68ffceb59ae686e135eaeae8c3e742ed08",
+      "bytes": 187794
+    },
+    "shared/assets/ui/prefabs/roach.jpg": {
+      "sha256": "89c5a67cd54cb40f8e0db3c9af11bdf3989fb6b363318b9761535570f2271c3b",
+      "bytes": 183115
     },
     "shared/assets/ui/prefabs/scorpion.jpg": {
       "sha256": "4718f3c6ab160706ecb8757bbe1dfd90696a5301b3312dbd8a1af92fc5155eaf",
@@ -4933,12 +4957,16 @@
       "bytes": 19518
     },
     "shared/build/foxData.js": {
-      "sha256": "ff6c15077130da6d25d65c981815f8235ec20728b2bfef7b9d7405e8b285d9fe",
-      "bytes": 64904
+      "sha256": "6b4abef765d131c4b660dd3a3d5f229f348b1818d92d456a498424dd726291a4",
+      "bytes": 64905
     },
     "shared/build/livery.js": {
       "sha256": "68996dd726e8e0c57ddc348b9efd9f8721ff7bd22f871718ff3bd8b7c5e2cf95",
       "bytes": 3920
+    },
+    "shared/build/mantaData.js": {
+      "sha256": "b708dfec7f566b6c8a6b1811b0221c56e3ae3d06ce60fe743559f5f1a5be2b97",
+      "bytes": 11335
     },
     "shared/build/megaMechData.js": {
       "sha256": "61a8d1fce687bf62750e91e55840f62616f18d0a2ac0a1be7530447685dbdd44",
@@ -4949,12 +4977,20 @@
       "bytes": 2847
     },
     "shared/build/prefab.js": {
-      "sha256": "5e36332bc63e42db5f70366880cf33b05453d17b0ec3d0999ffd9d8438dfcfab",
-      "bytes": 6829
+      "sha256": "84b41a334a85fb95fb909daa009190c79ff8f186fb69119ca258d9e9a4a94c4f",
+      "bytes": 7470
+    },
+    "shared/build/ratData.js": {
+      "sha256": "b7572ac9fe5b97ffcc58f5641300cfdcc7053165311e12d472b7518635170faa",
+      "bytes": 4613
     },
     "shared/build/raycast.js": {
       "sha256": "11d9ae15593c5bed6d29914e3acea7ae4c7b398023426f5d8c7e31abf339cd4c",
       "bytes": 5132
+    },
+    "shared/build/roachData.js": {
+      "sha256": "864498ad3b504b3aa9ba93f3421e3a1be7b0f85885b6aa857813f0d118be6341",
+      "bytes": 4631
     },
     "shared/build/rotor.js": {
       "sha256": "eeb394500990f9599f96c8ac2d94eebe5857f536531e02c40059a105aa827b5b",
@@ -5025,7 +5061,7 @@
       "bytes": 12510
     },
     "shared/controls/touchControls.js": {
-      "sha256": "80cf13eaa7348014f91a88efac90bae9f8f73b8c7287ff1ffcdf0a8296826e5f",
+      "sha256": "3d2ceed8fb01a84b3458b8b70fdb2d0b18eefc1632e73b4b8e5eaae2164b8353",
       "bytes": 37299
     },
     "shared/core/math.js": {
@@ -5265,8 +5301,8 @@
       "bytes": 33416
     },
     "shared/drive/vehicleSpec.js": {
-      "sha256": "f74c746e93a32b72fd53f5bc79beea8e3ce97b46b1640ad7ff11e6608cf54923",
-      "bytes": 24267
+      "sha256": "e1ffccc3ac32d53c79e7bcbd5bce7042ae497d4e35964ad40757fc39871c38ad",
+      "bytes": 24752
     },
     "shared/drive/wingControl.js": {
       "sha256": "35ffc8d49a7f02d5d4a75e22b6dac7ef149f3fe7d62196693bf4e2f15ce4bdb5",
@@ -5333,12 +5369,12 @@
       "bytes": 2016
     },
     "shared/parts/decorVehicles.js": {
-      "sha256": "79aebbe58916be2099f51f4a85c2de1312ba1de5598e1c6186cf81dd95cd7c8b",
-      "bytes": 9184
+      "sha256": "da6c64ac2a5f6e44cc7edafde2e96b6611540e477e97c54fa0e82d7ca1634311",
+      "bytes": 13458
     },
     "shared/parts/defs.js": {
-      "sha256": "3f0e0df962380eea09aa4da3d582d8197e06d1eb599c7a36061d9b2262da90ef",
-      "bytes": 45494
+      "sha256": "d7840a694e0d73534aa1c4eae7910fa2acb5d6a23bf97bf8973836095e0102cb",
+      "bytes": 45688
     },
     "shared/parts/drillData.js": {
       "sha256": "7606d439fedba1fefb1f671e0f2df0ea3c93009c70b06c95ce53d45f22dbe490",
@@ -5396,6 +5432,10 @@
       "sha256": "a40ab7aa214e7ead875d1984242455c8232283c7e0554376713dfa20b348d89a",
       "bytes": 36388
     },
+    "shared/parts/mantaData.js": {
+      "sha256": "07e121d8274836be9e66775ad8bc150a33e5992acfc5323631ebe27d0891bf6a",
+      "bytes": 21015
+    },
     "shared/parts/mechData.js": {
       "sha256": "986ef0b79e520b3b0f3d24997ceeb8af3dca15356556ed2f67bf984f8bca8ff3",
       "bytes": 18227
@@ -5439,6 +5479,14 @@
     "shared/parts/polytope.js": {
       "sha256": "dd9ba10dc604b67c491076cabb27ee951852e8644c83f97727aa6e061e49cb66",
       "bytes": 2997
+    },
+    "shared/parts/ratData.js": {
+      "sha256": "03ddd9c235cb0ed84aae7e707a759391e3243f17821c4a8dfd7a7a56c45efad6",
+      "bytes": 7900
+    },
+    "shared/parts/roachData.js": {
+      "sha256": "2dc33f2690e61d9b82485106bc502fef1cd0746e07f19db384866a6df727370e",
+      "bytes": 8553
     },
     "shared/parts/rotorModels.js": {
       "sha256": "208425e46ad2a2fed683e4e144d467414ff4ed0292ea4d2a87ca455c06984f79",
@@ -5577,20 +5625,20 @@
       "bytes": 21793
     },
     "shared/scene/hangarLayout.js": {
-      "sha256": "f2a0528add68f090a4f91e290c57603494fad591e84364a4066c1e8cec0b0d96",
+      "sha256": "8cb56116c516515f69c6f1ecc457cb1ec245c8b73cf6eaa2079365a39319af00",
       "bytes": 46193
     },
     "shared/scene/hangarTextures.js": {
-      "sha256": "c65d2d235aaac56819f26e968f055f6feb9f3b6868a45b2e22f82745d4c6953b",
-      "bytes": 7907
+      "sha256": "b0d2783db39c82c411a063a872de701466852b80c88c8237611e7ef3d3d7aeb8",
+      "bytes": 8348
     },
     "shared/scene/holoPanels.js": {
       "sha256": "541b3b2e3386f0231666075a43413173cf7a8fcd4a5801a7d64f0dfa8458c5a8",
       "bytes": 12269
     },
     "shared/scene/textures.js": {
-      "sha256": "423d29b2b199a60917d01824ef118b7a32d297380f737d840411568e340d36b3",
-      "bytes": 19623
+      "sha256": "7f3cb234fa3c2a9a3340eca966fb0ce57e1865da5398f486c0cdd5e395a3daed",
+      "bytes": 19633
     },
     "shared/storage.js": {
       "sha256": "8fd9d8c85f00815d564dd0c2b82531fc7b08a0ff33ac6dce320fe6ad849eba75",
@@ -5649,7 +5697,7 @@
       "bytes": 10033
     },
     "shared/ui/home.js": {
-      "sha256": "11f65d400f9a3787d5514eaa0c4f0c2ae5191d6cceed75c89707ba73d47cb058",
+      "sha256": "093d36aeb8744cca9cad2466f782cf587521da0c48bfc50b7d76ca874d3d0159",
       "bytes": 35260
     },
     "shared/ui/homeScale.js": {
@@ -5709,12 +5757,12 @@
       "bytes": 13920
     },
     "shared/ui/perfMeter.js": {
-      "sha256": "3b5f2f3abe9666f0cd6349d74d8bc11acf38a244035cd67dde42b4e6f8142be3",
+      "sha256": "d398628d10e0e3552ca7dd8138f049f48cd4e6642958f192f1343c233122e6d6",
       "bytes": 5759
     },
     "shared/ui/prefabStats.js": {
-      "sha256": "71c93d6302ac5db9e1250f9751dbce1e9717c9e0a1b43e9387071701f729b3c9",
-      "bytes": 1804
+      "sha256": "d617403e4f541aeac1da70a88c4352a739fbdeda31150c81d2f5f09391a17328",
+      "bytes": 2095
     },
     "shared/ui/reticle.js": {
       "sha256": "a3a068377cbe7357e3c07f28852a62b243b4f056a9c935d9c900fa6b9159056e",
@@ -5729,8 +5777,8 @@
       "bytes": 31185
     },
     "shared/ui/shell.js": {
-      "sha256": "2e5c8c4b1c70c15288c956cba82c739383de35b22f10e3df1e913a6df0466837",
-      "bytes": 33641
+      "sha256": "2b2e30c3dc5c1cab613749dc38553d7df9e88d484d862006f060121881feee43",
+      "bytes": 33728
     },
     "shared/ui/storyHud.js": {
       "sha256": "54df3915654f38bd5ed42a33d09704d8ff83f17abd386b19a3ce3d14c08d8457",
@@ -5769,8 +5817,8 @@
       "bytes": 15655
     },
     "shared/ui/workshop.js": {
-      "sha256": "d65f48048b488cb84414441beec1a009ec4ffb5058e29f19055502717249f5be",
-      "bytes": 26945
+      "sha256": "d910fee86841993c55666ecb45f198702c6430edec592614e7a4681ecc72eb6f",
+      "bytes": 28314
     },
     "shared/vendor/rapier/LICENSE": {
       "sha256": "bc7992b1219ad83051e334bfecad53fb0e22ce82d2dfaef20e2a545a0493e889",
@@ -5785,16 +5833,16 @@
       "bytes": 5364
     },
     "three/index.html": {
-      "sha256": "641e836dcf60b3d9c33e1d50bff0644ad060e9d4c4dd36a57fbe8bdf0f5223f2",
-      "bytes": 7917
+      "sha256": "54cd42cf0677955218d5542536b7d6d3d20c509ef57d91142443349d2f1268a8",
+      "bytes": 7907
     },
     "three/landmark-lab.html": {
       "sha256": "c7a1633ef2458698e12a828f97fd2af0716fd11948c987a85eaf71b32b42233e",
       "bytes": 1134
     },
     "three/manifest.webmanifest": {
-      "sha256": "f12582adbd8bf9afc3081191c3bb36d28669ff3f966055f8b1d6471b9600b12b",
-      "bytes": 229
+      "sha256": "6d0c2c3177b2e0a3a3c975bcf288d3ef174aee2e66f02e1d6704d3e67029f0b8",
+      "bytes": 243
     },
     "three/mvp-preview.html": {
       "sha256": "fb993836d63acb40132ec4e1b070c2d4a0dfb4756fb17596507312d454b1e5cc",
@@ -6053,8 +6101,8 @@
       "bytes": 5871
     },
     "three/src/main.js": {
-      "sha256": "8a4354b5c3426b6b7d9f9fb6d3d554ecdc32b50c6784eb433018d9ace2fc0434",
-      "bytes": 22143
+      "sha256": "1ec9c6d21584cccc7f304860b750b381cf41ae46b0ba06fdfa691a06dd72afb1",
+      "bytes": 22157
     },
     "three/src/parts/equipmentSurface.js": {
       "sha256": "85e59f03065ac57209845139c4ec2e7a2505ec9b4f2336569e65c99269e93a1a",
@@ -8639,5 +8687,5 @@
   },
   "sourceMode": "git-commit",
   "includesWorkingTreeChanges": false,
-  "contentSha256": "227ecd10517b3cf55b0af5800d8250d9a1033e55702d87f1509d93c01d88e6d4"
+  "contentSha256": "edd9d0de1b29843c739f0dfd13eb0086977d6f3b1422954f5c8cf31085232d68"
 }

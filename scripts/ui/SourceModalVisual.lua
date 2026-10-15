@@ -51,17 +51,17 @@ function M:Prepare()
     return not self.direct and self.rect or nil
 end
 function M.Backdrop(vg,sw,sh,alpha)
-    nvgSave(vg);nvgGlobalAlpha(vg,alpha);nvgTranslate(vg,sw/2,sh/2);nvgScale(vg,sw/sh,1)
-    nvgBeginPath(vg);nvgRect(vg,-sh/2,-sh/2,sh,sh)
-    nvgFillPaint(vg,nvgRadialGradient(vg,0,0,0,sh*.57,nvgRGBA(10,11,13,158),nvgRGBA(6,7,9,230)));nvgFill(vg);nvgRestore(vg)
+    nvgSave(vg);nvgGlobalAlpha(vg,alpha);D.Rect(vg,0,0,sw,sh,{7,15,27,204});nvgRestore(vg)
 end
 function M:Card(vg,r,direct)
     local modal=self.modal;local spec=modal.props.source
     D.Begin(vg);nvgSave(vg);if not direct then nvgTranslate(vg,-r.x,-r.y) end
     local x,y,w,h=r.cardX,r.cardY,r.cardW,r.cardH
     -- The original CSS clips both the card and its outer shadow to this path.
-    D.Path(vg,{x,y,x+w-20,y,x+w,y+20,x+w,y+h,x,y+h})
-    D.Gradient(vg,x,y,w,h,{35,38,44,255},{23,25,29,255});D.Rect(vg,x,y,w-20,1,{255,255,255,20})
+    local cut=20*(spec.sourceScale or 1)
+    D.Path(vg,{x,y,x+w-cut,y,x+w,y+cut,x+w,y+h,x,y+h})
+    nvgFillColor(vg,nvgRGBA(22,44,67,255));nvgFill(vg)
+    D.Rect(vg,x,y,w-cut,1,{255,255,255,20})
     if not spec.fullScroll then modal.DrawHeading(vg,x,y,w,modal.title_,spec.subtitle) end
     local content=modal.contentContainer_
     nvgIntersectScissor(vg,content.renderOffsetX_,content.renderOffsetY_,r.contentW,r.contentH)
@@ -81,7 +81,8 @@ function M:Draw(vg)
     self.composite:Draw(vg,x,y,r.alpha)
 end
 function M:Dispose()
-    -- Composite context samples card texture; remove that bridge first.
+    -- Card owns the image handles created inside the composite context. Release
+    -- those bridges while that context is still alive, then delete composite.
     self.card:Dispose();self.composite:Dispose();self.modal=nil;self.rect=nil
 end
 return M

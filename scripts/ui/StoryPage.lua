@@ -2,10 +2,10 @@
 local UI=require 'urhox-libs/UI'
 local Draw=require 'ui.SourceDraw'
 local D=setmetatable({}, {__index=Draw})
-function D.Text(vg,text,x,y,size,color,font,align,spacing,baseline)
-    return Draw.Text(vg,text,x,y,size,color,font or 'vox-story',align,spacing,baseline)
+function D.Text(vg,text,x,y,size,color,font,align,spacing,baseline,lineHeight,shadows)
+    return Draw.Text(vg,text,x,y,size,color,font or 'vox-legacy-display',align,spacing,baseline,lineHeight,shadows)
 end
-function D.Width(vg,text,size,font,spacing) return Draw.Width(vg,text,size,font or 'vox-story',spacing) end
+function D.Width(vg,text,size,font,spacing) return Draw.Width(vg,text,size,font or 'vox-legacy-display',spacing) end
 local F=require 'ui.StoryFrame'
 local Paragraph=require 'ui.SourceParagraph'
 local Data=require('core.ResourceData').Read('UI/Outgame.json')
@@ -14,11 +14,21 @@ local Brief=UI.Panel:Extend('VoxStoryBrief')
 local Button=UI.Button:Extend('VoxStoryButton')
 local Comms=UI.Panel:Extend('VoxStoryComms')
 local Labels=UI.Panel:Extend('VoxStoryLabels')
+local Layout=require 'ui.StoryPageLayout'
 local M={}
 local ice={214,240,255,255};local cy={110,214,255,255};local muted={214,240,255,158};local dim={214,240,255,92};local red={255,77,66,255}
 local function Diamond(vg,x,y,size,color,fill)
     D.Path(vg,{x,y-size,x+size,y,x,y+size,x-size,y})
     if fill then nvgFillColor(vg,D.Color(color));nvgFill(vg) else nvgStrokeColor(vg,D.Color(color));nvgStrokeWidth(vg,1.5);nvgStroke(vg) end
+end
+local function Flow(s,vg)
+    local brief=s.storyBrief;local l=Data.levels[s.storyLevel]
+    local rec=s.storyProgress[l.id]
+    local height=s.storyPageHeight or s.height
+    if brief.flow and brief.flowLevel==l and brief.flowRecord==rec and brief.flowHeight==height and brief.flowContext==vg then return brief.flow end
+    brief.flow=Layout.Measure(vg,l,rec,444,height-300,brief.story,brief.goals,brief.enemy,
+        function(e) return math.max(D.Width(vg,e[1],15,nil,1),D.Width(vg,e[2],12,'vox-body'))+23 end)
+    brief.flowLevel=l;brief.flowRecord=rec;brief.flowHeight=height;brief.flowContext=vg;return brief.flow
 end
 function Button:Render(vg)
     D.Begin(vg);local r=self:GetAbsoluteLayout();local p=self.props;local x,y,w,h=r.x,r.y,r.w,r.h
@@ -29,23 +39,33 @@ function Button:Render(vg)
         Diamond(vg,x+32,y+h/2,p.selected and 38 or 32,p.selected and {216,244,255,255} or {214,240,255,115},p.selected)
         if not p.selected then Diamond(vg,x+32,y+h/2,31,{3,10,18,255},true) end
         D.Text(vg,l.no,x+32,y+h/2-12,20,p.selected and {3,20,31,255} or ice,nil,NVG_ALIGN_CENTER)
-        D.Text(vg,l.name,cx+22,y+19,30,ice)
-        D.Text(vg,l.type..' · '..l.typeEn,cx+22,y+59,13,muted)
+        D.Text(vg,l.name,cx+22,y+16,30,{238,248,255,255},nil,nil,2)
+        D.Text(vg,l.type..' · '..l.typeEn,cx+22,y+60,13,muted,nil,nil,2)
         D.Icon(vg,l.icon,x+w-42,y+h/2-11,22,p.selected and ice or dim)
+        local rec=self.owner.storyProgress[l.id]
+        if rec then Diamond(vg,x+w-69,y+h/2,15,{174,234,255,255},true);D.Text(vg,rec.grade,x+w-69,y+h/2-11,18,{3,20,31,255},nil,NVG_ALIGN_CENTER) end
         if p.selected then F.Draw(vg,cx,y,w-64,h,'lv') end
     elseif p.storyKind=='back' then
         D.Path(vg,{x,y,x+w,y,x+w,y+h-10,x+w-10,y+h,x,y+h})
         D.Gradient(vg,x,y,w,h,{110,214,255,26},{3,10,18,128},true)
         F.Draw(vg,x,y,w,h,'btn');D.Icon(vg,'back',x+16,y+16,22,ice)
-        D.Text(vg,'返回',x+62,y+5,12,muted,'vox-body');D.Text(vg,'选择模式',x+62,y+27,19,ice)
+        D.Text(vg,'返回',x+64,y+5,12,muted,'vox-body',nil,1);D.Text(vg,'选择模式',x+64,y+27,19,ice,nil,nil,1)
     elseif p.storyKind=='voice' then
         D.Panel(vg,x,y,w,h,6,cy,cy);D.Icon(vg,'play',x+8,y+4,12,{3,20,31,255})
         D.Text(vg,'播放语音',x+26,y+3,11,{3,20,31,255},'vox-body')
     else
         local l=Data.levels[self.owner.storyLevel];local ready=l.ready
+        y=176+Flow(self.owner,vg).go
+        if math.abs(self.props.top-y)>.01 then self:SetStyle({top=y}) end
         D.Path(vg,{x,y,x+w-16,y,x+w,y+16,x+w,y+h,x+16,y+h,x,y+h-16})
         D.Gradient(vg,x,y,w,h,ready and {142,224,255,255} or {19,34,46,255},ready and {214,244,255,255} or {19,34,46,255},true)
-        D.Text(vg,ready and '开始任务' or '制作中',x+30,y+12,32,ready and {3,20,31,255} or {109,135,153,255})
+        if ready then
+            nvgSave(vg);nvgIntersectScissor(vg,x,y,w,h)
+            local sheen=x+w*(1-((self.owner.storyTime or 0)%3.2)/3.2)*3-w
+            D.Path(vg,{sheen,y,sheen+w*.7,y,sheen+w*.7,y+h,sheen,y+h})
+            D.Gradient(vg,sheen,y,w*.7,h,{240,251,255,0},{240,251,255,185},true);nvgRestore(vg)
+        end
+        D.Text(vg,ready and '开始任务' or '制作中',x+30,y+9.5,32,ready and {3,20,31,255} or {109,135,153,255},nil,nil,8)
         D.Text(vg,'第 '..l.no..' 关 · '..(ready and l.name or '即将开放'),x+30,y+48,13,ready and {3,20,31,158} or {86,112,127,255},'vox-body')
         D.Rect(vg,x+w-68,y+26,40,22,{3,20,31,31});D.Text(vg,'Enter',x+w-48,y+29,13,{3,20,31,255},nil,NVG_ALIGN_CENTER)
     end
@@ -53,38 +73,36 @@ end
 function Brief:Render(vg)
     D.Begin(vg);local r=self:GetAbsoluteLayout();local l=Data.levels[self.owner.storyLevel]
     F.Fill(vg,r.x,r.y,r.w,r.h,24);F.Draw(vg,r.x,r.y,r.w,r.h,'terminal','MSN·'..l.no)
-    local x,y,w=r.x+34,r.y+30,r.w-68
+    local x,y,w=r.x+34,r.y+30,r.w-68;local flow=Flow(self.owner,vg)
     D.Icon(vg,l.icon,x,y+1,18,cy)
-    D.Text(vg,'任务 '..l.no..' · '..l.type,x+26,y,15,cy)
-    local tx=x+26+D.Width(vg,'任务 '..l.no..' · '..l.type,15)+8
-    D.Text(vg,l.typeEn,tx,y+3,11,dim,'vox-tabular')
-    D.Text(vg,l.name,x,y+23,56);D.Text(vg,l.en,x,y+88,13,muted,'vox-tabular')
-    D.Line(vg,x,y+112,x+w,y+112,{214,240,255,70})
-    local yy=y+128
-    yy=yy+self.story:Draw(vg,l.story,x,yy,w,{220,235,245,255}).height+16
-    local function Heading(title,en)
-        D.Rect(vg,x,yy+7,6,6,cy);D.Text(vg,title,x+16,yy,17)
-        D.Text(vg,en,x+16+D.Width(vg,title,17)+10,yy+6,10,dim,'vox-tabular');yy=yy+28
+    D.Text(vg,'任务 '..l.no..' · '..l.type,x+26,y,15,cy,nil,nil,2)
+    local tx=x+26+D.Width(vg,'任务 '..l.no..' · '..l.type,15,nil,2)+8
+    D.Text(vg,l.typeEn,tx,y+3,11,dim,'vox-tabular',nil,3.3)
+    D.Text(vg,l.name,x,y+26,56,nil,nil,nil,4);D.Text(vg,l.en,x,y+86,13,muted,'vox-tabular',nil,5.85)
+    D.Line(vg,x,r.y+143,x+w,r.y+143,{214,240,255,70})
+    self.story:Draw(vg,l.story,x,r.y+flow.story,w,{220,235,245,255})
+    local function Heading(title,en,yy)
+        D.Rect(vg,x,yy+7,6,6,cy);D.Text(vg,title,x+16,yy,17,nil,nil,nil,3)
+        D.Text(vg,en,x+16+D.Width(vg,title,17,nil,3)+10,yy+6,10,dim,'vox-tabular',nil,4)
     end
-    Heading('任务目标','OBJECTIVES')
-    for _,text in ipairs(l.goals) do
-        Diamond(vg,x+5,yy+11,5,cy);yy=yy+self.goals:Draw(vg,text,x+19,yy,w-19,{220,235,245,255}).height+7
+    Heading('任务目标','OBJECTIVES',r.y+flow.objectives)
+    for i,text in ipairs(l.goals) do
+        local yy=r.y+flow.goals[i];Diamond(vg,x+5,yy+11,6.36,cy);self.goals:Draw(vg,text,x+19,yy,w-19,{220,235,245,255})
     end
-    yy=yy+7;Heading('敌情','HOSTILES')
-    local ex,eh=x,0
-    for _,e in ipairs(l.enemies) do
-        local ew=math.max(D.Width(vg,e[1],15),D.Width(vg,e[2],12,'vox-body'))+24
-        if ex+ew>x+w then ex=x;yy=yy+eh+6;eh=0 end
+    Heading('敌情','HOSTILES',r.y+flow.hostiles)
+    for i,e in ipairs(l.enemies) do
+        local box=flow.enemies[i];local ex,yy,ew=x+box.x,r.y+box.y,box.w
         D.Rect(vg,ex,yy,ew,49,{255,77,66,20});D.Rect(vg,ex,yy,2,49,red)
-        D.Text(vg,e[1],ex+11,yy+7,15,{255,213,215,255});D.Text(vg,e[2],ex+11,yy+28,12,muted,'vox-body')
-        ex=ex+ew+6;eh=49
+        D.Text(vg,e[1],ex+11,yy+7,15,{255,213,215,255},nil,nil,1);D.Text(vg,e[2],ex+11,yy+27,12,muted,'vox-body')
     end
-    yy=yy+eh+16
-    local quote='「'..l.huhu..'」';local qh=36+self.enemy:Measure(vg,quote,w-28).height+10
+    local yy=r.y+flow.intercept
+    local quote='「'..l.huhu..'」';local qh=flow.interceptHeight
     D.Rect(vg,x,yy,w,qh,{255,77,66,15});D.Line(vg,x,yy,x+w,yy,{255,77,66,61})
-    D.Rect(vg,x+14,yy+15,6,6,red);D.Text(vg,'拦截到的通讯 · 狐狐海盗团',x+28,yy+10,11,red,'vox-body')
-    self.enemy:Draw(vg,quote,x+14,yy+32,w-28,{255,227,228,255});yy=yy+qh+14
-    for _,fact in ipairs({{'地点',Data.chapter.name},{'预计时长',l.minutes..' 分钟'},{'出战战车','任意'}}) do
+    local voice=self.owner.storyVoice;local talking=voice and voice.card and voice.card.intercept
+    if talking then D.Rect(vg,x,yy,w,qh,{255,77,66,20}) end
+    D.Rect(vg,x+14,yy+15,6,6,red);D.Text(vg,'拦截到的通讯 · 狐狐海盗团',x+28,yy+10,11,red,'vox-body',nil,2)
+    self.enemy:Draw(vg,quote,x+14,yy+30,w-28,{255,227,228,255});yy=r.y+flow.factsTop
+    for _,fact in ipairs(flow.facts) do
         D.Line(vg,x,yy,x+w,yy,{214,240,255,31})
         D.Text(vg,fact[1],x,yy+8,14,muted,'vox-body');D.Text(vg,fact[2],x+w,yy+7,17,ice,nil,NVG_ALIGN_RIGHT)
         yy=yy+34
@@ -92,17 +110,21 @@ function Brief:Render(vg)
 end
 function Comms:Render(vg)
     D.Begin(vg);local r=self:GetAbsoluteLayout();local l=Data.levels[self.owner.storyLevel]
-    local x,y=r.x,r.y
+    local x,y=r.x,r.y;local voice=self.owner.storyVoice;local card=voice and voice.card
     F.Fill(vg,x,y,136,136,13,true,225)
-    self:RenderBackgroundImage(vg,'UI/Faces/'..l.nono[1]..'.png',{x=x,y=y,w=136,h=136},'cover',nil)
+    if self.owner.storyFacesReady then self:RenderBackgroundImage(vg,'Story/Page/Faces/'..l.nono[1]..'.png',{x=x,y=y,w=136,h=136},'cover',nil) end
     for yy=0,136,3 do D.Rect(vg,x,y+yy,136,1,{110,214,255,51}) end
     F.Draw(vg,x,y,136,136,'face')
     local cx=x+156;F.Fill(vg,cx,y,724,136,15);F.Draw(vg,cx,y,724,136,'dialog')
-    self.paragraph:Draw(vg,l.nono[2],cx+30,y+30,664,{242,250,255,255})
+    self.paragraph:Draw(vg,voice and voice:Text() or l.nono[2],cx+30,y+30,664,{242,250,255,255})
     D.Rect(vg,cx+44,y-12,376,24,{3,10,18,230});D.Rect(vg,cx+56,y-3,7,7,cy)
     D.Text(vg,'INCOMING · 诺诺',cx+73,y-6,12,ice,'vox-tabular')
     D.Text(vg,'战术领航员',cx+208,y-6,12,muted,'vox-body')
-    for i=0,5 do D.Rect(vg,cx+294+i*5,y+1-i%3*3,3,4+i%3*3,cy) end
+    for i=0,5 do
+        local phase=({0,-.12,-.3,-.05,-.22,-.4})[i+1]
+        local wave=card and card.talking and (.6+.4*math.sin(((self.owner.storyTime or 0)+phase)*math.pi/.5)) or .18
+        D.Rect(vg,cx+294+i*5,y+6-12*wave,3,12*wave,cy)
+    end
 end
 local callouts={
     {position={0,1.116,0},code='CV-07 · ARGUS',name='坠毁运输舰',info='舰体 280 m · 机库大厅能把车开进去',note='公司资产 · 残值评估中'},
@@ -151,33 +173,51 @@ function Labels:Render(vg)
     end
 end
 function Page:Render(vg)
-    D.Begin(vg);local r=self:GetAbsoluteLayout();local x,y,w,h=r.x,r.y,r.w,r.h
+    D.Begin(vg);local r=self:GetAbsoluteLayout();local x,y=r.x,r.y
+    -- GarageLayout sizes the outer page to the viewport; drawing uses its scaled design space.
+    local w,h=self.storyLogicalWidth,self.storyLogicalHeight
     if not self.owner.storyHolo.ready then D.Rect(vg,x,y,w,h,{3,8,14,255}) end
-    D.Text(vg,'剧情模式 · STORY',x+240,y+28,13,ice,'vox-tabular')
-    D.Text(vg,'第一章 · '..Data.chapter.name,x+240,y+49,52)
-    D.Text(vg,Data.chapter.en..' · '..Data.chapter.sub,x+240,y+113,14,muted)
+    local t=self.owner.storyTime or 0
+    D.Rect(vg,x+240,y+30,8,8,{110,214,255,t%1.6<.8 and 255 or 51})
+    D.Text(vg,'剧情模式 · STORY',x+257,y+28,13,ice,'vox-tabular',nil,3.9)
+    D.Text(vg,'第一章 · '..Data.chapter.name,x+240,y+49,52,nil,nil,nil,3)
+    D.Text(vg,Data.chapter.en..' · '..Data.chapter.sub,x+240,y+107,14,muted,nil,nil,3)
     D.Line(vg,x+240,y+135,x+700,y+135,{214,240,255,100})
     for xx=0,450,14 do D.Line(vg,x+240+xx,y+137,x+240+xx,y+142,{214,240,255,60}) end
     D.Text(vg,'章节进度',x+w-180,y+28,13,muted,'vox-body');D.Text(vg,'PROGRESS',x+w-108,y+31,10,dim,'vox-tabular')
     local completed=0;for _,level in ipairs(Data.levels) do if self.owner.storyProgress[level.id] then completed=completed+1 end end
     D.Text(vg,tostring(completed),x+w-112,y+53,34);D.Text(vg,'/ '..#Data.levels,x+w-79,y+67,20,dim)
     for i,level in ipairs(Data.levels) do D.Rect(vg,x+w-56-i*33,y+94,28,5,self.owner.storyProgress[level.id] and cy or {214,240,255,31}) end
-    D.Text(vg,'任务航线',x+56,y+200,20);D.Text(vg,'MISSION ROUTE',x+150,y+211,11,dim,'vox-tabular')
+    D.Text(vg,'任务航线',x+56,y+200,20,nil,nil,nil,4);D.Text(vg,'MISSION ROUTE',x+148,y+211,11,dim,'vox-tabular',nil,4.4)
     for yy=270,704,11 do D.Rect(vg,x+87,y+yy,1,6,{214,240,255,102}) end
     D.Text(vg,'关卡全部开放，可以任意顺序挑战',x+142,y+762,13,dim,'vox-body')
+    local hx=x+64
+    for _,hint in ipairs({{'↑↓','选择关卡'},{'Enter','开始任务'},{'Esc','返回'}}) do
+        local kw=math.max(22,D.Width(vg,hint[1],13)+12)
+        D.Rect(vg,hx,y+h-52,kw,22,{3,10,18,153});D.Text(vg,hint[1],hx+kw/2,y+h-48,13,ice,nil,NVG_ALIGN_CENTER)
+        D.Text(vg,hint[2],hx+kw+6,y+h-51,15,muted,'vox-body');hx=hx+kw+6+D.Width(vg,hint[2],15,'vox-body')+24
+    end
     D.Text(vg,'HOLO-TABLE · 07 · CRASH CRATER',x+w-36,y+h-35,11,dim,'vox-tabular',NVG_ALIGN_RIGHT)
     for _,p in ipairs({{x+w*.009,y+h*.014,1,1},{x+w*.991,y+h*.014,-1,1},{x+w*.009,y+h*.986,1,-1},{x+w*.991,y+h*.986,-1,-1}}) do
         D.Line(vg,p[1],p[2],p[1]+p[3]*38.88,p[2],dim);D.Line(vg,p[1],p[2],p[1],p[2]+p[4]*38.88,dim)
     end
 end
-function M.Leave(s) if s.storyHolo then s.storyHolo:Dispose();s.storyHolo=nil end end
+function M.Leave(s)
+    if s.storyHolo then s.storyHolo:Dispose();s.storyHolo=nil end
+    if s.storyVoice then s.storyVoice:Dispose();s.storyVoice=nil end
+    if s.storyFaceGate then s.storyFaceGate:Cancel();s.storyFaceGate=nil end
+    s.storyFacesReady=false
+    s.storyVoiceLevel=nil;s.storyTime=nil;s.storyBrief=nil
+end
 function M.Start(s)
     local l=Data.levels[s.storyLevel]
-    if s.storyLevel<=4 then s.app:EnterTrial('story'..s.storyLevel)
+    if l.ready then s.app:EnterTrial('story'..s.storyLevel)
     else s.app.toasts:Push('第 '..l.no..' 关「'..l.name..'」的玩法还在迁移中','warn') end
 end
 function M.Update(s,dt)
+    s.storyTime=(s.storyTime or 0)+dt;F.SetTime(s.storyTime)
     if s.storyHolo then s.storyHolo:Update(dt) end
+    if s.storyVoice then s.storyVoice:Update(dt,input.focus and not input.minimized) end
 end
 function M.Key(s)
     local n=#Data.levels;local nextIndex=s.storyLevel
@@ -191,12 +231,28 @@ end
 function M.Create(s)
     s.storyProgress=s.app.store:Read('story-progress',function(data) return type(data)=='table' end) or {}
     s.storyLevel=s.storyLevel or 1;s.storyHolo=s.storyHolo or require('render.StoryHolo').New(s.app)
+    s.storyVoice=s.storyVoice or require('audio.StoryPageVoice').New()
+    if not s.storyFaceGate then
+        local gate=require('app.ResourceGate').New();s.storyFaceGate=gate
+        local faces={};for _,l in ipairs(Data.levels) do faces[#faces+1]='Story/Page/Faces/'..l.nono[1]..'.png' end
+        gate:Start(faces,function(ok) if s.storyFaceGate==gate then s.storyFacesReady=ok end end)
+    end
+    if s.storyVoiceLevel~=s.storyLevel then
+        local voiced=s.app.storyPageVoiced or s.app.store:Read('vox.story.voiced',function(value) return value==true end)
+        local auto=not voiced and not require('audio.AudioLevels').Speaking()
+        if auto then s.app.storyPageVoiced=true;s.app.store:Write('vox.story.voiced',true,function(value) return value==true end) end
+        s.storyVoice:Select(s.storyLevel,Data.levels[s.storyLevel].nono[2],auto);s.storyVoiceLevel=s.storyLevel
+    end
     if s.storyHolo.level~=s.storyLevel then s.storyHolo:Select(s.storyLevel) end
-    local w,h=s.width,s.height;local page=Page{position='absolute',width=w,height=h,pointerEvents='box-none'};page.owner=s
+    local compact=require('controls.TouchMode').Enabled()
+    local pageScale=compact and 1080*.58/600 or 1
+    local w,h=s.width/pageScale,s.height/pageScale;s.storyPageHeight=h
+    local page=Page{position='absolute',width=w,height=h,scale=pageScale,transformOrigin='top-left',pointerEvents='box-none'};page.owner=s
+    page.storyLogicalWidth=w;page.storyLogicalHeight=h
     local drag=UI.Panel{position='absolute',width=w,height=h,pointerEvents='auto'};local last={}
     drag.OnPointerDown=function(self,e) last[e.pointerId]={x=e.x,y=e.y};return true end
     drag.OnPointerMove=function(self,e)
-        local p=last[e.pointerId];if p then s.storyHolo:Drag(e.x-p.x,e.y-p.y,h);p.x=e.x;p.y=e.y end
+        local p=last[e.pointerId];if p then s.storyHolo:Drag((e.x-p.x)/pageScale,(e.y-p.y)/pageScale,h);p.x=e.x;p.y=e.y end
     end
     drag.OnPointerUp=function(self,e) last[e.pointerId]=nil end;drag.OnPointerCancel=drag.OnPointerUp
     drag.OnWheel=function(self,dx,dy) s.storyHolo:Zoom(-dy*40) end
@@ -215,14 +271,14 @@ function M.Create(s)
     end
     Add('选择模式','back',56,28,151,54,function() s.SetTab('battle') end)
     for i,l in ipairs(Data.levels) do
-        Add(l.no..'  '..l.name,'level',56+(s.storyLevel==i and 10 or 0),242+(i-1)*102,340,92,function() s.storyLevel=i;s.revision=-1 end,{index=i,selected=s.storyLevel==i})
+        Add(l.no..'  '..l.name,'level',56+(s.storyLevel==i and 10 or 0),241+(i-1)*102,340,92,function() s.storyLevel=i;s.revision=-1 end,{index=i,selected=s.storyLevel==i})
     end
     local brief=Brief{position='absolute',left=w-576,top=176,width=512,height=h-300,pointerEvents='none'}
-    brief.owner=s;brief.story=Paragraph.New(16,27.2);brief.goals=Paragraph.New(15,21.75);brief.enemy=Paragraph.New(16,24);page:AddChild(brief)
-    Add('开始任务','go',w-542,h-210,444,74,function() M.Start(s) end)
+    brief.owner=s;brief.story=Paragraph.New(16,27.1875);brief.goals=Paragraph.New(15,21.75);brief.enemy=Paragraph.New(16,24);s.storyBrief=brief;page:AddChild(brief)
+    Add('开始任务','go',w-542,h-224,444,74,function() M.Start(s) end)
     local comm=Comms{position='absolute',left=64,top=h-218,width=880,height=136,pointerEvents='none'}
-    comm.owner=s;comm.paragraph=Paragraph.New(20,32);page:AddChild(comm)
-    Add('播放语音','voice',546,h-224,84,20,function() if s.storyVoice then s.storyVoice:Play(s.storyLevel) else s.app.toasts:Push('语音资源尚未迁移','warn') end end)
+    comm.owner=s;comm.paragraph=Paragraph.New(20,32);comm.paragraph.spacing=.4;page:AddChild(comm)
+    Add('播放语音','voice',546,h-224,84,20,function() s.storyVoice:Play(s.storyLevel,Data.levels[s.storyLevel].nono[2]) end)
     return page
 end
 return M

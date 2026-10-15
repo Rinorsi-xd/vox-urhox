@@ -1,0 +1,16 @@
+{
+  "result": "PASSED",
+  "assertions": 5867,
+  "parts": 331,
+  "baseline": {
+    "branch": "2026-10-15",
+    "commit": "b276064942ae09c0227ec28d4cfda1d5ff006455"
+  },
+  "lua": "Lua 5.4",
+  "production": {
+    "scripts/ui/InventoryDetail.lua": "6f36f02bfc79a123ce3fd74ca9a60627de1f2406d63d67505bba857a9040ce96",
+    "scripts/ui/InventoryDetailRows.lua": "f711bcb2d95390fca23d184cd6626c5c9e3272d946e9b10f71bce2161fa48bed"
+  },
+  "resourceDrift": [],
+  "scope": "Actual frozen inventory row statements versus Lua using current imported stats; actual Render font commands. Resource drift is separate and does not pass source balance parity. No raster, browser, native, or performance claim."
+}

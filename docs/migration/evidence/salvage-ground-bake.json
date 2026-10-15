@@ -1,8 +1,0 @@
-{
-  "sourceCommit": "90862445074e7e146da900037979ad97899ecf6c",
-  "sourceShaderSha256": "d247b7b2720ad754405e72e8fb0c77b3ef25f31b6fcdb339b7cf21aa8295a9d3",
-  "size": 2048,
-  "metresPerTexel": 1,
-  "bytes": 16777216,
-  "method": "Frozen groundColor at source height and slope; RGB sRGB, alpha roughness; no baked light"
-}

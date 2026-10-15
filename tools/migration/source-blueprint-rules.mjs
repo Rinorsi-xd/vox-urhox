@@ -1,10 +1,17 @@
 // Execute the original rules; only serialization normalizes unordered sets.
-import {buildRaceCar,buildTank} from 'file:///D:/Rino_Project/Vox/shared/build/prefab.js';
-import {Blueprint,partCells} from 'file:///D:/Rino_Project/Vox/shared/build/blueprint.js';
-import {PARTS} from 'file:///D:/Rino_Project/Vox/shared/parts/defs.js';
-import {ROTATIONS,IDENTITY,applyRot} from 'file:///D:/Rino_Project/Vox/shared/core/rotations.js';
-import {TIERS} from 'file:///D:/Rino_Project/Vox/shared/config.js';
-import {legStanceCells} from 'file:///D:/Rino_Project/Vox/shared/parts/legMount.js';
+import fs from 'node:fs';
+import path from 'node:path';
+import {fileURLToPath,pathToFileURL} from 'node:url';
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
+const baseline=JSON.parse(fs.readFileSync(path.join(root,'docs/migration/outgame-baseline.json')));
+const source=path.resolve(baseline.snapshot);
+const load=name=>import(pathToFileURL(path.join(source,name)));
+const {buildRaceCar,buildTank}=await load('shared/build/prefab.js');
+const {Blueprint,partCells}=await load('shared/build/blueprint.js');
+const {PARTS}=await load('shared/parts/defs.js');
+const {ROTATIONS,IDENTITY,applyRot}=await load('shared/core/rotations.js');
+const {TIERS}=await load('shared/config.js');
+const {legStanceCells}=await load('shared/parts/legMount.js');
 const sort=s=>[...s].sort((a,b)=>a-b);
 const row=(type,x=0,y=4,z=0,rot=IDENTITY)=>[type,x,y,z,rot,0xd0182a,0xe6e2d8];
 const cases=[];
@@ -37,7 +44,14 @@ for(const c of cases){
  const bp=new Blueprint().load(c.data);
  c.loaded=bp.toJSON();c.dropped=bp.dropped;c.warnings=bp.migrationWarnings;
  c.diagnostics=TIERS.map(t=>{
-  const d=bp.diagnose(t);
+  let d;
+  try{d=bp.diagnose(t);}catch(error){
+   fs.writeFileSync(path.join(root,'docs/migration/evidence/source-build-rule-failure.json'),JSON.stringify({
+    sourceBranch:baseline.branch,sourceCommit:baseline.commit,case:c.name,tier:t.id,input:c.data,loaded:c.loaded,error:error.stack,
+    scope:'The frozen H5 rule crashed before an expected value could be produced. No source rule or migration expectation was changed.'
+   },null,2));
+   throw new Error(`Frozen H5 diagnosis failed: ${c.name}, tier ${t.id}`,{cause:error});
+  }
   return {list:d.list.map(w=>({...w,ids:sort(w.ids)})),outside:sort(d.outside),stats:d.stats,
    reached:sort(d.conn.reached),floating:sort(d.conn.floating),coreId:d.conn.coreId};
  });

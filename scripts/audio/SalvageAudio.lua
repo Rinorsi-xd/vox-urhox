@@ -1,6 +1,7 @@
 -- Frozen WebAudio reveal/heartbeat, rendered offline. Four reusable 2D voices;
 -- no oscillators, audio context, delayed callback or per-frame table allocation.
 local Data=require('core.ResourceData').Read('Salvage/RevealSounds.json')
+local Levels=require 'audio.AudioLevels'
 local M={};M.__index=M
 function M.Dependencies()
     local paths={};for _,cue in pairs(Data.cues) do paths[#paths+1]=cue.path end;return paths
@@ -21,7 +22,7 @@ function M:Play(id)
     if not index then self.cursor=self.cursor%4+1;index=#self.voices<4 and #self.voices+1 or self.cursor end
     local source=self.voices[index]
     if not source then source=self.root:CreateChild('Reveal'..index):CreateComponent('SoundSource');source:SetSoundType('VoxFeedback');self.voices[index]=source end
-    source:StopImmediate();source:Play(self.sounds[id],0,math.min(1,self.volume))
+    source:StopImmediate();Levels.Play(source,self.sounds[id],0,math.min(1,self.volume))
     self.counts[id]=(self.counts[id] or 0)+1;return true
 end
 function M:Event(event)
@@ -37,6 +38,6 @@ end
 function M:Snapshot() return {counts=self.counts,voices=#self.voices,active=self.active and self.focus() and not self.disposed} end
 function M:Dispose()
     if self.disposed then return end;self:Stop();self.disposed=true;self.active=false
-    self.root:Dispose();self.voices={};self.sounds={}
+    self.root:Dispose();self.voices={};self.sounds={};self.root=nil;self.focus=nil
 end
 return M

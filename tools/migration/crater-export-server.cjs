@@ -3,9 +3,10 @@ const fs=require('fs'),path=require('path'),http=require('http');
 const {optimize:optimizeModel}=require('./crater-model.cjs');
 const root=path.resolve(__dirname,'../..'),exportRoot=process.env.VOX_CRATER_EXPORT_ROOT?path.resolve(root,process.env.VOX_CRATER_EXPORT_ROOT):root;
 if(exportRoot!==root&&!exportRoot.startsWith(path.join(root,'.tmp')+path.sep))throw Error('Export staging must stay in the project .tmp directory');
-const out=path.join(exportRoot,'assets/Crater');
+const mapKind=process.env.VOX_MAP_EXPORT==='EnginePit'?'EnginePit':'Crater';
+const out=path.join(exportRoot,'assets',mapKind);
 const source=path.resolve(JSON.parse(fs.readFileSync(path.join(root,'docs/migration/outgame-baseline.json'))).snapshot);
-const raw=exportRoot===root?path.join(__dirname,'crater-source'):path.join(exportRoot,'crater-source');
+const raw=exportRoot===root?path.join(__dirname,mapKind==='Crater'?'crater-source':'engine-pit-source'):path.join(exportRoot,mapKind==='Crater'?'crater-source':'engine-pit-source');
 fs.mkdirSync(out,{recursive:true});fs.mkdirSync(raw,{recursive:true});
 function mdl(g){
  const chunks=[],u=(...a)=>{let b=Buffer.alloc(a.length*4);a.forEach((v,i)=>b.writeUInt32LE(v,i*4));chunks.push(b)},f=(...a)=>{let b=Buffer.alloc(a.length*4);a.forEach((v,i)=>b.writeFloatLE(v,i*4));chunks.push(b)};
@@ -35,7 +36,7 @@ http.createServer(async(req,res)=>{try{
   const parts=[];for await(const part of req)parts.push(part);const body=Buffer.concat(parts);
   fs.writeFileSync(path.join(name.endsWith('.json')?raw:out,name),/^mesh-\d+\.bin$/.test(name)?mdl(JSON.parse(body)):body);res.end('ok');return;
  }
- if(url.pathname==='/three/crater-export.html'){res.setHeader('Content-Type','text/html');res.end(html);return}
+ if(url.pathname==='/three/crater-export.html'){res.setHeader('Content-Type','text/html');res.end(html.replace('/crater-export-browser.js','/crater-export-browser.js?map='+mapKind));return}
  if(url.pathname==='/three/crater-post-probe.html'){
   res.setHeader('Content-Type','text/html');res.end(html.replace('<button id="export">转换原地图</button>','').replace('/crater-export-browser.js','/crater-post-browser.js'));return;
  }
@@ -44,4 +45,4 @@ http.createServer(async(req,res)=>{try{
  if(!file.startsWith(source+path.sep)&&file!==path.join(__dirname,'crater-export-browser.js'))throw Error('Invalid path');
  res.setHeader('Content-Type',({'.js':'text/javascript','.html':'text/html','.json':'application/json','.wasm':'application/wasm','.png':'image/png'})[path.extname(file)]||'application/octet-stream');
  const data=await fs.promises.readFile(file);res.end(data);
- }catch(e){res.writeHead(500);res.end(String(e))}}).listen(43187,'127.0.0.1',()=>console.log('Crater converter http://127.0.0.1:43187/three/crater-export.html'));
+ }catch(e){res.writeHead(500);res.end(String(e))}}).listen(Number(process.env.VOX_MAP_EXPORT_PORT||43187),'127.0.0.1',()=>console.log(mapKind+' converter ready'));

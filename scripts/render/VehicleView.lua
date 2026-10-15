@@ -58,6 +58,22 @@ function VehicleView.PartLocalPos(part)
     return Coord.CellPos(part.pos[1], part.pos[2] + 0.5, part.pos[3])
 end
 
+-- Detached static blocks retain their exact model/material handles. Animated
+-- rigs and joined surfaces still take the normal construction path.
+function VehicleView:TransferStaticPart(part,target)
+    local vis=self.visuals[part.id]
+    local def=Defs.PARTS[part.type]
+    if not vis or vis.part~=part or vis.joined or self.xray or not def.shape or not def.instanced then return false end
+    if vis.weaponMotion or vis.data.segments and vis.data.segments~=cjson.null then return false end
+    assert(not target.visuals[part.id],'Duplicate detached visual')
+    vis.node:SetParent(target.root)
+    vis.node.position=VehicleView.PartLocalPos(part);vis.node.rotation=Coord.RotQuat(part.rot)
+    vis.node:SetScale(1);vis.node.enabled=true
+    self.visuals[part.id]=nil;target.visuals[part.id]=vis
+    self.livery:PartsChanged();target.livery:PartsChanged()
+    return true
+end
+
 ---@param part BlueprintPart
 ---@return PartVisual
 function VehicleView:AddPart(part)
@@ -83,10 +99,11 @@ function VehicleView:RemovePart(id)
     local vis = self.visuals[id]
     if not vis then return end
     self.joined:Remove(id)
+    if vis.rig.wing then require('render.WingRig').Dispose(vis) end
     vis.node:Dispose()
     vis.xrayOriginals=nil;vis.materialSlots={}
     if vis.weaponMotion then require('render.WeaponPresentation').Dispose(vis) end
-    if vis.shellMaterial then vis.shellMaterial:Dispose();vis.shellMaterial=nil end
+    require('render.ShellMaterials').Release(vis)
     vis.shellSlots={}
     vis.models={}
     Assets.Release(vis.resources)
@@ -111,11 +128,7 @@ function VehicleView:Repaint(part)
     if #vis.shellSlots>0 then
         local shell=part.shellColor
         if shell==cjson.null then shell=nil end
-        if shell and not vis.shellMaterial then
-            vis.shellMaterial=require('parts.Materials').Get('armorWhite'):Clone()
-            for _,slot in ipairs(vis.shellSlots) do require('render.BuildXray').SetBase(vis,slot.model,slot.index,vis.shellMaterial) end
-        end
-        if vis.shellMaterial then vis.shellMaterial:SetShaderParameter('base_color',Variant(Config.HexLinear(shell or 0xcbd1d7))) end
+        require('render.ShellMaterials').Apply(vis,shell)
     end
 end
 
@@ -175,11 +188,16 @@ function VehicleView:SetXray(on)
 end
 
 ---@param bp Blueprint
-function VehicleView:Rebuild(bp)
+function VehicleView:Rebuild(bp,checkpoint)
     self:Clear()
-    for _, part in ipairs(bp:List()) do self:AddPart(part) end
+    local parts=bp:List()
+    for i, part in ipairs(parts) do
+        self:AddPart(part)
+        if checkpoint then checkpoint(.9*i/math.max(1,#parts)) end
+    end
     self.joined:Update()
     self.livery:Set(bp.livery);self.livery:Update()
+    if checkpoint then checkpoint(1) end
 end
 
 ---@param visible boolean
@@ -188,11 +206,14 @@ function VehicleView:SetVisible(visible)
     if not visible and self.weaponEffects then self.weaponEffects:Reset() end
 end
 
-function VehicleView:UpdateIdle(dt,time)
+function VehicleView:UpdateIdle(dt,time,skipWings)
     self.joined:Update()
     for _,mesh in pairs(self.rotorJoined or {}) do mesh:Update() end
     self.livery:Update()
-    for _,vis in pairs(self.visuals) do if vis.weaponMotion then require('render.WeaponPresentation').Update(vis,dt,time) end end
+    for _,vis in pairs(self.visuals) do
+        if vis.weaponMotion then require('render.WeaponPresentation').Update(vis,dt,time) end
+        if vis.rig.wing and not skipWings then require('render.WingRig').Update(vis,nil,time,dt) end
+    end
 end
 
 function VehicleView:GetWorldBounds()

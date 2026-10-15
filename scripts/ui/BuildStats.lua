@@ -5,6 +5,12 @@ local D=require 'ui.SourceDraw'
 local Paragraph=require 'ui.SourceParagraph'
 local Config=require 'Config'
 local Stats=Panel:Extend('VoxBuildStats')
+local MobileFrame=Panel:Extend('VoxMobileBuildStatsFrame')
+function MobileFrame:Render(vg)
+    D.Begin(vg);local r=self:GetAbsoluteLayout()
+    D.Path(vg,{r.x,r.y,r.x+r.w-18,r.y,r.x+r.w,r.y+18,r.x+r.w,r.y+r.h,r.x,r.y+r.h});nvgFillColor(vg,nvgRGBA(22,44,67,255));nvgFill(vg)
+    D.Rect(vg,r.x,r.y,4,r.h,{155,215,250,255})
+end
 local BAD={255,59,48,255};local WARN={255,194,26,255}
 local WHITE={255,255,255,255}
 local OK={61,220,132,255}
@@ -76,8 +82,16 @@ function Stats:Render(vg)
     for i=#self.warningParagraphs,warningIndex+1,-1 do self.warningParagraphs[i]=nil end
     local height=cy-y
     if self.props.height~=height then self:SetHeight(height) end
-    local scrollHeight=math.max(1,math.min(height,UI.GetHeight()-210))
+    local limit=UI.GetHeight()-210
+    if self.session.buildCamera.touch then
+        local dpr=math.max(1,graphics:GetDPR());local cssW=graphics:GetWidth()/dpr;local cssH=graphics:GetHeight()/dpr
+        local scale=UI.GetWidth()/math.max(1,cssW)*.65;local safe=UI.GetSafeAreaInsets()
+        self.mobileFrame:SetStyle({left=(safe.left or 0)+10*scale/.65,top=(safe.top or 0)+56*scale/.65,scale=scale,transformOrigin='top-left'})
+        limit=math.max(1,(cssH-132)/.65-30)
+    end
+    local scrollHeight=math.max(1,math.min(height,limit))
     if self.scroll.props.height~=scrollHeight then self.scroll:SetHeight(scrollHeight) end
+    if self.mobileFrame and self.mobileFrame.props.height~=scrollHeight+30 then self.mobileFrame:SetHeight(scrollHeight+30) end
 end
 function Stats:WarningAt(e,hoverOnly)
     local r=self:GetAbsoluteLayoutForHitTest();local y=e.y-r.y
@@ -87,7 +101,8 @@ function Stats:WarningAt(e,hoverOnly)
 end
 local M={}
 function M.Create(session)
-    local pane=Stats{width=272,height=409};pane.session=session
+    local mobile=session.buildCamera.touch
+    local pane=Stats{width=mobile and 264 or 272,height=409};pane.session=session
     pane.props.onClick=function(_,e) local item=pane:WarningAt(e);if item then session.inspection:Focus(item,true) end end
     pane.props.onPointerMove=function(e) local item=pane:WarningAt(e,true);if item~=pane.hoverWarning then pane.hoverWarning=item;session.inspection:Focus(item,false) end end
     pane.props.onPointerLeave=function() if pane.hoverWarning then pane.hoverWarning=nil;session.inspection:Focus(nil,false) end end
@@ -101,9 +116,16 @@ function M.Create(session)
         pane.expanded=not pane.expanded;pane.more.props.selected=pane.expanded;pane.more.props.text=pane.expanded and '收起详细数据' or '详细数据'
         if not pane.expanded and pane.hoverWarning then pane.hoverWarning=nil;session.inspection:Focus(nil,false) end
     end};pane:AddChild(pane.more)
-    local scroll=UI.ScrollView{position='absolute',left=18,top=74,width=272,height=math.min(409,UI.GetHeight()-210),showScrollbar=false,children={pane}}
+    local scroll=UI.ScrollView{position='absolute',left=18,top=74,width=mobile and 264 or 272,height=math.min(409,UI.GetHeight()-210),showScrollbar=false,children={pane}}
     pane.scroll=scroll
-    return {root=scroll,pane=pane,Refresh=function()
+    local root=scroll
+    if mobile then
+        local frame=MobileFrame{position='absolute',left=10,top=56,width=300,height=439,scale=.65,transformOrigin='top-left'}
+        scroll:SetStyle({position='absolute',left=18,top=14});frame:AddChild(scroll);pane.mobileFrame=frame;root=frame
+        frame.GetScroll=function()return scroll:GetScroll()end
+        frame.SetScrollDirect=function(_,x,y)return scroll:SetScrollDirect(x,y)end
+    end
+    return {root=root,pane=pane,Refresh=function()
         local diag=session.inspection:Get()
         if pane.diag~=diag then pane.hoverWarning=nil end
         pane.diag=diag;local fit=pane.diag.stats.fitTier

@@ -18,16 +18,17 @@ local function Batch(root,name,count,color)
     local mat=Material:new();assert(mat:SetSurfaceShader('Shaders/BLGL/Crater/Puff.shader'));mat:SetShaderParameter('uColor',Variant(Vector3(table.unpack(color))));mat.renderOrder=140;batch.material=mat
     return {node=node,batch=batch,material=mat}
 end
-function M.New(scene,layout)
-    local self=setmetatable({root=scene:CreateChild('CraterAtmosphere'),parts={},acc={0,0,0},layout=layout,devils={},shields={}},M)
+function M.New(scene,layout,options)
+    options=options or {}
+    local self=setmetatable({root=scene:CreateChild('CraterAtmosphere'),parts={},acc={0,0,0},layout=layout,devils={},shields={},options=options,origins=options.origins or origins,area=options.area or 270,limit=options.limit or 300},M)
     self.smoke=Batch(self.root,'ShipSmoke',420,{.042,.033,.027})
     self.dust=Batch(self.root,'DustDevils',104,{.522,.417,.288})
     self.air=require('render.CraterDust').New(self.root,self)
     for i=1,4 do local d={seed=math.random()};self:SpawnDevil(d);d.age=math.random()*d.life;self.devils[i]=d end
-    for i,b in ipairs({layout.base,layout.enemyBase}) do
+    for i,b in ipairs(options.noShields and {} or {layout.base,layout.enemyBase}) do
         self.shields[i]=require('render.CraterShield').New(self.root,b.shield,i==1 and 'own' or 'enemy')
     end
-    for _,p in ipairs(lamps) do
+    for _,p in ipairs(options.noLamps and {} or lamps) do
         local n=self.root:CreateChild('InteriorLamp');n.position=Coord.Vec(p[1],p[2],p[3])
         local l=n:CreateComponent('Light');l.lightType=LIGHT_POINT;l.range=90
         l.useTemperature=false;l.color=LinearColor(p[5]);l.brightness=p[4];l.castShadows=false
@@ -43,8 +44,8 @@ function M:Height(x,z)
 end
 function M:SpawnDevil(d)
     for i=1,40 do
-        local x,z=(math.random()*2-1)*270,(math.random()*2-1)*270
-        if self.air:Flat(x,z,.96) and not self.air:Blocked(x,z,20) then
+        local x,z=(math.random()*2-1)*self.area,(math.random()*2-1)*self.area
+        if self.air:Flat(x,z,.96) and not self.air:Blocked(x,z,20) and (not self.options.allowed or self.options.allowed(x,z)) then
             d.x=x;d.z=z;d.age=0;d.life=35+math.random()*30;d.h=18+math.random()*22;d.r=1.5+math.random()*1.5
             d.vx=windX*(2+math.random()*2)+(math.random()-.5);d.vz=windZ*(2+math.random()*2)+(math.random()-.5);return
         end
@@ -52,7 +53,7 @@ function M:SpawnDevil(d)
     d.x=d.x or 0;d.z=d.z or 0;d.age=0;d.life=1;d.h=d.h or 18;d.r=d.r or 1.5;d.vx=0;d.vz=0
 end
 function M:Smoke(dt)
-    for i,o in ipairs(origins) do
+    for i,o in ipairs(self.origins) do
         self.acc[i]=self.acc[i]+dt*o[4]
         while self.acc[i]>1 and #self.parts<420 do
             self.acc[i]=self.acc[i]-1
@@ -81,7 +82,7 @@ function M:Update(dt,t,camera)
     self.smoke.batch:Commit()
     for i,d in ipairs(self.devils) do
         d.age=d.age+dt;d.x=d.x+d.vx*dt;d.z=d.z+d.vz*dt
-        if d.age>d.life or math.abs(d.x)>300 or math.abs(d.z)>300 then self:SpawnDevil(d) end
+        if d.age>d.life or math.abs(d.x)>self.limit or math.abs(d.z)>self.limit then self:SpawnDevil(d) end
         local x,z=d.x,d.z;local ground=self:Height(x,z);local life=math.min(1,d.age/5)*math.min(1,(d.life-d.age)/6)
         for j=0,25 do local f=j/26;local a=t*(2.4-f)+j*2.399+d.seed*10;local r=d.r*(1+f*4.5);local lean=f*f*6
             Puff(self.dust.batch,right,up,x+math.cos(a)*r*.6+windX*lean,ground+f*d.h+.8,z+math.sin(a)*r*.6+windZ*lean,r*.9+1.2,life*.16*(1-f)^.8*math.min(1,f/.08),d.seed+j*.37,1.05,a*180/math.pi)
@@ -91,8 +92,11 @@ function M:Update(dt,t,camera)
     self.air:Update(t,camera)
 end
 function M:Dispose()
-    if self.air then self.air:Dispose() end
+    if self.disposed then return end;self.disposed=true
+    if self.air then self.air:Dispose();self.air=nil end
     for _,shield in ipairs(self.shields) do shield:Dispose() end
-    self.root:Remove();self.parts={};self.shields={}
+    self.root:Dispose();self.smoke.material:Dispose();self.dust.material:Dispose()
+    self.root=nil;self.smoke=nil;self.dust=nil;self.layout=nil;self.options=nil
+    self.parts={};self.shields={};self.devils={}
 end
 return M

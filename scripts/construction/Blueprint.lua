@@ -52,11 +52,12 @@ local function PartSockets(type, pos, rot)
 end
 
 ---@return WorldSocket[]
-local function SocketList(cells, sockets)
+local function SocketList(cells, sockets, checkpoint)
     if sockets ~= "all" then return sockets end
     local out = {}
-    for _, c in ipairs(cells) do
+    for i, c in ipairs(cells) do
         for _, d in ipairs(Rot.DIRS) do out[#out + 1] = { cell = c, dir = d } end
+        if checkpoint and i%32==0 then checkpoint() end
     end
     return out
 end
@@ -98,6 +99,7 @@ function Blueprint:init()
     self.cellIds = {}
     self.legIds = {}
     self.clearIds = {}
+    self._neighbors = {}
     self.nextId = 1
     self.nextGroup = 1
     self.name = "未命名战车"
@@ -110,6 +112,7 @@ function Blueprint:Clear()
     self.cellIds = {}
     self.legIds = {}
     self.clearIds = {}
+    self._neighbors = {}
     self.nextId = 1
     self.nextGroup = 1
 end
@@ -196,6 +199,7 @@ function Blueprint:Check(type, pos, rot, bounds, ignore, requireConnect)
     local def = PARTS[type]
     local cells = PartCells(type, pos, rot)
     if def.leg and Rot.ROTATIONS[rot].up[2]<0.99 then return {ok=false,reason="节足要装在车身侧面",cells=cells} end
+    if def.mech and not Mounts.MechWorks(rot) then return {ok=false,reason='机械足要装在车身底面',cells=cells} end
     for _, c in ipairs(cells) do
         if bounds and not Config.InBounds(bounds, c[1], c[2], c[3]) then
             return { ok = false, reason = "超出建造区域", cells = cells }
@@ -264,6 +268,13 @@ function Blueprint:Add(spec)
     if part.g >= self.nextGroup then self.nextGroup = part.g + 1 end
     self:_Index(part)
     self.parts[part.id] = part
+    if next(self._neighbors) then
+        self._neighbors[part.id]=nil
+        -- Incoming sockets can change only beside an occupied cell of this part.
+        for _,c in ipairs(part._cells) do for _,d in ipairs(Rot.DIRS) do
+            for _,id in ipairs(self.cellIds[Key(c[1]+d[1],c[2]+d[2],c[3]+d[3])] or {}) do self._neighbors[id]=nil end
+        end end
+    end
     return part
 end
 
@@ -302,6 +313,8 @@ function Blueprint:Remove(id)
         self.occ[key]=ids[1];if #ids==0 then self.cellIds[key]=nil end
     end
     self.parts[id] = nil
+    self._neighbors[id]=nil
+    for _,neighbors in pairs(self._neighbors) do neighbors[id]=nil end
     self.legIds[id] = nil
     for _,c in ipairs(part._clear or {}) do
         local key=Key(table.unpack(c));local ids=self.clearIds[key]
@@ -321,9 +334,9 @@ end
 
 ---@param part BlueprintPart
 ---@return table<integer, boolean>
-function Blueprint:Neighbors(part)
+function Blueprint:Neighbors(part, checkpoint)
     local out = {}
-    for _, s in ipairs(SocketList(part._cells, part._sockets)) do
+    for i, s in ipairs(SocketList(part._cells, part._sockets, checkpoint)) do
         local k = Key(s.cell[1] + s.dir[1], s.cell[2] + s.dir[2], s.cell[3] + s.dir[3])
         for _,id in ipairs(self.cellIds[k] or {}) do
           if id ~= part.id then
@@ -331,20 +344,28 @@ function Blueprint:Neighbors(part)
             if self:_HasSocket(q, k, Rot.DirIndex({ -s.dir[1], -s.dir[2], -s.dir[3] })) then out[id] = true end
           end
         end
+        if checkpoint and i%64==0 then checkpoint() end
     end
     return out
 end
 
 ---@return table<integer, table<integer, boolean>>
-function Blueprint:Graph()
+function Blueprint:Graph(checkpoint)
     local adj = {}
-    for id, p in pairs(self.parts) do adj[id] = self:Neighbors(p) end
+    for id, p in pairs(self.parts) do
+        local neighbors=self._neighbors[id]
+        if not neighbors then neighbors=self:Neighbors(p,checkpoint);self._neighbors[id]=neighbors end
+        -- Callers own their graph snapshot; cache rows must not escape mutable.
+        local row={};for neighbor,value in pairs(neighbors) do row[neighbor]=value end
+        adj[id]=row
+        if checkpoint then checkpoint() end
+    end
     return adj
 end
 
 ---@return { reached: table<integer, boolean>, floating: table<integer, boolean>, floatingCount: integer, coreId: integer|nil }
-function Blueprint:Connectivity(adj)
-    adj = adj or self:Graph()
+function Blueprint:Connectivity(adj, checkpoint)
+    adj = adj or self:Graph(checkpoint)
     local cores = self:CoreParts()
     local reached = {}
     if #cores > 0 then
@@ -358,6 +379,7 @@ function Blueprint:Connectivity(adj)
                     stack[#stack + 1] = n
                 end
             end
+            if checkpoint then checkpoint() end
         end
     end
     local floating, count = {}, 0
@@ -366,6 +388,7 @@ function Blueprint:Connectivity(adj)
             floating[id] = true
             count = count + 1
         end
+        if checkpoint then checkpoint() end
     end
     return { reached = reached, floating = floating, floatingCount = count, coreId = cores[1] and cores[1].id or nil }
 end

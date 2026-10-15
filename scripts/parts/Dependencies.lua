@@ -6,6 +6,12 @@ function M.For(parts)
     paths=paths or require('core.ResourceData').Read('Parts/Dependencies.json')
     local result,seen={},{}
     for _,part in ipairs(parts) do
+        if require('parts.Defs').PARTS[part.type].wing and not seen.wingTrail then
+            seen.wingTrail=true;result[#result+1]='Shaders/BLGL/WingTrail.shader'
+        end
+        if require('parts.Defs').PARTS[part.type].mech and not seen.mechShield then
+            seen.mechShield=true;result[#result+1]='Shaders/BLGL/VoxMechShield.shader'
+        end
         if require('parts.Defs').PARTS[part.type].drill and not seen.drillSpeed then
             seen.drillSpeed=true;result[#result+1]='Shaders/BLGL/Combat/DrillSpeed.shader'
         end

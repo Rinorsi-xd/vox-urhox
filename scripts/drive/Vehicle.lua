@@ -61,6 +61,9 @@ function Vehicle:init(space,spec)
     self.legControl=#spec.legs>0 and Legs.New(self) or nil
     self.legStates=self.legControl and self.legControl.states or {}
     self.legHitboxes=LegHitboxes.New(self)
+    self.mechControl=#(spec.mechLegs or {})>0 and require('drive.MechControl').New(self) or nil
+    self.mechStates=self.mechControl and self.mechControl.states or {}
+    self.mechHitboxes=#(spec.mechLegs or {})>0 and require('drive.MechHitboxes').New(self) or nil
 end
 function Vehicle:Place(pos,yaw)
     if self.drill then self.drill:Cancel() end
@@ -68,10 +71,12 @@ function Vehicle:Place(pos,yaw)
     self.body.setRotation({x=0,y=math.sin(yaw/2),z=0,w=math.cos(yaw/2)})
     self.body.setLinvel({x=0,y=0,z=0});self.body.setAngvel({x=0,y=0,z=0});self.body.resetForces()
     self.steer=0;self.flightTarget=nil;self.liftTilt=0;self.landingTime=0;self.hoverHeightScale=1
+    self.wingState=nil
     self.vPrev=0;self.aLong=0;self.aLat=0;self.airT=0;self.popBefore=nil;self.stability=nil
     self.thrusterOutputs={};self.thrusterDirections={};self.hoverStates={}
     RotorMotion.Restore(self.rotors);self:ApplyRotors()
     if self.legControl then self.legControl:Reset();self.legHitboxes:Update() end
+    if self.mechControl then self.mechControl:Reset();self.mechHitboxes:Update() end
     for _,w in ipairs(self.wheels) do w.lenPrev=nil end
     self.suspension:Sample()
 end
@@ -82,7 +87,9 @@ function Vehicle:GetState()
     local b=self.body
     return {p=b.translation(),q=b.rotation(),lv=b.linvel(),av=b.angvel(),steer=self.steer,
         flightTarget=self.flightTarget,liftTilt=self.liftTilt,hoverHeightScale=self.hoverHeightScale,
-        legs=self.legControl and self.legControl:Snapshot() or nil,rotors=RotorMotion.Snapshot(self.rotors)}
+        legs=self.legControl and self.legControl:Snapshot() or nil,mech=self.mechControl and self.mechControl:Snapshot() or nil,
+        chassis={vPrev=self.vPrev,aLong=self.aLong,aLat=self.aLat,airT=self.airT,drifting=self.drifting,landingTime=self.landingTime},
+        wing=self.wingState,rotors=RotorMotion.Snapshot(self.rotors)}
 end
 function Vehicle:SetState(s)
     local b=self.body;b.setTranslation(s.p);b.setRotation(s.q);b.setLinvel(s.lv);b.setAngvel(s.av)
@@ -90,6 +97,9 @@ function Vehicle:SetState(s)
     self.hoverHeightScale=Math.Clamp(s.hoverHeightScale or 1,.6,1.7)
     RotorMotion.Restore(self.rotors,s.rotors);self:ApplyRotors()
     if self.legControl then self.legControl:Restore(s.legs);self.legHitboxes:Update() end
+    if self.mechControl then self.mechControl:Restore(s.mech);self.mechHitboxes:Update() end
+    if s.wing and self.spec.wings and #self.spec.wings>0 then self.wingState=s.wing end
+    for key,value in pairs(s.chassis or {}) do self[key]=value end
     self.suspension:Sample()
 end
 function Vehicle:StepRotors(aim,step,dt)
@@ -110,6 +120,12 @@ function Vehicle:ApplyRotors()
     RotorMotion.Follow(self.rotors,self.wheels,{'conn','center'},{'axle','contactAxle','down'})
     RotorMotion.Follow(self.rotors,self.spec.hovers,{'pos'},{'dir'})
     RotorMotion.Follow(self.rotors,self.spec.thrusters,{'pos','pivot'},{'dir'})
+    RotorMotion.Follow(self.rotors,self.spec.wings,{'pos'},{'n','s','c'})
+    for _,wing in ipairs(self.spec.wings or {}) do
+        for _,surface in ipairs(wing.surfaces) do surface.rotor=wing.rotor end
+        RotorMotion.Follow(self.rotors,wing.surfaces,{'pos'})
+    end
+    self.wingSurfaces=nil
     -- Compound shapes keep the original inertia/mass while moving kinematically
     -- within the vehicle, matching the source turntables rather than free joints.
     self.native:DisableMassUpdate()
@@ -122,7 +138,16 @@ end
 function Vehicle:Step(cmd,dt)
     if self.disposed then return end
     if self.drill and self.drill:ControlsBody() then self.popBefore=nil;self:SyncDrillPose();return end
-    for _,s in pairs(self.legStates) do s.drillDriven=false end
+    local bodyReads <close> = self.body.beginReadScope()
+    if self.mechControl then
+        local up=Math.Rotate(self.body.rotation(),{0,1,0});local v=self.body.linvel()
+        self.downTime=up[2]<math.cos(math.rad(55)) and Math.Length({v.x,v.y,v.z})<3 and (self.downTime or 0)+dt or 0
+        if self.downTime>1.5 then
+            self.downTime=0;local p=self.body.translation()
+            self:Place({p.x,p.y+self.spec.bounds.radius*.6,p.z},self:Yaw())
+        end
+    end
+    for _,states in ipairs({self.legStates,self.mechStates}) do for _,s in pairs(states) do s.drillDriven=false end end
     self.body.resetForces()
     local q=self.body.rotation();local velocity=self.body.linvel();local vel={velocity.x,velocity.y,velocity.z}
     local previous=self.telemetry
@@ -139,7 +164,12 @@ function Vehicle:Step(cmd,dt)
     local motion=Hover.Motion(self,cmd,frame)
     local legs=self.legControl and self.legControl:Step(cmd,dt,ground.wheelSupport+hover.hoverForce) or {}
     self.legHitboxes:Update()
-    local flight=Thrusters.Step(self,cmd,dt,ground.contact,math.max(0,ground.wheelSupport+hover.hoverForce+(legs.legVerticalSupport or 0)))
+    local mech=self.mechControl and self.mechControl:Step(cmd,dt,ground.wheelSupport+hover.hoverForce+(legs.legVerticalSupport or 0)) or {}
+    if self.mechHitboxes then self.mechHitboxes:Update() end
+    local previousWingLift=math.max(0,self.wingState and self.wingState.lift or 0)
+    local support=math.max(0,ground.wheelSupport+hover.hoverForce+(legs.legVerticalSupport or 0)+(mech.legVerticalSupport or 0)+(mech.mechJetLift or 0)+previousWingLift)
+    local flight=Thrusters.Step(self,cmd,dt,ground.contact,support)
+    local wing=require('drive.WingControl').Step(self,cmd,dt,ground.contact,math.max(0,support-previousWingLift))
     local over=self.body.translation().y-200
     if over>0 then
         local x=over/20
@@ -147,7 +177,8 @@ function Vehicle:Step(cmd,dt)
     end
     self.suspension:Apply(dt)
     self.telemetry={speed=self.speed,totalSpeed=Math.Length(vel),vmax=self.spec.motion.topSpeed}
-    for _,values in ipairs({ground,hover,motion,legs,flight}) do for key,value in pairs(values) do self.telemetry[key]=value end end
+    for _,values in ipairs({ground,hover,motion,legs,mech,flight,wing}) do for key,value in pairs(values) do self.telemetry[key]=value end end
+    self.telemetry.boosting=not not (flight.boosting or mech.boosting)
 end
 -- Apply after Bullet integration and before visual pose capture. Ground impact
 -- may add at most the source 4 m/s upward; intentional flight/jumps are exempt.
@@ -160,13 +191,15 @@ function Vehicle:PostStep()
 end
 function Vehicle:SyncDrillPose()
     local q=self.body.rotation();local p=Math.Array(self.body.translation());local velocity=Math.Array(self.body.linvel())
-    for _,s in pairs(self.legStates) do
+    for _,states in ipairs({self.legStates,self.mechStates}) do for _,s in pairs(states) do
         local l=s.leg
         local point=s.target and Math.Add(l.origin,Math.Scale(require('core.Rotations').ApplyRot(l.rot,s.target),require('Config').CELL)) or l.toeRest or l.toe
         s.previous=s.foot;s.foot=Math.Add(Math.RotateUnit(q,point),p);s.drillDriven=true
         s.grounded=false;s.support=nil;s.contact=nil;s.ground=nil;s.swing=nil;s.sw=nil
         s.mode='free';s.available=false;s.force=0;s.jet=0;s.pulse=0
-    end
+    end end
+    if self.mechControl then self.mechControl.aPrev=velocity end
+    if self.mechHitboxes then self.mechHitboxes:Update() end
     self.legHitboxes:Update();self.speed=Math.Dot(velocity,Math.RotateUnit(q,{0,0,1}))
     self.telemetry.speed=self.speed;self.telemetry.totalSpeed=Math.Length(velocity);self.telemetry.boosting=false;self.telemetry.legContacts=0
 end
@@ -179,6 +212,10 @@ function Vehicle:WheelTravel(index) return -self.suspension.states[index].spin*s
 function Vehicle:Dispose()
     if self.disposed then return end
     if self.drill then self.drill:Cancel() end
-    self.disposed=true;self.space:Unregister(self.native);self.node:Remove()
+    self.disposed=true;self.space:Unregister(self.native);self.node:Dispose()
+    self.native=nil;self.node=nil;self.space=nil;self.drill=nil
+    self.suspension=nil;self.vc=nil;self.legControl=nil;self.legHitboxes=nil
+    self.mechControl=nil;self.mechHitboxes=nil;self.rotorShapes={}
+    self.legStates={};self.mechStates={};self.wheels={};self.hoverStates={}
 end
 return Vehicle

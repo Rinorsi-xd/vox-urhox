@@ -14,7 +14,7 @@ function Button:Render(vg)
         if on then Relief.Draw(vg,x,y,w,h,true,true,{x,y,x+w,y,x+w,y+h,x,y+h},true);color={243,249,255,255}
         else D.Rect(vg,x,y,w,h,hover and {31,61,93,255} or {24,48,74,255});D.Rect(vg,x,y,w,1.5,{142,198,249,128}) end
         D.Text(vg,p.text,x+w/2,y+8,15,color,nil,NVG_ALIGN_CENTER,0,false,15)
-        D.Text(vg,p.english,x+w/2,y+26,8.5,{color[1],color[2],color[3],179},'vox-body',NVG_ALIGN_CENTER,0,false,8.5)
+        D.Text(vg,p.english,x+w/2,y+26,8.5,{color[1],color[2],color[3],179},'vox-body',NVG_ALIGN_CENTER,1.5,false,8.5)
     elseif kind=='sticker' then
         local st=p.sticker;local on=session.pick==st.id;local yy=hover and y-2 or y
         D.Path(vg,{x,yy,x+w-8,yy,x+w,yy+8,x+w,yy+h,x,yy+h});nvgFillColor(vg,D.Color(on and {29,79,134,255} or hover and {27,56,88,255} or {20,43,67,255}));nvgFill(vg)

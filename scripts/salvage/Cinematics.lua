@@ -98,6 +98,7 @@ end
 function M:Update(dt)
     if self.disposed then return end
     dt=math.max(0,math.min(dt,.1));self.time=self.time+dt;self.shake=self.shake*math.exp(-dt*5)
+    if self.run.explosion and not self.run.result then self.run.explosion:Update(dt,self.session.camera:GetNode(),self.run.player:Position()) end
     self.flashTime=self.flashTime+dt
     if self.dust then self.dust:Update(dt) end
     local c=self.current
@@ -165,5 +166,6 @@ function M:Dispose()
     if self.disposed then return end;self.disposed=true;self:ReleaseCar();self.playing=false;self.blocking=false;self.current=nil;self.approach=nil
     if self.filter then self.filter:Dispose();self.filter=nil end
     if self.dust then self.dust:Dispose();self.dust=nil end;self.view:Dispose()
+    self.view=nil;self.run=nil;self.session=nil;self.shot=nil;self.approachShot=nil;self.cameraResolved=nil
 end
 return M

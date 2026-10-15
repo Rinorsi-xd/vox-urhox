@@ -18,6 +18,9 @@ function M.Delete(s)
     end)
 end
 function M.Code(s,importing)
+    if importing and s.editor and s.app.lobby=='salvage' then
+        Host.Notify(s,'打捞行动的车在大厅「车库」里新建和切换','warn');return
+    end
     local function Import(text,status)
         local ok,data=pcall(Code.Decode,text)
         if not ok then status:SetText('蓝图码无效');return end

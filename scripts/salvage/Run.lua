@@ -4,11 +4,18 @@ local Unit=require 'combat.CarUnit'
 local Drops=require 'salvage.Drops'
 local M={};M.__index=M
 function M.Dependencies()
-    local parts={}
+    local parts,seen={},{}
+    -- Download lookup depends on type and orientation, not authored cells.
     for _,variants in pairs(Data.enemies) do for _,def in ipairs(variants) do
-        for _,p in ipairs(require('construction.Blueprint').New():Load(def.source):List()) do parts[#parts+1]=p end
+        for _,row in ipairs(def.source.parts) do
+            local key=row[1]..':'..row[5]
+            if not seen[key] then seen[key]=true;parts[#parts+1]=row end
+        end
     end end
-    return require('parts.Dependencies').For(parts)
+    local paths=require('parts.Dependencies').FromBlueprint({parts=parts})
+    paths[#paths+1]='Shaders/BLGL/Salvage/Signal.shader'
+    for _,path in ipairs(require('render.SalvageFx').Dependencies()) do paths[#paths+1]=path end
+    for _,path in ipairs(require('render.SalvageExplosion').Dependencies()) do paths[#paths+1]=path end;return paths
 end
 function M.New(session,bp)
     local self=setmetatable({},M);self:init(session,bp);return self
@@ -22,6 +29,8 @@ function M:init(session,bp)
     assert(self.player.alive,'Invalid salvage vehicle');self:Center(self.player,self.spawn)
     self.world.units={self.player};self.entries[1]={unit=self.player,env=self:Environment(self.player)}
     self.director=require('salvage.Director').New(self);self.view=require('render.SalvageView').New(self)
+    self.fx=require('render.SalvageFx').New(session.scene)
+    self.explosion=require('render.SalvageExplosion').New(session.scene)
     self.audio=require('audio.SalvageAudio').New(session.scene)
     self.cine=require('salvage.Cinematics').New(self)
 end
@@ -45,7 +54,12 @@ function M:Environment(shooter)
             world.attacker=shooter;world:Explode(point,radius,damage*scale,body,Accept);world.attacker=nil
         end end}
 end
-function M:Begin() if self.begun then return end;self.begun=true;self.cine:Drop() end
+function M:Begin()
+    if self.begun then return end;self.begun=true
+    local ok,err=self.session.app.salvageLobby:BeginRun(self.runId)
+    if not ok then print('[SalvageRun] Cannot persist begun raid: '..tostring(err)) end
+    self.cine:Drop()
+end
 function M:Feed(title,text) self.feed[#self.feed+1]={title=title,text=text,at=self.rules.time,untilAt=self.rules.time+7};if #self.feed>5 then table.remove(self.feed,1) end end
 function M:BeforeStep(dt,command,aim)
     if not self.begun or self.rules.finished then return end
@@ -53,17 +67,18 @@ function M:BeforeStep(dt,command,aim)
     if self.cine.hold then self.cine:HoldCar();return end
     for _,entry in ipairs(self.entries) do local u=entry.unit;u:Flush()
         if u.alive then
-            local cmd,target,firing=command,aim,command.firing==true
+            local cmd,target,firing=command,aim,command.firing==true;local driverInfo
             if u~=self.player then
                 if #u.spec.weapons==0 or u.spec.motion.load==0 or u.spec.motion.topSpeed==0 then u.kill='失去武器或移动';u.dirty=true;u:Flush()
-                else cmd,target,firing=entry.driver:Step(dt,self.director:Target(entry));if entry.enc and not entry.enc.alerted then firing=false end end
+                else cmd,target,firing,driverInfo=entry.driver:Step(dt,self.director:Target(entry));if entry.enc and not entry.enc.alerted then firing=false end end
             end
             if u.alive then
                 if u==self.player then cmd.strafe=0 end -- E belongs to source salvage interaction.
+                require('combat.DriverActions').Apply(u,driverInfo)
                 local v=u.vehicle;v:StepRotors(target,cmd.rotorStep,dt);require('drive.RotorMotion').Weapons(v.rotors,u.weapons)
                 v:Step(cmd,dt);local p,velocity=v.body.translation(),v.body.linvel()
-                u.weapons:Step(dt,{firing=firing,aim=target,pos={p.x,p.y,p.z},quat=v.body.rotation(),vel={velocity.x,velocity.y,velocity.z},body=v.body,team=u.team},entry.env)
-                self.session.effects:Consume(u.weapons.fx);self.session.weaponAudio:Consume(u.weapons.fx,u~=self.player)
+                u.weapons:Step(dt,{firing=firing,aim=target,pos={p.x,p.y,p.z},quat=v.body.rotation(),vel={velocity.x,velocity.y,velocity.z},body=v.body,team=u.team,salvo=driverInfo and driverInfo.salvo},entry.env)
+                self.session.effects:Consume(u.weapons.fx,u~=self.player);self.session.weaponAudio:Consume(u.weapons.fx,u~=self.player)
                 if p.y< -300 then u.kill='掉出地图';u.dirty=true;u:Flush() end
             end
         end
@@ -74,6 +89,7 @@ function M:AfterStep(dt)
     if not self.landed then self.cine:HoldCar();return end
     for i=#self.entries,2,-1 do local e=self.entries[i];local u=e.unit
         if not u.alive then
+            self.explosion:Explode(u:Position(),math.min(5,(u.spec.bounds.radius or 3)*.8),u.elite)
             self.rules.kills=self.rules.kills+1;self.rules:Heat(2)
             self.rules:AddExtra({id='K'..self.rules.kills,kind='kill',name=u.name,tier=1,g=u:Position(),loot=Drops[e.kind] or Drops.rat})
             self:Feed(u.elite and '击毁精英' or '击毁',u.name..' · 残骸可以拆')
@@ -93,6 +109,10 @@ function M:AfterStep(dt)
         end
     end
     self.view:Update(dt)
+    local search=self.rules.search;local cracking=search and search.crack and search.crack<8
+    local target=not self.rules.finished and not self.rules.ex and (cracking and search.o or not search and self.rules.target) or nil
+    self.fx:Target(target or nil,self.rules.prompt and self.rules.prompt.progress or 0,cracking)
+    self.fx:Update(dt,self.rules.time,self.player:Position())
 end
 function M:Events()
     for _,e in ipairs(self.rules:Drain()) do
@@ -103,12 +123,17 @@ function M:Events()
         elseif e.type=='crate' then self.view:Crate(e.object)
         elseif e.type=='hide' then self.view:Hide(e.id)
         elseif e.type=='reveal' then
+            if self.fx and not e.worldBatch and (e.item.r or 0)>=4 then self.fx:Reveal(e) end
             self.revealed=self.revealed or {};self.revealed[e.item.id]=self.rules.time
             self:Feed(self.rules.search and self.rules.search.title or '搜刮',require('core.ResourceData').Read('UI/Outgame.json').items[e.item.id].name..' × '..e.item.n)
+        elseif e.type=='worldLoot' then if self.fx then self.fx:Loot(e.at,e.color,e.n) end
         elseif e.type=='airdrop' then self:Airdrop()
+        elseif e.type=='core' then self.cine:Flash(.3,.6);self.cine:NameCard('核心件已拆下','动静太大 · 附近的清道夫都听见了',2.4)
         elseif e.type=='extracted' then self.cine:Extract(e.exit)
         elseif e.type=='failed' then
-            if not self.player.alive then self:Feed('信号丢失','战车被击毁');self.cine:Death()
+            if not self.player.alive then
+                if self.explosion then self.explosion:Explode(self.player:Position(),3.5,true) end
+                self:Feed('信号丢失','战车被击毁');self.cine:Death()
             else self:Finish(false,e.reason,false) end
         end
     end
@@ -160,11 +185,22 @@ end
 function M:SyncPlayer() require('combat.PlayerViewSync').Update(self) end
 function M:Snapshot() return {time=self.rules.time,heat=self.rules.heat,cargo=self.rules.cargo,used=Loot.Used(self.rules.cargo),mass=Loot.Mass(self.rules.cargo),value=Loot.Value(self.rules.cargo),
     opened=self.rules.openedCount,kills=self.rules.kills,enemies=#self.entries-1,prompt=self.rules.prompt,search=self.rules.search and {title=self.rules.search.title,crack=self.rules.search.crack,done=self.rules.search.done,items=self.rules.search.items},
-    extracts=self.rules.extracts,lootPulse=self.lootPulse,flights=#(self.lootFlights or {}),audio=self.audio:Snapshot(),cine=self.cine:Snapshot(),result=self.result,committed=self.committed,saveError=self.saveError} end
+    extracts=self.rules.extracts,objective=self.hudObjective,threat=self.threat,lootPulse=self.lootPulse,flights=#(self.lootFlights or {}),audio=self.audio:Snapshot(),cine=self.cine:Snapshot(),result=self.result,committed=self.committed,saveError=self.saveError} end
 function M:Dispose()
+    if self.disposed then return end;self.disposed=true
+    -- Cinematics must release the held Bullet body before units/world go away.
     if self.cine then self.cine:Dispose() end
     if self.audio then self.audio:Dispose() end
     if self.view then self.view:Dispose() end
-    for _,e in ipairs(self.entries) do e.unit:Dispose() end;self.entries={};self.world.units={}
+    if self.fx then self.fx:Dispose() end
+    if self.explosion then self.explosion:Dispose() end
+    for i=#self.entries,1,-1 do local e=self.entries[i];e.unit:Dispose();e.unit=nil;e.env=nil;e.driver=nil;e.enc=nil;self.entries[i]=nil end
+    if self.world then self.world.units={} end
+    if self.director then
+        for _,enc in ipairs(self.director.encounters) do enc.units={};enc.left=nil end
+        self.director.entries={};self.director.encounters={};self.director.run=nil;self.director.world=nil
+    end
+    self.director=nil;self.cine=nil;self.audio=nil;self.view=nil;self.fx=nil;self.explosion=nil
+    self.weighBody=nil;self.player=nil;self.world=nil;self.session=nil
 end
 return M

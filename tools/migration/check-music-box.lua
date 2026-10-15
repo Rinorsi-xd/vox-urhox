@@ -3,15 +3,13 @@ local home,box,position,delayed,playerUpdate
 local sandbox=false
 for _,a in ipairs(GetArguments()) do if a=='-music-sandbox' then sandbox=true end end
 local getenv,createFont=os.getenv,nvgCreateFont
-local fallbackFonts,rejectedFonts=0,0
+local sourceBodyFonts,systemMusicFonts=0,0
 if sandbox then
     -- Editor/Maker removes getenv; system font access may also be unavailable.
     os.getenv=nil
     nvgCreateFont=function(vg,name,path)
-        if name=='vox-music-latin' then
-            if path~='Fonts/MiSans-Regular.ttf' then rejectedFonts=rejectedFonts+1;return -1 end
-            fallbackFonts=fallbackFonts+1
-        end
+        if name=='vox-body' and path=='Fonts/VoxIndustrial-Bold.otf' then sourceBodyFonts=sourceBodyFonts+1 end
+        if name=='vox-music-latin' then systemMusicFonts=systemMusicFonts+1 end
         return createFont(vg,name,path)
     end
 end
@@ -39,7 +37,7 @@ end)
 V.atFrame(110,function()
     if sandbox then
         V.assert(os.getenv==nil,'Music UI renders with the sandbox getenv restriction')
-        V.assert(fallbackFonts>0,'Music UI uses bundled font when system access is unavailable')
+        V.assert(nvgFindFont(UI.GetNVGContext(),'vox-body')>=0 and systemMusicFonts==0,'Music uses the original Industrial face, including Latin, without a separate system font')
     end
     V.assert(box.player:Position()>.1,'Audio position advances')
     box.player:SetPaused(true);position=box.player:Position();Shot('main')
@@ -53,10 +51,10 @@ end)
 V.atFrame(115,function()
     if not sandbox then return end
     os.getenv=getenv
-    local vg=nvgCreate(1);local previous=fallbackFonts
+    local vg=nvgCreate(1);local previous=sourceBodyFonts
     require('ui.MusicDraw').Begin(vg)
     os.getenv=nil;nvgDelete(vg)
-    V.assert(rejectedFonts>0 and fallbackFonts>previous,'Failed system font registration retries the bundled font')
+    V.assert(sourceBodyFonts>previous and systemMusicFonts==0,'System font access does not replace the original music typography')
 end)
 V.atFrame(185,function()
     if box and playerUpdate then box.player.Update=playerUpdate end

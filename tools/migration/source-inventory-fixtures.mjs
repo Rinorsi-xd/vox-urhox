@@ -1,6 +1,12 @@
-import {Inventory} from 'file:///D:/Rino_Project/Vox/shared/ui/inventory.js';
-import {Editor} from 'file:///D:/Rino_Project/Vox/shared/build/editor.js';
-import {CATEGORIES,BLOCK_MATS,PART_LIST} from 'file:///D:/Rino_Project/Vox/shared/parts/defs.js';
+import fs from 'node:fs';
+import path from 'node:path';
+import {fileURLToPath,pathToFileURL} from 'node:url';
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
+const baseline=JSON.parse(fs.readFileSync(path.join(root,'docs/migration/outgame-baseline.json')));
+const load=name=>import(pathToFileURL(path.resolve(baseline.snapshot,name)));
+const {Inventory}=await load('shared/ui/inventory.js');
+const {Editor}=await load('shared/build/editor.js');
+const {CATEGORIES,BLOCK_MATS,PART_LIST}=await load('shared/parts/defs.js');
 const inv=Object.create(Inventory.prototype),lists=[];
 for(const cat of ['all',...CATEGORIES.map(c=>c.id)])for(const mat of BLOCK_MATS.map(m=>m.id))for(const query of ['', 'T3', '转向', '玻璃', 'mg', '不存在的零件']){
  Object.assign(inv,{cat,mat,query});lists.push({cat,mat,query,expected:inv._list().map(d=>d.id)});

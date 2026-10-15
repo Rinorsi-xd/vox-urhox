@@ -31,8 +31,8 @@ function M:Kill(name,core,x,y,layout,random)
             size=(11+random()*10)*k,rot=random()*math.pi*2,vr=(random()-.5)*900*math.pi/180,t=0,fly=.22+i*.022,color=i%5+1,core=core}
     end
 end
-function M:Update(dt,hp)
-    self.time=self.time+dt;self.repairAge=self.repairAge+dt;self.flash=math.max(0,self.flash-dt)
+function M:Update(dt,hp,onScore,realDt)
+    self.time=self.time+(realDt or dt);self.repairAge=self.repairAge+dt;self.flash=math.max(0,self.flash-dt)
     if hp<.99 then self.full=false end
     local low=math.max(0,(.3-hp)/.3);self.beat=self.beat+dt*(.9+low*.8)
     self.low=low>0 and math.min(1,.25+low*.75)*(.7+.3*math.max(0,math.sin(self.beat*math.pi*2))) or 0
@@ -44,7 +44,7 @@ function M:Update(dt,hp)
             local dx,dy=s.x-c.x,s.y-c.y;local distance=math.sqrt(dx*dx+dy*dy)
             local step=math.min(distance,distance*(1-math.exp(-dt*9))+900*dt)
             c.x=c.x+dx/math.max(distance,.0001)*step;c.y=c.y+dy/math.max(distance,.0001)*step;c.rot=c.rot+c.vr*dt*.5
-            if distance<10 then table.remove(self.cubes,i);s.shown=math.min(s.target,s.shown+s.per);s.bump=.07 end
+            if distance<10 then table.remove(self.cubes,i);s.shown=math.min(s.target,s.shown+s.per);s.bump=.07;if onScore then onScore() end end
         end
     end
     if #self.cubes==0 then s.shown=s.target end

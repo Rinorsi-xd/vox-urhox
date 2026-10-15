@@ -1,0 +1,137 @@
+{
+  "sourceCommit": "2b169a9964645f5f346a7158bcb14447f040814a",
+  "css": "rtBlink .35s steps(2) 4",
+  "filter": "sepia(1) saturate(5) hue-rotate(-14deg) brightness(1.1)",
+  "samples": [
+    {
+      "ms": 0,
+      "opacity": 1
+    },
+    {
+      "ms": 43.75,
+      "opacity": 1
+    },
+    {
+      "ms": 87.5,
+      "opacity": 0.65
+    },
+    {
+      "ms": 131.25,
+      "opacity": 0.65
+    },
+    {
+      "ms": 175,
+      "opacity": 0.3
+    },
+    {
+      "ms": 218.75,
+      "opacity": 0.3
+    },
+    {
+      "ms": 262.5,
+      "opacity": 0.65
+    },
+    {
+      "ms": 306.25,
+      "opacity": 0.65
+    },
+    {
+      "ms": 349,
+      "opacity": 0.65
+    },
+    {
+      "ms": 350,
+      "opacity": 1
+    },
+    {
+      "ms": 1399,
+      "opacity": 0.65
+    },
+    {
+      "ms": 1400,
+      "opacity": 1
+    }
+  ],
+  "icons": [
+    {
+      "name": "laser1.png",
+      "sourceSha256": "6e9519d3aca9e7b3e892c4b2d4f759f3d4881808e396841d08c33c1694b220e4",
+      "filteredSha256": "7ecedad950684a199f7438726fa27734df6b1799dd821486a1269919058cabe9"
+    },
+    {
+      "name": "laser2.png",
+      "sourceSha256": "047ec9457bb62ade101a888410507f544abeb52e9702ced3c15861413e18aa0c",
+      "filteredSha256": "8ad19403175c7f15cf8b57c3c36cc88a53e54a960e5d239dd6934947cb9d601d"
+    },
+    {
+      "name": "laser3.png",
+      "sourceSha256": "a320ed08da312a6d3cf74301951881260b60fae55040efd843217833cf7d8627",
+      "filteredSha256": "08941e2a6c71f3ad2dfa452387701df3d86811cabe605b8014c7562848c27862"
+    },
+    {
+      "name": "laser4.png",
+      "sourceSha256": "95e14e4ecc485bbd5d132f130f9d2732e3b0afa2a85419c5972a119731cb6e35",
+      "filteredSha256": "d284d337109d88084d7a11f2cb4cbbc6600c96f594eadaafd4591e60bac1b0b2"
+    },
+    {
+      "name": "laser5.png",
+      "sourceSha256": "2d155ac94512b92ddcf26b4ebce294b8fd259cb254e4ceca41fc5463685a8c08",
+      "filteredSha256": "ffde8382ded39bc919f51fe458a0079c5b1cd4c8886c3f13a75762095621b7ec"
+    },
+    {
+      "name": "mg3.png",
+      "sourceSha256": "03c1712b0801120d7768d2b100cec6aaeb1c95f3e3e4c2e8c5fe6c313a55bcbb",
+      "filteredSha256": "a5d4114a361fb6f7adb65649fa81184f66b0be4ad6d8b14131e9b146fbb30a8a"
+    },
+    {
+      "name": "mg4.png",
+      "sourceSha256": "9db9529fa9c70dfd41c7c9d45390aba70d11d3620920de30ac3b48275f953fe8",
+      "filteredSha256": "7c371d153d4595a170e679c827725cf4de5649f7cba1a24b6ffed2ed1baa4dc9"
+    },
+    {
+      "name": "mg5.png",
+      "sourceSha256": "20f7b72256628f2e6f85f79ab8f755f6814f12b50183f8a3eea1de388cb4d17c",
+      "filteredSha256": "32eb223903ac18c1ea3ce726ef67605078b631ef29c5d6cd8c183391561062be"
+    },
+    {
+      "name": "missile3.png",
+      "sourceSha256": "811fd94e89239061c7395578bceaca67bd82329064b5105cb13a34308be78788",
+      "filteredSha256": "6c679cd62087bc161283a2b4754ee11890735320e1bd810c68e9dcc151795952"
+    },
+    {
+      "name": "missile4.png",
+      "sourceSha256": "52ca37b978c04c77629b1262d7a63585cf232d959e8b19e1d5d95a80c890a972",
+      "filteredSha256": "8ff7dab8eb7c00f9c6e21d72acd2299e3f693685da53e891268a1061f0f99364"
+    },
+    {
+      "name": "missile5.png",
+      "sourceSha256": "5dde926d33a0c65604b9a1ffdc7fe6f6056683833fa970286d5975695729a654",
+      "filteredSha256": "ee53d872ee9710eff5cab980628cee9a087347d5d66fd4922a93a86f96c1e6aa"
+    },
+    {
+      "name": "sniper2.png",
+      "sourceSha256": "299df5fe643c14da85adc68b7fce0b3fd24931f0d3d331c8422e1114a1abea2a",
+      "filteredSha256": "3012a56e1697800b369b710f086544a77ca2613625704aad29910dc0b75fde47"
+    },
+    {
+      "name": "sniper3.png",
+      "sourceSha256": "b5e2825fdae364bd73ea24331066a93a6b41ef55985aa3543252deaa57b6e038",
+      "filteredSha256": "b1a63559a5da9e4b53acbec33dfb4be2afe01c1d2583cc4f17445f4915f68710"
+    },
+    {
+      "name": "sniper4.png",
+      "sourceSha256": "0c232254cc3add5388c47100b2d7e24f8747be39c786a0893bcf5d70300f6adc",
+      "filteredSha256": "310ba4a53df914aa1856c540286c6d1ff567286ddad7d028b1b06a11dd513b27"
+    },
+    {
+      "name": "sniper5.png",
+      "sourceSha256": "93472682bb85a9ee317d22b4e6a5d6fe3d90ff2ea75beebd44b9fb1e48a57765",
+      "filteredSha256": "ac9d227c64ba29f82144378f76d16b838ba5e90c6e4f3ab0c9e618dbe495a403"
+    },
+    {
+      "name": "tianyuanDrill.png",
+      "sourceSha256": "176755adf907028819b7282b1554c9deea2604e8e2d4d635824f68306d2bcd5c",
+      "filteredSha256": "d78ffb8f18b9914c772e40950868be5a9029222ada7caf8f6194597533124b46"
+    }
+  ]
+}

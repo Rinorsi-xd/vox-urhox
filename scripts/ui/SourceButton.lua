@@ -11,11 +11,13 @@ function Button:Update(dt)
     elseif kind:sub(1,4)=='cta-' then Motion.UpdateCTA(self,dt) end
 end
 function Button:Render(vg)
-    D.Begin(vg);local r=self:GetAbsoluteLayout();local p=self.props;local x,y,w,h=r.x,r.y,r.w,r.h
+    D.Begin(vg);local r=self:GetAbsoluteLayout();local p=self.props
+    local k=p.sourceScale or 1;nvgSave(vg);nvgScale(vg,k,k)
+    local x,y,w,h=r.x/k,r.y/k,r.w/k,r.h/k
     local kind=p.sourceKind or 'action';local color=D.white
     nvgSave(vg)
     if Flat(kind) then nvgGlobalAlpha(vg,p.sourceOpacity or 1)
-    elseif p.disabled then nvgGlobalAlpha(vg,.4) end
+    elseif p.disabled then nvgGlobalAlpha(vg,kind=='pause' and .45 or .4) end
     local hover=self.state.hovered;local pressed=self.state.pressed
     if Flat(kind) then
         local scale=self.sourceMotion and self.sourceMotion.scale.value or 1
@@ -88,11 +90,11 @@ function Button:Render(vg)
         D.Text(vg,p.key or '',kx+kw/2,ky+1,12,color,nil,NVG_ALIGN_CENTER,.5,false,17)
     elseif kind=='pause' then
         if hover and not p.disabled then x=x+4 end
-        D.Panel(vg,x,y,w,h,0,{44,48,55,255},{29,32,37,255})
+        Relief.Draw(vg,x,y,w,h,false,true,{x,y,x+w,y,x+w,y+h,x,y+h},false)
         if hover and not p.disabled then D.Rect(vg,x,y,4,h,D.orange) end
-        D.Rect(vg,x+10,y+10,46,46,{0,0,0,77});D.Icon(vg,p.icon,x+21,y+21,24,hover and D.orange or D.muted)
-        D.Text(vg,p.text,x+72,y+9,22,nil,nil,nil,1)
-        D.Text(vg,p.subtitle or '',x+72,y+38,12.5,D.muted,'vox-body')
+        D.Rect(vg,x+10,y+10,46,46,{16,37,58,255});D.Icon(vg,p.icon,x+21,y+21,24,hover and D.orange or {174,196,218,255})
+        D.Text(vg,p.text,x+72,y+12.5,22,{228,243,255,255},'vox-title',nil,1,false,22)
+        D.Text(vg,p.subtitle or '',x+72,y+38.5,12.5,{174,196,218,255},'vox-body')
     elseif Flat(kind) then
         local primary=kind=='primary'
         local cut=kind=='flat' and 0 or 14
@@ -129,6 +131,7 @@ function Button:Render(vg)
         if kind~='icon' then local fs=kind=='save' and 14 or 17;D.Text(vg,p.text,ix+size+(kind=='save' and 5 or 7),y+(h-fs*1.2)/2,fs,D.white,nil,nil,kind=='save' and .5 or 0,false,fs*1.2) end
     end
     if hover and not p.disabled and not Flat(kind) and kind~='tab' and kind~='arrow' and kind~='pause' and kind:sub(1,4)~='cta-' then D.Rect(vg,x+4,y+2,w-8,h-5,{255,255,255,14}) end
+    nvgRestore(vg)
     nvgRestore(vg)
 end
 return Button

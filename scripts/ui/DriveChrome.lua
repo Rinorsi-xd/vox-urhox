@@ -50,8 +50,8 @@ function Chrome:Render(vg)
         local a=elapsed and string.format('100 米  %.2f 秒',elapsed) or ''
         local b=last and string.format('上次：%.2f 秒 · 末速 %.0f km/h',last.time,last.speed*3.6) or ''
         w=math.max(Draw.Width(vg,a,24,1,'vox-tabular'),Draw.Width(vg,b,13,1))+38;h=(a~='' and 29 or 0)+(b~='' and 16 or 0)+(a~='' and b~='' and 2 or 0)+14
-        -- Source flex space-between leaves the timer between title and stats widths.
-        local sw=require('urhox-libs/UI').GetViewportSize();x=(sw+(self.title.drawWidth or 149)-206-w)/2
+        -- Final source CSS hides the ordinary title and gives timer auto margin.
+        x=12
         Draw.Panel(vg,x,y,w,h);local cy=y+7
         if a~='' then Draw.Text(vg,a,x+w/2,cy,24,D.white,1,'vox-tabular',NVG_ALIGN_CENTER);cy=cy+31 end
         if b~='' then Draw.Text(vg,b,x+w/2,cy,13,D.white,1,nil,NVG_ALIGN_CENTER) end
@@ -79,9 +79,9 @@ function Chrome:Render(vg)
         Draw.Text(vg,text,w/2,by+19,20,D.white,3,nil,NVG_ALIGN_CENTER)
         D.Text(vg,'鼠标移动转视角 · 滚轮调远近 · Esc 释放鼠标',w/2,by+100,13,D.white,'vox-body',NVG_ALIGN_CENTER)
         D.Text(vg,'未接管鼠标时，也可按住右键拖动视角',w/2,by+122,13,D.muted,'vox-body',NVG_ALIGN_CENTER)
-        local kw=math.max(18,Draw.Width(vg,'Esc',12,.5)+12);local a=D.Width(vg,' 或 ',13,'vox-body');local b=D.Width(vg,' 返回车库',13,'vox-body')
+        local kw=math.max(18,Draw.Width(vg,'Esc',12,.5)+12);local a=D.Width(vg,' 返回车库 · ',13,'vox-body');local b=D.Width(vg,' 设置',13,'vox-body')
         local cx=(w-18-a-kw-b)/2;Draw.Key(vg,'T',cx,by+52);cx=cx+18
-        D.Text(vg,' 或 ',cx,by+54,13,D.muted,'vox-body');cx=cx+a;Draw.Key(vg,'Esc',cx,by+52);D.Text(vg,' 返回车库',cx+kw,by+54,13,D.muted,'vox-body')
+        D.Text(vg,' 返回车库 · ',cx,by+54,13,D.muted,'vox-body');cx=cx+a;Draw.Key(vg,'Esc',cx,by+52);D.Text(vg,' 设置',cx+kw,by+54,13,D.muted,'vox-body')
     end
 end
 return Chrome

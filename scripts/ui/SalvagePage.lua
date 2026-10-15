@@ -24,6 +24,7 @@ function M.Trade(s)
 end
 function M.Key(s)
     local sv=s.salvage
+    if sv.tab=='workshop' and require('ui.Workshop').Key(s) then return end
     if input:GetKeyPress(KEY_ESCAPE) then
         if sv.gearPop then sv.gearPop=false;s.revision=-1
         elseif sv.selected then sv.selected=false;s.revision=-1

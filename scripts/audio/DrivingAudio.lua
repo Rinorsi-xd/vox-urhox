@@ -2,6 +2,7 @@ local Data=require('core.ResourceData').Read('Combat/DrivingSounds.json')
 local Mix=require 'audio.DrivingMix'
 local V=require 'core.Math3'
 local NEUTRAL={}
+local Levels=require 'audio.AudioLevels'
 local M={};M.__index=M
 function M.Dependencies()
     local paths={};for _,cue in pairs(Data.cues) do paths[#paths+1]=cue.path end;return paths
@@ -22,8 +23,8 @@ end
 function M:Audible() return not self.disposed and self.active and self.volume>0 and self.focus() end
 function M:Stop()
     if self.silent then return end;self.silent=true
-    for _,loop in pairs(self.loops) do loop.source:StopImmediate();loop.source.gain=0;loop.gain=0 end
-    for _,voice in ipairs(self.voices) do voice.source:StopImmediate();voice.source.gain=0 end
+    for _,loop in pairs(self.loops) do loop.source:StopImmediate();Levels.SetGain(loop.source,0);loop.gain=0 end
+    for _,voice in ipairs(self.voices) do voice.source:StopImmediate();Levels.SetGain(voice.source,0) end
     self.events:Clear()
 end
 function M:SetActive(active)
@@ -47,9 +48,9 @@ function M:Loop(key,id,amount,pitch,pan,dt)
     loop.pan=loop.pan+(pan-loop.pan)*(1-math.exp(-math.max(0,dt)/.08))
     local sound=self.sounds[id]
     if live and not loop.source.playing then
-        loop.source:Play(sound,sound:GetFrequency()*loop.pitch,loop.gain,loop.pan);self.counts[id]=(self.counts[id] or 0)+1
+        Levels.Play(loop.source,sound,sound:GetFrequency()*loop.pitch,loop.gain,loop.pan);self.counts[id]=(self.counts[id] or 0)+1
     end
-    loop.source.gain=loop.gain;loop.source.frequency=sound:GetFrequency()*loop.pitch;loop.source.panning=loop.pan
+    Levels.SetGain(loop.source,loop.gain);loop.source.frequency=sound:GetFrequency()*loop.pitch;loop.source.panning=loop.pan
     if not live and loop.gain<.0001 then loop.source:StopImmediate();loop.gain=0 end
 end
 function M:Play(id,amount,pan)
@@ -68,7 +69,7 @@ function M:Play(id,amount,pan)
         self.stepPitch=pitch
     end
     voice.source:StopImmediate();voice.order=self.cursor
-    local sound=self.sounds[id];voice.source:Play(sound,sound:GetFrequency()*pitch,math.min(1,cue.gain*amount*self.volume*self.duck),pan or 0)
+    local sound=self.sounds[id];Levels.Play(voice.source,sound,sound:GetFrequency()*pitch,math.min(1,cue.gain*amount*self.volume*self.duck),pan or 0)
     self.counts[id]=(self.counts[id] or 0)+1;return true
 end
 function M:Observe(vehicle,dt,remote)

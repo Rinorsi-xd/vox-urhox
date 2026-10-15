@@ -8,6 +8,7 @@ local M={}
 local function Body(world,node,friction)
     local b=node:CreateComponent('RigidBody');b.friction=friction or .85;b.collisionLayer=1
     world.space:Register(b,{type='ground'})
+    return b
 end
 function M.Build(world,checkpoint)
     require('drive.CraterLayout').Fill(world.layout,checkpoint and function(p) checkpoint(p*.15,'data') end)
@@ -30,30 +31,33 @@ function M.Build(world,checkpoint)
         Progress(.55*(x*n+z*32+1024)/(n*n),'terrain')
     end end
     for i,b in ipairs(layout.blocks) do if not b.noPhysics then
+        if b.kind=='bound' then
+            local lo=b.pos[2]-b.size[2]/2
+            b.size={b.size[1],260-lo,b.size[3]};b.pos={b.pos[1],(260+lo)/2,b.pos[3]}
+        end
         local node=world.root:CreateChild('Hull'..i);node.position=Coord.Vec(table.unpack(b.pos))
         local r=b.rot;local d=180/math.pi
-        node.rotation=Quaternion(r[1]*d,Vector3.RIGHT)*Quaternion(-r[2]*d,Vector3.UP)*Quaternion(-r[3]*d,Vector3.FORWARD)
+        if b.rotation then local q=b.rotation;node.rotation=Quaternion(q[4],q[1],-q[2],-q[3])
+        else node.rotation=Quaternion(r[1]*d,Vector3.RIGHT)*Quaternion(-r[2]*d,Vector3.UP)*Quaternion(-r[3]*d,Vector3.FORWARD) end
         local shape=node:CreateComponent('CollisionShape')
-        if b.vertices then
+        if b.triangles then
+            local geo=node:CreateComponent('CustomGeometry');geo:BeginGeometry(0,TRIANGLE_LIST)
+            local p=b.triangles;local idx=b.indices
+            for k=1,#idx,3 do for _,j in ipairs({idx[k]+1,idx[k+2]+1,idx[k+1]+1}) do geo:DefineVertex(Coord.Vec(p[j*3-2],p[j*3-1],p[j*3])) end end
+            geo:Commit();shape:SetCustomTriangleMesh(geo);geo.enabled=false
+        elseif b.vertices then
             local geo=node:CreateComponent('CustomGeometry');geo:BeginGeometry(0,POINT_LIST)
             for k=1,#b.vertices,3 do geo:DefineVertex(Coord.Vec(b.vertices[k],b.vertices[k+1],b.vertices[k+2])) end
             geo:Commit();shape:SetCustomConvexHull(geo);geo.enabled=false
+        elseif b.radius then shape:SetCylinder(b.radius*2,b.height)
         else shape:SetBox(Vector3(table.unpack(b.size))) end
-        Body(world,node,b.friction)
+        local native=Body(world,node,b.friction)
+        if world.AttachBlockPhysics then world:AttachBlockPhysics(native,b) end
         if i%4==0 then Progress(.55+.4*i/#layout.blocks,'hulls') end
     end end
-    -- Source scatter contract: ground-embedded spheres, radius limited by height.
-    -- Tiny pebbles remain visual; r >= 0.9 m boulders stop wheels and projectiles.
-    local boulders=require('core.ResourceData').Read('Crater/Boulders.json')
-    world.boulderCount=0
-    for i,b in ipairs(boulders) do if b.r>=.9 then
-        local radius=math.min(b.r,b.h*1.25)
-        local node=world.root:CreateChild('Boulder'..i);node.position=Coord.Vec(b.x,b.y-radius*.25,b.z)
-        node:CreateComponent('CollisionShape'):SetSphere(radius*2);Body(world,node,.8)
-        world.boulderCount=world.boulderCount+1
-        if i%8==0 then Progress(.95+.03*i/#boulders,'boulders') end
-    end end
-    require('controls.CameraObstacles').Build(world,function(p) Progress(.98+.02*p,'camera') end)
+    local boulders=require('core.ResourceData').Read((world.assetNamespace or 'Crater')..'/Boulders.json')
+    require('drive.TerrainObstacles').Build(world,boulders,function(p) Progress(.95+.03*p,'boulders') end)
+    if not world.assetNamespace then require('controls.CameraObstacles').Build(world,function(p) Progress(.98+.02*p,'camera') end) end
     print('[CraterPhysics] Source heightfield '..n..'x'..n..', authored blocks '..#layout.blocks..', boulders '..world.boulderCount)
 end
 return M

@@ -20,7 +20,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   page.on('pageerror',e=>errors.push(e.message));page.on('crash',()=>{closed=true;errors.push('Browser crashed');});
   page.on('response',r=>{if(r.status()>=400)httpFailures.push({status:r.status(),url:r.url()});});
   const check=(ok,label)=>{assert.ok(ok,label);checks.push(label);};
-  async function wait(fn,label,limit=240000){const start=Date.now();while(!state||!fn(state)){if(closed||errors.length)throw Error(label+': '+errors.join('\n'));if(Date.now()-start>limit)throw Error('Timeout '+label+' '+JSON.stringify(state));await sleep(100);}return state;}
+  async function wait(fn,label,limit=240000){const start=Date.now();let lastProbe=start;while(!state||!fn(state)){if(closed||errors.length)throw Error(label+': '+errors.join('\n'));if(Date.now()-start>limit)throw Error('Timeout '+label+' '+JSON.stringify(state));if(Date.now()-lastProbe>1000){lastProbe=Date.now();await page.keyboard.press('F8');}await sleep(100);}return state;}
   async function dump(){const n=states.length;await page.keyboard.press('F8');return wait(()=>states.length>n,'fresh state',10000);}
   async function tap(x,y){if(test.touch)await page.touchscreen.tap(x,y);else await page.mouse.click(x,y);}
   async function widget(text){const s=await dump(),item=s.widgets.find(w=>w.text===text);check(item,'actual '+text+' widget');const [x,y,w,h]=item.rect;await tap((x+w/2)/s.width*test.width,(y+h/2)/s.height*test.height);}

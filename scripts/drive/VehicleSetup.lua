@@ -83,7 +83,7 @@ function M.Wheels(spec)
     local capabilities=Capabilities.Compute(spec)
     local shares=M.StaticLoads(spec,math.max(1,spec.motion.load))
     local roadSum=0;for i,w in ipairs(spec.wheels) do if not w["end"] then roadSum=roadSum+shares[i] end end
-    if capabilities.hoverLoad>0 or capabilities.legLoad>0 then for i,w in ipairs(spec.wheels) do
+    if capabilities.hoverLoad>0 or capabilities.legLoad>0 or capabilities.mechLoad>0 then for i,w in ipairs(spec.wheels) do
         shares[i]=w["end"] and shares[i]*capabilities.wheelShare or shares[i]/math.max(1e-9,roadSum)*capabilities.wheelShare
     end end
     local bottom=math.huge

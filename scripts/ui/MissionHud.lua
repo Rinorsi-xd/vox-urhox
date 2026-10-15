@@ -3,11 +3,12 @@ local UI=require 'urhox-libs/UI'
 local D=require 'ui.SourceDraw'
 local F=require 'ui.MissionFrame'
 local Paragraph=require 'ui.SourceParagraph'
-local Paint=require 'ui.WorkshopPaint'
+local Comms=require 'ui.CommsCard'
+local Markers=require 'story.MarkerRules'
 local Panel=UI.Panel:Extend('VoxMissionHud')
 local M={}
 local cyan={70,200,255,255};local orange={255,106,19,255};local white={244,245,247,255};local muted={154,163,173,255}
-local function Text(vg,text,x,y,size,color,align) D.Text(vg,text,x,y,size,color or white,'vox-story',align) end
+local function Text(vg,text,x,y,size,color,align) D.Text(vg,text,x,y,size,color or white,'vox-display',align) end
 local function Tag(vg,no,title,x,y,w)
     D.Rect(vg,x,y,34,28,{3,10,18,230});D.Line(vg,x,y,x+34,y,cyan);D.Line(vg,x,y+28,x+34,y+28,cyan)
     Text(vg,no,x+17,y+2,21,cyan,NVG_ALIGN_CENTER);Text(vg,'//  +',x+44,y+6,16,cyan);Text(vg,title,x+98,y+1,23)
@@ -15,28 +16,40 @@ end
 local function Frame(vg,x,y,w,h)
     F.Draw(vg,x,y,w,h,12,cyan)
 end
-local function Typed(card)
-    local count=utf8.len(card.text) or 0;local want=math.floor(count*math.min(1,card.age/math.max(.001,card.typing)))
-    local offset=utf8.offset(card.text,want+1);return offset and card.text:sub(1,offset-1) or card.text
+function Panel:Project(target,lift,w,h)
+    local p=require('core.Coord').Vec(target[1],target[2]+lift,target[3]);local camera=self.session.camera:GetCamera()
+    local uv=camera:WorldToScreenPoint(p);local depth=camera.node:WorldToLocal(p).z
+    return Markers.Project(uv.x*2-1,1-uv.y*2,depth<0 or depth>camera.farClip,w,h)
 end
-function Panel:Marker(vg,target,label,color,w,h)
-    local session=self.session;local p=require('core.Coord').Vec(target[1],target[2]+9,target[3]);local camera=session.camera:GetCamera()
-    local uv=camera:WorldToScreenPoint(p);local x,y=uv.x*w,uv.y*h
-    if camera.node:WorldToLocal(p).z<0 then x=w-x;y=h-y end
-    local margin=70;local off=x<margin or x>w-margin or y<margin or y>h-margin
-    if off then local dx,dy=x-w/2,y-h/2;local k=math.min((w/2-margin)/math.max(.00001,math.abs(dx)),(h/2-margin)/math.max(.00001,math.abs(dy)))
-        x=w/2+dx*k;y=h/2+dy*k;local angle=math.atan(dy,dx)
-        D.Path(vg,{x+math.cos(angle)*18,y+math.sin(angle)*18,x+math.cos(angle+2.5)*10,y+math.sin(angle+2.5)*10,x+math.cos(angle-2.5)*10,y+math.sin(angle-2.5)*10});nvgFillColor(vg,D.Color(color));nvgFill(vg)
+local function Diamond(vg,x,y,size,color,inner)
+    nvgSave(vg);nvgTranslate(vg,x,y);nvgRotate(vg,math.pi/4)
+    nvgBeginPath(vg);nvgRect(vg,-size/2,-size/2,size,size);nvgFillColor(vg,nvgRGBA(0,0,0,64));nvgFill(vg)
+    for _,line in ipairs({{8,22},{5,45},{2,255}}) do
+        nvgStrokeWidth(vg,line[1]);nvgStrokeColor(vg,nvgRGBA(color[1],color[2],color[3],line[2]*(color[4] or 255)/255));nvgStroke(vg)
     end
-    D.Path(vg,{x,y-12,x+12,y,x,y+12,x-12,y});nvgStrokeColor(vg,D.Color(color));nvgStrokeWidth(vg,2);nvgStroke(vg)
-    Text(vg,label,x,y+20,17,color,NVG_ALIGN_CENTER)
-    local pos=session.story.player:Position();Text(vg,string.format('%.0f m',math.sqrt((pos[1]-target[1])^2+(pos[3]-target[3])^2)),x,y+44,15,white,NVG_ALIGN_CENTER)
+    if inner then D.Rect(vg,-size/2+7,-size/2+7,size-14,size-14,color) end
+    nvgRestore(vg)
+end
+function Panel:Markers(vg,w,h)
+    local mission=self.session.story;local state=Markers.Select(mission);if not state then return end
+    for i=2,#mission.entries do local u=mission.entries[i].unit;if u.alive and u~=state.excluded then
+        local p=self:Project(u:Position(),3,w,h);Diamond(vg,p.x,p.y,12,{255,59,70,p.off and 153 or 255},false)
+    end end
+    local p=self:Project(state.target,state.lift,w,h);if state.close then if not p.off then return end;p.y=math.max(p.y,120) end
+    local x,y=p.x,p.y;local color=state.kind=='enemy' and {255,59,70,255} or state.kind=='install' and orange or cyan
+    Diamond(vg,x,y,state.kind=='enemy' and 18 or 22,color,true)
+    if p.off then
+        nvgSave(vg);nvgTranslate(vg,x,y);nvgRotate(vg,p.angle)
+        D.Path(vg,{15,-7,27,0,15,7});nvgFillColor(vg,D.Color(color));nvgFill(vg);nvgRestore(vg)
+    else Text(vg,state.label,x,y-40,14,white,NVG_ALIGN_CENTER) end
+    local pos=mission.player:Position();local distance=math.sqrt((pos[1]-state.target[1])^2+(pos[3]-state.target[3])^2)
+    Text(vg,distance<1000 and (math.floor(distance+.5)..' m') or string.format('%.1f km',distance/1000),x,y+18,13,white,NVG_ALIGN_CENTER)
 end
 function Panel:Render(vg)
     D.Begin(vg);local s=self.session;local mission=s.story;local r=mission.rules;local box=self:GetAbsoluteLayout();local w,h=box.w,box.h
     local scale=s.touch and .65 or 1;nvgSave(vg);nvgTranslate(vg,box.x,box.y);nvgScale(vg,scale,scale);w=w/scale;h=h/scale
-    local step=r:StepSpec()
-    if step then
+    local step=r:StepSpec();local cinematic=mission.boss and mission.boss.cinematic
+    if step and not cinematic then
         local top=s.touch and 92 or 62
         Tag(vg,mission.level.no,mission.level.name,20,top,430);Text(vg,string.format('%02d / %02d',r.index,#mission.level.steps),430,top+10,14,muted,NVG_ALIGN_RIGHT)
         Frame(vg,20,top+44,430,170);Text(vg,r.retitle or (r.phase=='fight' and step.fightTitle or step.title),56,top+66,23)
@@ -49,6 +62,7 @@ function Panel:Render(vg)
                 {'护盾能量','SHIELD',hold and hold.energy or 1,1,orange,true}}
         end
         if mission.level.id=='s4' then rows={{'采集器','RECLAIMED',r.stats.sites or 0,3,cyan},{'涂鸦清理','GRAFFITI',r.stats.graffiti or 0,3,orange}} end
+        if mission.level.id=='s5' then rows={} end
         for i,row in ipairs(rows) do local y=top+128+(i-1)*36
             D.Rect(vg,38,y,394,32,{0,0,0,90});Text(vg,'> '..row[1],46,y+3,13,row[5]);Text(vg,row[2],112,y+6,10,muted)
             if row[6] then
@@ -56,10 +70,7 @@ function Panel:Render(vg)
             else for n=1,row[4] do D.Rect(vg,300+(n-1)*22,y+12,18,8,n<=row[3] and row[5] or {255,255,255,25}) end end
             Text(vg,row[7] or (row[6] and string.format('%d%%',math.floor(math.max(0,row[3])*100+.5)) or row[3]..'/'..row[4]),420,y+5,15,white,NVG_ALIGN_RIGHT)
         end
-        local target=r:Target();if r.phase=='fight' then for i=2,#mission.entries do target=mission.entries[i].unit:Position();break end end
-        local enemy=r.phase=='fight' or r.cap and (r.cap.phase=='cap' or r.cap.phase=='counter') and #mission.entries>1
-        local label=step.kind=='capture' and (r.cap.phase=='scrub' and '涂鸦' or enemy and '海盗' or '采集器 '..step.site) or step.kind=='escort' and '运输车 · 小运' or r.phase=='fight' and '海盗' or step.kind=='install' and '采集器' or step.kind=='pickup' and '情报' or step.id=='home' and '要塞' or '目标'
-        if target and mission.player.alive then self:Marker(vg,target,label,enemy and {255,59,70,255} or cyan,w,h) end
+        if mission.player.alive then self:Markers(vg,w,h) end
     end
     if step and step.kind=='hold' and r.hold then
         local left=math.max(0,r.hold.left)
@@ -67,21 +78,8 @@ function Panel:Render(vg)
     end
     local card=mission.voice.card
     if card then
-        local x,y=20,s.touch and 332 or h-260;local enemy=card.who=='huhu';local yun=card.who=='yun';local color=yun and {255,176,46,255} or enemy and {255,59,70,255} or cyan
-        Frame(vg,x,y,150,196);nvgSave(vg);nvgScissor(vg,x,y,150,196)
-        if yun then
-            nvgSave(vg);nvgTranslate(vg,x+22,y+40);nvgScale(vg,1.65,1.65)
-            D.Path(vg,{4,18,36,18,36,42,4,42});nvgStrokeColor(vg,D.Color(color));nvgStrokeWidth(vg,2.5);nvgStroke(vg)
-            D.Path(vg,{36,26,50,26,60,36,60,42,36,42});nvgStroke(vg)
-            for _,cx in ipairs({14,48}) do nvgBeginPath(vg);nvgCircle(vg,cx,46,5);nvgStrokeWidth(vg,3);nvgStroke(vg) end
-            for _,line in ipairs({{12,28,18,28},{22,28,28,28},{12,34,28,34}}) do D.Line(vg,line[1],line[2],line[3],line[4],color,3) end
-            nvgRestore(vg)
-        elseif enemy then Paint.Image(vg,'UI/Faces/'..(card.face or 'huhu_talk')..'.png',{x=x-3,y=y-16,w=156,h=195},1,0,nil,nil,0)
-        else Paint.Image(vg,'UI/Faces/'..(card.face or 'nono_talk')..'.png',{x=x-70,y=y-2,w=330,h=410},1,0,nil,nil,0) end
-        nvgRestore(vg);for yy=3,195,3 do D.Rect(vg,x,y+yy,150,1,{color[1],color[2],color[3],18}) end
-        local cx=x+166;Frame(vg,cx,y,480,196);Text(vg,yun and 'LOGISTICS · 小运' or enemy and 'INTERCEPT · 狐狐' or 'INCOMING · 诺诺',cx+20,y+16,16,color)
-        Text(vg,yun and '无人运输车 · 物流 AI' or enemy and '狐狐海盗团团长' or '战术领航员',cx+20,y+43,12,muted)
-        self.comms:Draw(vg,Typed(card),cx+20,y+65,440,white);Text(vg,yun and 'CH-12 · 9.6 KBPS · 车载' or enemy and 'UNKNOWN · 12 KBPS · NOISE' or 'CH-07 · 64 KBPS · ENC',cx+20,y+177,10,muted)
+        local height=Comms.Height(vg,card,646)
+        Comms.Draw(vg,card,20,h-(cinematic and h*.09+14 or 64)-height,646,height,1,mission.voice.time)
     end
     local intel=mission.intelCard
     if intel and r.time<intel.untilAt then
@@ -102,23 +100,16 @@ function Panel:Render(vg)
         Text(vg,scrub and (s.touch and '按住清理涂鸦' or '按住 G 擦掉涂鸦') or r.blocked and '圈里还有海盗' or '正在夺回采集器…',x,y+18,20,white,NVG_ALIGN_CENTER)
         Text(vg,scrub and '「狐狐到此一游」——清理费从工资里扣' or r.blocked and '先清掉圈附近的 '..r.cap.contested..' 辆' or '待在圈里别出去',x,y+48,15,muted,NVG_ALIGN_CENTER)
     end
-    if r.begun and r.time<4.2 or r.completeAt and not r.finished then
-        Text(vg,'剧情模式 · 任务 '..mission.level.no,w/2,h*.12,18,cyan,NVG_ALIGN_CENTER)
-        Text(vg,r.completeAt and '任务完成' or mission.level.name,w/2,h*.12+30,64,white,NVG_ALIGN_CENTER)
-        Text(vg,mission.level.en..' · CV-07 ARGUS',w/2,h*.12+110,16,muted,NVG_ALIGN_CENTER)
-    end
     if not mission.player.alive then
         Text(vg,'信号丢失 · SIGNAL LOST',w/2,h*.34,18,{255,59,70,255},NVG_ALIGN_CENTER)
         Text(vg,'战车损毁',w/2,h*.34+36,54,white,NVG_ALIGN_CENTER);Text(vg,string.format('%.1f 秒后从检查点重新空投',r.respawnLeft or 3),w/2,h*.34+108,20,muted,NVG_ALIGN_CENTER)
     end
-    if mission.banner and r.time<mission.banner.untilAt then
-        Text(vg,mission.banner.title,w/2,h*.16,36,white,NVG_ALIGN_CENTER);Text(vg,mission.banner.sub or '',w/2,h*.16+48,16,cyan,NVG_ALIGN_CENTER)
-    end
+    require('ui.MissionBanner').Draw(vg,mission.banner,r.time,mission.level.no,w,h)
     nvgRestore(vg)
 end
 function M.Attach(session,root)
     local layer=Panel{position='absolute',width='100%',height='100%',pointerEvents='none'};layer.session=session
-    layer.hint=Paragraph.New(13,19);layer.comms=Paragraph.New(19,30.4);layer.intel=Paragraph.New(15,24);root:AddChild(layer)
+    layer.hint=Paragraph.New(13,19);layer.intel=Paragraph.New(15,24);root:AddChild(layer)
     local state=require('ui.MissionResult').Attach(session,root);state.layer=layer
     local update=state.Update;local choice=require('ui.MissionChoice').Attach(session,root)
     state.Update=function(dt) update(dt);choice() end;return state

@@ -18,14 +18,15 @@ function M:Open(map,onBack)
     self.map=map;self.onBack=onBack;self.finished=false;self.failed=false;self.error=''
     self.artReady=false;self.cancelled=false
     local generation=self.generation
-    self.artGate:Start({map.loadingArt or 'UI/Modes/crater.jpg'},function(ok)
+    if not map.boot then self.artGate:Start({map.loadingArt or 'UI/Modes/crater.jpg'},function(ok)
         if not self.active or self.generation~=generation then return end
         self.artReady=ok
         if ok then require('urhox-libs/UI/Core/ImageCache').Release(map.loadingArt or 'UI/Modes/crater.jpg') end
-    end)
-    self.steps={};self.current=1;self.progress=0;self.warmFrames=0;self.readyTime=0
+    end) end
+    self.steps={};self.current=1;self.progress=0;self.warmFrames=0;self.readyTime=0;self.pageFrames=0;self.pageDrawn=false
     for i,id in ipairs(phases) do self.steps[i]={id=id,label=labels[i],state=i==1 and 'run' or 'wait',elapsed=0,note=''} end
     self.page:Open();print('[LoadingFlow] Open '..map.id)
+    if map.boot then self.pageVisible=true;self.phase='loading' end
 end
 function M:QueueBattle(mode,bp)
     local cfg=require('combat.ArenaData').modes[mode]
@@ -67,6 +68,8 @@ function M:Observe(loader,dt)
         if i==index then
             step.state='run'
             if i==1 and loader.gate.total>0 then step.note=loader.gate.completed..' / '..loader.gate.total
+            elseif step.id=='resources' and loader.options and loader.options.webWarmup then
+                step.note=math.min(loader.warmIndex-1,#loader.options.webWarmup)..' / '..#loader.options.webWarmup
             elseif step.elapsed>15 then step.note='仍在加载…' end
         end
     end
@@ -79,22 +82,72 @@ function M:Finish()
     for i,step in ipairs(self.steps) do
         if i<#self.steps then step.state='done';step.note=string.format('%.1fs',step.elapsed) end
     end
+    if self.app.scene and require('urhox-libs.Platform.PlatformUtils').IsWebPlatform() then
+        if self.renderWarmup then self.renderWarmup:Restore() end
+        local viewport=renderer:GetViewport(0)
+        self.renderWarmup=require('render.SceneWarmup').New(self.app.scene,nil,viewport and viewport.camera)
+        print('[LoadingFlow] Render warm-up drawables='..#self.renderWarmup.items..' outside='..self.renderWarmup.skipped)
+        self.combatWarmupPending=self.app.trial~=nil
+    end
     print('[LoadingFlow] Scene installed; awaiting rendered frames')
 end
 function M:Rendered()
+    if not self.active or self.failed then return end
+    if self.renderWarmup then
+        if self.renderWarmup:Rendered() then
+            print('[LoadingFlow] Render warm-up batches='..self.renderWarmup.batches)
+            self.renderWarmup=nil
+        end
+        return
+    end
+    if self.combatWarmupPending then
+        self.combatWarmupPending=false
+        local trial=self.app.trial
+        if trial and not trial.disposed then
+            local ok,warmup=pcall(function() return require('render.CombatWarmup').New(trial) end)
+            if not ok then self:Fail(warmup);return end
+            self.combatWarmup=warmup
+        end
+        return
+    end
+    if self.combatWarmup then
+        local ok,done=pcall(self.combatWarmup.Presented,self.combatWarmup)
+        if not ok then self:Fail(done);return end
+        if done then self.combatWarmup=nil end
+        return
+    end
     if self.active and self.finished and not self.failed then self.warmFrames=self.warmFrames+1 end
+end
+function M:PageRendered()
+    if self.active and self.pageVisible then self.pageDrawn=true end
+end
+function M:FramePresented()
+    if self.pageDrawn then
+        self.pageFrames=self.pageFrames+1;self.pageDrawn=false
+        if self.map.boot and self.pageFrames==2 then print('[LoadingFlow] Boot page presented') end
+    end
+end
+function M:CanStartLoad()
+    return not self.active or self.phase=='loading' and self.pageFrames>=2
 end
 function M:Fail(message)
     if not self.active then return end
+    self.combatWarmupPending=false
+    if self.combatWarmup then self.combatWarmup:Dispose();self.combatWarmup=nil end
+    if self.renderWarmup then self.renderWarmup:Restore();self.renderWarmup=nil end
     self.failed=true;self.error=tostring(message or '加载失败');self.steps[self.current].state='fail'
     print('[LoadingFlow] Failed '..self.error)
 end
 function M:Back()
     if not self.active or self.phase=='exit-cover' or self.phase=='exit-reveal' then return end
+    if self.map.boot then return end
     if self.finished and not self.failed or self.match and self.match.stage=='found' then return end
     local back=self.onBack;self.onBack=nil
     if back then back() end
     self.phase='exit-cover';self.time=0;self.cancelled=true
+end
+function M:Retry()
+    if self.active and self.failed and self.map.boot then self.app:Reload() end
 end
 function M:Advance(dt)
     if not self.active then return end
@@ -119,12 +172,16 @@ function M:Advance(dt)
         local step=self.steps[#self.steps]
         step.state='done';step.note=string.format('%.1fs',step.elapsed)
         self.progress=1;self.phase='ready';self.time=0
-    elseif self.phase=='ready' and self.time>=.45 then self.phase='exit-cover';self.time=0
+    elseif self.phase=='ready' and self.time>=.45 then self.phase=self.map.boot and 'boot-exit' or 'exit-cover';self.time=0
+    elseif self.phase=='boot-exit' and self.time>=.9 then self:Close()
     elseif self.phase=='exit-cover' and self.time>=.55 then self.pageVisible=false;self.phase='exit-reveal';self.time=0
     elseif self.phase=='exit-reveal' and self.time>=.59 then self:Close() end
 end
 function M:Close()
     local wasActive=self.active
+    self.combatWarmupPending=false
+    if self.combatWarmup then self.combatWarmup:Dispose();self.combatWarmup=nil end
+    if self.renderWarmup then self.renderWarmup:Restore();self.renderWarmup=nil end
     self.active=false;self.pageVisible=false;self.phase='closed';self.onBack=nil
     if self.artGate then self.artGate:Cancel() end
     if self.sounds then self.sounds:Dispose();self.sounds=nil end
@@ -143,7 +200,7 @@ end
 function M:Snapshot()
     return {active=self.active,phase=self.phase,visible=self.pageVisible,progress=self.progress,
         failed=self.failed,error=self.error,map=self.map and self.map.id,steps=self.steps,warmFrames=self.warmFrames,
-        match=self.match and {stage=self.match.stage,age=self.match.age,wait=self.match.wait,mode=self.match.cfg.id}}
+        pageFrames=self.pageFrames,match=self.match and {stage=self.match.stage,age=self.match.age,wait=self.match.wait,mode=self.match.cfg.id}}
 end
 function M:Dispose()
     if self.disposed then return end;self:Close();self.disposed=true;self.page:Dispose();self.page=nil

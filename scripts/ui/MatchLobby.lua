@@ -3,27 +3,28 @@ local D=require 'ui.SourceDraw'
 local Paint=require 'ui.WorkshopPaint'
 local Motion=require 'ui.SourceButtonMotion'
 local M={};local blue={46,168,255,255};local red={255,74,61,255}
-local orange={255,106,19,255}
+local orange={168,215,242,255}
 local roles={assault='突击',heavy='重装',sniper='狙击',hover='悬浮快攻'}
-function M.Emblem(vg,x,y,size,t)
+function M.Emblem(vg,x,y,size,t,found)
     for _,layer in ipairs({{'ring-t',t*math.pi*2/30},{'ring-s',-t*math.pi*2/7},{'ring-txt',t*math.pi*2/60},{'base',0},{'gear',t*math.pi*2/12},{'core',0}}) do
-        nvgSave(vg);nvgTranslate(vg,x,y);nvgRotate(vg,layer[2]);Paint.Image(vg,'UI/Match/emblem-'..layer[1]..'.png',{x=-size/2,y=-size/2,w=size,h=size},1,.5);nvgRestore(vg)
+        local suffix=found and (layer[1]=='core' or layer[1]=='ring-s') and '-found' or ''
+        nvgSave(vg);nvgTranslate(vg,x,y);nvgRotate(vg,layer[2]);Paint.Image(vg,'UI/Match/emblem-'..layer[1]..suffix..'.png',{x=-size/2,y=-size/2,w=size,h=size},1,.5);nvgRestore(vg)
     end
 end
 function M.Dependencies(roster)
-    local paths={'UI/Match/division-insignia.png','UI/Modes/map-crater.jpg'}
+    local paths={'UI/Match/division-insignia.png','UI/Modes/map-crater.jpg','UI/Match/emblem-core-found.png','UI/Match/emblem-ring-s-found.png'}
     for _,layer in ipairs({'base','core','ring-t','ring-s','ring-txt','gear'}) do paths[#paths+1]='UI/Match/emblem-'..layer..'.png' end
     for _,team in ipairs({'blue','red'}) do for _,member in ipairs(roster[team]) do paths[#paths+1]='UI/Avatars/'..member.avatar..'.jpg' end end
     return paths
 end
 function M.Draw(page,vg,w,h)
     local flow=page.owner;local match=flow.match;local t=match.age;local cfg=match.cfg;local roster=match.roster
-    D.Rect(vg,0,0,w,h,{7,8,10,255})
+    D.Rect(vg,0,0,w,h,{8,15,28,255})
     if flow.artReady then nvgSave(vg);nvgGlobalAlpha(vg,.22);Paint.Image(vg,'UI/Modes/map-crater.jpg',{x=-w*.04,y=-h*.04,w=w*1.08,h=h*1.08},1.05+.07*(t%80)/80,.5);nvgRestore(vg) end
     require('ui.MatchBackground').Draw(vg,w,h,flow.elapsed,w/2,match.stage=='roster' and h*.46 or h/2-145)
     for _,y in ipairs({0,h-14}) do
         nvgSave(vg);nvgScissor(vg,0,y,w,14)
-        for x=-56+(t*56/2.4)%56,w+28,28 do D.Path(vg,{x,y,x+14,y,x+28,y+14,x+14,y+14});nvgFillColor(vg,nvgRGBA(255,106,19,140));nvgFill(vg) end
+        for x=-56+(t*56/2.4)%56,w+28,28 do D.Path(vg,{x,y,x+14,y,x+28,y+14,x+14,y+14});nvgFillColor(vg,nvgRGBA(140,186,218,140));nvgFill(vg) end
         nvgRestore(vg)
     end
     if flow.artReady then Paint.Image(vg,'UI/Match/division-insignia.png',{x=34,y=30,w=58,h=58},1,.5) end
@@ -36,7 +37,7 @@ function M.Draw(page,vg,w,h)
     D.Text(vg,'AI 对战 · 离线',w-34,h-42,11,D.muted,'vox-title',NVG_ALIGN_RIGHT,4)
     if match.stage=='queue' or match.stage=='found' then
         local size=math.min(h*.46,420);local cx,cy=w/2,h/2-145
-        if flow.artReady then M.Emblem(vg,cx,cy,size,t) end
+        if flow.artReady then M.Emblem(vg,cx,cy,size,t,match.stage=='found') end
         D.Text(vg,match.stage=='found' and '对局已找到' or '正在匹配',cx,cy+size/2+18,64,match.stage=='found' and orange or D.white,'vox-title',NVG_ALIGN_CENTER,8)
         D.Text(vg,match.stage=='found' and 'MATCH FOUND' or 'SEARCHING FOR MATCH',cx,cy+size/2+90,14,orange,'vox-title',NVG_ALIGN_CENTER,12)
         local yy=cy+size/2+126
@@ -49,10 +50,11 @@ function M.Draw(page,vg,w,h)
         end
         D.Text(vg,cfg.name..' · '..cfg.size..'V'..cfg.size..' · T'..match.tier..' · 坠舰陨坑',cx,yy+96,14,{255,255,255,160},'vox-title',NVG_ALIGN_CENTER,3)
         if match.stage=='queue' then
-            page.cancelRect={x=cx-115,y=yy+140,w=230,h=46};D.Panel(vg,cx-115,yy+140,230,46,12,{11,12,15,176},{255,255,255,64})
+            page.cancelRect={x=cx-115,y=yy+140,w=230,h=46}
+            require('ui.SourceRelief').Draw(vg,cx-115,yy+140,230,46,false,true,{cx-115,yy+140,cx+115,yy+140,cx+115,yy+186,cx-115,yy+186})
             D.Text(vg,'取消匹配',cx-10,yy+153,15,D.white,'vox-title',NVG_ALIGN_CENTER,5)
             D.Text(vg,'ESC',cx+70,yy+155,11,D.muted,'vox-tabular')
-        elseif t<.6 then D.Rect(vg,0,0,w,h,{255,106,19,115*(1-t/.6)}) end
+        elseif t<.6 then D.Rect(vg,0,0,w,h,{168,215,242,115*(1-t/.6)}) end
         return
     end
     D.Text(vg,cfg.en..' · '..cfg.size..'V'..cfg.size,w/2,54,14,orange,'vox-title',NVG_ALIGN_CENTER,10)
@@ -67,15 +69,22 @@ function M.Draw(page,vg,w,h)
             local progress=math.max(0,math.min(1,(t-.12-.09*(i-1))/.45));local ease=Motion.Ease(progress,false)
             local xx=x+(right and 60 or -60)*(1-ease);local yy=y+48+(i-1)*(cardH+10)
             nvgSave(vg);nvgGlobalAlpha(vg,ease)
-            D.Panel(vg,xx,yy,cardW,cardH,18,{13,16,20,230},nil);D.Rect(vg,right and xx+cardW-4 or xx,yy,4,cardH,member.player and orange or color)
+            local points=right and {xx+18,yy,xx+cardW,yy,xx+cardW,yy+cardH,xx,yy+cardH} or {xx,yy,xx+cardW,yy,xx+cardW-18,yy+cardH,xx,yy+cardH}
+            D.Path(vg,points);nvgFillColor(vg,D.Color(member.player and {37,72,97,255} or right and {52,42,54,255} or {20,47,73,255}));nvgFill(vg)
+            if member.player then require('ui.SourceRelief').Halftone(vg,xx,yy,cardW,cardH,false,nil,points) end
+            D.Rect(vg,right and xx+cardW-4 or xx,yy,4,cardH,member.player and orange or color)
             if flow.artReady then Paint.Image(vg,'UI/Avatars/'..member.avatar..'.jpg',{x=right and xx+cardW-cardH or xx,y=yy,w=cardH,h=cardH},1,.5) end
             local tx=right and xx+cardW-cardH-16 or xx+cardH+16;local align=right and NVG_ALIGN_RIGHT or nil
             D.Text(vg,member.name,tx,yy+cardH/2-25,22,D.white,'vox-title',align,1)
+            if member.player then
+                local badgeX=right and tx-D.Width(vg,member.name,22,'vox-title',1)-44 or tx+D.Width(vg,member.name,22,'vox-title',1)+8
+                D.Rect(vg,badgeX,yy+cardH/2-21,36,17,orange);D.Text(vg,'YOU',badgeX+5,yy+cardH/2-20,12,{16,38,60,255},'vox-body',nil,2)
+            end
             local subtitle=member.player and match.carName or (roles[member.role]..' · T'..member.tier)
             D.Text(vg,subtitle..' · 段位 '..member.rating,tx,yy+cardH/2+6,13,D.muted,'vox-title',align,2)
             local lx=right and xx+48 or xx+cardW-48
-            D.Text(vg,'LV',lx,yy+cardH/2-24,14,D.muted,'vox-title',NVG_ALIGN_CENTER,1)
-            D.Text(vg,member.level,lx,yy+cardH/2-3,24,D.white,'vox-title',NVG_ALIGN_CENTER)
+            D.Text(vg,'LV',lx,yy+cardH/2-24,14,{255,255,255,144},'vox-display',NVG_ALIGN_CENTER,1)
+            D.Text(vg,member.level,lx,yy+cardH/2-3,24,D.white,'vox-display',NVG_ALIGN_CENTER)
             nvgRestore(vg)
         end
     end

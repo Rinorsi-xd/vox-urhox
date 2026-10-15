@@ -1,0 +1,21 @@
+// Update only derived build metadata; preserve existing model identities.
+import fs from 'node:fs';
+import path from 'node:path';
+import {createHash} from 'node:crypto';
+import {fileURLToPath,pathToFileURL} from 'node:url';
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
+const baseline=JSON.parse(fs.readFileSync(path.join(root,'docs/migration/outgame-baseline.json')));
+const source=path.resolve(root,baseline.snapshot),relative='shared/parts/mechData.js';
+const sha=b=>createHash('sha256').update(b).digest('hex');
+const hash=sha(fs.readFileSync(path.join(source,relative)));
+if(hash!==baseline.files[relative].sha256)throw Error('Frozen mech metadata mismatch');
+const {MECH_GLB}=await import(pathToFileURL(path.join(source,relative)));
+const file=path.join(root,'assets/Parts/BuildRules.json');
+const rules=JSON.parse(fs.readFileSync(file));
+rules.mechStances=Object.fromEntries(Object.entries(MECH_GLB).map(([k,v])=>[k,v.stanceCells]));
+const bytes=Buffer.from(JSON.stringify(rules));fs.writeFileSync(file,bytes);
+const manifestFile=path.join(root,'docs/migration/parts-manifest.json');
+const manifest=JSON.parse(fs.readFileSync(manifestFile));
+manifest.files['BuildRules.json']={sha256:sha(bytes),bytes:bytes.length};manifest.sourceHashes[relative]=hash;
+fs.writeFileSync(manifestFile,JSON.stringify(manifest,null,2));
+console.log(JSON.stringify({types:Object.keys(MECH_GLB),sha256:sha(bytes),sourceCommit:baseline.commit}));

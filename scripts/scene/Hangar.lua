@@ -89,14 +89,22 @@ function Hangar:Welcome(bp)
     self.greet=3.2;self.scanTime=0
 end
 function Hangar:Dispose()
+    if self.disposed then return end;self.disposed=true
     if self.panels then self.panels:Dispose();self.panels=nil end
     if self.reflFilter then self.reflFilter:Dispose();self.reflFilter=nil end
     if self.reflTex then require('render.RenderTargetLifetime').Retire(self.reflTex); self.reflTex=nil end
-    if self.reflNode then self.reflNode:Remove(); self.reflNode=nil end
+    if self.reflNode then self.reflNode:Dispose(); self.reflNode=nil end
+    for _,material in ipairs(self.materials) do material:Dispose() end
     self.materials={}
     self.animatedMaterials={}
+    self.padMat=nil;self.guideMat=nil;self.scanMat=nil
+    self.reflMats={};self.planeMats={};self.holos={};self.niches={}
+    self.arms={};self.drones={};self.boundary=nil;self.guides=nil
+    self.bridge=nil;self.trolley=nil;self.scan=nil;self.reflCam=nil
+    self.root=nil;self.scene=nil;self.envTex=nil
 end
 function Hangar:Update(camNode,cam,dt)
+    if self.disposed then return end
     if not self.root.enabled then self.time=self.time+(dt or 1/60);return end
     if self.panels then self.panels:Update() end
     dt=dt or 1/60

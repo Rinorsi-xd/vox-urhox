@@ -14,6 +14,13 @@ function M.Select()
     return M.profiles[name]
 end
 M.current={};for k,v in pairs(M.Select()) do M.current[k]=v end
+function M.FrameLimit()
+    -- Web uses conservative rendering budgets on both device classes.
+    -- A desktop browser still needs the desktop input/render cadence.
+    for _,arg in ipairs(GetArguments()) do if arg:match('^%-quality=') then return M.current.maxFps end end
+    if Platform.IsWebPlatform() and not require('controls.TouchMode').Enabled() then return M.profiles.desktop.maxFps end
+    return M.current.maxFps
+end
 function M.Apply(level)
     local base=M.Select();for k,v in pairs(base) do M.current[k]=v end
     if level=='low' then

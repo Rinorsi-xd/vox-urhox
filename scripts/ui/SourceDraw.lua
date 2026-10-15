@@ -60,7 +60,7 @@ local function Runs(text)
     if runCount>=256 then runCache={};runCount=0 end
     runCache[text]=result;runCount=runCount+1;return result
 end
-local function DirectFont(font) return font and font~='vox-display' and font~='vox-tabular' end
+local function DirectFont(font) return font and font~='vox-display' and font~='vox-tabular' and font~='vox-legacy-display' and font~='vox-hud' and font~='vox-hud-medium' end
 local function InlineFont(vg,font)
     if font=='vox-help-symbol' then
         local ctx=contexts[vg]
@@ -76,7 +76,10 @@ local function InlineFont(vg,font)
     assert(nvgCreateFont(vg,font,face.path)>=0,'Source inline code font unavailable')
     ctx.inlineCode=face
 end
-local function Face(run,font) return run.face=='vox-display' and (font or 'vox-display') or run.face end
+local function Face(run,font)
+    if font=='vox-legacy-display' then return run.face=='vox-display' and 'vox-display' or 'vox-story' end
+    return run.face=='vox-display' and (font or 'vox-display') or run.face
+end
 local codeCache={};local codeCount=0
 local function CodeRuns(text)
     if codeCache[text] then return codeCache[text] end
@@ -128,6 +131,7 @@ function M.HasBodyAdvances(vg)
     local ctx=contexts[vg];return ctx and ctx.bodyMetrics and ctx.bodyMetrics.fractional or false
 end
 function M.FontMetrics(vg,size,font)
+    if font=='vox-legacy-display' then return M.FontMetrics(vg,size,'vox-story') end
     InlineFont(vg,font)
     local inline=font=='vox-inline-code' and contexts[vg].inlineCode or font=='vox-help-symbol' and contexts[vg].helpSymbol
     if inline and inline.ascent then return math.floor(inline.ascent*size+.5+1e-8),math.floor(inline.descent*size+.5+1e-8) end

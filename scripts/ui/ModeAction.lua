@@ -19,11 +19,11 @@ function Button:Render(vg)
         D.Text(vg,p.text,x+104,y+30,24,nil,nil,nil,1,false,26.4)
         D.Icon(vg,p.valid and 'check' or 'warn',x+104,y+61,13,p.valid and D.green or {255,109,114,255})
         D.Text(vg,p.valid and '按 '..require('Config').TIERS[p.tier].name..' 匹配' or '不符合出战限制',x+122,y+61,12,D.muted,'vox-body')
-        D.Text(vg,'换车 ›',x+w-44,y+36,13,D.orange,'vox-body',NVG_ALIGN_RIGHT)
+        D.Text(vg,'换车 ›',x+w-44,y+36,13,{219,238,255,255},nil,NVG_ALIGN_RIGHT,2)
     else
-        D.Text(vg,p.text,x+40,y+14.5,40,nil,nil,nil,4,false,40);D.Text(vg,p.subtitle,x+40,y+58.5,12,{228,244,255,255},'vox-body',nil,2)
+        D.Text(vg,p.text,x+40,y+14.5,40,{243,249,255,255},nil,nil,4,false,40);D.Text(vg,p.subtitle,x+40,y+58.5,12,{228,244,255,255},'vox-body',nil,2)
         local kw=D.Width(vg,'Enter',13)+16;D.Rect(vg,x+w-34-kw,y+31,kw,26,{19,36,58,255})
-        D.Text(vg,'Enter',x+w-26-kw,y+36,13,D.white)
+        D.Text(vg,'Enter',x+w-26-kw,y+36,13,{219,238,255,255})
     end
 end
 return Button

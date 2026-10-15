@@ -1,5 +1,11 @@
 -- QA only. Time the real bindings without replacing their results or scheduling.
 local metrics={}
+if G0_WARM_BATCH_SIZE then
+    local Warmup=require 'render.SceneWarmup'
+    local new=Warmup.New
+    function Warmup.New(scene,batchSize,camera) return new(scene,G0_WARM_BATCH_SIZE,camera) end
+    print('G0_WARM_BATCH_SIZE '..G0_WARM_BATCH_SIZE)
+end
 local function Measure(label,path,fn,...)
     local start=Time:GetSystemTime()
     local values=table.pack(fn(...))

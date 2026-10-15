@@ -13,6 +13,7 @@ local Assets=require "parts.PartAssets"
 local Loadout=require "combat.WeaponLoadout"
 local Math=require "core.Math3"
 local Geometry=require("core.ResourceData").Read("Drive/Geometry.json")
+local Mech=require 'parts.MechIK'
 local M={GEOMETRY=Geometry}
 local CELL=Config.CELL
 local THIN={antenna=true,flag=true}
@@ -80,7 +81,7 @@ local function AddMass(solid,c,mass)
     if not solid[key] then solid[key]={pos=c,mass=0} end
     solid[key].mass=solid[key].mass+mass
 end
-function M.MergeBoxes(cells)
+function M.MergeBoxes(cells,checkpoint)
     local left,order={},{}
     for key,c in pairs(cells) do left[key]=c.mass;order[#order+1]=c.pos end
     table.sort(order,function(a,b)
@@ -88,11 +89,18 @@ function M.MergeBoxes(cells)
         if a[3]~=b[3] then return a[3]<b[3] end
         return a[1]<b[1]
     end)
-    local function Has(x,y,z) return left[Key(x,y,z)]~=nil end
+    local m0=0
+    local function Has(x,y,z)
+        local mass=left[Key(x,y,z)]
+        return mass~=nil and mass<=m0*2 and mass*2>=m0
+    end
     local boxes={}
     for _,c in ipairs(order) do
+        if checkpoint then checkpoint() end
         local x0,y0,z0=table.unpack(c)
-        if Has(x0,y0,z0) then
+        local seed=left[Key(x0,y0,z0)]
+        if seed~=nil then
+            m0=seed
             local x1=x0;while Has(x1+1,y0,z0) do x1=x1+1 end
             local function Row(y,z) for x=x0,x1 do if not Has(x,y,z) then return false end end;return true end
             local z1=z0;while Row(y0,z1+1) do z1=z1+1 end
@@ -101,7 +109,7 @@ function M.MergeBoxes(cells)
             local mass=0
             for y=y0,y1 do for z=z0,z1 do for x=x0,x1 do
                 local key=Key(x,y,z);mass=mass+left[key];left[key]=nil
-            end end end
+            end;if checkpoint then checkpoint() end end end
             boxes[#boxes+1]={center={(x0+x1)/2*CELL,((y0+y1)/2+.5)*CELL,(z0+z1)/2*CELL},
                 half={(x1-x0+1)*CELL/2,(y1-y0+1)*CELL/2,(z1-z0+1)*CELL/2},mass=mass}
         end
@@ -144,11 +152,12 @@ local function AddTrack(p,def,g,up,out)
     if upright then hull.shape=TrackShape(g) end
     out.hulls[#out.hulls+1]=hull;out.sensors[#out.sensors+1]=Box(p,FullTrack(g),0)
 end
-function M.BuildParts(parts,dropped,rotors,rotorOf)
-    local out={ok=true,reason="",partIds={},dropped=dropped or 0,hulls={},sensors={},wheels={},hovers={},legs={},thrusters={},weapons={}}
+function M.BuildParts(parts,dropped,rotors,rotorOf,checkpoint)
+    local out={ok=true,reason="",partIds={},dropped=dropped or 0,hulls={},sensors={},wheels={},hovers={},legs={},mechLegs={},wings={},thrusters={},weapons={}}
     out.rotors=rotors or {};out.rotorOf=rotorOf or {}
     local buckets={[0]={}};local mass=0
     for _,p in ipairs(parts) do
+        if checkpoint then checkpoint() end
         local owner=out.rotorOf[p.id] or 0;buckets[owner]=buckets[owner] or {};local solid=buckets[owner]
         local def=Defs.PARTS[p.type];local up=Rot.ApplyRot(p.rot,{0,1,0})
         mass=mass+def.mass;out.partIds[#out.partIds+1]=p.id
@@ -159,6 +168,15 @@ function M.BuildParts(parts,dropped,rotors,rotorOf)
                 load=def.load,speed=def.speed/3.6,stepHeight=def.stepHeight,jumpHeight=def.jumpHeight,works=up[2]>.99,
                 height=-leg.toe[2]*CELL,reach=reach*CELL,out=Rot.ApplyRot(p.rot,{1,0,0})}
             out.hulls[#out.hulls+1]=Box(p,{c={0,0,0},h={.47,.47,.40}},def.mass)
+        elseif def.mech then
+            -- Full mass stays on mount/hip. Moving links are combat sensors only.
+            local g=Mech.Data(p.type);local hipLow=g.joints.hip[2]+1.1;local sb=g.segmentBounds.mount
+            out.mechLegs[#out.mechLegs+1]={partId=p.id,type=p.type,rot=p.rot,tier=g.tier,origin=Math.Scale(Origin(p),CELL),
+                pos=ToBody(p,{0,0,0}),mount=ToBody(p,{0,-.5,0}),hip=ToBody(p,g.joints.hip),toeRest=ToBody(p,g.joints.toe),
+                standHeight=g.standHeight*CELL,load=def.load,speed=def.speed/3.6,jumpHeight=def.jumpHeight,jet=def.jet,
+                works=up[2]<-.99 and Rot.ApplyRot(p.rot,{0,0,1})[3]>.99}
+            out.hulls[#out.hulls+1]=Box(p,{c={0,(hipLow-.5)/2,0},h={math.max(math.abs(sb.min[1]),sb.max[1],.5),
+                (hipLow+.5)/2,math.max(math.abs(sb.min[3]),sb.max[3],.5)}},def.mass)
         elseif track then AddTrack(p,def,track,up,out)
         elseif wheel and math.abs(up[2])<.5 then
             out.wheels[#out.wheels+1]={partId=p.id,type=p.type,center=ToBody(p,{0,wheel.cy,0}),axle=up,radius=wheel.r*CELL,width=wheel.w*CELL,
@@ -168,7 +186,7 @@ function M.BuildParts(parts,dropped,rotors,rotorOf)
             if def.hover then
                 local g=Assets.HoverInfo(p.type,p.rot);local dir=Rot.ApplyRot(p.rot,g.liftDir);local emits={}
                 for _,e in ipairs(g.emits) do emits[#emits+1]={pos=ToBody(p,e.p),radius=e.radius*CELL} end
-                out.hovers[#out.hovers+1]={partId=p.id,type=p.type,mount=g.mount,pos=ToBody(p,g.lift.p),dir=dir,load=def.load,height=g.height,
+                out.hovers[#out.hovers+1]={partId=p.id,type=p.type,mount=g.mount,pos=ToBody(p,g.lift.p),dir=dir,load=def.load,height=g.height*Geometry.hoverHeightScale,
                     radius=g.lift.radius*CELL,speed=def.speed/3.6,works=dir[2]>=Geometry.hoverMinUp,emits=emits}
                 out.hulls[#out.hulls+1]=Box(p,HoverBox(g),def.mass)
             end
@@ -181,6 +199,12 @@ function M.BuildParts(parts,dropped,rotors,rotorOf)
                 out.thrusters[#out.thrusters+1]={partId=p.id,type=p.type,pos=ToBody(p,Math.Scale(center,1/area)),pivot=ToBody(p,g.pivot),
                     dir=Rot.ApplyRot(p.rot,def.thrustDir),thrust=def.thrust,speedLimit=def.speedLimit/3.6}
             end
+            if def.wing then
+                local g=Assets.Get(p.type,p.rot).segments.info;local surfaces={}
+                for _,sf in ipairs(g.surfaces) do surfaces[#surfaces+1]={name=sf.name,virtual=sf.virtual==true,pos=ToBody(p,sf.center),area=sf.area*CELL*CELL} end
+                out.wings[#out.wings+1]={partId=p.id,type=p.type,kind=g.kind,tier=g.tier,lift=def.lift,pos=ToBody(p,g.lift.center),
+                    area=g.lift.area*CELL*CELL,n=Rot.ApplyRot(p.rot,{1,0,0}),s=up,c=Rot.ApplyRot(p.rot,{0,0,1}),surfaces=surfaces}
+            end
             if def.hull then Append(out.hulls,M.HullBoxes(p))
             elseif def.hover then -- The clipped hull above already carries collision and mass.
             elseif THIN[p.type] then AddMass(solid,p._cells[1],def.mass)
@@ -188,14 +212,14 @@ function M.BuildParts(parts,dropped,rotors,rotorOf)
         end
     end
     out.boxes={}
-    for owner=0,#out.rotors do for _,box in ipairs(M.MergeBoxes(buckets[owner] or {})) do
+    for owner=0,#out.rotors do for _,box in ipairs(M.MergeBoxes(buckets[owner] or {},checkpoint)) do
         if owner>0 then box.rotor=owner end;out.boxes[#out.boxes+1]=box
     end end
-    for _,list in ipairs({out.hulls,out.sensors,out.wheels,out.hovers,out.thrusters,out.weapons}) do
+    for _,list in ipairs({out.hulls,out.sensors,out.wheels,out.hovers,out.thrusters,out.weapons,out.wings}) do
         for _,item in ipairs(list) do item.rotor=out.rotorOf[item.partId] end
     end
     local load,speed=0,0
-    for _,list in ipairs({out.wheels,out.hovers,out.legs}) do for _,m in ipairs(list) do
+    for _,list in ipairs({out.wheels,out.hovers,out.legs,out.mechLegs}) do for _,m in ipairs(list) do
         if m.works~=false then load=load+m.load;speed=speed+m.load*m.speed end
     end end
     local ratio=load>0 and mass/load or math.huge
@@ -224,21 +248,34 @@ function M.BuildParts(parts,dropped,rotors,rotorOf)
             Grow(Math.Add(Math.Scale(Rot.ApplyRot(leg.rot,{x,y,z}),CELL),leg.origin),{0,0,0})
         end end end
     end
+    for _,leg in ipairs(out.mechLegs) do
+        local bounds=Mech.Data(leg.type).bounds
+        for _,x in ipairs({bounds.min[1],bounds.max[1]}) do for _,y in ipairs({bounds.min[2],bounds.max[2]}) do for _,z in ipairs({bounds.min[3],bounds.max[3]}) do
+            Grow(Math.Add(Math.Scale(Rot.ApplyRot(leg.rot,{x,y,z}),CELL),leg.origin),{0,0,0})
+        end end end
+    end
     if lo[1]==math.huge then return {ok=false,reason="车身是空的"} end
     out.bounds={min=lo,max=hi,radius=Math.Length(Math.Sub(hi,lo))/2}
     return out
 end
-function M.Build(bp)
-    local adj=bp:Graph();local conn=bp:Connectivity(adj)
+function M.Build(bp,checkpoint,connected)
+    local stage=0
+    local pause=checkpoint and function() checkpoint(stage) end or nil
+    local adj=connected and connected.adj or bp:Graph(pause);stage=.15
+    local conn=connected and connected.conn or bp:Connectivity(adj,pause)
     if not conn.coreId then return {ok=false,reason="车上没有核心驾驶舱，无法试车"} end
     local parts={}
     for _,p in ipairs(bp:List()) do if conn.reached[p.id] then parts[#parts+1]=p end end
-    local rotors,owner=require('construction.Rotors').Spec(bp,adj,conn.reached)
-    local out=M.BuildParts(parts,bp:Size()-#parts,rotors,owner)
+    stage=.2
+    local rotors,owner=require('construction.Rotors').Spec(bp,adj,conn.reached,pause)
+    stage=.4
+    local out=M.BuildParts(parts,bp:Size()-#parts,rotors,owner,pause)
     if out.ok then
-        local ranges=require('construction.TurretRange').For(bp,owner)
+        stage=.6
+        local ranges=require('construction.TurretRange').For(bp,owner,pause)
         for _,w in ipairs(out.weapons) do w.range=ranges[w.partId] end
     end
+    if checkpoint then checkpoint(1) end
     return out
 end
 return M

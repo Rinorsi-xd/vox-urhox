@@ -38,11 +38,16 @@ function M:Bind(view,vehicle)
     self.vehicle=vehicle;local retained={}
     for id,vis in pairs(view.visuals) do
         local s=vis.data.segments
-        if s and s~=cjson.null and (s.thruster or s.hover or s.leg) then
+        if s and s~=cjson.null and (s.thruster or s.hover or s.leg or s.mech) then
             local old=self.items[id]
             local item=old and old.vis==vis and old or {id=id,vis=vis,power=0,credit=0,seed=(id*.61803398875)%1,proxies={},origins={}}
             retained[id]=item
-            if s.thruster then self:Batch('Flare',256);self:Batch('Mote',Quality.exhaustParticles)
+            if s.mech then
+                local info=s.info;local nozzles={}
+                for _,n in ipairs(info.nozzles) do nozzles[#nozzles+1]={p=V.Sub(n.p,info.joints.knee),radius=n.radius} end
+                item.jetInfo={nozzles=nozzles,exhaustDir=info.nozzles[1] and info.nozzles[1].dir or {0,-1,0},family='mech',tier=info.tier}
+                self:Batch('Flare',256);self:Batch('Mote',Quality.exhaustParticles)
+            elseif s.thruster then self:Batch('Flare',256);self:Batch('Mote',Quality.exhaustParticles)
             elseif s.hover then self:Batch('Spot',256)
             else self:Batch('Contact',256) end
         end
@@ -72,10 +77,14 @@ function M:Reset()
     for _,b in pairs(self.batches) do b.count=0;b.mesh.enabled=false end
 end
 function M:Thruster(item,dt,time,camera,right,up)
-    local info=item.vis.data.segments.info
-    local target=self.vehicle.thrusterOutputs[item.id] or 0
-    item.power=State.Power(item.power,target,dt);Emission(item,1.5+item.power*.85)
-    local housing=item.vis.rig.housing;local axis=(housing.worldRotation*Native(info.exhaustDir)):Normalized()
+    local mech=item.vis.data.segments.mech
+    local info=item.jetInfo or item.vis.data.segments.info
+    local state=mech and self.vehicle.mechStates[item.id]
+    local target=mech and (state and state.jet or 0) or self.vehicle.thrusterOutputs[item.id] or 0
+    item.power=State.Power(item.power,target,dt)
+    if not mech then Emission(item,1.5+item.power*.85) end
+    local housing=mech and item.vis.rig.mech.shin or item.vis.rig.housing
+    local axis=(housing.worldRotation*Native(info.exhaustDir)):Normalized()
     local distance=(housing.worldPosition-camera):Length();local visible=distance<Quality.equipmentFar and item.power>0
     local steps=distance>Quality.equipmentLod and math.max(6,math.floor(Quality.thrusterSteps*.5)) or Quality.thrusterSteps
     local jets={}
@@ -85,7 +94,7 @@ function M:Thruster(item,dt,time,camera,right,up)
         if velocity:Length()>100 then velocity=Vector3.ZERO end
         item.origins[i]=base
         local dimensions=State.Jet(info,nozzle,item.power,time,item.seed)
-        local radius,length=dimensions.radius*CELL,dimensions.length*CELL
+        local radius,length=dimensions.radius*CELL,dimensions.length*CELL*(mech and 2.4 or 1)
         if visible then
             local p=self:Proxy(item,i,'Thruster');p.model.enabled=true
             p.node.position=base+axis*(length*.5);p.node.rotation=Quaternion(Vector3.FORWARD,axis):Normalized()
@@ -148,7 +157,7 @@ function M:Update(dt,context)
     for _,b in pairs(self.batches) do b:Begin(Source(camera),time) end
     for _,item in pairs(self.items) do
         local s=item.vis.data.segments
-        if s.thruster then self:Thruster(item,dt,time,camera,right,up)
+        if s.thruster or s.mech then self:Thruster(item,dt,time,camera,right,up)
         elseif s.hover then self:Hover(item,time,camera)
         else self:Leg(item,time,camera) end
     end

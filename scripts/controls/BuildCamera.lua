@@ -15,6 +15,9 @@ end
 function M:SetMouseMode(mode) input.mouseMode=mode end
 function M:Capture()
     if self.mode~='fp' or self.session.dialog or self.session.inventoryPanel then return end
+    if not self.touch and require('urhox-libs.Platform.PlatformUtils').IsWebPlatform() and input.mouseLocked and input.mouseMode~=MM_RELATIVE then
+        self:SetMouseMode(MM_ABSOLUTE);return
+    end
     self.pending=not self.touch and require('urhox-libs.Platform.PlatformUtils').IsWebPlatform()
     self.session.controls:Cancel();self.captured=not self.pending;self.skipInput=true;self.buttonsReady=false
     self.avgMove=0;self.lastSpike=false;self.lockWait=0
@@ -79,7 +82,7 @@ function M:Update(dt,blocked)
             self.pending=false;self.captured=true
             if self.session.hud then self.session.hud.Refresh() end
         else
-            self.lockWait=self.lockWait+dt
+            self.lockWait=self.lockWait+math.min(.1,math.max(0,dt))
             if self.lockWait>=2 then self:Release() end
             return
         end
@@ -87,6 +90,8 @@ function M:Update(dt,blocked)
     if self.captured then
         if not self.touch and require('urhox-libs.Platform.PlatformUtils').IsWebPlatform() and not input.mouseLocked then self:Release();return end
         if self.skipInput then self.skipInput=false else self.flight:Step(math.min(dt,.1),self:Read()) end
+    elseif not self.touch and require('urhox-libs.Platform.PlatformUtils').IsWebPlatform() and input.mouseMode==MM_RELATIVE and input.mouseLocked then
+        self:SetMouseMode(MM_ABSOLUTE)
     end
     self:Apply()
 end

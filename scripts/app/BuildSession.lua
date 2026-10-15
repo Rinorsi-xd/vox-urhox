@@ -7,6 +7,7 @@ local Hud=require 'ui.BuildHud'
 local Config=require 'Config'
 local M={};M.__index=M
 function M.New(app)
+    require('controls.TouchPreferences').Get(app)
     local self=setmetatable({app=app,editor=app.editor,camera=app.camera,car=app.car,slot=app.bays.active or 1,message='',disposed=false,refreshTime=0},M)
     self.controls=Controls.New(self);self.ghost=Ghost.New(app.scene);self.camera.autoSpin=false
     self.inspection=require('app.BuildInspection').New(self)
@@ -23,7 +24,7 @@ function M.New(app)
         self.buildCamera:Focus()
     end
     self.car:SetXray(app.buildXray==true)
-    self.hud=Hud.Create(self);self:Refresh();return self
+    self.hud=Hud.Create(self);require('app.SalvageBuild').Attach(self);self:Refresh();return self
 end
 function M:ApplyHotbar()
     local type=self.inventory:Current()
@@ -46,8 +47,11 @@ function M:OpenInventory()
     if self.dialog then return end
     return require('ui.InventoryPanel').Open(self)
 end
-function M:OpenLibrary(mode) return require('ui.BlueprintLibrary').Open(self,mode) end
-function M:OpenPause() return require('ui.PauseMenu').Open(self) end
+function M:OpenLibrary(mode)
+    if self.app.lobby=='salvage' and mode~='save' then self:Notify('打捞行动的车在大厅「车库」里新建和切换','info');return false end
+    return require('ui.BlueprintLibrary').Open(self,mode)
+end
+function M:OpenPause() return require('ui.GameSettings').Open(self) end
 function M:ToggleXray()
     self.app.buildXray=not self.app.buildXray;self.car:SetXray(self.app.buildXray);self:Refresh()
 end
@@ -70,9 +74,9 @@ function M:Escape()
     else self:OpenPause() end
     self:Refresh()
 end
-function M:Trace(x,y)
+function M:Trace(x,y,touchTarget)
     local width,height=UI.GetViewportSize()
-    if self.buildCamera.mode=='fp' then x,y=width*.5,height*.5 end
+    if self.buildCamera.mode=='fp' and not touchTarget and not (self.buildCamera.touch and self.controls.touchTarget) then x,y=width*.5,height*.5 end
     local ray=self.camera.camera:GetScreenRay(x/math.max(1,width),y/math.max(1,height))
     local p,d=ray.origin,ray.direction;local f=self.camera.node.rotation*Vector3.FORWARD
     self.editor.forward={-f.x,0,f.z}

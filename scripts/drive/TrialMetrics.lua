@@ -6,12 +6,16 @@ end
 function M:Reset()
     self.recent={};self.damage=0;self.dps=0;self.timing={state='idle',t0=0};self.pending={}
 end
-function M:Damage(time,target,amount,point,killed)
+function M:Damage(time,target,amount,point,killed,opts)
     self.damage=self.damage+amount
     local last=self.recent[#self.recent]
     if last and last.time==time then last.amount=last.amount+amount
     else self.recent[#self.recent+1]={time=time,amount=amount} end
-    local p=self.pending[target] or {amount=0,age=0,killed=false}
+    local unit=type(target)=='table' and target or {}
+    local p=self.pending[target] or {amount=0,normal=0,shield=0,pierce=0,age=0,killed=false,cells0=unit.lostCells or 0,major0=unit.lostMajor or 0}
+    opts=opts or {}
+    local kind=(opts.shield or opts.kind=='shield') and 'shield' or opts.pierce and 'pierce' or 'normal'
+    p[kind]=p[kind]+amount
     p.amount=p.amount+amount;p.point=point;p.killed=p.killed or killed;self.pending[target]=p
 end
 function M:Step(time)

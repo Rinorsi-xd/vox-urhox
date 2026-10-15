@@ -1,4 +1,5 @@
 local Motion=require 'combat.MvpMotion'
+local Levels=require 'audio.AudioLevels'
 local M={};M.__index=M
 function M.New(scene,player)
     local self=setmetatable({},M);self.player=player;self.sound=assert(cache:GetResource('Sound','Mvp/music.mp3'))
@@ -11,7 +12,7 @@ function M:Play(id,gain)
     local cue=self.cues[id];if not cue or not input.focus or input.minimized then return end
     self.cursor=self.cursor%4+1;local source=self.slots[self.cursor]
     if not source then source=self.root:CreateChild('Cue'..self.cursor):CreateComponent('SoundSource');source.soundType='VoxFeedback';self.slots[self.cursor]=source end
-    source:StopImmediate();source:Play(assert(cache:GetResource('Sound',cue.path)),0,math.min(1,cue.gain*(gain or 1)))
+    source:StopImmediate();Levels.Play(source,assert(cache:GetResource('Sound',cue.path)),0,math.min(1,cue.gain*(gain or 1)))
 end
 function M:Update()
     if self.disposed then return end

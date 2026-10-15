@@ -1,18 +1,11 @@
 local D=require 'ui.SourceDraw'
 local M={};local contexts=setmetatable({},{__mode='k'})
+local iconPaths=require('core.ResourceData').Read('UI/SourceIcons.json')
 function M.Begin(vg)
     D.Begin(vg);if contexts[vg] then return end
-    local font='Fonts/MiSans-Regular.ttf'
-    if GetPlatform()=='Windows' and os.getenv then
-        local windows=os.getenv and os.getenv('SystemRoot') or 'C:/Windows'
-        local candidate=windows:gsub('\\','/')..'/Fonts/segoeui.ttf'
-        if fileSystem:FileExists(candidate) then font=candidate end
-    end
-    local face=nvgCreateFont(vg,'vox-music-latin',font)
-    if face<0 and font~='Fonts/MiSans-Regular.ttf' then
-        face=nvgCreateFont(vg,'vox-music-latin','Fonts/MiSans-Regular.ttf')
-    end
-    assert(face>=0,'Music Latin font unavailable');contexts[vg]={}
+    -- Source music-box.css uses VoxIndustrial for Latin and mixed labels too.
+    -- Reuse SourceDraw's face and fractional metrics instead of a system font.
+    contexts[vg]={}
 end
 function M.Texture(vg,name,x,y,w,h,points)
     local ctx=contexts[vg];local handle=ctx[name]
@@ -34,11 +27,12 @@ function M.Stroke(vg,x,y,w,h,color)
     nvgBeginPath(vg);nvgRect(vg,x+.5,y+.5,w-1,h-1);nvgStrokeWidth(vg,1);nvgStrokeColor(vg,D.Color(color));nvgStroke(vg)
 end
 function M.Text(vg,text,x,y,size,color,font,align,lineHeight)
+    if font=='vox-music-latin' then font='vox-body' end
     D.Text(vg,text,x,y,size,color or {228,237,240,255},font or 'vox-body',align,0,false,lineHeight or size*1.5)
 end
 function M.Icon(vg,name,x,y,size,color,fill)
     -- Original icons.js paths; music-box.css requests rounded 1.8px strokes.
-    local paths=require('core.ResourceData').Read('UI/SourceIcons.json');local path=paths[name];if not path then return end
+    local path=iconPaths[name];if not path then return end
     nvgSave(vg);nvgTranslate(vg,x,y);nvgScale(vg,size/24,size/24);nvgBeginPath(vg)
     for _,p in ipairs(path) do if p[1]=='moveTo' then nvgMoveTo(vg,p[2],p[3]) elseif p[1]=='lineTo' then nvgLineTo(vg,p[2],p[3]) elseif p[1]=='curveTo' then nvgBezierTo(vg,p[2],p[3],p[4],p[5],p[6],p[7]) elseif p[1]=='closePath' then nvgClosePath(vg) end end
     if fill then nvgFillColor(vg,D.Color(fill));nvgFill(vg) end

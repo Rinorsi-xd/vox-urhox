@@ -4,13 +4,33 @@ No artwork is generated. Source assets remain unchanged; OFL notices travel
 with both fonts. Requires fonttools[woff] in .tmp/font-tooling.
 """
 from pathlib import Path
-import sys, re, json, shutil, hashlib
+import argparse, sys, re, json, shutil, hashlib, subprocess
 root = Path(__file__).resolve().parents[2]
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--check-source', action='store_true', help='Validate frozen inputs without changing assets')
+args = parser.parse_args()
+baseline = json.loads((root / 'docs/migration/outgame-baseline.json').read_text(encoding='utf-8'))
+snapshot = (root / baseline['snapshot']).resolve()
+source = snapshot / 'shared'
+inputs = ['ui/icons.js', 'ui/home.js', 'ui/ui.js', 'css/style.css',
+          'fonts/SmileySans-Oblique.ttf.woff2', 'fonts/BarlowCondensed-BoldItalic.ttf',
+          'fonts/BarlowCondensed-OFL.txt', 'fonts/SmileySans-OFL.txt']
+verified = {}
+for relative in inputs:
+    path = source / relative
+    expected = baseline['files']['shared/' + relative]['sha256']
+    actual = hashlib.sha256(path.read_bytes()).hexdigest()
+    if actual != expected:
+        raise ValueError(f'Frozen UI source hash mismatch: shared/{relative}')
+    verified['shared/' + relative] = actual
+if args.check_source:
+    print(json.dumps({'result': 'PASS', 'commit': baseline['commit'],
+                      'snapshot': str(snapshot), 'inputs': verified, 'assets_written': False}))
+    sys.exit(0)
 sys.path.insert(0, str(root / '.tmp/font-tooling'))
 from fontTools.ttLib import TTFont
 from fontTools.svgLib.path import parse_path
 from fontTools.pens.recordingPen import RecordingPen
-source = Path('D:/Rino_Project/Vox/shared')
 fonts = root / 'assets/Fonts'
 font = TTFont(source / 'fonts/SmileySans-Oblique.ttf.woff2')
 font.flavor = None
@@ -48,6 +68,7 @@ for record in tabular['name'].names:
 tabular_path = fonts / 'VoxDisplayTabular-BoldItalic.ttf'
 tabular.save(tabular_path)
 font_evidence = {'source': 'shared/fonts/BarlowCondensed-BoldItalic.ttf',
+                 'source_commit': baseline['commit'], 'snapshot': baseline['snapshot'],
                  'source_sha256': hashlib.sha256((source/'fonts/BarlowCondensed-BoldItalic.ttf').read_bytes()).hexdigest(),
                  'derived': str(tabular_path.relative_to(root)),
                  'derived_sha256': hashlib.sha256(tabular_path.read_bytes()).hexdigest(),
@@ -64,12 +85,7 @@ for name, path in paths.items():
     result[name] = [[op, *[round(v, 6) for p in points for v in p]] for op, points in pen.value]
 output = root / 'assets/UI/SourceIcons.json'
 output.write_text(json.dumps(result, ensure_ascii=False, separators=(',', ':')), encoding='utf-8')
-help_source = (source/'ui/ui.js').read_text(encoding='utf-8').split('_help() {',1)[1].split('const box =',1)[0]
-groups = []
-for title, rows in re.findall(r"\[ '([^']+)', \[ (.+) \] \]", help_source):
-    groups.append({'title':title,'rows':re.findall(r"\[ '([^']+)', '([^']+)' \]",rows)})
-assert len(groups)==5 and sum(len(g['rows']) for g in groups)==41
-(root/'assets/UI/SourceHelp.json').write_text(json.dumps(groups, ensure_ascii=False, indent=2),encoding='utf-8')
+subprocess.run(['node', str(root/'tools/migration/import-source-help.cjs'), '--write'], cwd=root, check=True)
 manifest = {str(p.relative_to(source)): hashlib.sha256(p.read_bytes()).hexdigest()
             for p in [source/'ui/icons.js', source/'ui/home.js', source/'ui/ui.js', source/'css/style.css',
                       source/'fonts/SmileySans-Oblique.ttf.woff2', source/'fonts/BarlowCondensed-BoldItalic.ttf']}

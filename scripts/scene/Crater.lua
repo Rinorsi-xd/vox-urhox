@@ -57,6 +57,12 @@ function M:Update(dt,camera)
     end
     self.effects:Update(dt,t,camera)
 end
-function M:Dispose() if self.effects then self.effects:Dispose() end;self.dynamics={};self.glows={} end
+function M:Dispose()
+    if self.disposed then return end;self.disposed=true
+    if self.effects then self.effects:Dispose();self.effects=nil end
+    for _,g in ipairs(self.glows) do g.material:Dispose() end
+    if self.skyMaterial then self.skyMaterial:Dispose();self.skyMaterial=nil end
+    self.dynamics={};self.glows={};self.sky=nil;self.scene=nil
+end
 function M.Release() cache:ReleaseAllResources(false) end
 return M

@@ -10,14 +10,19 @@ local Actuators=require "render.ActuatorView"
 local Legs=require "render.LegView"
 local Equipment=require "render.EquipmentEffects"
 local M={};M.__index=M
-function M.New(scene,bp,vehicle)
+function M.New(scene,bp,vehicle,checkpoint,retain)
     local self=setmetatable({},M)
     self.equipment=Equipment.New(scene)
-    self.view=View.New(scene,"DrivenCar");self.view:Rebuild(bp);self:Bind(bp,vehicle)
+    self.view=View.New(scene,"DrivenCar")
+    -- The loader can cancel while assembly yields; retain ownership first.
+    if retain then retain(self) end
+    self.view:Rebuild(bp,checkpoint and function(p) checkpoint(p*.9) end)
+    self:Bind(bp,vehicle)
+    if checkpoint then checkpoint(1) end
     return self
 end
 function M:Bind(bp,vehicle)
-    self.vehicle=vehicle;self.parts={};self.wheels={};self.tracks={}
+    self.vehicle=vehicle;self.parts={};self.wheels={};self.tracks={};self.wings={};self.time=0
     -- Damage retains surviving visual nodes. Rebind from authored coordinates,
     -- never from their last animated position, before applying saved rotor poses.
     for _,p in ipairs(bp:List()) do
@@ -38,6 +43,11 @@ function M:Bind(bp,vehicle)
     self.actuators=Actuators.New(self.view,bp,vehicle,self.actuators)
     self.rotors=require('render.RotorView').New(self.view,vehicle)
     self.legs=Legs.New(self.view,vehicle)
+    self.mechs=require('render.MechView').New(self.view,vehicle)
+    for _,wing in ipairs(vehicle.spec.wings or {}) do
+        local vis=self.view.visuals[wing.partId]
+        if vis and vis.rig.wing then self.wings[#self.wings+1]={vis=vis,spec=wing} end
+    end
     self.equipment:Bind(self.view,vehicle)
     self:ResetPose(false)
     self:Update(1,0)
@@ -54,6 +64,10 @@ end
 function M:Update(alpha,dt,context)
     local root=self.view.root
     root.position=self.previous.p:Lerp(self.current.p,alpha);root.rotation=self.previous.q:Slerp(self.current.q,alpha)
+    if self.lean then
+        root.position=root.position+root.rotation*Vector3(0,-self.lean.drop,0)
+        root.rotation=root.rotation*Quaternion(self.lean.pitch*180/math.pi,Vector3.RIGHT)
+    end
     self.rotors:Update(alpha)
     for _,w in ipairs(self.wheels) do
         local pose=self.vehicle:WheelPose(w.i);Rig.SetWheel(w.vis,w.up,pose.lift/Config.CELL,pose.steer,pose.spin)
@@ -61,7 +75,18 @@ function M:Update(alpha,dt,context)
     for _,t in ipairs(self.tracks) do Rig.SetTrack(t.vis,-self.vehicle:WheelTravel(t.i)/Config.CELL*t.sign) end
     self.actuators:Update(dt or 0)
     self.legs:Update(alpha,dt or 0)
+    self.mechs:Update(alpha,dt or 0)
+    self.time=self.time+(dt or 0)
+    for _,wing in ipairs(self.wings) do
+        local n=wing.spec.n[2];local lifting=n>0 and 1 or n<0 and -1 or 0
+        require('render.WingRig').Update(wing.vis,{st=self.vehicle.wingState,partId=wing.spec.partId,lifting=lifting},self.time,dt or 0)
+    end
     self.equipment:Update(dt or 0,context)
 end
-function M:Dispose() self.equipment:Dispose();self.view:Dispose() end
+function M:Dispose()
+    if self.disposed then return end;self.disposed=true
+    self.equipment:Dispose();self.view:Dispose()
+    self.vehicle=nil;self.parts={};self.wheels={};self.tracks={};self.wings={}
+    self.rotors=nil;self.legs=nil;self.mechs=nil;self.actuators=nil
+end
 return M

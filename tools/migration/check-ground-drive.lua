@@ -50,7 +50,7 @@ V.atFrame(55,function()
             addForce=function(force) applied[#applied+1]=force end,setAngvel=function(value) angular=value end}
         v.space={Raycast=function(_,origin,direction,span,excluded,skip,fixed,mask)
             ray={origin={x=origin[1],y=origin[2],z=origin[3]},direction={x=direction[1],y=direction[2],z=direction[3]}}
-            V.assert(mask==0x7fff and excluded==v.body and math.abs(span-(v.cgH+3.4))<1e-8,'stability support query contract '..i)
+            V.assert(mask==0x6fff and excluded==v.body and math.abs(span-(v.cgH+3.4))<1e-8,'stability support query contract '..i)
             if type(c.gap)=='number' then return {dist=c.gap+v.cgH,normal={c.normal.x,c.normal.y,c.normal.z}} end
         end}
         V.assert(Stability.Wants(v)==c.wanted,'source chassis capability gate '..i)

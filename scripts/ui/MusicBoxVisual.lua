@@ -9,9 +9,9 @@ function Frame:Render(vg)
     MD.Stroke(vg,5,5,w-10,h-10,{19,25,28,255})
     local header=r.header;MD.Texture(vg,'header',header[1],header[2],header[3],header[4],{1,3,w-11,3,w-1,13,w-1,header[2]+header[4],1,header[2]+header[4]});D.Rect(vg,1,header[2]+header[4]-1,w-2,1,{113,133,144,255})
     MD.Icon(vg,'music',23,3+(header[4]-31)/2,30,D.orange)
-    local brandY=3+(header[4]-51.5)/2
-    MD.Text(vg,'STAR FRONTIER / AUDIO ARCHIVE',65,brandY,9,{178,197,206,255},'vox-music-latin',nil,18)
-    MD.Text(vg,'音乐盒',65,brandY+18,26,nil,'vox-title',nil,32.5)
+    local brandY=3+(header[4]-45.1)/2
+    MD.Text(vg,'STAR FRONTIER / AUDIO ARCHIVE',65,brandY,9,{178,197,206,255},'vox-music-latin',nil,12.6)
+    MD.Text(vg,'音乐盒',65,brandY+12.6,26,nil,'vox-title',nil,32.5)
     MD.Text(vg,'VOL. 01',w-190,3+(header[4]-10)/2,10,{178,197,206,255},'vox-music-latin',nil,10)
     D.Rect(vg,w-140,3+(header[4]-10)/2,1,10,{130,150,160,255})
     MD.Text(vg,'13 TRACKS',w-128,3+(header[4]-10)/2,10,{178,197,206,255},'vox-music-latin',nil,10)
@@ -31,13 +31,14 @@ function Frame:Render(vg)
     end
     local heading=r.heading;local titleSize=l.compact and 20 or l.short and 22 or 26
     local groupSize=l.compact and 8 or 9;local engSize=l.compact and 8 or 10
-    local natural=18+3+titleSize*1.3+engSize*1.6
+    local groupHeight=groupSize*1.6
+    local natural=groupHeight+3+titleSize*1.3+engSize*1.6
     local hy=heading[2]+(heading[4]-natural)/2
-    MD.Text(vg,group.label..' / '..group.title,heading[1],hy,groupSize,accent,'vox-music-latin',nil,18)
-    MD.Text(vg,track.title,heading[1],hy+21,titleSize,nil,'vox-title',nil,titleSize*1.3)
-    MD.Text(vg,track.english,heading[1],hy+21+titleSize*1.3,engSize,{162,180,189,255},'vox-music-latin',nil,engSize*1.6)
+    MD.Text(vg,group.label..' / '..group.title,heading[1],hy,groupSize,accent,'vox-music-latin',nil,groupHeight)
+    MD.Text(vg,track.title,heading[1],hy+groupHeight+3,titleSize,nil,'vox-title',nil,titleSize*1.3)
+    MD.Text(vg,track.english,heading[1],hy+groupHeight+3+titleSize*1.3,engSize,{162,180,189,255},'vox-music-latin',nil,engSize*1.6)
     if not l.short then local desc=r.description;MD.Text(vg,track.description,desc[1],desc[2],10,{170,188,196,255}) end
-    local spectrum=r.spectrum;local signalW=D.Width(vg,'LIVE SIGNAL',8,'vox-music-latin');local binsWidth=spectrum[3]-signalW-10
+    local spectrum=r.spectrum;local signalW=D.Width(vg,'LIVE SIGNAL',8,'vox-body');local binsWidth=spectrum[3]-signalW-10
     -- Public SoundSource has no PCM/FFT tap. Preserve the source's idle signal,
     -- rather than displaying randomly animated bars unrelated to the music.
     local canvasDpr=math.min(graphics:GetDPR(),2)

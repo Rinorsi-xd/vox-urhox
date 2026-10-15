@@ -48,4 +48,9 @@ function Space:Step(dt)
         if owner and owner.type=='vehicle' and owner.ref then owner.ref:PostStep() end
     end
 end
+function Space:Dispose()
+    if self.disposed then return end;self.disposed=true
+    for _,entry in pairs(self.bodies) do entry.body.invalidate() end
+    self.bodies={};self.scene=nil;self.world=nil
+end
 return Space

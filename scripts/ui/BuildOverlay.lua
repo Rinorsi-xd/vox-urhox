@@ -57,7 +57,8 @@ function Overlay:Render(vg)
     end
     end
     local fly=s.buildCamera
-    if fly.mode=='fp' and not s.dialog and not s.hud.colorOpen then
+    local touch=s.hud.touchControls;local tap=fly.touch and touch and touch.prefs.build=='tap'
+    if fly.mode=='fp' and not tap and not s.dialog and not s.hud.colorOpen then
         -- H5 keeps its crosshair in CSS pixels, outside the reference-scaled UI.
         local unit=graphics:GetDPR()/require('urhox-libs/UI').GetScale()
         local x,y=w/2,h/2;local mode=Badge.Mode(s)

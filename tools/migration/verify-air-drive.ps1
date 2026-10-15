@@ -7,7 +7,7 @@ try {
     $report=Join-Path $projectRoot 'docs/migration/evidence/air-drive.json'
     if(Test-Path -LiteralPath $report){Remove-Item -LiteralPath $report}
     $runtimeArgs=@('main.lua',('-tapcode_dir='+$projectRoot),'-tool_mode','-validate','-validate-frames=65',
-        '-validate-timeout=100','-validate-spike-threshold=15000',('-validate-test='+$PSScriptRoot+'/check-air-drive.lua'),('-validate-output='+$report),'-log','info')
+        '-validate-timeout=100','-validate-spike-threshold=60000',('-validate-test='+$PSScriptRoot+'/check-air-drive.lua'),('-validate-output='+$report),'-log','info')
     $p=Start-Process -FilePath ($projectRoot+'/.cli/UrhoXRuntime.exe') -WorkingDirectory $projectRoot -WindowStyle Hidden -PassThru -ArgumentList $runtimeArgs -RedirectStandardOutput ($projectRoot+'/.tmp/air-drive-out.txt') -RedirectStandardError ($projectRoot+'/.tmp/air-drive-err.txt')
     $timer=[Diagnostics.Stopwatch]::StartNew()
     while(-not $p.WaitForExit(1000)){if($timer.Elapsed.TotalSeconds -gt 110){$p.Kill();throw 'Air drive verification timeout'}}

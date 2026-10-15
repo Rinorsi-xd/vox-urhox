@@ -2,11 +2,19 @@
 local M={}
 local function Clamp(v) return math.max(0,math.min(1,v or 0)) end
 M.Clamp=Clamp
-M.zoom={laser=1.6,mg=1.3,sniper=4,missile=1.5}
+M.zoom={laser=2.2,mg=1.4,sniper=5,missile=2.8}
 function M.ScopeFov(base,kind) return 2*math.atan(math.tan(base*math.pi/360)/(M.zoom[kind] or 2))*180/math.pi end
-function M.Layout(w,h)
-    local k=math.min(w/1920,h/1080)
-    return {k=k,cx=w/2,cy=h/2,radius=270*k,inner=254*k,width=w,height=h}
+function M.Compact()
+    local dpr=math.max(1,graphics:GetDPR())
+    return require('controls.TouchMode').Enabled() and math.min(graphics:GetWidth()/dpr,graphics:GetHeight()/dpr)<=600
+end
+function M.Layout(w,h,compact)
+    if compact==nil then compact=M.Compact() end
+    -- The compact formula is homogeneous, so UI design pixels and CSS pixels
+    -- produce the same rendered size after the UI scale is applied.
+    local k=compact and math.min(w/(600*16/9),h/600,w/1300)*.62 or math.min(w/1920,h/1080)
+    local cssWidth=graphics:GetWidth()/math.max(1,graphics:GetDPR())
+    return {k=k,cx=w/2,cy=h/2,radius=270*k,inner=254*k,width=w,height=h,pixel=w/math.max(1,cssWidth)}
 end
 function M.TargetPlate(l,f)
     local k=l.k;local x=f.x+f.half+22*k
@@ -51,19 +59,20 @@ function M.Fire(wpn,firing,mark,dist,enemy,lock)
     end
     return State(ready<1 and '冷却' or '就绪',ready<1 and 'busy' or 'ok',ready,far)
 end
-function M.Chips(layout,groups,current,story)
-    local result={};local k=layout.k;local y=layout.cy+(story and -70 or 84)*k
+function M.Chips(layout,groups,current)
+    local result={};local k=layout.k;local y=layout.cy+84*k
     for i,g in ipairs(groups) do
-        local selected=i==current;local w,h=story and 220 or selected and 236 or 150,story and 54 or selected and 56 or 38
-        result[i]={x=layout.cx+layout.radius+(story and 56 or 34)*k+(i-1)%2*(story and 20 or 18)*k,y=y,w=w*k,h=h*k,selected=selected,special=not story and not selected and g.kind=='missile'}
-        y=y+(story and 70 or h+(selected and 14 or 6))*k
+        local selected=i==current;local w,h=selected and 236 or 150,selected and 56 or 38
+        result[i]={x=layout.cx+layout.radius+34*k+(i-1)%2*18*k,y=y,w=w*k,h=h*k,selected=selected,special=not selected and g.kind=='missile'}
+        y=y+(h+(selected and 14 or 6))*k
     end
     return result
 end
 function M.Update(widget,dt)
     local s=widget.session;local w=s.weapons;local me=s.combat and s.combat.player
     widget.clock=(widget.clock or 0)+dt
-    widget.hp=me and me:Health() or 1;widget.integrity=me and me:Integrity() or 1
+    widget.waypoint=require('ui.ReticleNavigation').Read(s)
+    widget.hp=me and me:Life() or 1;widget.integrity=me and me:Integrity() or 1
     if widget.hp<(widget.lastHp or 1)-.002 then widget.hurtUntil=widget.clock+.12 end
     widget.lastHp=widget.hp
     widget.structure=me and me.structure and me.structMax>0 and Clamp(me.struct/me.structMax) or widget.integrity
@@ -72,11 +81,14 @@ function M.Update(widget,dt)
     if feedback and feedback.repairFull and feedback.repairAge<.6 then widget.doneUntil=widget.clock+.01 end
     if widget.wasRepair and not widget.repair and widget.hp>=.995 then widget.doneUntil=widget.clock+.45 end
     widget.wasRepair=widget.repair
+    -- The hidden death HUD must not read the retired vehicle before respawn binds it.
+    if me and not me.alive then widget.lock=nil;widget.fire=nil;return end
     local lock=w:LockInfo();widget.lock=lock
     local aim=s.aimPoint;local p=s.vehicle.body.translation()
-    local dist=aim and math.sqrt((aim[1]+p.x)^2+(aim[2]-p.y)^2+(aim[3]-p.z)^2) or 0
+    local dist=aim and math.sqrt((aim[1]-p.x)^2+(aim[2]-p.y)^2+(aim[3]-p.z)^2) or 0
     local owner=s.aimHit and s.aimHit.owner
-    widget.fire=M.Fire(w,s.firing,widget.aimState,dist,owner and owner.ref and owner.ref.alive or false,lock)
+    local ref=s.aimRef or owner and owner.ref
+    widget.fire=M.Fire(w,s.firing,widget.aimState,dist,ref and ref.alive or false,lock)
     if widget.fire and widget.word~=widget.fire.word then widget.word=widget.fire.word;widget.wordAt=widget.clock end
     widget.chipStates=widget.chipStates or {}
     for _,g in ipairs(w.groups) do

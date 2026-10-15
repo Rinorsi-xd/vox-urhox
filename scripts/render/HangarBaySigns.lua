@@ -1,7 +1,7 @@
 -- shared/scene/hangarTextures.js: same seeded paint wear and design coordinates.
 local C=require 'render.HangarCanvas'
 local Number=require 'render.HangarNumber'
-local M={}
+local M={NAME='CONSTRUCT ERA 轨道改装机库'}
 local function Wear(vg,w,h,seed,count)
     local state=seed
     local function Rand() state=(state*1664525+1013904223)&0xffffffff;return state/4294967296 end
@@ -16,7 +16,8 @@ end
 function M.Bay(vg,info)
     local paint={232,236,240,235}
     Number.Draw(vg,info.no,1024,850,900,paint)
-    C.Text(vg,'整备位',250,200,130,paint);C.Text(vg,'VOX 轨道改装机库',1798,985,100,paint,false,NVG_ALIGN_RIGHT)
+    C.Text(vg,'整备位',250,200,130,paint)
+    C.Text(vg,M.NAME,1798,985,C.FitFont(vg,M.NAME,1548,100),paint,false,NVG_ALIGN_RIGHT)
     for _,x in ipairs({150,1898}) do
         C.Path(vg,{x-90,520,x,380,x+90,520});C.Fill(vg,paint)
         C.Rect(vg,x-40,520,80,240,paint)
@@ -29,7 +30,8 @@ function M.Mark(vg,info)
     Number.Draw(vg,info.no,540,1056,1080,paint)
     C.Path(vg,{1096,120,1128,120,1064,1006,1032,1006});C.Fill(vg,{232,97,26,255})
     C.Text(vg,'整备位',1170,400,230,paint);C.Text(vg,info.tier.name,1180,540,96,dim)
-    C.Rect(vg,1180,590,700,8,dim);C.Text(vg,'VOX 轨道改装机库',1180,700,76,dim)
+    C.Rect(vg,1180,590,700,8,dim)
+    C.Text(vg,M.NAME,1180,700,C.FitFont(vg,M.NAME,808,76),dim)
     C.Rect(vg,1140,876,908,150,{201,206,213,255})
     C.Text(vg,C.Fit(vg,info.name,798,76),1190,978,76,{23,25,29,255})
     Wear(vg,2048,1126,17,1800)

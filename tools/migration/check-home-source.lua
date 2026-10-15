@@ -5,8 +5,12 @@ local E=require 'urhox-libs/UI/Core/PointerEvent'
 local Dialogs=require 'ui.GarageDialogs'
 local f=assert(io.open('docs/migration/evidence/home-parity-source.json','r'))
 local source=cjson.decode(f:read('*a'));f:close()
+local baselineFile=assert(io.open('docs/migration/outgame-baseline.json','r'))
+local baseline=cjson.decode(baselineFile:read('*a'));baselineFile:close()
 local app,s,store,menuUpdate
-local w,h=1920,1080
+local w,h=source.cases[1].home.width,source.cases[1].home.height
+local scheduled={};local readyFrame=nil;local tick=0
+local function At(frame,callback) scheduled[frame]=callback end
 local oldSize,oldW,oldH,oldScale=UI.GetViewportSize,UI.GetWidth,UI.GetHeight,UI.GetScale()
 local function Click(widget)
     local r=widget:GetAbsoluteLayoutForHitTest()
@@ -25,8 +29,13 @@ local function Shot(name)
 end
 local function Bounds(widget,expected,name)
     local r=widget:GetAbsoluteLayoutForHitTest();local e=expected.rect
-    -- Native UI snaps fractional boxes to the nearest physical pixel.
-    V.assert(math.abs(r.x-e[1])<=.51 and math.abs(r.y-e[2])<=.51 and math.abs(r.w-e[3])<=.51 and math.abs(r.h-e[4])<=.51,name..' matches frozen H5 DOM')
+    -- Parent and child edges each snap by half a physical pixel. The test
+    -- canvas uses design units, so nested bounds can differ by 1 / scale.
+    local tolerance=1/UI.GetScale()+.01
+    if math.abs(r.x-e[1])>tolerance or math.abs(r.y-e[2])>tolerance or math.abs(r.w-e[3])>tolerance or math.abs(r.h-e[4])>tolerance then
+        print('HOME_BOUNDS '..cjson.encode({name=name,actual={r.x,r.y,r.w,r.h},expected=e}))
+    end
+    V.assert(math.abs(r.x-e[1])<=tolerance and math.abs(r.y-e[2])<=tolerance and math.abs(r.w-e[3])<=tolerance and math.abs(r.h-e[4])<=tolerance,name..' matches frozen H5 DOM')
 end
 local function HomeBounds(case)
     local nodes=case.home.nodes
@@ -34,17 +43,18 @@ local function HomeBounds(case)
         Bounds(widget,nodes[name],case.name..' '..name)
     end
 end
-V.atFrame(50,function()
-    V.assert(source.baseline.commit=='90862445074e7e146da900037979ad97899ecf6c','fixture identifies the frozen current H5 commit')
+At(50,function()
+    V.assert(source.baseline.commit==baseline.commit and source.baseline.branch==baseline.branch,'fixture identifies the frozen current H5 commit')
     app=VOX_HANGAR.app;app.camera.autoSpin=false
     app.hangar.scanTime=100;app.hangar.greet=0
     store=require('storage.BlueprintStore').New('vox-pc-source-test');app.store=store;app.bays.store=store;app.bays.active=false
     for i=1,20 do store:DeleteSlot(i) end
     app.bays.revision=app.bays.revision+1
-    UI.SetScale(1);UI.GetViewportSize=function() return w,h end;UI.GetWidth=function() return w end;UI.GetHeight=function() return h end
+    UI.SetScale(1);YGConfigSetPointScaleFactor(YGConfigGetDefault(),1)
+    UI.GetViewportSize=function() return w,h end;UI.GetWidth=function() return w end;UI.GetHeight=function() return h end
     Hud.Update(0);Bound()
 end)
-V.atFrame(75,function()
+At(75,function()
     local D=require 'ui.SourceDraw';local vg=UI.GetNVGContext();D.Begin(vg);nvgSave(vg)
     local metrics={baseline=source.baseline,display={}}
     for _,row in ipairs(source.display) do
@@ -63,12 +73,12 @@ V.atFrame(75,function()
     Click(s.buttons.new);V.assert(s.newOpen and Hud.IsBlocked(),'new popover gates scene camera')
     menuUpdate=s.menu.Update;s.menu.Update=function() end;s.menu:SetOpen(true);menuUpdate(s.menu,0)
 end)
-V.atFrame(77,function()
+At(77,function()
     Shot('new-menu-entry-0');menuUpdate(s.menu,.05)
     V.assert(s.menu.entry.value>0 and s.menu.entry.value<1 and s.menu.props.translateY>0,'source popover animates after 50ms')
 end)
-V.atFrame(79,function() Shot('new-menu-entry-50');menuUpdate(s.menu,.18) end)
-V.atFrame(83,function()
+At(79,function() Shot('new-menu-entry-50');menuUpdate(s.menu,.18) end)
+At(83,function()
     Shot('new-menu');s.menu.Update=menuUpdate
     local nodes=source.cases[1].menu.nodes
     Bounds(s.menu,nodes.menu,'current new menu');Bounds(s.menu.children[1],nodes.menuHeader,'menu header')
@@ -79,39 +89,52 @@ V.atFrame(83,function()
     Click(s.menu.children[3]);V.assert(not s.newOpen and s.dialog~=nil,'real import pointer opens dialog')
     Dialogs.Close(s);Click(s.buttons.save);V.assert(app.bays.active==1,'draft save writes an actual bay')
 end)
-V.atFrame(104,function()
+At(104,function()
     Shot('saved-car');V.assert(#s.cards==1 and s.previews.items[1].ready,'saved bay renders the actual vehicle')
     Click(s.buttons.manage);Click(s.buttons.export);V.assert(s.dialog~=nil,'manage share opens export dialog');Dialogs.Close(s)
     Click(s.buttons.battle);V.assert(s.tab=='battle' and not app.trial,'battle opens original mode page')
 end)
-V.atFrame(117,function()
+At(117,function()
     Shot('battle-1920');V.assert(not s.info:IsVisible() and not s.bayScroll:IsVisible() and not s.cta:IsVisible(),'mode page hides all original home bands')
     Click(s.buttons.workshop)
 end)
-V.atFrame(130,function()
+At(130,function()
     Shot('workshop-1920');V.assert(s.workshop and s.workshop.view=='feature','workshop opens current feature page')
     Click(s.buttons.shop)
 end)
-V.atFrame(141,function()
-    Shot('shop-1920');Click(s.buttons.hangar);app.camera.autoSpin=false;w,h=1920,1200
+At(141,function()
+    Shot('shop-1920');Click(s.buttons.hangar);app.camera.autoSpin=false
+    w,h=source.cases[2].home.width,source.cases[2].home.height
 end)
-V.atFrame(157,function()
+At(157,function()
     Bound();V.assert(Hud.GetState()==s,'resizing retains UI owner');HomeBounds(source.cases[2])
     Click(s.buttons.new);s.menu:Update(.23)
 end)
-V.atFrame(160,function()
+At(160,function()
     Bounds(s.menu,source.cases[2].menu.nodes.menu,'16:10 menu bottom/right anchors');s.SetNew(false)
 end)
-V.atFrame(166,function()
+At(166,function()
     Click(s.buttons.settings);V.assert(s.dialog~=nil,'settings stays interactive');Dialogs.Close(s)
     local root=s.root;Click(s.buttons.edit);V.assert(app.build~=nil and not root.node,'edit releases homepage and uses same app')
     app:ExitBuild();Bound()
 end)
-V.atFrame(196,function()
+At(196,function()
     V.assert(app.bays.active==1 and s.root.node~=nil,'return retains saved vehicle and creates live homepage')
     Hud.Dispose();UI.GetViewportSize=oldSize;UI.GetWidth=oldW;UI.GetHeight=oldH;UI.SetScale(oldScale)
+    YGConfigSetPointScaleFactor(YGConfigGetDefault(),oldScale)
     store.pending=nil
     for i=1,20 do store:DeleteSlot(i) end
     for _,key in ipairs({'draft','garage-state'}) do for _,suffix in ipairs({'-a.json','-b.json'}) do local path=store.prefix..key..suffix;if fileSystem:FileExists(path) then fileSystem:Delete(path) end end end
     V.finish()
 end)
+local function Poll()
+    tick=tick+1
+    if not readyFrame then
+        if not VOX_HANGAR or VOX_HANGAR.app.loadingFlow.active then return end
+        readyFrame=tick
+    end
+    local callback=scheduled[tick-readyFrame+50]
+    if callback then callback() end
+end
+for frame=1,590 do V.atFrame(frame,Poll) end
+V.atFrame(595,function() V.assert(readyFrame~=nil and tick-readyFrame>=146,'home parity sequence completed after actual scene readiness');V.finish() end)

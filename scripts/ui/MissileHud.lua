@@ -15,7 +15,7 @@ local function Box(vg,x,y,w,h,color,width)
 end
 function M:Render(vg)
     local s=self.session
-    if not s.pointer.captured or s.battle and not s.battle.player.alive then return end
+    if not s.pointer.captured or s.dialog or s.combat and not s.combat.player.alive then return end
     local info=s.weapons:LockInfo();if not info then return end
     D.Begin(vg);local r=self:GetAbsoluteLayout();local cx,cy=r.x+r.w/2,r.y+r.h/2
     local scale=math.min(1,r.h/720);local camera=s.camera:GetCamera()
@@ -30,18 +30,9 @@ function M:Render(vg)
     if not cool and info.progress==0 then
         local y=cy-box+(s.world.time/1.4%1)*2*box;Line(vg,cx-box+10*scale,y,cx+box-10*scale,y,{242,246,248,64})
     end
-    local text=info.phase=='raise' and '抬升中' or info.phase=='open' and '开闸' or info.firing and '齐射中'
-        or info.phase=='reload' and string.format('充能 %d%%',math.floor(info.reload*100)) or info.phase=='close' and '闸门关闭'
-        or info.locked and not info.energyOk and ('能量不足 · 需要 '..math.ceil(info.cost))
-        or info.locked and 'LOCK ON · 可以发射' or info.progress>0 and string.format('LOCKING %d%%',math.floor(info.progress*100+.5)) or 'SEEK · 目标进框 2 秒锁定'
     local font=math.max(11,13*scale)
-    if s.story then
-        D.Text(vg,'MSL · SEEKER',cx-box,cy-box-22*scale,math.max(10,12*scale),color,'vox-code')
-        D.Text(vg,text,cx,cy+box+5*scale,font,color,'vox-body',NVG_ALIGN_CENTER)
-    end
     local fill=info.phase=='reload' and info.reload or info.firing and 0 or info.locked and 1 or info.progress
     D.Rect(vg,cx-box,cy+box+26*scale,box*2,3*scale,{242,246,248,30});D.Rect(vg,cx-box,cy+box+26*scale,box*2*fill,3*scale,color)
-    if s.story then D.Text(vg,string.format('齐射 %d/%d 枚',info.count,info.tubes),cx,cy+box+33*scale,font,{242,246,248,176},'vox-body',NVG_ALIGN_CENTER) end
     local target=info.ref
     if target and target.pos and not self.overlay.focus then
         local x,y=self.overlay:Project(target.pos)

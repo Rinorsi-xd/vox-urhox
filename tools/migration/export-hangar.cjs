@@ -4,6 +4,7 @@ const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'C:/Users/XD/.cach
 const source = path.resolve(process.argv[2] || 'D:/Rino_Project/Vox');
 const target = path.resolve(__dirname, '../..');
 const panelsOnly=process.argv.includes('--panels-only');
+const brandOnly=process.argv.includes('--brand-only');
 // Staging protects the authored scene and material edits from reimport.
 const staging = path.join(target, '.tmp/hangar-import');
 const out = path.join(staging, 'Hangar');
@@ -33,7 +34,7 @@ function mesh(g) {
   const ib=Buffer.alloc(indices.length*4);
   for(let i=0;i<indices.length;i+=3) [indices[i],indices[i+2],indices[i+1]].forEach((v,k)=>ib.writeUInt32LE(v,(i+k)*4));
   chunks.push(ib);u(1,0,1);f(0);u(0,0,0,0,indices.length);u(0,0);f(...lo,...hi);f(...lo.map((v,i)=>(v+hi[i])/2));
-  const name='mesh-'+String(++meshCount).padStart(3,'0')+'.mdl';
+  const name='mesh-'+String(++meshCount).padStart(3,'0')+'.bin';
   fs.writeFileSync(path.join(out,name),Buffer.concat(chunks));vertices+=n;triangles+=indices.length/3;
   return 'Hangar/'+name;
 }
@@ -45,6 +46,10 @@ function replaceGeos(v) {
 }
 (async()=>{
   const server=http.createServer((req,res)=>{
+    if(brandOnly&&req.url==='/_hangar-brand.html'){
+      res.setHeader('Content-Type','text/html');
+      res.end('<!doctype html><style>@font-face{font-family:VoxNum;src:url(/shared/fonts/BarlowCondensed-BoldItalic.woff2)}@font-face{font-family:VoxTitle;src:url(/shared/fonts/SmileySans-Oblique.ttf.woff2)}</style>');return;
+    }
     const file=path.resolve(source,'.'+decodeURIComponent(new URL(req.url,'http://local').pathname));
     if(!file.startsWith(source+path.sep)||!fs.existsSync(file)||fs.statSync(file).isDirectory()) {res.writeHead(404).end();return;}
     const mime={'.js':'text/javascript','.css':'text/css','.html':'text/html','.ttf':'font/ttf','.woff2':'font/woff2'};
@@ -56,6 +61,25 @@ function replaceGeos(v) {
     const page=await browser.newPage({viewport:{width:1600,height:900}});
     page.on('pageerror',e=>console.error('PAGE',e.message));
     const base='http://127.0.0.1:'+server.address().port;
+    if(brandOnly){
+      await page.goto(base+'/_hangar-brand.html');
+      const native=JSON.parse(fs.readFileSync(path.join(__dirname,'native-panels.json'),'utf8'));
+      const textures=await page.evaluate(async native=>{
+        await Promise.all([document.fonts.load('64px VoxNum','CONSTRUCT ERA 07'),document.fonts.load('64px VoxTitle','整备位构装纪元出发区轨道改装机库')]);
+        if(!document.fonts.check('64px VoxNum')||!document.fonts.check('64px VoxTitle'))throw new Error('Source hangar display fonts failed to load');
+        const H=await import('/shared/scene/hangarLayout.js');
+        const ht=await import('/shared/scene/hangarTextures.js');
+        const layout=H.buildHangarLayout();const result={};
+        for(const key of ['bay','mark','signBack','signDoor'])result[key]=layout.tex[key].canvas.toDataURL('image/png');
+        const info={name:native.name,no:'--',tier:native.tiers.find(t=>t.id===3)};
+        for(const [key,make,draw] of [['mark',ht.wallMark,ht.drawWallMark],['bay',ht.bayDecal,ht.drawBayDecal]]){
+          const canvas=make().canvas;draw(canvas,info);result[key+'-t3']=canvas.toDataURL('image/png');
+        }
+        return result;
+      },native);
+      for(const [key,data] of Object.entries(textures))fs.writeFileSync(path.join(target,'assets/Hangar',key+'.png'),Buffer.from(data.split(',')[1],'base64'));
+      console.log(JSON.stringify({source,brandOnly:true,textures:Object.keys(textures)}));return;
+    }
     await page.goto(base+'/three/index.html');
     await page.waitForFunction(()=>window.__vox,{timeout:180000});
     const native=JSON.parse(fs.readFileSync(path.join(__dirname,'native-panels.json'),'utf8'));

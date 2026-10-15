@@ -5,9 +5,19 @@ import path from 'node:path';
 import {pathToFileURL,fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 import {deflateRawSync,constants} from 'node:zlib';
-const source='D:/Rino_Project/Vox',root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
-const mod=p=>import(pathToFileURL(path.join(source,p)).href);
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
+const baseline=JSON.parse(fs.readFileSync(path.join(root,'docs/migration/outgame-baseline.json')));
+const source=path.resolve(baseline.snapshot);
+const reads=new Map();
+function readSource(file){
+ const bytes=fs.readFileSync(path.join(source,file));
+ const sha256=createHash('sha256').update(bytes).digest('hex');
+ if(baseline.files[file]?.sha256!==sha256)throw Error('Frozen source changed: '+file);
+ reads.set(file,{path:file,sha256});return bytes;
+}
+const mod=p=>{readSource(p);return import(pathToFileURL(path.join(source,p)).href);};
 globalThis.window={};
+globalThis.location={search:'?rawModels'};
 const {Editor}=await mod('shared/build/editor.js');
 const {Blueprint}=await mod('shared/build/blueprint.js');
 const {PARTS}=await mod('shared/parts/defs.js');
@@ -17,11 +27,13 @@ const {raycastGrid}=await mod('shared/build/raycast.js');
 const {paintField}=await mod('shared/parts/paint.js');
 const {sfx}=await mod('shared/ui/uiSound.js');sfx.play=()=>{};
 globalThis.fetch=async file=>{
- const target=path.resolve(file instanceof URL || String(file).startsWith('file:')?fileURLToPath(file):file);if(!target.replaceAll('\\','/').startsWith(source+'/'))throw Error('Non-source fetch');
- const bytes=fs.readFileSync(target);return {ok:true,arrayBuffer:async()=>bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength)};
+ const target=path.resolve(file instanceof URL || String(file).startsWith('file:')?fileURLToPath(file):file);
+ const relative=path.relative(source,target);if(relative==='..'||relative.startsWith('..'+path.sep)||path.isAbsolute(relative))throw Error('Non-source fetch');
+ const bytes=readSource(relative.replaceAll('\\','/'));return {ok:true,arrayBuffer:async()=>bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength)};
 };
-for(const [name,folder] of [['Weapon','weapons'],['Wheel','wheels'],['Track','tracks'],['Thruster','thrusters'],['Hover','hovers'],['Leg','legs']]){
- const api=await mod(`shared/parts/${name.toLowerCase()}Models.js`);await api[`load${name}Models`](pathToFileURL(source+`/shared/assets/${folder}/`).href);
+for(const [name,folder] of [['Weapon','weapons'],['Wheel','wheels'],['Track','tracks'],['Thruster','thrusters'],['Hover','hovers'],['Leg','legs'],['Wing','wings'],['Mech','mechlegs'],['Rotor','rotor'],['Plate','plates'],['Scorpion','scorpion'],['DecorVehicle','']]){
+ const module=name==='DecorVehicle'?'decorVehicle':name.toLowerCase();
+ const api=await mod(`shared/parts/${module}Models.js`);await api[`load${name}Models`](pathToFileURL(source+`/shared/assets/${folder?folder+'/':''}`).href);
 }
 const nilView=new Proxy({},{get:()=>()=>{}});
 function editor(bp){
@@ -83,7 +95,7 @@ record('paint',{id:2,color:0xffcc22,channel:'accent'}); // Single-color parts re
 for(let i=0;i<310;i++)record('paint',{id:2,color:i%2?0xffcc22:0xd0182a,channel:'shell'});
 record('undo');record('paint',{id:2,color:0x2f8cff,channel:'accent'});record('redo');
 const paths=['shared/build/editor.js','shared/build/blueprint.js','shared/build/raycast.js','shared/ui/inventory.js','shared/parts/defs.js','shared/parts/hoverMount.js','shared/parts/legMount.js'];
-const provenance=paths.map(p=>({path:p,sha256:createHash('sha256').update(fs.readFileSync(path.join(source,p))).digest('hex')}));
+for(const file of paths)readSource(file);
 const codes=[];const storage=await mod('shared/storage.js');
 for(const count of [0,1,7,142,1024]){
  const data={v:1,sizeVersion:1,name:'赤焰 GT · 蓝图验证',parts:Array.from({length:count},(_,i)=>['cube',i%30,4,Math.floor(i/30),R.IDENTITY,(i*378013)%0xffffff,i%2?0xcbd1d7:null])};
@@ -96,5 +108,5 @@ for(const count of [0,1,7,142,1024]){
 }
 const {rules}=await import('./source-blueprint-rules.mjs');
 const {inventory}=await import('./source-inventory-fixtures.mjs');
-fs.writeFileSync(path.join(root,'tools/migration/source-build-fixtures.json'),JSON.stringify({provenance,placements,mirrors,rotations,paint,rays,codes,rules,inventory,commands:{initial,steps}},(k,v)=>typeof v==='number'&&!Number.isFinite(v)?String(v):v));
+fs.writeFileSync(path.join(root,'tools/migration/source-build-fixtures.json'),JSON.stringify({baseline:{branch:baseline.branch,commit:baseline.commit},provenance:[...reads.values()],placements,mirrors,rotations,paint,rays,codes,rules,inventory,commands:{initial,steps}},(k,v)=>typeof v==='number'&&!Number.isFinite(v)?String(v):v));
 console.log(JSON.stringify({placements:placements.length,mirrors:mirrors.length,rotations:rotations.length,rays:rays.reduce((n,r)=>n+r.samples.length,0),commands:steps.length}));

@@ -1,7 +1,8 @@
 local Sync=require 'storage.CloudSync'
+local Numbers=require 'storage.RecordNumbers'
 local M={sync=false,web=false,notice=false,confirmWanted=false,warned=false}
 local namespaces={'vox-garage','vox-salvage'}
-local keys={'draft','garage-state','build-settings','music','graphics','match-profile','story-progress','tutorial-v1','stash'}
+local keys={'draft','garage-state','build-settings','touch-settings','music','vox.audio.v2','graphics','match-profile','story-progress','vox.story.voiced','tutorial-v1','stash','intro-profile','vox.endless.run.v1','vox.endless.best.v1'}
 for i=1,20 do keys[#keys+1]='slot'..i end
 local function Remote(namespace,key) return 'vox-save-v1-'..namespace..'-'..key end
 local function Identity()
@@ -10,25 +11,28 @@ local function Identity()
     return false
 end
 local function Decode(text,key)
-    if #text>4*1024*1024 then return nil end
+    if type(text)~='string' or #text>4*1024*1024 then return nil end
     local r=cjson.decode(text)
-    if type(r)~='table' or r.v~=1 or type(r.generation)~='number' or r.generation<1 or r.generation%1~=0 then return nil end
-    if r.deleted~=nil and r.deleted~=true then return nil end
-    if not r.deleted and type(r.data)~='table' then return nil end
-    if r.time~=nil and (type(r.time)~='number' or r.time<0 or r.time~=r.time) then return nil end
-    if r.capture~=nil and type(r.capture)~='table' then return nil end
+    if not Numbers.Metadata(r) then return nil end
+    if not r.deleted and type(r.data)~='table' and not (type(r.data)=='boolean' and key=='vox-save-v1-vox-garage-vox.story.voiced') then return nil end
     if not r.deleted then
         local name=key:match('^vox%-save%-v1%-vox%-garage%-(.+)$') or key:match('^vox%-save%-v1%-vox%-salvage%-(.+)$')
         local data=r.data;local valid=false
         if name=='draft' or name and name:match('^slot%d+$') then valid=require('storage.BlueprintCode').Validate(data)
         elseif name=='garage-state' then valid=data.v==1 and (data.active==false or type(data.active)=='number' and data.active%1==0 and data.active>=1 and data.active<=20)
         elseif name=='build-settings' then valid=require('construction.Inventory').ValidSettings(data)
+        elseif name=='touch-settings' then valid=require('controls.TouchPreferences').Valid(data)
         elseif name=='music' then valid=require('audio.MusicPlayer').Valid(data)
+        elseif name=='vox.audio.v2' then valid=require('audio.AudioLevels').Valid(data)
         elseif name=='graphics' then valid=require('render.GraphicsSettings').ValidSaved(data)
         elseif name=='match-profile' then valid=require('combat.Matchmaker').Valid(data)
         elseif name=='tutorial-v1' then valid=require('story.TutorialRules').ValidRecord(data)
+        elseif name=='intro-profile' then valid=require('app.OpeningHost').ValidProfile(data)
         elseif name=='stash' then valid=require('app.SalvageLobby').Valid(data)
-        elseif name=='story-progress' then valid=true end
+        elseif name=='story-progress' then valid=true
+        elseif name=='vox.story.voiced' then valid=type(data)=='boolean'
+        elseif name=='vox.endless.run.v1' then valid=require('endless.Records').Run(data)
+        elseif name=='vox.endless.best.v1' then valid=require('endless.Records').Best(data) end
         if not valid then return nil end
     end
     return r

@@ -1,6 +1,6 @@
 {
-  "source": "D:\\Rino_Project\\maker\\Vox\\VoxelCraft\\.tmp\\outgame-source-2026-10-12T21-18-23-463Z",
-  "exportedAt": "2026-10-12T21:21:11.992Z",
+  "source": "D:\\Rino_Project\\maker\\Vox\\VoxelCraft\\.tmp\\outgame-source-2026-10-15T12-35-57-243Z",
+  "exportedAt": "2026-10-15T12:40:36.327Z",
   "converter": "offline-node24",
   "parts": [
     {
@@ -1248,6 +1248,86 @@
       "path": "Parts/Rigs/tmPack.json"
     },
     {
+      "id": "mtBack",
+      "path": "Parts/Rigs/mtBack.json"
+    },
+    {
+      "id": "mtHead",
+      "path": "Parts/Rigs/mtHead.json"
+    },
+    {
+      "id": "mtWingL",
+      "path": "Parts/Rigs/mtWingL.json"
+    },
+    {
+      "id": "mtWingR",
+      "path": "Parts/Rigs/mtWingR.json"
+    },
+    {
+      "id": "mtTail1",
+      "path": "Parts/Rigs/mtTail1.json"
+    },
+    {
+      "id": "mtTail2",
+      "path": "Parts/Rigs/mtTail2.json"
+    },
+    {
+      "id": "mtTail3",
+      "path": "Parts/Rigs/mtTail3.json"
+    },
+    {
+      "id": "rtBack",
+      "path": "Parts/Rigs/rtBack.json"
+    },
+    {
+      "id": "rtHead",
+      "path": "Parts/Rigs/rtHead.json"
+    },
+    {
+      "id": "rtFlankL",
+      "path": "Parts/Rigs/rtFlankL.json"
+    },
+    {
+      "id": "rtFlankR",
+      "path": "Parts/Rigs/rtFlankR.json"
+    },
+    {
+      "id": "rtTail1",
+      "path": "Parts/Rigs/rtTail1.json"
+    },
+    {
+      "id": "rtTail2",
+      "path": "Parts/Rigs/rtTail2.json"
+    },
+    {
+      "id": "rtTail3",
+      "path": "Parts/Rigs/rtTail3.json"
+    },
+    {
+      "id": "roHead",
+      "path": "Parts/Rigs/roHead.json"
+    },
+    {
+      "id": "roTail",
+      "path": "Parts/Rigs/roTail.json"
+    },
+    {
+      "id": "roElytraL",
+      "path": "Parts/Rigs/roElytraL.json"
+    },
+    {
+      "id": "roElytraR",
+      "path": "Parts/Rigs/roElytraR.json"
+    },
+    {
+      "id": "roSideL",
+      "path": "Parts/Rigs/roSideL.json"
+    },
+    {
+      "id": "roSideR",
+      "path": "Parts/Rigs/roSideR.json"
+    },
+    {
       "id": "hover1Side",
       "path": "Parts/Rigs/hover1Side.json"
     },
@@ -1269,14 +1349,14 @@
     }
   ],
   "counts": {
-    "models": 579,
-    "vertices": 1501136,
-    "triangles": 1201402,
-    "bytes": 55432424
+    "models": 599,
+    "vertices": 1578068,
+    "triangles": 1233778,
+    "bytes": 58095584
   },
   "driveGeometry": {
     "path": "Drive/Geometry.json",
-    "sha256": "625f304e4217967327b159310062e2f9e2a77cd071ad04a98be5377a82d10358"
+    "sha256": "5fc992c788b5536b4e79939cc3904c2462d86f26a30f55397f175fa6e5d6ab8f"
   },
   "models": [
     "Parts/Models/602ee99cf833b05cf66dd499.bin",
@@ -1383,19 +1463,19 @@
     "Parts/Models/cce67a95b36c949f3943044d.bin",
     "Parts/Models/7dce57ff72d91d2289777dcf.bin",
     "Parts/Models/3f5dc4aa7bbcc65e38e193d4.bin",
-    "Parts/Models/822572e5358637544d5a733c.bin",
-    "Parts/Models/e1406e4553fbaff4bad5cc1a.bin",
-    "Parts/Models/3897bedc903c615b1fe47327.bin",
-    "Parts/Models/4371a0d29290d8f7caa95c79.bin",
-    "Parts/Models/6d8e41dacc9579fce4483f12.bin",
-    "Parts/Models/f84372c17c72c6591bb1234a.bin",
-    "Parts/Models/2db92b461f83fef261be2e10.bin",
-    "Parts/Models/9d2ca89bb10f4faf62fcf69b.bin",
-    "Parts/Models/16c815772d1be2d1131eb21f.bin",
-    "Parts/Models/e272913fee7a8159338bea1d.bin",
-    "Parts/Models/eb8b3a84c26fdcf55fe46467.bin",
-    "Parts/Models/81a37b1826988c92c8a3b906.bin",
-    "Parts/Models/f7f9305d79b2105e441ac018.bin",
+    "Parts/Models/e94c9596414b8c0cd6303ce1.bin",
+    "Parts/Models/172d618dacfc00f5747c2c20.bin",
+    "Parts/Models/0ec155b7edfa489d24fa3a5c.bin",
+    "Parts/Models/a4cab344318c5c4606213ebf.bin",
+    "Parts/Models/391d6fa203921dd433c2a70d.bin",
+    "Parts/Models/6dbc213add04925f7801d0c4.bin",
+    "Parts/Models/3996fb4a1e7b32640e180697.bin",
+    "Parts/Models/96a6a08cd9ad7644de6feefe.bin",
+    "Parts/Models/a76bc23b262159801535ad99.bin",
+    "Parts/Models/289f7bc305f103d75bb56a89.bin",
+    "Parts/Models/cf4604240317ea9b50341693.bin",
+    "Parts/Models/85cbeef904088cd333d89087.bin",
+    "Parts/Models/a092d255fbf5fac4237b5c6c.bin",
     "Parts/Models/67e6112006ef5bc339a0e51f.bin",
     "Parts/Models/b8efde959c825f51fd0c8957.bin",
     "Parts/Models/a5c215b04fc37197ba2b6f1a.bin",
@@ -1842,19 +1922,39 @@
     "Parts/Models/0efbdf168ce3af05de18cf5a.bin",
     "Parts/Models/a23337c27081992f843d51b9.bin",
     "Parts/Models/ad24b8b1ec08138770bc4554.bin",
-    "Parts/Models/0dfdcdddca30fb43bbba0818.bin",
-    "Parts/Models/506c14df3af270414dfff272.bin",
-    "Parts/Models/a78c0dfc48f6edb62e6cb750.bin",
-    "Parts/Models/4a7cbd57880c63553d6bd3ca.bin",
-    "Parts/Models/a1193b3263fb128febded7a5.bin",
-    "Parts/Models/6f93bf4b4e53d1e4ebc85c81.bin",
-    "Parts/Models/ddda4402ebb5311f8335ce1e.bin",
-    "Parts/Models/a638c3a54015d108e38e0e4a.bin",
-    "Parts/Models/336dc81f982978f10f8ba7d0.bin",
-    "Parts/Models/619a4c1a1803301458c5eefb.bin",
-    "Parts/Models/32a3bd406d1f5121832e4ca9.bin",
-    "Parts/Models/d56de48e26882e34dd1af1f1.bin",
-    "Parts/Models/55a6155b1378c709a9f57107.bin",
+    "Parts/Models/2d1131f78902b25a7516aa06.bin",
+    "Parts/Models/c2e08b58de35d8d9c19d9de0.bin",
+    "Parts/Models/b68f200649d4a43595b0ff0e.bin",
+    "Parts/Models/9300bb677f028c038218ff76.bin",
+    "Parts/Models/167de048bdaf7bc6c595de3e.bin",
+    "Parts/Models/66fcdbb282fc1a75cf54197d.bin",
+    "Parts/Models/6661625aa14630be8715a248.bin",
+    "Parts/Models/b2b9b25c9b183f4d7070a3c7.bin",
+    "Parts/Models/b3f57ab76e0714bee09b7c46.bin",
+    "Parts/Models/bb5efa8c79b070b4cf7e4df8.bin",
+    "Parts/Models/41214e683956344373139c94.bin",
+    "Parts/Models/b1be9047b15a8b757fbc15b8.bin",
+    "Parts/Models/ba826d67736ec72e2fe053f1.bin",
+    "Parts/Models/ead275bc5d4d4cf6b04f26a7.bin",
+    "Parts/Models/4a77e47f4400d09de3618c35.bin",
+    "Parts/Models/5cb4a95790d290b9184b1b9d.bin",
+    "Parts/Models/70142bc2301369b4e6c65458.bin",
+    "Parts/Models/cd187dac435ccdbd49063516.bin",
+    "Parts/Models/e6727fd31b6934aef81fb4d1.bin",
+    "Parts/Models/a28a62ebab4f9b6ea2c7e82f.bin",
+    "Parts/Models/02021f6706ec1ec25029fd4d.bin",
+    "Parts/Models/b0d046be83f4a86c8ac37fc6.bin",
+    "Parts/Models/3723531354e581fbb50eed40.bin",
+    "Parts/Models/2b8bbaf014097b1500e95eb3.bin",
+    "Parts/Models/9a1d4e45818894583ab63794.bin",
+    "Parts/Models/389e7ca5fbe89c94a8512b42.bin",
+    "Parts/Models/bcf7b8e280167af63516a15c.bin",
+    "Parts/Models/d7e44769e2e80eb017772911.bin",
+    "Parts/Models/242aaf7ee8c232aeef50c7a2.bin",
+    "Parts/Models/1d81383bcab0f1847cbb59fd.bin",
+    "Parts/Models/fd1f845e6d47692d2bb52721.bin",
+    "Parts/Models/df18cfc7ffa78fcd0cc4b930.bin",
+    "Parts/Models/92508b45d2a6a491b8ae2165.bin",
     "Parts/Models/ca40ddccaa9063122a7b8456.bin",
     "Parts/Models/4dfce2b0a64dc77888f5fb3a.bin",
     "Parts/Models/0187f454bd049e56a418a04b.bin"
@@ -1874,10 +1974,13 @@
     "shared/assets/legs/leg_t3.glb": "496569fa2a0ab57d6798dac22d57ce07deb5b37214b3615b9aa34b2fa0b31618",
     "shared/assets/legs/leg_t4.glb": "f9cc264165f2ac68412d451665fa0e53fc946ae9c393edaac8673a4d620355b3",
     "shared/assets/legs/leg_t5.glb": "ff3002bf629eae3b3dad818a34bfd39fded7593634228bcb478056f8c4babbdb",
+    "shared/assets/manta/manta.glb": "e9b85aa81dc0300cdc5a624347f6e6c8ed38f866d7e2ad2f198a040563540266",
     "shared/assets/mechlegs/mechleg_t3.glb": "74f8667e9b652c5cadc722a6cae6aeefc9a0c6933eb3d2ad50402089a6c1536a",
     "shared/assets/mechlegs/mechleg_t4.glb": "695472843ebe7e2f237a6b6f9d0a0c387cbd0f21e38904996c589adf7b92275b",
     "shared/assets/mechlegs/mechleg_t5.glb": "789829212bc9f83f3e5717e50f9993dce1418e9ac66371582c0b9ad8ece66650",
     "shared/assets/plates/plates.glb": "23f5d4c97783632464950f107faaece00c42208446c61ce30d7fa8fc809b90d4",
+    "shared/assets/rat/rat.glb": "33a107b892e8dacb02edacaced7a8e5475550633f67759715391c8157bfbdc18",
+    "shared/assets/roach/roach.glb": "539aac638eaea44b71a48c82be91ad43aceafa300c3b2342efdac60e7bfb30dc",
     "shared/assets/rotor/rotor.glb": "77d852d170d24623ac1f1b6f39e40545327b9edf70e070250bb99ef1213c2ab3",
     "shared/assets/scorpion/scorpion.glb": "6beae1076f3e1622984abc7fde6d368accf0685bf984d53fcd57909149a9b2ec",
     "shared/assets/thrusters/thruster1.glb": "66ed3da7e2203bf42f1ee68f41d9b503eae211ac05260217f430d2ff5ca11aef",
@@ -1929,11 +2032,14 @@
     "shared/assets/wings/wing4.glb": "e9a97c921bf4f06e1bd5605d2fbcaded583d781d44be1aedb0b0da20ee5a0e33",
     "shared/assets/wings/wing5.glb": "2a8023a56794c77ecee96c69fc948b216bad8a8308356027336dbbdf4fc3cf16",
     "shared/build/blueprint.js": "f16831dd9803d8ac8062f47c014740e61d986c2597be42e758e0f0fcd9e8e53c",
-    "shared/build/foxData.js": "ff6c15077130da6d25d65c981815f8235ec20728b2bfef7b9d7405e8b285d9fe",
+    "shared/build/foxData.js": "6b4abef765d131c4b660dd3a3d5f229f348b1818d92d456a498424dd726291a4",
     "shared/build/livery.js": "68996dd726e8e0c57ddc348b9efd9f8721ff7bd22f871718ff3bd8b7c5e2cf95",
+    "shared/build/mantaData.js": "b708dfec7f566b6c8a6b1811b0221c56e3ae3d06ce60fe743559f5f1a5be2b97",
     "shared/build/megaMechData.js": "61a8d1fce687bf62750e91e55840f62616f18d0a2ac0a1be7530447685dbdd44",
     "shared/build/planePrefab.js": "90373f6483542b739eb9cd128341ff1a069a2582dd679b0a5bfa2e6711024e3d",
-    "shared/build/prefab.js": "5e36332bc63e42db5f70366880cf33b05453d17b0ec3d0999ffd9d8438dfcfab",
+    "shared/build/prefab.js": "84b41a334a85fb95fb909daa009190c79ff8f186fb69119ca258d9e9a4a94c4f",
+    "shared/build/ratData.js": "b7572ac9fe5b97ffcc58f5641300cfdcc7053165311e12d472b7518635170faa",
+    "shared/build/roachData.js": "864498ad3b504b3aa9ba93f3421e3a1be7b0f85885b6aa857813f0d118be6341",
     "shared/build/rotor.js": "eeb394500990f9599f96c8ac2d94eebe5857f536531e02c40059a105aa827b5b",
     "shared/build/scorpionData.js": "77d01e5653bdfe599c7d84a61e9c3fbc3eee8c4d3e86cb7f7ab46e826357c9cd",
     "shared/build/trooperData.js": "0c6cf4cb04a3ad66d7b45eea6f47d610ced14aa8bf1da471f0accd0d738e947a",
@@ -1942,58 +2048,61 @@
     "shared/build/vanguard.js": "4f9478994266164ba1961793995045a4cae529ed37c9de12304ea9309c6c658c",
     "shared/build/zones.js": "587e4e4ae2090dfc0b0661ab29d8c69dc26a74e23baa0aef0bfa6ba8101e6fcb",
     "shared/combat/drill.js": "653ba2b6491df2982b38b451ad56d4f0f59f89b760f0a9eff2d6bea0c84d56df",
-    "shared/combat/weapons.js": "5388ecb6ddd2f7be6132066bb6ff811a73cca1c093e80c2f5f05b9b7ebe72cb7",
+    "shared/combat/weapons.js": "f05f62af9d1de9622a12fa64a80bbef8e617c8e3aab02e44a6a719f9907d71bc",
     "shared/config.js": "588b188bab37f6e8906f60f03c1021263419d8f27a7f49bc5dd2648a0e96480a",
     "shared/core/math.js": "92525024909f560f4b09e1c0de37468a6e4ea2de54fee6e87d53c01e67d6da58",
     "shared/core/rotations.js": "518991e9e8ec6df511a7f64db5771c4b426c7e642d217e2df02bb264e79089c1",
     "shared/drive/suspension.js": "58c57237c6d696bfc6db279cba24d37303a56d18d81bdfb423229575a346899e",
-    "shared/parts/decorVehicleModels.js": "4f38381641b094b3d139b089e51f62b822eb9b4966ead5a26895e8830284db6e",
-    "shared/parts/decorVehicles.js": "79aebbe58916be2099f51f4a85c2de1312ba1de5598e1c6186cf81dd95cd7c8b",
-    "shared/parts/defs.js": "fea657b421e6d89de26714b988bad479fedd1ad11bb2148989164b9ef8aff7e2",
+    "shared/parts/decorVehicleModels.js": "d8e33ccfb8bec7e5bce84a30fbc692a0e132a04463b685f5bd72ec385e4f174c",
+    "shared/parts/decorVehicles.js": "da6c64ac2a5f6e44cc7edafde2e96b6611540e477e97c54fa0e82d7ca1634311",
+    "shared/parts/defs.js": "d7840a694e0d73534aa1c4eae7910fa2acb5d6a23bf97bf8973836095e0102cb",
     "shared/parts/drillData.js": "7606d439fedba1fefb1f671e0f2df0ea3c93009c70b06c95ce53d45f22dbe490",
     "shared/parts/extentData.js": "49382083e6b62625bb9fe525cb1e55ec7c44b8cfe0d71ba69a41b1e83c6d3569",
     "shared/parts/foxData.js": "235e4eb8c9f5dc03effd9cf32533bf6d1a3a41d7131ecd26188ca1ea28696ae1",
     "shared/parts/frames.js": "da5d0a23feb65651f1792b18e67ed1ea4d4d6d8168ab94d91d64e3daff22a0b7",
     "shared/parts/geo.js": "7a5e541d5aa4b5dc95e2470dd47eeb99aab7f5975e056feb9b23911160161233",
-    "shared/parts/glb.js": "a77ce645900b1a503d56bddc40076747d83bd5587383838ae32da8a23f10eb46",
+    "shared/parts/glb.js": "c4ac2c406eab9d8e4047a5c9161352a51295429994ff4e6ab5166ee78bc3fb27",
     "shared/parts/hoverData.js": "a287ba91bbc768b697a3772dd5d2b9e7aa38f88fa5de9657cb418cd5c76b6e41",
-    "shared/parts/hoverModels.js": "187ebde73d4b9fb981c875d5889791b8b8407ecf3b2146a8b9a0d1aae94c45de",
-    "shared/parts/hoverMount.js": "c2d4e8c103df99cd61c8b6bedb1afddc5129ccc4e9c0d237f311ed8132ea8aaf",
+    "shared/parts/hoverModels.js": "5a15faf28cf1bb06722c3929df98c98d5b275d2f3e6b474df1b5501588d00230",
+    "shared/parts/hoverMount.js": "b3416e04349734f2ff8e9bfa431233f30a3495a9941372cf1b517b679f198d08",
     "shared/parts/legData.js": "b38435e8c64e488fb5ba5a3b0392d06b1c5ccfed36a83c4212167548bae1d88c",
-    "shared/parts/legModels.js": "f1d418ad3be8ab8eacf86142e42bd2f8fbc7201eef378450199038f7134ec630",
+    "shared/parts/legModels.js": "8dd0d6273bbb28bfa08a25eac91ffbbe0b75262ba98aceddf5cd666a37117161",
     "shared/parts/legMount.js": "6d0e16241fe9a89a6b3c5194965b485ecd1f1ff728f73cd98020cc53a614e540",
     "shared/parts/legSweepData.js": "a40ab7aa214e7ead875d1984242455c8232283c7e0554376713dfa20b348d89a",
+    "shared/parts/mantaData.js": "07e121d8274836be9e66775ad8bc150a33e5992acfc5323631ebe27d0891bf6a",
     "shared/parts/mechData.js": "986ef0b79e520b3b0f3d24997ceeb8af3dca15356556ed2f67bf984f8bca8ff3",
-    "shared/parts/mechModels.js": "ef904e9caf9a30d44a196e8b6cb426fa3a46e51736f1e1daad331a9c608ab26b",
+    "shared/parts/mechModels.js": "cce001501826c2aa484c3cfb63693dda930fe3b84224683704fef7ac0ac2b8f8",
     "shared/parts/mechMount.js": "757bf1d09ed7e81cedb7ac8e1099165673bd2ad258d90d87f2dff2f543f314e3",
     "shared/parts/mechSweepData.js": "43d38ff4340621ecf381bb00b1b075818cbffe2c4d5d16433e8291c867322c2c",
     "shared/parts/modelSizing.js": "70efa470f9665f73195ed627bdc3d34fc3b6a482a660ce314fa5b86d0dbe3ace",
     "shared/parts/models.js": "f12b229a35a94b222e61274f30e6297a7f363d358116d400b74520713525136a",
     "shared/parts/paint.js": "9d7611b98e50d4fd7deff3f482ad972672684ded5f141d503c69ae3c2da4d13c",
     "shared/parts/plateData.js": "621ad72217e66f28ac57753d1851269ea3034325313c8d57f4256ea711ee6e6d",
-    "shared/parts/plateModels.js": "bc5ab3555794a74a461641118703bd53a3c158dcc60fa606434ee979606d7a1c",
+    "shared/parts/plateModels.js": "1c7514e0f9db32d6f79496d625ab477177c881c2069039e7c9ead823db051e64",
     "shared/parts/polytope.js": "dd9ba10dc604b67c491076cabb27ee951852e8644c83f97727aa6e061e49cb66",
-    "shared/parts/rotorModels.js": "a28a41040035923c5867801a6344b96102e7aa2f2fa5998a5c3f862fc98b2987",
+    "shared/parts/ratData.js": "03ddd9c235cb0ed84aae7e707a759391e3243f17821c4a8dfd7a7a56c45efad6",
+    "shared/parts/roachData.js": "2dc33f2690e61d9b82485106bc502fef1cd0746e07f19db384866a6df727370e",
+    "shared/parts/rotorModels.js": "208425e46ad2a2fed683e4e144d467414ff4ed0292ea4d2a87ca455c06984f79",
     "shared/parts/scorpionData.js": "5ca9d2337a90fab0e0597b26ded42dcaa367e25a64269ffa830e09053f6b1438",
-    "shared/parts/scorpionModels.js": "0de1e6f0836402c0cf3962e6bd68f459a1c693277482d27679e72c0abc3de882",
+    "shared/parts/scorpionModels.js": "f695143e2e7eb79e66622b1e7ba7fd8adeaafe0ff6ab3aa0db81572a5507497f",
     "shared/parts/shapes.js": "bec9526f19618dff290b75993053caa5cc8d4859910278be1aca86bccbe9635a",
-    "shared/parts/sizeData.js": "a1408962a219024efb00a4d3f4a2638f01613dff1046908bb6214a5b5032a01a",
+    "shared/parts/sizeData.js": "bb8b7b20fdf6bf02d13c44fa846ff1328db8e974b3945654f096f3d569af0d0a",
     "shared/parts/solid.js": "f9294ec2ab0ec659132c29cd2cf103e73e005c1ae121811b0f0d10096a27cb47",
     "shared/parts/thrusterData.js": "8e1e65ee790cb9530411725d0339e4816d4027e16f5cce690d6d2cb2421d6bc5",
-    "shared/parts/thrusterModels.js": "c4ca41d351ce6354fdb320bff9b620e119e6ee8be09ad28cdff6826243c7aa38",
+    "shared/parts/thrusterModels.js": "c60f7daa6a2da2ad06715ea540508754809fddc35699c582a84812a216b09802",
     "shared/parts/thrusterMount.js": "ba3c62cea62bac6dc497992531075330dbd7525697db1360376b9e89c9b56402",
     "shared/parts/trackData.js": "b496634c66e2f5571c7d2946768023308a88495ec28939af3b382dae25d15a1b",
-    "shared/parts/trackModels.js": "c012dc15181f9f6a138ddd42661429f74932a079448ced9d4be3e8b3222ce64e",
+    "shared/parts/trackModels.js": "e707f158081ab57801812e059ed1b41ec696852a6eb87c005d1fded6f28424d6",
     "shared/parts/trackPath.js": "90d06e2b3a7aae8fb9e5879442c7a6d435a2e673032912d44af4648172fcf115",
     "shared/parts/trooperData.js": "1ea22380cc24df3d2d962535ced72905653e1a41b61991d80e3c964e9e03cef8",
     "shared/parts/trooperMiniData.js": "cb7d389a5a77ae8d95ffbb70428e3a65b795d6db408c87ad71c22574ce55a2d9",
     "shared/parts/weaponData.js": "eabf4b3c2881ba722adb377a0c442bbc59b2ee8634a4ed67bb5821b542e892ed",
-    "shared/parts/weaponModels.js": "09a490a10ed7b3bee2d44656269aa9279114c028b286d13c0c4c36efd183fc75",
+    "shared/parts/weaponModels.js": "3213406897f202cb39fa8076ec5b7c583d1ed1ecf6d25f845c32827ea9cc7bd1",
     "shared/parts/weaponParts.js": "e460eda285732c34f96e581c76477b8274dcc8a276b3db27affccb8851f6d259",
     "shared/parts/wheelData.js": "6c3d8b34a05f6b649a9bcfae6e3d6634187e99b013b92a3e498ebf5022ac333b",
-    "shared/parts/wheelModels.js": "2303ac2c8f06ab53df6203c04f22e204481928b9b8d6c6f0c1f0b386775be1f1",
+    "shared/parts/wheelModels.js": "5c951c3d4c4e083033dd0715dd4763e73c143406f2c7a37de278658b2be3590a",
     "shared/parts/wingData.js": "0377e1eb8c5b331b1a51c8001d7110a55acec611d3d315924e3ce877796681a0",
-    "shared/parts/wingModels.js": "af9fa4dd41ca6f0fd69a1b8b32a6de4ffe1f8e9ae9c4b6522a815a4585a6e045",
+    "shared/parts/wingModels.js": "6293c66f622f16d195558d9fea34369fa16375557f39eb4434568ada39d56fab",
     "three/src/parts/equipmentSurface.js": "85e59f03065ac57209845139c4ec2e7a2505ec9b4f2336569e65c99269e93a1a",
     "three/src/parts/materials.js": "3e9a068c8e0f2594c922c0cf3776cc0704b58c2cac99fbfa7ed428307d19c167",
     "three/vendor/three/build/three.core.js": "8bf68efebbef2b6f162a5bc5746ec88a60523254c4ae0b042277ed0ce0b30a07",
@@ -2001,20 +2110,20 @@
   },
   "files": {
     "Catalog.json": {
-      "sha256": "d9ecaf8c2fba86aa601a43a1066b0edf866fbf32b453d3890bfbe7900ad3d1e2",
-      "bytes": 1229904
+      "sha256": "d91af805b011f1c5252932e9f7ce20ab167701db73638cfe49af8d804e4c0987",
+      "bytes": 1322127
     },
     "SolidMasks.json": {
       "sha256": "eb7d230604eb33f830e57fcaef37235b1ae0d9ddc0033dd677f5d991afaedeb0",
       "bytes": 974733
     },
     "HoverMounts.json": {
-      "sha256": "1f53f8ec8eec0a6bff6ab0524362e7d78a0048f30197a5338c5effc6d502ac91",
-      "bytes": 30545
+      "sha256": "639c3a8a66a67d748653d29f5855dda047af5a1d6ad0b63d3246de7a118631f8",
+      "bytes": 37570
     },
     "BuildRules.json": {
-      "sha256": "eb067036023b76dcbde5c1e55e6c1635b843bd7eacf3149490b5fa40330ceea3",
-      "bytes": 115913
+      "sha256": "094a1df9bdbb2eb78e9a0a85a721f82a731041066bf514d170415bb329a61542",
+      "bytes": 134136
     },
     "WeaponMotion.json": {
       "sha256": "0edef07901857edeb36821eeb55af20dcb742825f78ea2d69a181357314d44e4",
@@ -2601,20 +2710,20 @@
       "bytes": 4957
     },
     "Rigs/hover1.json": {
-      "sha256": "1bd39c15b61572a7f3e7561e19d4c6439b7daa439522ae5435da8a6c9eced882",
-      "bytes": 2290
+      "sha256": "dde05673efc8c49a2120072ec2fa285b5fb29d6081de493e60148c69d3ac94d6",
+      "bytes": 2230
     },
     "Rigs/hover2.json": {
-      "sha256": "bde935be59a61565b8f875b1b3e5ceabe9bc136f10d15b155a24f690d37408a0",
-      "bytes": 3096
+      "sha256": "c32bc66e8e253337530d1a3b5f29976c65a3e2fd9f68e79e3d445a7641457833",
+      "bytes": 3039
     },
     "Rigs/hover3.json": {
-      "sha256": "49021d2a931f5ea1e360da7fb537f71979fd27aadf891d4e0caa73e31686ab61",
-      "bytes": 3141
+      "sha256": "e6f1c9132d207f7dc6a4308f06019dcc371ba2afa967ea38c4624dfd027e3998",
+      "bytes": 4728
     },
     "Rigs/hover4.json": {
-      "sha256": "43739e9125e244ab6845550f94c6bffa4b8b9b91368beb6ffbeecf4891618453",
-      "bytes": 2247
+      "sha256": "811216bbdfeae830f255a74786537e655efcd379e71a99c4ac27171e5d3456ad",
+      "bytes": 4513
     },
     "Rigs/hover5.json": {
       "sha256": "a1c77cf621d36be0656895a1237f4c8828cd2469433c1828c3318a882c875500",
@@ -3264,21 +3373,101 @@
       "sha256": "ac07ec84a95c3eee4f4af25c534948e740fe34b3b7c93a214331170a7e5e6931",
       "bytes": 159
     },
+    "Rigs/mtBack.json": {
+      "sha256": "ba28f07f457d81b309b083bb9769bf5dc8a214c39fcf5765341134b95770b4cb",
+      "bytes": 167
+    },
+    "Rigs/mtHead.json": {
+      "sha256": "f06f35cc4383912fe1a61e0927a802191e964a6819b4b2c13d2c458556cefc87",
+      "bytes": 167
+    },
+    "Rigs/mtWingL.json": {
+      "sha256": "b4620b6fea814a321b60b75b0aa5ca2185f5d09633d5463c310b7d360e843130",
+      "bytes": 167
+    },
+    "Rigs/mtWingR.json": {
+      "sha256": "6c411a297c0813c52829a27001a30d4c6595526fa282fdfea1d7f16b03ff927c",
+      "bytes": 167
+    },
+    "Rigs/mtTail1.json": {
+      "sha256": "572cedb8cc7792ee66232c6d63949553b47fb25e3e606a04f0f91aa0ffa76b06",
+      "bytes": 160
+    },
+    "Rigs/mtTail2.json": {
+      "sha256": "12520761409c8507f478173ca8a8f8e6f6304081d1617a11a6ae55975046adae",
+      "bytes": 152
+    },
+    "Rigs/mtTail3.json": {
+      "sha256": "57ee36f8a522a57ae565f8a8ee64db5b5000e055eed4cc4919fa195ecb348cfd",
+      "bytes": 159
+    },
+    "Rigs/rtBack.json": {
+      "sha256": "28cc9b599d6d87716a762850154b7cc22944f6b677573e1895cef56f08f713cd",
+      "bytes": 167
+    },
+    "Rigs/rtHead.json": {
+      "sha256": "67915f67092dab47c5e96bb7f326b7836119dca7706afc4be8cbdce1a7934a04",
+      "bytes": 167
+    },
+    "Rigs/rtFlankL.json": {
+      "sha256": "c50baec897e3afcbe48bde311e8ea07337818c94db3331946ff3d5353aa502a9",
+      "bytes": 167
+    },
+    "Rigs/rtFlankR.json": {
+      "sha256": "507ce7db7098232f7a9d67aab6d1d5a8ab566d8c9f4dd5baa33f710686d3c018",
+      "bytes": 167
+    },
+    "Rigs/rtTail1.json": {
+      "sha256": "109cc92fce9bebbba7fec90ef4248238e5ed8deb970f1edd405743e5b535a218",
+      "bytes": 148
+    },
+    "Rigs/rtTail2.json": {
+      "sha256": "1e06e0ee66db33c91bb499aaeee36cd87db4a2634aaa9288cc3131c2b002bfd8",
+      "bytes": 148
+    },
+    "Rigs/rtTail3.json": {
+      "sha256": "ec5357ad1d72a055fd91439abb6d92210a09376d2243ae34bf9520d00aca0413",
+      "bytes": 160
+    },
+    "Rigs/roHead.json": {
+      "sha256": "e12703cf9cfa24e0c504942dda34ea40ca7e9d609b474f461e2217d0c20fad10",
+      "bytes": 167
+    },
+    "Rigs/roTail.json": {
+      "sha256": "05ae68d06b249c677aaa9a877ab4d96db5e8a7c8da027ab0fff83e4e05bb581d",
+      "bytes": 155
+    },
+    "Rigs/roElytraL.json": {
+      "sha256": "7716e0287aae1b7060b97fd7ec2495b1a4d77b972253d57517f4b0724b45827a",
+      "bytes": 167
+    },
+    "Rigs/roElytraR.json": {
+      "sha256": "1c0a2d49d8e3aed7d18477b92df9f7326c92c97113ce47063d545031f5d1fd8c",
+      "bytes": 167
+    },
+    "Rigs/roSideL.json": {
+      "sha256": "6cc8083d274dd741984cce8d3f27ea85da3f83a271c658313f3dab382aaa78f1",
+      "bytes": 167
+    },
+    "Rigs/roSideR.json": {
+      "sha256": "e033d6bcf2ecfeb99e06a0d242275a4f15c9e75991fcc5f7845cbb009a3ecf0b",
+      "bytes": 167
+    },
     "Rigs/hover1Side.json": {
-      "sha256": "f3a24b99f4ade091b12e31219bfbc4206969f15f93802d83e8eccef7a38f0c1f",
-      "bytes": 1965
+      "sha256": "fc924525af551c321cf6e19e68cf5883a045b2ac4fb15b292302ddf020751fec",
+      "bytes": 2212
     },
     "Rigs/hover2Side.json": {
-      "sha256": "3c5e5b24ca51b0a74e7e1824a00148744fac0f4dede4c0fb5838d238df23fbe9",
-      "bytes": 2686
+      "sha256": "00929b37241615b372542728cbc9e6da407b93fe06622e2f16a50a47988cee3f",
+      "bytes": 2776
     },
     "Rigs/hover3Side.json": {
-      "sha256": "59b55e7458cb7df5e15ddcf4cabd7470055dbe416955f9c3f30745b4b97b3a80",
-      "bytes": 3037
+      "sha256": "812182534fa35b3af8cd427a8fe3b2b5e0872232ca6ee98d96aebe510c6507e9",
+      "bytes": 4321
     },
     "Rigs/hover4Side.json": {
-      "sha256": "f66bb1e8c260bef68db6785ceae3d4ca54a3ec666f07f24b8e7927d3c0335e4c",
-      "bytes": 2166
+      "sha256": "33fd3095543bdb4570df9139b9b20719eb4c41e1e7ea089fc2b1f468a86c8af8",
+      "bytes": 3794
     },
     "Rigs/hover5Side.json": {
       "sha256": "d07e21de3e90bb91c9a0813c461d208d870746c666a5cb259499f23dce3d83b2",
@@ -3700,56 +3889,56 @@
       "sha256": "3f5dc4aa7bbcc65e38e193d4b9bf5f06c12f744b915a5aaa26200f29b6df301a",
       "bytes": 41096
     },
-    "Models/822572e5358637544d5a733c.bin": {
-      "sha256": "822572e5358637544d5a733c75f720fa019353267b8474f07d75416412f26734",
+    "Models/e94c9596414b8c0cd6303ce1.bin": {
+      "sha256": "e94c9596414b8c0cd6303ce1f8a889dcd6132e50d0493c75a091356f6b7a5142",
       "bytes": 139204
     },
-    "Models/e1406e4553fbaff4bad5cc1a.bin": {
-      "sha256": "e1406e4553fbaff4bad5cc1a49ff21c33a002f8b9ccbcf8f0cf3f7a97e5abb2c",
+    "Models/172d618dacfc00f5747c2c20.bin": {
+      "sha256": "172d618dacfc00f5747c2c209bfab0802ac66ad8d9699f8b955fcf1d46e6042b",
       "bytes": 72756
     },
-    "Models/3897bedc903c615b1fe47327.bin": {
-      "sha256": "3897bedc903c615b1fe473277cbdeeb0c7a8b97332e4f1e1639d0ae1ee996bde",
+    "Models/0ec155b7edfa489d24fa3a5c.bin": {
+      "sha256": "0ec155b7edfa489d24fa3a5c399272bf8cf6ffb3518db1b857342c60a5a83185",
       "bytes": 66632
     },
-    "Models/4371a0d29290d8f7caa95c79.bin": {
-      "sha256": "4371a0d29290d8f7caa95c7920efe4e098f51d35849356f80f8ccb6a2699965f",
+    "Models/a4cab344318c5c4606213ebf.bin": {
+      "sha256": "a4cab344318c5c4606213ebf6c2a04b6f7017d22fb5b8d9143383d2184eb24a8",
       "bytes": 259660
     },
-    "Models/6d8e41dacc9579fce4483f12.bin": {
-      "sha256": "6d8e41dacc9579fce4483f12a426cf7bdb484a75c1bda34fe511d27e05c874a0",
+    "Models/391d6fa203921dd433c2a70d.bin": {
+      "sha256": "391d6fa203921dd433c2a70defa92acdad426e71819c431e90f17feb90e59680",
       "bytes": 126764
     },
-    "Models/f84372c17c72c6591bb1234a.bin": {
-      "sha256": "f84372c17c72c6591bb1234a3b74444f237e48393d421be6b9d2858c6c6df31e",
+    "Models/6dbc213add04925f7801d0c4.bin": {
+      "sha256": "6dbc213add04925f7801d0c41e6aa93724bde6c8ecec51cb9810439bf583dd25",
       "bytes": 66632
     },
-    "Models/2db92b461f83fef261be2e10.bin": {
-      "sha256": "2db92b461f83fef261be2e10decfd1853b017079a7d6e23e10c5b45f071b8f2e",
+    "Models/3996fb4a1e7b32640e180697.bin": {
+      "sha256": "3996fb4a1e7b32640e180697b4421177e397212ec9c736b1668efbbdbce3ab0d",
       "bytes": 413804
     },
-    "Models/9d2ca89bb10f4faf62fcf69b.bin": {
-      "sha256": "9d2ca89bb10f4faf62fcf69bcb1664c63ba2f50ab575036fe3c9b7de4968fb56",
+    "Models/96a6a08cd9ad7644de6feefe.bin": {
+      "sha256": "96a6a08cd9ad7644de6feefea4da095383fd4c5516681936d454a9fc4f9d8699",
       "bytes": 214460
     },
-    "Models/16c815772d1be2d1131eb21f.bin": {
-      "sha256": "16c815772d1be2d1131eb21f1ceb8dad34968c89f60f3819974602f3f6841654",
+    "Models/a76bc23b262159801535ad99.bin": {
+      "sha256": "a76bc23b262159801535ad998c14961533de35551901086d4d7bf96c01c75c86",
       "bytes": 66632
     },
-    "Models/e272913fee7a8159338bea1d.bin": {
-      "sha256": "e272913fee7a8159338bea1d024a6bcf65b980d98a325738390cc4a693721a33",
+    "Models/289f7bc305f103d75bb56a89.bin": {
+      "sha256": "289f7bc305f103d75bb56a89bd40526f917dc7be2da0318e1e3b213c66124df8",
       "bytes": 246292
     },
-    "Models/eb8b3a84c26fdcf55fe46467.bin": {
-      "sha256": "eb8b3a84c26fdcf55fe46467671f5e6c6b7286b04aa3b56ca00932dadf5482f7",
+    "Models/cf4604240317ea9b50341693.bin": {
+      "sha256": "cf4604240317ea9b50341693488384ebf339f2f9e6e5477a1231f0726237a5be",
       "bytes": 97732
     },
-    "Models/81a37b1826988c92c8a3b906.bin": {
-      "sha256": "81a37b1826988c92c8a3b906c2083acb9b8275b0751b9862d74d1526df222b86",
+    "Models/85cbeef904088cd333d89087.bin": {
+      "sha256": "85cbeef904088cd333d8908709595231941017c602aa0220484222a4ff1ab0fe",
       "bytes": 82296
     },
-    "Models/f7f9305d79b2105e441ac018.bin": {
-      "sha256": "f7f9305d79b2105e441ac01891797ec589235ed409ec0b24c3d72a827d50cae8",
+    "Models/a092d255fbf5fac4237b5c6c.bin": {
+      "sha256": "a092d255fbf5fac4237b5c6c2acaa26fbd2d9af11e9ff814537ef3157ffcab6f",
       "bytes": 66632
     },
     "Models/67e6112006ef5bc339a0e51f.bin": {
@@ -5536,56 +5725,136 @@
       "sha256": "ad24b8b1ec08138770bc4554502b68147fc6268e6898ed8f02e37248aa2eb6ad",
       "bytes": 49512
     },
-    "Models/0dfdcdddca30fb43bbba0818.bin": {
-      "sha256": "0dfdcdddca30fb43bbba0818647b44155df4a8ff219b6057306d016fb9cacd5d",
+    "Models/2d1131f78902b25a7516aa06.bin": {
+      "sha256": "2d1131f78902b25a7516aa06a72616daddb23b020ed081b47d5f20d4765fb06c",
+      "bytes": 227400
+    },
+    "Models/c2e08b58de35d8d9c19d9de0.bin": {
+      "sha256": "c2e08b58de35d8d9c19d9de0da241e74eb2ba5b9a875dfd024ee26110a19cbc2",
+      "bytes": 249556
+    },
+    "Models/b68f200649d4a43595b0ff0e.bin": {
+      "sha256": "b68f200649d4a43595b0ff0e5890630251458fe0fc76be260cb3c91518811db1",
+      "bytes": 259376
+    },
+    "Models/9300bb677f028c038218ff76.bin": {
+      "sha256": "9300bb677f028c038218ff761bc6a5d6b3b54dd096cd9d94d0e67f396a5887eb",
+      "bytes": 259696
+    },
+    "Models/167de048bdaf7bc6c595de3e.bin": {
+      "sha256": "167de048bdaf7bc6c595de3e9cf21da80492d960169566501a0b20063d8070d7",
+      "bytes": 25420
+    },
+    "Models/66fcdbb282fc1a75cf54197d.bin": {
+      "sha256": "66fcdbb282fc1a75cf54197d21d3df24d7d351bf78edec640736d25de3927c19",
+      "bytes": 40340
+    },
+    "Models/6661625aa14630be8715a248.bin": {
+      "sha256": "6661625aa14630be8715a248911f12f2bda222bb47cf3f5731c9f05070972325",
+      "bytes": 67776
+    },
+    "Models/b2b9b25c9b183f4d7070a3c7.bin": {
+      "sha256": "b2b9b25c9b183f4d7070a3c760606f7d8cbe8cb52a904ddff496d6958fb5903a",
+      "bytes": 196028
+    },
+    "Models/b3f57ab76e0714bee09b7c46.bin": {
+      "sha256": "b3f57ab76e0714bee09b7c4648ef8c7f5fec862eb8f0abd662933ba89b90814b",
+      "bytes": 150772
+    },
+    "Models/bb5efa8c79b070b4cf7e4df8.bin": {
+      "sha256": "bb5efa8c79b070b4cf7e4df812854e273bd51c93877b991167966edb0a7368bd",
+      "bytes": 37912
+    },
+    "Models/41214e683956344373139c94.bin": {
+      "sha256": "41214e683956344373139c94f8a7390534518db3f82d44fd74290c410660af33",
+      "bytes": 37912
+    },
+    "Models/b1be9047b15a8b757fbc15b8.bin": {
+      "sha256": "b1be9047b15a8b757fbc15b83a11d65fe1ebdce3fd7cb720c3601113da8e28a7",
+      "bytes": 19476
+    },
+    "Models/ba826d67736ec72e2fe053f1.bin": {
+      "sha256": "ba826d67736ec72e2fe053f1c1b37c39e8e5f907d9b342c8a310c54fe295eb82",
+      "bytes": 64292
+    },
+    "Models/ead275bc5d4d4cf6b04f26a7.bin": {
+      "sha256": "ead275bc5d4d4cf6b04f26a75e97711c498076f76f606a77e83e1ba6b9d20699",
+      "bytes": 88536
+    },
+    "Models/4a77e47f4400d09de3618c35.bin": {
+      "sha256": "4a77e47f4400d09de3618c354c7400e30dfc19ab663a240407e0c112dbbf8c63",
+      "bytes": 338244
+    },
+    "Models/5cb4a95790d290b9184b1b9d.bin": {
+      "sha256": "5cb4a95790d290b9184b1b9d6a5b41f328dfc0a6bfacfcd768849eb11e0d1d89",
+      "bytes": 108224
+    },
+    "Models/70142bc2301369b4e6c65458.bin": {
+      "sha256": "70142bc2301369b4e6c65458c1e3ffb33754b45fa54d7a97da50af537e3f055b",
+      "bytes": 110656
+    },
+    "Models/cd187dac435ccdbd49063516.bin": {
+      "sha256": "cd187dac435ccdbd490635161e86fe8efd3c1e433bd7db87baa90ff81b3ba3bd",
+      "bytes": 110304
+    },
+    "Models/e6727fd31b6934aef81fb4d1.bin": {
+      "sha256": "e6727fd31b6934aef81fb4d12953301bd4e04767e24eb2fb05d04cf0374ba348",
+      "bytes": 135620
+    },
+    "Models/a28a62ebab4f9b6ea2c7e82f.bin": {
+      "sha256": "a28a62ebab4f9b6ea2c7e82f21d139dda27af3b77bb864368ca73d113d6cef0c",
+      "bytes": 135620
+    },
+    "Models/02021f6706ec1ec25029fd4d.bin": {
+      "sha256": "02021f6706ec1ec25029fd4d7581cd510902c77f61d1f073a3585715c38c8f0c",
       "bytes": 156236
     },
-    "Models/506c14df3af270414dfff272.bin": {
-      "sha256": "506c14df3af270414dfff27221fc5c9232812970eb55498a7282cd04920fba99",
+    "Models/b0d046be83f4a86c8ac37fc6.bin": {
+      "sha256": "b0d046be83f4a86c8ac37fc6c782c3a51c6589d16b1f42692b9412b3e01dd3ab",
       "bytes": 89788
     },
-    "Models/a78c0dfc48f6edb62e6cb750.bin": {
-      "sha256": "a78c0dfc48f6edb62e6cb75007782dbb52afdf502cc75248ff49aab66dd6a021",
+    "Models/3723531354e581fbb50eed40.bin": {
+      "sha256": "3723531354e581fbb50eed40c81e57687870ee2e4d90c6b1996f338cc7272fd4",
       "bytes": 66632
     },
-    "Models/4a7cbd57880c63553d6bd3ca.bin": {
-      "sha256": "4a7cbd57880c63553d6bd3ca4196344ac9c88201987389b5d2bf87d810d7802b",
+    "Models/2b8bbaf014097b1500e95eb3.bin": {
+      "sha256": "2b8bbaf014097b1500e95eb3dbd8706eb9a71702efe9916bcadf2040119f9007",
       "bytes": 277460
     },
-    "Models/a1193b3263fb128febded7a5.bin": {
-      "sha256": "a1193b3263fb128febded7a5d5afc7ab5e2c0744aa1cd06f6fa49f99826eacb3",
+    "Models/9a1d4e45818894583ab63794.bin": {
+      "sha256": "9a1d4e45818894583ab6379443b1b617a329ba5f7c8677ff3925b2e2a37591a2",
       "bytes": 144564
     },
-    "Models/6f93bf4b4e53d1e4ebc85c81.bin": {
-      "sha256": "6f93bf4b4e53d1e4ebc85c8136f60c06bbc01d8b59930a02454b68f54ac8d9ac",
+    "Models/389e7ca5fbe89c94a8512b42.bin": {
+      "sha256": "389e7ca5fbe89c94a8512b42d4a8d9dc5912631e35cce717181b04edc8eebde4",
       "bytes": 66632
     },
-    "Models/ddda4402ebb5311f8335ce1e.bin": {
-      "sha256": "ddda4402ebb5311f8335ce1e7f1919241281bb904e66c1edaca200e9a6ba5422",
+    "Models/bcf7b8e280167af63516a15c.bin": {
+      "sha256": "bcf7b8e280167af63516a15c4efa31311582abff0e52f0687d28834519b08dc5",
       "bytes": 430140
     },
-    "Models/a638c3a54015d108e38e0e4a.bin": {
-      "sha256": "a638c3a54015d108e38e0e4a36ce3cc06e051b82505a144ecad330d39b823c4e",
+    "Models/d7e44769e2e80eb017772911.bin": {
+      "sha256": "d7e44769e2e80eb0177729116bf0810552a38e2c8ba08ffcb7b59d9aa24b4e6f",
       "bytes": 230796
     },
-    "Models/336dc81f982978f10f8ba7d0.bin": {
-      "sha256": "336dc81f982978f10f8ba7d0d3b86db3ad09e179ef32d1f01002afe7182a672c",
+    "Models/242aaf7ee8c232aeef50c7a2.bin": {
+      "sha256": "242aaf7ee8c232aeef50c7a2bf89c6c82250661ed5e8c650533f4b52ab5800ed",
       "bytes": 66632
     },
-    "Models/619a4c1a1803301458c5eefb.bin": {
-      "sha256": "619a4c1a1803301458c5eefbdbbe419b38da590a884d90833b5597517cb23b0e",
+    "Models/1d81383bcab0f1847cbb59fd.bin": {
+      "sha256": "1d81383bcab0f1847cbb59fd591e76b56cf5af02420086bb5544cb5fd0206eb6",
       "bytes": 263948
     },
-    "Models/32a3bd406d1f5121832e4ca9.bin": {
-      "sha256": "32a3bd406d1f5121832e4ca98d0060d47df1fbab29a92ce75fd51300fbc775dd",
+    "Models/fd1f845e6d47692d2bb52721.bin": {
+      "sha256": "fd1f845e6d47692d2bb527217d503a0bfe716dd1e8abea8be0bf9d3eb29c86d6",
       "bytes": 115388
     },
-    "Models/d56de48e26882e34dd1af1f1.bin": {
-      "sha256": "d56de48e26882e34dd1af1f1974d07d1174d40a921fdb200d51bc5aa0ecd7361",
+    "Models/df18cfc7ffa78fcd0cc4b930.bin": {
+      "sha256": "df18cfc7ffa78fcd0cc4b9308b689069b0731b6ac1daea52bb02436ae033fe10",
       "bytes": 82296
     },
-    "Models/55a6155b1378c709a9f57107.bin": {
-      "sha256": "55a6155b1378c709a9f571077aeab4ce228b2170614f8c9a6f940ca17b60818a",
+    "Models/92508b45d2a6a491b8ae2165.bin": {
+      "sha256": "92508b45d2a6a491b8ae2165e970c5b941a54d48fd4b59415c2386343d07ca42",
       "bytes": 66632
     },
     "Models/ca40ddccaa9063122a7b8456.bin": {
@@ -5601,5 +5870,7 @@
       "bytes": 82296
     }
   },
+  "sourceCommit": "b276064942ae09c0227ec28d4cfda1d5ff006455",
+  "candidateBaseline": "docs/migration/baselines/b276064942ae09c0227ec28d4cfda1d5ff006455.json",
   "removedModels": []
 }

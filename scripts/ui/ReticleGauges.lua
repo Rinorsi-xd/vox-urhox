@@ -31,7 +31,7 @@ function M.Render(vg,v,l)
     local function Label(a,label,value,c,dir)
         local x,y=cx+math.cos(a*math.pi/180)*(r+20*k),cy+math.sin(a*math.pi/180)*(r+20*k)
         local align=dir<0 and NVG_ALIGN_RIGHT or NVG_ALIGN_LEFT
-        R.Text(vg,label,x,y-2*k,15*k,c,align,story);R.Text(vg,tostring(math.floor(value*100+.5)),x+dir*4*k,y+40*k,44*k,c,align,story)
+        R.Text(vg,label,x,y-2*k,15*k,c,align,story,true,3);R.Text(vg,tostring(math.floor(value*100+.5)),x+dir*4*k,y+40*k,44*k,c,align,story)
     end
     Label(176,'HP',hp,hpColor,-1);Label(4,'EN',energy,R.busy,1)
     local fraction=v.structure or 1
@@ -42,7 +42,7 @@ function M.Render(vg,v,l)
     local speed=math.abs(s.vehicle.speed or 0)*3.6;local max=(s.vehicle.spec.motion.topSpeed or 0)*3.6
     R.Text(vg,tostring(math.floor(speed+.5)),cx-r-30*k,cy-r*.5+4*k,52*k,R.white,NVG_ALIGN_RIGHT,story)
     R.Text(vg,'KM/H',cx-r-30*k,cy-r*.5+24*k,13*k,R.muted,NVG_ALIGN_RIGHT,story)
-    if not story then
+    do
         R.Arc(vg,cx,cy,r,184,238,{10,15,20,64},9*k)
         R.Arc(vg,cx,cy,r,356,302,{10,15,20,64},9*k)
         if max>0 then R.Arc(vg,cx,cy,r,184,184+54*State.Clamp(speed/max),speed>max*1.02 and R.busy or R.white,6*k,3*k) end
@@ -50,16 +50,21 @@ function M.Render(vg,v,l)
         if fire then
             local color=R[fire.tone] or R.white
             R.Arc(vg,cx,cy,r,356,356-54*fire.frac,color,6*k,3*k)
-            D.Rect(vg,cx+r+26*k,cy-r*.5-18*k,7*k,7*k,color)
+            local fx,fy=s.scope and cx+58*k or cx+r+40*k,s.scope and cy-30*k or cy-r*.5-10*k
+            D.Rect(vg,fx-14*k,fy-8*k,7*k,7*k,color)
             nvgSave(vg);local age=(v.clock or 0)-(v.wordAt or 0)
             if age<.3 then nvgGlobalAlpha(vg,age<.1 and .2 or age<.2 and 1 or .5) end
-            R.Text(vg,fire.word,cx+r+40*k,cy-r*.5-10*k,21*k,fire.tone=='warn' and {255,208,138,255} or R.white,nil,false);nvgRestore(vg)
-            R.Text(vg,fire.sub,cx+r+40*k,cy-r*.5+9*k,13*k,fire.tone=='warn' and {255,207,138,208} or R.muted,nil,false,true)
+            R.Text(vg,fire.word,fx,fy,21*k,fire.tone=='warn' and {255,208,138,255} or R.white,nil,false,false,4);nvgRestore(vg)
+            R.Text(vg,fire.sub,fx,fy+19*k,13*k,fire.tone=='warn' and {255,207,138,208} or R.muted,nil,false,true,2)
         end
     end
 end
 function M.Compass(vg,v,l)
     local k,cx=l.k,l.cx;local head=((v.session.yaw or 0)%360+360)%360
+    nvgSave(vg)
+    if v.session.battle then
+        nvgTranslate(vg,0,100*require('ui.MatchBanner').Scale(l.width,l.height,v.session.touch))
+    end
     local names={[0]='N',[45]='NE',[90]='E',[135]='SE',[180]='S',[225]='SW',[270]='W',[315]='NW'}
     local half,y=320*k,40*k
     for d=math.ceil((head-60)/5)*5,head+60,5 do
@@ -68,7 +73,9 @@ function M.Compass(vg,v,l)
         if names[d%360] then R.Text(vg,names[d%360],x,y-17*k,14*k,R.muted,NVG_ALIGN_CENTER,v.session.story~=nil) end
         nvgRestore(vg)
     end
-    R.Poly(vg,{cx-5*k,y+6*k,cx+5*k,y+6*k,cx,y+12*k},R.white)
+    require('ui.ReticleNavigation').Render(vg,l,head,v.waypoint)
+    R.Poly(vg,{cx,y+3*k,cx-6*k,y+12*k,cx+6*k,y+12*k},R.white)
     R.Text(vg,string.format('%03d',math.floor(head+.5)%360),cx,y+32*k,20*k,R.white,NVG_ALIGN_CENTER,v.session.story~=nil)
+    nvgRestore(vg)
 end
 return M

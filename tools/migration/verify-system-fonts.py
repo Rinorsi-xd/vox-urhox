@@ -1,6 +1,6 @@
-"""Verify native-selected TTC faces against installed fonts without rewriting them.
+"""Verify the frozen H5 body font and explicit native fallback faces.
 
-Run verify-home-source.ps1 first. Uses the existing development fonttools install;
+Run verify-loading-flow.ps1 first. Uses the existing development fonttools install;
 the game itself does not depend on Python or fonttools.
 """
 import hashlib
@@ -14,28 +14,24 @@ sys.path.insert(0, str(root / '.tmp/font-tooling'))
 from fontTools.ttLib import TTCollection, TTFont
 
 evidence = root / 'docs/migration/evidence'
-paths = json.loads((evidence / 'pc-font-metrics.json').read_text(encoding='utf-8'))['systemFonts']
+paths = json.loads((evidence / 'loading-selected-fonts.json').read_text(encoding='utf-8'))
 system = Path(os.environ['SystemRoot']) / 'Fonts'
 result = []
-for filename, role in [('msyh.ttc', 'body'), ('msyhbd.ttc', 'bold')]:
-    source, cache = system / filename, Path(paths[role])
-    with TTCollection(source, lazy=True) as src, TTCollection(cache, lazy=True) as dst:
-        target = next(font for font in src.fonts if font['name'].getDebugName(1) == 'Microsoft YaHei UI')
-        assert set(target.reader.keys()) == set(dst.fonts[0].reader.keys())
-        # reader[tag] is raw data. getTableData may reserialize an already parsed
-        # name table and reorder records, creating a misleading difference.
-        assert all(target.reader[tag] == dst.fonts[0].reader[tag] for tag in target.reader.keys())
-        result.append({'source': str(source), 'cache': str(cache), 'face': dst.fonts[0]['name'].getDebugName(1),
-                       'tables_identical': True, 'source_sha256': hashlib.sha256(source.read_bytes()).hexdigest(),
-                       'cache_sha256': hashlib.sha256(cache.read_bytes()).hexdigest()})
-        if role == 'body':
-            observed = paths['bodyMetrics']
-            assert observed['ascent'] == target['hhea'].ascent / target['head'].unitsPerEm
-            assert observed['descent'] == -target['hhea'].descent / target['head'].unitsPerEm
-            assert observed['bufferBytes'] == len(target.reader['cmap']) + len(target.reader['hmtx'])
-            assert not any(record.FeatureTag == 'kern' for record in target['GPOS'].table.FeatureList.FeatureRecord)
-            assert observed['fractional'] is True
-            result[-1]['body_metrics_verified'] = observed
+baseline = json.loads((root / 'docs/migration/outgame-baseline.json').read_text(encoding='utf-8'))
+source = Path(baseline['snapshot']) / 'shared/fonts/AlimamaShuHeiTi/AlimamaShuHeiTi-Bold.woff2'
+assert paths['body'] == paths['bold'] == 'Fonts/VoxIndustrial-Bold.otf'
+selected = root / 'assets' / paths['body']
+with TTFont(source, recalcTimestamp=False) as src, TTFont(selected, recalcTimestamp=False) as dst:
+    tables = ('CFF ', 'cmap', 'hmtx', 'hhea', 'GPOS')
+    assert all(src.getTableData(tag) == dst.getTableData(tag) for tag in tables)
+    observed = paths['bodyMetrics']
+    assert observed['ascent'] == dst['hhea'].ascent / dst['head'].unitsPerEm
+    assert observed['descent'] == -dst['hhea'].descent / dst['head'].unitsPerEm
+    assert observed['bufferBytes'] == len(dst.getTableData('cmap')) + len(dst.getTableData('hmtx'))
+    result.append({'source': str(source), 'selected': str(selected), 'baseline': baseline['commit'],
+                   'tables_identical': True, 'body_metrics_verified': observed,
+                   'source_sha256': hashlib.sha256(source.read_bytes()).hexdigest(),
+                   'selected_sha256': hashlib.sha256(selected.read_bytes()).hexdigest()})
 inline = json.loads((evidence / 'pc-inline-font.json').read_text(encoding='utf-8'))
 with TTCollection(system / 'simsun.ttc', lazy=True) as src, TTCollection(inline['path'], lazy=True) as dst:
     target = next(font for font in src.fonts if font['name'].getDebugName(1) == 'SimSun')

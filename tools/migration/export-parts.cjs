@@ -106,7 +106,7 @@ function save(name,v){fs.writeFileSync(path.join(out,name),JSON.stringify(v));}
  if(p.buildMini)for(const id of ['miniAssault','miniScout','miniHeavy']){
   builders['build'+id[0].toUpperCase()+id.slice(1)]=bp=>p.buildMini(bp,id);
  }
- for(const name of ['buildRaceCar','buildEmpty','buildMegaMech','buildScorpion','buildHawk','buildFeather','buildVanguard','buildDrillTank','buildFuyuanTank','buildGruntOne','buildFuyuanGrunt','buildFox','buildTrooper','buildMiniAssault','buildMiniScout','buildMiniHeavy'].filter(name=>builders[name])){
+ for(const name of ['buildRaceCar','buildEmpty','buildMegaMech','buildScorpion','buildHawk','buildFeather','buildVanguard','buildDrillTank','buildFuyuanTank','buildGruntOne','buildFuyuanGrunt','buildFox','buildTrooper','buildManta','buildRat','buildRoach','buildMiniAssault','buildMiniScout','buildMiniHeavy'].filter(name=>builders[name])){
   const bp=builders[name](new Blueprint());presets[name]={name:bp.name,parts:[...bp.parts.values()].map(({type,pos,rot,color,shellColor,scale,g})=>({type,pos,rot,color,...(shellColor!=null?{shellColor}:{}),...(scale?{scale}:{}),...(g?{g}:{})}))};
  }
  const {MATS}=await load('three/src/parts/materials.js');
@@ -147,17 +147,18 @@ function save(name,v){fs.writeFileSync(path.join(out,name),JSON.stringify(v));}
  const masks=Object.fromEntries(d.PART_LIST.filter(d=>d.shape||d.wheel).map(d=>[d.id,Array.from({length:24},(_,r)=>(partMasks(d.id,r)||[]).map(({c,mask})=>({c,mask:mask.toString(16).padStart(16,'0')})))]));
  save('SolidMasks.json',masks);save('HoverMounts.json',HOVER_GLB);
  const {LEG_GLB}=await load('shared/parts/legData.js');
+ const {MECH_GLB}=await load('shared/parts/mechData.js');
  const {partZone}=await load('shared/build/zones.js');
  const zones=Object.fromEntries(d.PART_LIST.filter(p=>p.thruster||p.hover).map(p=>[p.id,Array.from({length:24},(_,rotation)=>partZone(p.id,[0,0,0],rotation))]));
- save('BuildRules.json',{retiredWheels:[...d.RETIRED_WHEELS],blockMaterials:d.BLOCK_MATS,legStances:Object.fromEntries(Object.entries(LEG_GLB).map(([k,v])=>[k,v.stanceCells])),zones});
+ save('BuildRules.json',{retiredWheels:[...d.RETIRED_WHEELS],blockMaterials:d.BLOCK_MATS,legStances:Object.fromEntries(Object.entries(LEG_GLB).map(([k,v])=>[k,v.stanceCells])),mechStances:Object.fromEntries(Object.entries(MECH_GLB).map(([k,v])=>[k,v.stanceCells])),zones});
  const {TRACK_GLB}=await load('shared/parts/trackData.js'),{THRUSTER_GLB}=await load('shared/parts/thrusterData.js');
- const {thrusterPivot}=await load('shared/parts/thrusterMount.js'),{HOVER_MIN_UP}=await load('shared/parts/hoverMount.js');
+ const {thrusterPivot}=await load('shared/parts/thrusterMount.js'),{HOVER_MIN_UP,HOVER_HEIGHT_SCALE}=await load('shared/parts/hoverMount.js');
  const pick=(v,keys)=>Object.fromEntries(keys.map(k=>[k,v[k]]));
  const drive={rotations:r.ROTATIONS.map(r=>pick(r.quat,['x','y','z','w'])),
   wheels:Object.fromEntries(Object.entries(WHEEL_GLB).map(([id,g])=>[id,{r:g.r,cy:g.hub[1],w:g.w}])),
   tracks:Object.fromEntries(Object.entries(TRACK_GLB).map(([id,g])=>[id,pick(g,['cells','wheels','lanes','hull','thickness'])])),
   thrusters:Object.fromEntries(Object.entries(THRUSTER_GLB).map(([id,g])=>[id,{nozzles:g.nozzles,pivot:thrusterPivot(g)}])),
-  legs:Object.fromEntries(Object.entries(LEG_GLB).map(([id,g])=>[id,{toe:g.origins.toe,lengths:g.lengths,bounds:g.bounds}])),hoverMinUp:HOVER_MIN_UP};
+  legs:Object.fromEntries(Object.entries(LEG_GLB).map(([id,g])=>[id,{toe:g.origins.toe,lengths:g.lengths,bounds:g.bounds}])),hoverMinUp:HOVER_MIN_UP,hoverHeightScale:HOVER_HEIGHT_SCALE};
  save('DriveGeometry.json',drive);
  manifest.driveGeometry={path:'Drive/Geometry.json',sha256:sha(fs.readFileSync(path.join(out,'DriveGeometry.json')))};
  manifest.models=[...written].map(name=>'Parts/'+name);
@@ -174,10 +175,21 @@ function save(name,v){fs.writeFileSync(path.join(out,name),JSON.stringify(v));}
  fs.writeFileSync(path.join(out,'manifest.json'),JSON.stringify(manifest,null,2));
  if(apply){
   // Originals are staged completely first; write only changed files and keep .meta identities.
-  for(const name of changes){const dest=path.join(destination,name);fs.mkdirSync(path.dirname(dest),{recursive:true});fs.copyFileSync(path.join(out,name),dest);}
+  for(const name of changes){
+   const dest=path.join(destination,name);fs.mkdirSync(path.dirname(dest),{recursive:true});fs.copyFileSync(path.join(out,name),dest);
+   if(!fs.existsSync(dest+'.meta')){
+    const uuid=crypto.createHash('sha256').update('Vox:Parts:'+name).digest().subarray(0,18).toString('base64url');
+    fs.writeFileSync(dest+'.meta',JSON.stringify({uuid}));
+   }
+  }
+  for(const name of written){
+   const meta=path.join(destination,name+'.meta');
+   if(!fs.existsSync(meta))fs.writeFileSync(meta,JSON.stringify({uuid:crypto.createHash('sha256').update('Vox:Parts:'+name).digest().subarray(0,18).toString('base64url')}));
+  }
   const driveFile=path.join(target,'assets/Drive/Geometry.json');
   fs.mkdirSync(path.dirname(driveFile),{recursive:true});
   if(!fs.existsSync(driveFile)||sha(fs.readFileSync(driveFile))!==manifest.driveGeometry.sha256)fs.copyFileSync(path.join(out,'DriveGeometry.json'),driveFile);
+  require('./write-part-dependencies.cjs').Write(target);
   const external=[];
   for(const base of ['scripts','assets'])for(const item of fs.readdirSync(path.join(target,base),{recursive:true,withFileTypes:true})){
    if(!item.isFile()||!/[.](lua|xml|json)$/.test(item.name))continue;

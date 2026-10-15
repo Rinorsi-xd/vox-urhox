@@ -31,7 +31,7 @@ function mdl(g){
   const page=await browser.newPage();await page.goto('http://127.0.0.1:'+server.address().port+'/migration.html');
   const result=await page.evaluate(async()=>{
    const THREE=await import('three'),{TrackView}=await import('/three/src/drive/trackView.js'),{buildTrackLayout}=await import('/shared/drive/track.js'),{concreteDetail}=await import('/shared/scene/textures.js');
-   const font=new FontFace('GameFont','url(/shared/fonts/SmileySans-Oblique.ttf.woff2)');await font.load();document.fonts.add(font);
+   const font=new FontFace('GameFont','url(/shared/fonts/ZCOOLQingKeHuangYou-Regular.woff2)');await font.load();document.fonts.add(font);
    const layout=buildTrackLayout(),renderer=new THREE.WebGLRenderer(),view=new TrackView(renderer,layout,{cones:[{}],targets:[{}]},concreteDetail());
    const materials=[],textures=[],texMap=new Map(),materialKeys=new Map();
    function texture(t){if(!t)return null;if(!texMap.has(t.image)){const c=document.createElement('canvas');c.width=t.image.width;c.height=t.image.height;c.getContext('2d').drawImage(t.image,0,0);texMap.set(t.image,textures.length);textures.push(c.toDataURL('image/png'));}return {id:texMap.get(t.image),repeat:t.repeat.toArray()};}

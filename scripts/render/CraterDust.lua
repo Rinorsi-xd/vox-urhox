@@ -15,7 +15,8 @@ function M.New(root,owner)
     self.streakMaterial:SetShaderParameter('uColor',Variant(Vector3(.4969,.3968,.2747)))
     -- CPU sampling needs decoded pixels. Keep this PNG payload outside the
     -- publisher's GPU texture cooker: ASTC KTX cannot be read by Image.
-    self.ground=assert(cache:GetResource('Image','Crater/texture-0.bin'),'Missing CPU-readable crater ground mask')
+    self.ground=assert(cache:GetResource('Image',owner.options and owner.options.ground or 'Crater/texture-0.bin'),'Missing CPU-readable ground mask')
+    self.groundHalf=owner.options and owner.options.groundHalf or 320
     assert(not self.ground.compressed,'Crater ground mask must retain CPU-readable PNG pixels')
     -- Static seed positions and full-precision random value in NORMAL.x. All six
     -- vertices of a particle share the seed; the shader supplies its billboard.
@@ -37,7 +38,7 @@ function M.New(root,owner)
 end
 function M:Blocked(x,z,r)
     local function AO(a,b)
-        local u=math.floor((a+320)/640*self.ground.width);local v=math.floor((b+320)/640*self.ground.height)
+        local half=self.groundHalf;local u=math.floor((a+half)/(half*2)*self.ground.width);local v=math.floor((b+half)/(half*2)*self.ground.height)
         if u<0 or v<0 or u>=self.ground.width or v>=self.ground.height then return 1 end
         return self.ground:GetPixel(u,v).r
     end
@@ -78,5 +79,11 @@ function M:Update(t,camera)
     end
     self.streakMaterial:SetShaderParameter('uTime',Variant(t))
 end
-function M:Dispose() self.ground=nil;self.owner=nil;self.streaks={} end
+function M:Dispose()
+    if self.disposed then return end;self.disposed=true
+    self.g.node:Dispose();self.streak.node:Dispose()
+    self.material:Dispose();self.streakMaterial:Dispose()
+    self.g=nil;self.streak=nil;self.material=nil;self.streakMaterial=nil
+    self.ground=nil;self.owner=nil;self.streaks={}
+end
 return M

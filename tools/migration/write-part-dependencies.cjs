@@ -1,6 +1,6 @@
 const fs = require('node:fs');
 const path = require('node:path');
-const root = path.resolve(__dirname, '../..');
+function Write(root = path.resolve(__dirname, '../..')) {
 const rigs = path.join(root, 'assets/Parts/Rigs');
 const map = {};
 function collect(value, names) {
@@ -15,3 +15,7 @@ for (const name of fs.readdirSync(rigs).filter(n => n.endsWith('.json')).sort())
 }
 fs.writeFileSync(path.join(root, 'assets/Parts/Dependencies.json'), JSON.stringify(map));
 console.log(`Dependency index: ${Object.keys(map).length} part variants`);
+return map;
+}
+module.exports={Write};
+if(require.main===module)Write();

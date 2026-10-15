@@ -15,6 +15,8 @@ local add,sub,mul,dot,cross,length,norm=V.Add,V.Sub,V.Scale,V.Dot,V.Cross,V.Leng
 local clamp,mix,reject,rotate,arr,vec=V.Clamp,V.Mix,V.Reject,V.RotateUnit,V.Array,V.Vec
 local M={};M.__index=M
 local UP={0,1,0};local G=9.81;local DEG=math.pi/180;local GRIP=math.cos(40*DEG);local WALL=math.cos(50*DEG)
+local targetAxes={}
+for rot=0,23 do targetAxes[rot]={Rot.ApplyRot(rot,{1,0,0}),Rot.ApplyRot(rot,{0,1,0}),Rot.ApplyRot(rot,{0,0,1})} end
 local function Turn(a,b,t) return norm(mix(a,dot(a,b)<-.95 and add(b,{.01,.01,.01}) or b,t)) end
 local function Cone(n,c)
     if dot(n,UP)>=c then return n end
@@ -22,6 +24,7 @@ local function Cone(n,c)
 end
 function M.New(v)
     local self=setmetatable({v=v,states={},list={},info={}},M);local sides,order={},{}
+    self.ikScope=setmetatable({},{__close=function() self.ikCache=nil end})
     for _,l in ipairs(v.spec.legs) do if l.works then
         local key=table.concat(l.out,',');if not sides[key] then sides[key]={};order[#order+1]=key end
         table.insert(sides[key],l);self.info[l.type]=Assets.Get(l.type,l.rot).segments.info
@@ -49,7 +52,7 @@ function M.New(v)
     self.inertiaPR=math.max(ip,v.mass*.5);Gait.Setup(self);self:Reset();return self
 end
 function M:Cast(p,d,distance)
-    local h=self.v.space:Raycast(p,d,distance,self.v.body,nil,true)
+    local h=self.v.space:Raycast(p,d,distance,self.v.body,nil,true,require('drive.TerrainObstacles').SUPPORT_MASK)
     return h and {point=h.point,normal=h.normal,distance=h.dist,collider=h.collider} or nil
 end
 function M:Reset()
@@ -82,11 +85,23 @@ function M:IsStep(h,surf,input,ground)
 end
 function M:Target(s,foot,q,p)
     local delta=mul(sub(rotate(V.Inverse(q),sub(foot,p)),s.leg.origin),1/CELL);local result={}
-    for i,axis in ipairs({{1,0,0},{0,1,0},{0,0,1}}) do result[i]=dot(delta,Rot.ApplyRot(s.leg.rot,axis)) end
+    for i,axis in ipairs(targetAxes[s.leg.rot]) do result[i]=dot(delta,axis) end
     return result
 end
+local function Evaluation(self,s,foot,q,p)
+    -- Recompute the target before comparing scalar values: foot, q and p may
+    -- be modified in place. Only identical inputs share a solve within Step.
+    local target=self:Target(s,foot,q,p);local info=self.info[s.leg.type]
+    local previous=self.ikCache and self.ikCache[s]
+    if previous and previous.info==info and previous.target[1]==target[1] and previous.target[2]==target[2] and previous.target[3]==target[3] then return previous end
+    local value={info=info,target=target}
+    if self.ikCache then self.ikCache[s]=value end
+    return value
+end
 function M:Clear(s,foot,q,p,from)
-    local ik=IK.Solve(self.info[s.leg.type],self:Target(s,foot,q,p));if ik.error>.08 then return false end
+    local value=Evaluation(self,s,foot,q,p);local ik=value.pose
+    if not ik then ik=IK.Solve(value.info,value.target);value.pose=ik end
+    if ik.error>.08 then return false end
     local points={};for _,name in ipairs({'shoulderJoint','elbow','knee','toe'}) do
         points[#points+1]=add(p,rotate(q,add(s.leg.origin,mul(Rot.ApplyRot(s.leg.rot,ik.points[name]),CELL))))
     end
@@ -95,8 +110,11 @@ function M:Clear(s,foot,q,p,from)
     end
     return true
 end
-function M:Reachable(s,foot,q,p) return IK.Reachable(self.info[s.leg.type],self:Target(s,foot,q,p)) end
+function M:Reachable(s,foot,q,p)
+    local value=Evaluation(self,s,foot,q,p);return IK.Reachable(value.info,value.target,value)
+end
 function M:Step(cmd,dt,contactSupport)
+    self.ikCache={};local ikScope <close> = self.ikScope
     local v=self.v;local body=v.body;local legs=self.list;local n=#legs;local mass=v.mass
     local q,p,vel,w,com=body.rotation(),arr(body.translation()),arr(body.linvel()),arr(body.angvel()),arr(body.center())
     local function World(localPoint) return add(p,rotate(q,localPoint)) end

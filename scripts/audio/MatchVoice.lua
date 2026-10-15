@@ -1,5 +1,6 @@
 -- Source matchVoice event queue: bounded, expiring and no consecutive repeats.
 local Data=require('core.ResourceData').Read('Combat/Radio.json')
+local Levels=require 'audio.AudioLevels'
 local M={};M.__index=M
 function M.New(battle)
     local self=setmetatable({},M);self:init(battle);return self
@@ -32,7 +33,7 @@ function M:Next()
     local q=table.remove(self.queue,1);if not q then return end
     local pool={};for _,id in ipairs(q.ids) do if #q.ids==1 or id~=self.last[q.key] then pool[#pool+1]=id end end
     local id=pool[math.random(1,#pool)];local line=Data.lines[id];local sound=cache:GetResource('Sound',line.path)
-    self.last[q.key]=id;self.source:StopImmediate();self.source:Play(sound,0,.7)
+    self.last[q.key]=id;self.source:StopImmediate();Levels.Play(self.source,sound,0,.7)
     self.busyUntil=self.time+sound.length+.35;self.card={id=id,key=q.key,text=line.text,at=self.time,untilAt=self.time+sound.length+.5}
 end
 function M:Event(e)

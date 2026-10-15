@@ -1,5 +1,5 @@
--- Match the original Windows PC CSS font stack using local installed fonts.
--- Neither system fonts nor derived caches belong in assets or the release pack.
+-- October 14 source CSS uses VoxIndustrial for body text on every platform.
+-- System fonts are retained only for explicitly styled code and missing symbols.
 local Collection=require 'core.SystemFontCollection'
 local M={}
 ---@class SourceFontPaths
@@ -18,15 +18,10 @@ local inlineCode=nil
 local helpSymbol=nil
 function M.Resolve()
     if resolved then return resolved end
-    local paths={body='Fonts/MiSans-Regular.ttf',bold='Fonts/MiSans-Bold.ttf',code='Fonts/Anonymous Pro.ttf'}
+    local paths={body='Fonts/VoxIndustrial-Bold.otf',bold='Fonts/VoxIndustrial-Bold.otf',code='Fonts/Anonymous Pro.ttf'}
     if GetPlatform()=='Windows' and os.getenv then
         local windows=os.getenv and os.getenv('SystemRoot') or 'C:/Windows'
         local fonts=windows:gsub('\\','/')..'/Fonts/'
-        local cacheDir=fileSystem:GetAppPreferencesDir('VoxelCraft','SystemFonts')
-        if cacheDir~='' and fileSystem:CreateDir(cacheDir) then
-            paths.body=Collection.Prepare(fonts..'msyh.ttc',cacheDir..'yahei-ui-v1.ttc','Microsoft YaHei UI') or paths.body
-            paths.bold=Collection.Prepare(fonts..'msyhbd.ttc',cacheDir..'yahei-ui-bold-v1.ttc','Microsoft YaHei UI') or paths.bold
-        end
         if fileSystem:FileExists(fonts..'consola.ttf') then
             paths.code=fonts..'consola.ttf';paths.codeAdvance=Collection.MonoAdvance(paths.code)
         end

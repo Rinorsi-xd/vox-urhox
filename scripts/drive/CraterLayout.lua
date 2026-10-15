@@ -3,8 +3,8 @@
 -- them through normal world cleanup rather than leaving a suspended constructor.
 local Data=require 'core.ResourceData'
 local M={}
-function M.Begin()
-    local layout=Data.Read('Crater/Layout.json');local manifest=assert(layout.dataParts)
+function M.Begin(namespace)
+    local layout=Data.Read((namespace or 'Crater')..'/Layout.json');local manifest=assert(layout.dataParts)
     assert(manifest.version==1,'Unsupported crater layout version')
     layout.terrain.heights={};layout.blocks={};return layout
 end

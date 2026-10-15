@@ -17,6 +17,7 @@ function M.Dependencies(bp,roster,mode)
     local paths=require('parts.Dependencies').For(parts)
     if mode=='escort' then for _,path in ipairs(require('parts.Dependencies').For(BP.New():Load(Data.payload):List())) do paths[#paths+1]=path end end
     paths[#paths+1]='Shaders/BLGL/Combat/Objective.shader'
+    for _,style in ipairs({'round','square'}) do paths[#paths+1]='UI/Match/minimap-mask-'..style..'.png' end
     for _,path in ipairs(require('audio.BattleFlow').Dependencies(false)) do paths[#paths+1]=path end
     for _,team in ipairs({'blue','red'}) do for _,member in ipairs(roster[team]) do paths[#paths+1]='UI/Avatars/'..member.avatar..'.jpg' end end
     if fallback then for i=2,11 do paths[#paths+1]=string.format('UI/Avatars/a%02d.jpg',i) end end
@@ -38,9 +39,11 @@ function M.New(session,bp,checkpoint)
     for _,team in ipairs({'blue','red'}) do for i,member in ipairs(self.roster[team]) do
         local source=member.player and bp:ToTable() or Data.prefabs[team..':'..self.tier..':'..member.role..':'..(member.variant or 0)]
         local spawn=self:SpawnAt(team,i)
-        local unit=Unit.New(self.world,source,{name=member.name,spawn=spawn,team=team,autoRespawn=false,externalControl=true,externalView=member.player,combat=true})
+        local progress=checkpoint and function(p) checkpoint((#self.entries+p*.95)/(#self.roster.blue+#self.roster.red)) end or nil
+        local unit=Unit.New(self.world,source,{name=member.name,spawn=spawn,team=team,autoRespawn=false,externalControl=true,externalView=member.player,combat=true},progress,function(candidate)
+            self.world.units[#self.world.units+1]=candidate
+        end)
         assert(unit.alive,'Invalid battle vehicle '..member.name)
-        self.world.units[#self.world.units+1]=unit
         local entry={unit=unit,member=member,slot=i,guardUntil=self.world.time+3,repair=0}
         if member.player then self.player=unit else entry.driver=Driver.New(self.world,unit,member.role,#self.entries+1,member) end
         self.entries[#self.entries+1]=entry;self.stats[unit]={damage=0,kills=0,deaths=0,assists=0}
@@ -69,12 +72,12 @@ function M.New(session,bp,checkpoint)
         if checkpoint then checkpoint(#self.entries/(#self.roster.blue+#self.roster.red)) end
     end end
     self.baseDamage=self.world.RecordDamage;self.baseKill=self.world.RecordKill
-    self.world.RecordDamage=function(world,unit,amount,point)
+    self.world.RecordDamage=function(world,unit,amount,point,opts)
         local attacker=world.attacker
         if attacker and attacker~=unit and amount>0 then
             self.stats[attacker].damage=self.stats[attacker].damage+amount;unit.lastHitBy=attacker
             local hits=self.lastHit[unit] or {};hits[attacker]=world.time;self.lastHit[unit]=hits
-            if attacker==self.player then self.baseDamage(world,unit,amount,point) end
+            if attacker==self.player then self.baseDamage(world,unit,amount,point,opts) end
         end
     end
     self.world.RecordKill=function(world,unit,pos)
@@ -84,6 +87,9 @@ function M.New(session,bp,checkpoint)
         for by,at in pairs(hits) do if world.time-at<10 and by~=attacker and by.team~=unit.team then self.stats[by].assists=self.stats[by].assists+1 end end
         self.lastHit[unit]=nil
         self.voice:Kill(unit,attacker)
+        local function Identity(u) return u and {name=u.name,team=u.team,me=u==self.player} or nil end
+        local group=attacker and attacker.weapons and attacker.weapons.groups and attacker.weapons.groups[1]
+        require('ui.MatchFeed').Push(self,Identity(attacker),Identity(unit),group and group.kind)
         if attacker and attacker.team~=unit.team then
             self.stats[attacker].kills=self.stats[attacker].kills+1
             if self.mode=='conquest' then self.rules:Kill(attacker.team) end
@@ -124,28 +130,24 @@ function M:BeforeStep(dt,command,aim)
             if entry.driver then entry.driver=Driver.New(self.world,u,entry.member.role,entry.slot,entry.member) end
         end
         if u.alive then
-            local cmd={throttle=0,steer=0,handbrake=true};local target=aim;local firing=false
+            local cmd={throttle=0,steer=0,handbrake=true};local target=aim;local firing=false;local driverInfo
             if live then
                 u.repairing=false
                 u:RegenerateStructure(dt)
                 if u==self.player then cmd=command;firing=command.firing==true
-                else cmd,target,firing=entry.driver:Step(dt,self.objectives:Goal(entry,self:Pick(u)),self.rules.sudden or self.mode=='elimination' and self.rules.t>40) end
+                else cmd,target,firing,driverInfo=entry.driver:Step(dt,self.objectives:Goal(entry,self:Pick(u)),self.rules.sudden or self.mode=='elimination' and self.rules.t>40) end
                 self.objectives:UnitTick(entry,dt)
-                if self.mode=='elimination' and not self.rules.sudden and self.world.time-u.hitAt>=self.rules.cfg.regenDelay then
-                    u.repairing=u:Health()<.995 or u:Integrity()<.995
-                    u:Heal(self.rules.cfg.regen*dt);entry.repair=entry.repair+dt
-                    if entry.repair>=.5 then entry.repair=entry.repair-.5;u:RestoreMissing(1) end
-                elseif self.mode=='elimination' then entry.repair=0 end
             end
             u:Flush()
             if u.alive then
+                require('combat.DriverActions').Apply(u,driverInfo)
                 local v=u.vehicle;v:StepRotors(live and target or nil,live and cmd.rotorStep,live and dt or 0)
                 require('drive.RotorMotion').Weapons(v.rotors,u.weapons)
                 v:Step(cmd,dt);local p,velocity=v.body.translation(),v.body.linvel()
                 local eye=u==self.player and self.session.camera:GetNode().worldPosition or nil
                 u.weapons:Step(dt,{firing=live and firing,aim=target or u:Position(),pos={p.x,p.y,p.z},quat=v.body.rotation(),vel={velocity.x,velocity.y,velocity.z},body=v.body,
-                    team=u.team,live=live,eye=eye and {-eye.x,eye.y,eye.z}},entry.env)
-                self.session.effects:Consume(u.weapons.fx)
+                    team=u.team,live=live,salvo=live and driverInfo and driverInfo.salvo,eye=eye and {-eye.x,eye.y,eye.z}},entry.env)
+                self.session.effects:Consume(u.weapons.fx,u~=self.player)
                 self.session.weaponAudio:Consume(u.weapons.fx,u~=self.player)
                 if p.y< -40 then local core=u.bp:CoreParts()[1];if core then u:Damage(core.id,1e9,u:Position());u:Flush() end end
             end
@@ -159,7 +161,7 @@ function M:WorldState()
 end
 function M:AfterStep(dt)
     self.sounds:Countdown(self.rules.cfg.prep-self.rules.t,self.rules.state=='prep')
-    self.clock=self.clock+dt;self.rules:Step(dt,self:WorldState())
+    self.clock=self.clock+dt;local worldState=self:WorldState();self.rules:Step(dt,worldState)
     for _,event in ipairs(self.rules:Drain()) do
         self.events[#self.events+1]=event
         self.sounds:Event(event)
@@ -173,20 +175,10 @@ function M:AfterStep(dt)
                 if e.driver then e.driver=Driver.New(self.world,e.unit,e.member.role,i,e.member) end
             end
         end
-        if event.type=='roundPrep' then self:Banner(self.rules:Final() and '决胜局' or '第 '..event.round..' 回合','ROUND '..event.round)
-        elseif event.type=='roundStart' then self:Banner('出击！','ENGAGE')
-        elseif event.type=='suddenDeath' then self:Banner('决胜时刻','SUDDEN DEATH')
-        elseif event.type=='roundEnd' then self:Banner(event.winner=='blue' and '回合胜利' or event.winner=='red' and '回合失利' or '回合平局','ROUND '..self.rules.round)
-        elseif event.type=='halfPrep' then self:Banner(event.half==1 and '上半场' or '下半场','ESCORT')
-        elseif event.type=='halfStart' then self:Banner(self.rules.attack=='blue' and '推进运输车' or '阻止运输车','ENGAGE')
-        elseif event.type=='halfEnd' then self:Banner('半场结束','HALF TIME')
-        elseif event.type=='checkpoint' then self:Banner('检查点 '..event.n..' · 加时 60 秒','CHECKPOINT')
-        elseif event.type=='overtime' then self:Banner('加时','OVERTIME')
-        elseif event.type=='pointTaken' then self:Banner(event.id..' 站点已占领','CAPTURED')
-        elseif event.type=='shieldDown' then self:Banner(event.team=='blue' and '我方护盾熄灭' or '敌方护盾熄灭','SHIELD DOWN')
-        elseif event.type=='shieldUp' then self:Banner('基地护盾恢复','SHIELD ONLINE')
-        elseif event.type=='matchOver' then
-            self.banner=nil
+        local notice=require('ui.MatchBanner').ForEvent(self,event,worldState)
+        if notice then self:Banner(notice.text,notice.tag,notice.sub,notice.cls,notice.ms,notice.mini) end
+        if event.type=='matchOver' then
+            require('ui.MatchBanner').Clear(self)
             self.session:Pause()
             if not self.result then
                 self.mvp=require('combat.MvpMotion').Winner(self.entries,self.stats)
@@ -198,10 +190,11 @@ function M:AfterStep(dt)
         end
     end
     self.objectives:Update(dt)
-    if self.banner then self.banner.age=self.banner.age+dt;if self.banner.age>3.2 then self.banner=nil end end
 end
-function M:Banner(text,tag) self.banner={text=text,tag=tag,age=0} end
+function M:Banner(text,tag,sub,cls,ms,mini) return require('ui.MatchBanner').Push(self,text,tag,sub,cls,ms,mini) end
 function M:Restart()
+    require('ui.MatchBanner').Clear(self)
+    require('ui.MatchFeed').Clear(self)
     if self.mvpShow then self.mvpShow:Dispose();self.mvpShow=nil end
     self.mvp=nil;self.lastHit={}
     self.session:Pause();self.result=nil;self.objectives:Reset();self.rules=self.objectives:Rules();self.voice:Reset();self.world.debris:Clear()

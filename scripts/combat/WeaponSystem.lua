@@ -212,7 +212,7 @@ function Weapons:Beam(w,m,aimDir,state,env)
     if hit then env.hit(hit,Defs.DamageAtDistance(s,hit.dist),aimDir,s.impulse,s.pierce or 0) end
     local to=hit and hit.point or M.Add(m.pos,M.Scale(aimDir,s.reach or s.range));local kind=Defs.Kind(w.type)
     self.fx[#self.fx+1]={type="shot",kind=kind,fx=s.fx,pos=m.pos,dir=aimDir,kick=s.kick,shake=s.shake,id=w.id,tier=s.tier,barrel=w.barrel}
-    self.fx[#self.fx+1]={type="beam",kind=kind,fx=s.fx,tier=s.tier,from=m.pos,to=to,dir=aimDir,hit=hit~=nil,
+    self.fx[#self.fx+1]={type="beam",kind=kind,fx=s.fx,tier=s.tier,splash=s.pierce and s.pierce.splash and s.pierce.splash.radius or 0,from=m.pos,to=to,dir=aimDir,hit=hit~=nil,
         normal=hit and hit.normal or nil,target=hit~=nil and hit.owner~=nil and hit.owner.type=="target",material=hit and hit.owner and ({car=true,target=true,debris=true})[hit.owner.type] and 'metal' or 'ground',id=w.id}
     if w.offs then w.barrel=w.barrel%#w.offs+1 end
 end

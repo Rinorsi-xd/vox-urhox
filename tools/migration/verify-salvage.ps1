@@ -1,7 +1,7 @@
 $ErrorActionPreference='Stop'
 $projectRoot=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 $report=Join-Path $projectRoot 'docs/migration/evidence/salvage-native.json'
-if(Test-Path -LiteralPath $report){Remove-Item -LiteralPath $report}
+if(Test-Path -LiteralPath $report){Move-Item -LiteralPath $report -Destination ($report+'.previous-'+[DateTime]::UtcNow.ToString('yyyyMMddTHHmmssfff'))}
 $runtimeArgs=@('main.lua',('-tapcode_dir='+$projectRoot),'-tool_mode','-validate','-quality=mobile','-validate-frames=1000','-validate-timeout=180','-validate-spike-threshold=15000',('-validate-output='+$report),'-log','info',('-validate-test='+$PSScriptRoot+'/check-salvage.lua'))
 $process=Start-Process -FilePath ($projectRoot+'/.cli/UrhoXRuntime.exe') -WorkingDirectory $projectRoot -WindowStyle Hidden -PassThru -ArgumentList $runtimeArgs -RedirectStandardOutput ($projectRoot+'/.tmp/salvage-native-out.txt') -RedirectStandardError ($projectRoot+'/.tmp/salvage-native-err.txt')
 $timer=[Diagnostics.Stopwatch]::StartNew()

@@ -15,13 +15,15 @@ local function Attach(parent,data,part,vis)
     for _,layer in ipairs(data.layers) do
         local sm=parent:CreateComponent("StaticModel")
         sm.model=require('parts.PartAssets').Model(layer)
-        local dynamic=false
+        local dynamic=false;local shield=false
         for i,slot in ipairs(layer.slots) do
             local emission=vis.emissionSlot==slot;dynamic=dynamic or emission
             local weapon=vis.weaponMaterials and WeaponPresentation.slots[slot]
             sm:SetMaterial(i-1,weapon and WeaponPresentation.Material(vis,slot) or emission and Materials.DynamicEmission(slot) or Materials.Get(slot,vis.instanced))
             if slot=='armorWhite' then vis.shellSlots[#vis.shellSlots+1]={model=sm,index=i-1} end
+            shield=shield or slot=='shieldCell' or slot=='quantumShield'
         end
+        if shield then sm.instanceCustomData=Vector4.ZERO;vis.shieldModels[#vis.shieldModels+1]=sm end
         if dynamic then sm.instanceCustomData=Vector4(vis.emissionDefault,0,0,0);vis.emissionModels[#vis.emissionModels+1]=sm end
         if vis.weaponMaterials then
             -- Base geometry already uses authored weapon coordinates; the part's
@@ -38,19 +40,39 @@ local function Attach(parent,data,part,vis)
 end
 function M.Build(node,data,part,vis)
     local s=data.segments
-    vis.data=data;vis.rig={};vis.shellSlots={};vis.materialSlots={}
+    vis.data=data;vis.rig={};vis.shellSlots={};vis.materialSlots={};vis.shieldModels={}
     if data.weapon and data.weapon~=cjson.null and (part.type:match('^mg%d+$') or part.type:match('^laser%d+$') or part.type:match('^sniper%d+$') or part.type:match('^missile%d+$')) then
         WeaponPresentation.Create(vis,part.type)
     end
     vis.emissionModels={}
     if s and s~=cjson.null then
-        vis.emissionSlot=(s.thruster or s.hover) and 'glowBlue' or s.leg and 'legJumpGlow' or nil
+        vis.emissionSlot=(s.thruster or s.hover or s.wing) and 'glowBlue' or s.leg and 'legJumpGlow' or nil
         vis.emissionDefault=s.thruster and 1.5 or s.hover and 0 or 2.8
     end
     local r=vis.rig
     local function Add(n,d) Attach(n,d,part,vis) end
-    if not s or s==cjson.null or s.mech or s.wing then Add(node,data.whole);return end
-    if s.wheel then
+    if not s or s==cjson.null then Add(node,data.whole);return end
+    if s.wing then
+        require('render.WingRig').Build(node,s,part,vis,Add)
+    elseif s.mech then
+        r.mech={};r.mechSubs={};r.mechVanes={}
+        local parents={thigh='base',shin='thigh',tarsus='shin',foot='tarsus',toecap='foot'}
+        local joints={thigh='hip',shin='knee',tarsus='ankle',foot='ball',toecap='toe'}
+        local origins={}
+        for _,name in ipairs({'mount','base','thigh','shin','tarsus','foot','toecap'}) do
+            local parent=parents[name];local p=joints[name] and s.info.joints[joints[name]] or {0,0,0}
+            origins[name]=p;local q=parent and origins[parent] or {0,0,0}
+            local n=Group(parent and r.mech[parent] or node,name,{p[1]-q[1],p[2]-q[2],p[3]-q[3]})
+            r.mech[name]=n;Add(n,s.segments[name])
+        end
+        for _,sub in ipairs(s.subs) do
+            local parent=sub.parent or 'shin';local q=origins[parent];local p=sub.origin
+            local n=Group(r.mech[parent],sub.name,{p[1]-q[1],p[2]-q[2],p[3]-q[3]})
+            r.mechSubs[sub.name]=n;Add(n,sub.model)
+            for _,v in ipairs(s.info.vanes) do if v.name==sub.name then r.mechVanes[#r.mechVanes+1]={node=n,axis=Vec(v.axis):Normalized()} end end
+        end
+        M.SetMechPose(vis,require('parts.MechIK').Solve(s.type,s.info.joints.toe),0)
+    elseif s.wheel then
         Add(node,s.mount);r.steer=Group(node,"Steer")
         if s.knuckle then Add(Group(r.steer,"Knuckle",data.wheel.kingpin),s.knuckle) end
         r.spin=Group(r.steer,"Wheel",data.wheel.hub);Add(r.spin,s.spin)
@@ -142,5 +164,14 @@ function M.SetLegTarget(vis,target,bladeAngle)
     j.link2.rotation=Quaternion(-pose.second*180/math.pi,Vector3.FORWARD)
     j.blade.rotation=Quaternion(-pose.blade*180/math.pi,Vector3.FORWARD)
     return pose
+end
+function M.SetMechPose(vis,pose,vane)
+    local r=vis.rig;local j=r.mech;local deg=180/math.pi
+    j.base.rotation=Quaternion(-pose.yaw*deg,Vector3.UP)*Quaternion(-pose.roll*deg,Vector3.FORWARD)
+    -- Mirroring source X keeps axial X rotations and reverses axial Y/Z.
+    for _,name in ipairs({'thigh','shin','tarsus','foot','toecap'}) do j[name].rotation=Quaternion(pose[name]*deg,Vector3.RIGHT) end
+    if r.mechSubs.act_sleeve then r.mechSubs.act_sleeve.rotation=Quaternion(pose.sleeve*deg,Vector3.RIGHT) end
+    if r.mechSubs.act_rod then r.mechSubs.act_rod.rotation=Quaternion(pose.rod*deg,Vector3.RIGHT) end
+    for _,v in ipairs(r.mechVanes) do v.node.rotation=Quaternion(-(vane or 0)*22,v.axis) end
 end
 return M

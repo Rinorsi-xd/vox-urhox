@@ -3,11 +3,11 @@
 -- Keep the look direction, shorten only at opaque architecture; ignore vehicle,
 -- transparent FX and moving machinery. Room planes also cover mesh seams.
 local M={};M.__index=M
-function M.New(scene)
-    local root=assert(scene:GetChild('OrbitalHangar'))
+function M.New(scene,sceneRoot,roomLimit)
+    local root=sceneRoot or assert(scene:GetChild('OrbitalHangar'))
     local solids={}
     for _,model in ipairs(root:GetComponents('StaticModel',true)) do
-        local node=model.node;local moving=false;local parent=node
+        local node=model.node;local moving=sceneRoot~=nil and node.parent~=root;local parent=node
         while parent and parent~=root do
             if parent.name:match('^Crane') or parent.name:match('^Drone') or parent.name:match('^DisplayPart') then moving=true;break end
             parent=parent.parent
@@ -15,7 +15,7 @@ function M.New(scene)
         local shader=model.material and model.material:GetSurfaceShader()
         if not moving and shader and (shader.name:match('/Surface%.shader$') or shader.name:match('/Deck%.shader$')) then solids[model]=true end
     end
-    return setmetatable({root=root,octree=scene:GetComponent('Octree'),solids=solids,limit=require('scene.HangarConfig').layout.cameraLimit},M)
+    return setmetatable({root=root,octree=scene:GetComponent('Octree'),solids=solids,limit=roomLimit or require('scene.HangarConfig').layout.cameraLimit},M)
 end
 function M:Resolve(target,position)
     if not self.root.enabled then return position end

@@ -69,6 +69,16 @@ local function SetFloat(m, name, v)
 end
 
 local function Make(key)
+    if key=='shieldCell' or key=='quantumShield' then
+        local cell=key=='shieldCell';local m=NewSurface('VoxMechShield.shader')
+        SetColor(m,'base_color',cell and 0x0b2c58 or 0x04122a)
+        SetColor(m,'emission_color',cell and 0x2b8fff or 0x1a6ee8)
+        SetFloat(m,'emission_strength',cell and .85 or 1.25)
+        SetFloat(m,'roughness_value',cell and .16 or .3)
+        SetFloat(m,'band_base',cell and .55 or .75)
+        SetFloat(m,'band_strength',cell and 1.1 or .5)
+        return m
+    end
     local source=require("parts.Defs").DATA.materials[key]
     if source and key~="armorWhite" and key~="glass" then
         local animated=key=='spinSteel' or key=='spinGlow' or key=='glowBlink' or key=='glowCyan' or key=='glowGreen'

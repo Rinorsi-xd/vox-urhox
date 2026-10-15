@@ -43,6 +43,7 @@ function M.Find(store,size,tier,name,seed)
 end
 function M.IntroSeen(store,mode) local p=Read(store);return p.introSeen and p.introSeen[mode]==true end
 function M.MarkIntro(store,mode) local p=Read(store);p.introSeen=p.introSeen or {};p.introSeen[mode]=true;return store:Write('match-profile',p,Valid) end
+function M.ResetIntro(store) local p=Read(store);p.introSeen={};return store:Write('match-profile',p,Valid) end
 function M.Record(store,winner,rating,kills,mvp)
     local p=Read(store);local won=winner=='blue';local expected=1/(1+10^((rating-p.rating)/400))
     local delta=math.floor(32*((not winner and .5 or won and 1 or 0)-expected)+.5)

@@ -80,6 +80,22 @@ function M:ExitCheck(e,width)
     if e.needs and (self.cargo[e.needs] or 0)<1 then return '需要 1 个'..require('core.ResourceData').Read('UI/Outgame.json').items[e.needs].name end
     if e.maxWidth and width>e.maxWidth then return string.format('车宽 %.1f 米，超过 %d 米过不去',width,e.maxWidth) end
 end
+function M:Objective(pos)
+    local best=false;local distance=math.huge
+    local wantOut=self.time>600 or Loot.Used(self.cargo)>=15
+    if not wantOut then
+        for _,o in ipairs(self.objects) do if o.kind=='wreck' and o.model=='core' and not self.opened[o.id] then
+            local d=Flat(o.g,pos);if d<distance then distance=d;best={text='核心件 · '..o.name,g=o.g} end
+        end end
+    end
+    if wantOut or not best then
+        distance=math.huge
+        for _,e in ipairs(self.extracts) do if not e.openAt or self.time>=e.openAt then
+            local d=Flat(e.g,pos);if d<distance then distance=d;best={text='撤离 '..e.id..' · '..e.name,g=e.g} end
+        end end
+    end
+    if not best then return nil end;best.dist=distance;return best
+end
 function M:Step(dt,state)
     if self.finished then return end
     self.time=self.time+dt;self.heat=math.max(0,self.heat-dt*.7);self.prompt=nil
@@ -111,11 +127,17 @@ function M:Step(dt,state)
                 if not self.act or self.act.o~=o then self.act={o=o,t=0} end
                 local need=o.model=='core' and 6 or Data.wrecks[o.model].time*.5
                 self.act.t=state.hold and self.act.t+dt or math.max(0,self.act.t-dt*2)
-                self.prompt={title=self:Title(o),sub='按住 E 拆卸',progress=self.act.t/need}
+                if state.hold then self:Heat(dt) end
+                self.prompt={title=self:Title(o),sub=state.hold and '拆卸中…' or ('按住 E · '..need..' 秒'),progress=self.act.t/need}
                 if self.act.t>=need then
-                    for _,it in ipairs(Loot.FromTable(Data.wrecks[o.model].loot,self.rand)) do Loot.Take(self.cargo,it.id,it.n);self:Emit('reveal',{item=it,at=o.g}) end
+                    local got=0
+                    for _,it in ipairs(Loot.FromTable(Data.wrecks[o.model].loot,self.rand)) do
+                        local taken=Loot.Take(self.cargo,it.id,it.n);if taken>0 then got=got+1 end
+                        self:Emit('reveal',{item=it,at=o.g,taken=taken,worldBatch=true})
+                    end
+                    if got>0 then self:Emit('worldLoot',{at=o.g,color=o.model=='core' and 0xffb21e or 0xc9c1b2,n=got}) end
                     self.opened[o.id]=true;self.openedCount=self.openedCount+1;self:Heat(o.model=='core' and 25 or 6)
-                    if o.model=='core' then self:Emit('noise',{at=o.g,r=380});self:Emit('hunt',{n=2,at=o.g}) end;self.act=nil
+                    if o.model=='core' then self:Emit('noise',{at=o.g,r=380});self:Emit('hunt',{n=2,at=o.g});self:Emit('core',{at=o.g}) end;self.act=nil
                 end
             end
         else self.act=nil end

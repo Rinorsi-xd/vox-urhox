@@ -1,16 +1,18 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const {chromium}=require('C:/Users/XD/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
-const root=path.resolve(__dirname,'../..'),out=path.join(root,'docs/migration/evidence');
-const prepared=JSON.parse(fs.readFileSync(path.join(root,'.tmp/outgame-prepare-cached.json'),'utf8'));
+const root=path.resolve(__dirname,'../..'),base='http://127.0.0.1:'+Number(process.env.VOX_QA_PORT||4204);
 const cases=[{name:'pc',width:1920,height:1080},{name:'phone-landscape',width:840,height:378,dpr:3,touch:true},{name:'tablet',width:1024,height:768,dpr:2,touch:true}];
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 (async()=>{
+ const identity=await fetch(base+'/identity.json').then(r=>r.json());assert(identity.qa,'read-only QA probe required');
+ const out=path.join(root,'docs/migration/evidence/loading-battle-'+identity.servedManifest.replace('.json','')+'-'+new Date().toISOString().replace(/[:.]/g,'-'));
+ fs.mkdirSync(out,{recursive:true});
  const browser=await chromium.launch({headless:true,channel:'chrome',args:['--use-angle=d3d11']});
  try{for(const test of cases.filter(t=>!process.env.VOX_QA_CASE||process.env.VOX_QA_CASE.split(',').includes(t.name))){
   const page=await browser.newPage({viewport:{width:test.width,height:test.height},deviceScaleFactor:test.dpr||1,...(test.touch?{hasTouch:true,isMobile:true}:{})});
   let state;let closed=false;const states=[],errors=[],expectedErrors=[],httpFailures=[];let intentional=false;
   page.on('crash',()=>{closed=true;errors.push('Browser renderer crashed');});page.on('close',()=>closed=true);
-  const report={build:prepared.source_directory,manifest:path.basename(prepared.manifest_path),viewport:test,checks:[],states,errors,expectedErrors,httpFailures,memory:[],truncatedProbes:0};
+  const report={identity,build:identity.source_directory,manifest:identity.servedManifest,viewport:test,checks:[],states,errors,expectedErrors,httpFailures,memory:[],truncatedProbes:0};
   const sustained=Math.max(0,Number(process.env.VOX_QA_PRESSURE_SECONDS||0));
   const prefix=(sustained?'battle-pressure-web-':'loading-battle-web-')+test.name;
   report.pressure=[];
@@ -31,7 +33,7 @@ const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
   async function widget(text,kind){const s=await dump();const item=s.widgets.find(item=>kind?item.kind===kind:item.text===text);assert.ok(item,'Live widget '+text);const [x,y,w,h]=item.rect;await tap((x+w/2)/s.width*test.width,(y+h/2)/s.height*test.height);}
   async function shot(name){await page.screenshot({path:path.join(out,prefix+'-'+name+'.png'),timeout:10000});}
   try{
-   await page.goto('http://127.0.0.1:4204/outgame.html?-game_url=http://127.0.0.1:4204/game-dist/&-log=info&cached=1');
+   await page.goto(base+'/outgame.html?-game_url='+base+'/game-dist/&-log=info&cached=1');
    await wait(s=>s.mode==='hangar'&&s.tab==='hangar','hall');
    await page.evaluate(()=>{
     const previous=abortOnCannotGrowMemory;
@@ -54,7 +56,18 @@ const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
     await page.mouse.down();await wait(s=>s.weapons.shots>0,'equipped weapons fire',15000);await page.mouse.up();check((await dump()).weapons.shots>0,'actual mouse fires equipped weapons');
     await page.keyboard.press('Escape');await wait(s=>!s.pointer.captured,'release');
    }else{
-    await widget('拉近');await sleep(400);check((await dump()).camera.dist<before.camera.dist*.95,'touch zoom uses equivalent native notch');
+    const cdp=await page.context().newCDPSession(page),cx=test.width*.65,cy=test.height*.38;
+    async function pinch(from,to){
+     const points=half=>[{id:1,x:cx-half,y:cy},{id:2,x:cx+half,y:cy}];
+     await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:points(from)});
+     for(let i=1;i<=10;i++){await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:points(from+(to-from)*i/10)});await sleep(25);}
+     await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await sleep(400);return dump();
+    }
+    const zoomed=await pinch(40,60);
+    check(Math.abs(zoomed.camera.dist/before.camera.dist-2/3)<.025,'actual two-finger spread follows source logarithmic zoom ratio');
+    const restored=await pinch(60,40);
+    check(Math.abs(restored.camera.dist/before.camera.dist-1)<.025,'actual inverse pinch restores touch camera distance');
+    check(restored.touchControls.contacts===0,'pinch releases both real touch contacts');
    }
    await page.keyboard.press('t');await wait(s=>s.mode==='hangar'&&!s.loadingFlow.active,'return to hall');check(!state.loadingFlow.failed,'trial returns through shared transition');
    if(process.env.VOX_QA_BATTLE==='1'){
@@ -99,4 +112,5 @@ const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
   finally{fs.writeFileSync(path.join(out,prefix+'.json'),JSON.stringify(report,null,2));await page.close();}
   console.log(JSON.stringify({case:test.name,result:report.result,checks:report.checks.length,errors:errors.length,httpFailures:httpFailures.length}));
  }}finally{await browser.close();}
+ console.log(out);
 })().catch(error=>{console.error(error);process.exitCode=1;});

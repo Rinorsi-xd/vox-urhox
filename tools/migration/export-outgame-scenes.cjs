@@ -5,6 +5,9 @@ const {optimize}=require('./crater-model.cjs');
 const root=path.resolve(__dirname,'../..');
 const baseline=JSON.parse(fs.readFileSync(path.join(root,'docs/migration/outgame-baseline.json')));
 const source=baseline.snapshot;
+const outputRoot=process.env.VOX_EXPORT_OUTPUT?path.resolve(process.env.VOX_EXPORT_OUTPUT):path.join(root,'assets');
+const storyLevel=process.env.VOX_EXPORT_STORY_LEVEL||'';
+if(storyLevel&&process.env.VOX_EXPORT_SCENE!=='Story')throw Error('Level selection is only valid for Story');
 const motionSource='three/src/scene/warehouse.js';
 const motionHash=createHash('sha256').update(fs.readFileSync(path.join(source,motionSource))).digest('hex');
 if(motionHash!==baseline.files[motionSource]?.sha256)throw Error('Warehouse source differs from frozen baseline');
@@ -45,7 +48,7 @@ function model(g){
    try{
     const buffers=[];for await(const b of req)buffers.push(b);const g=JSON.parse(Buffer.concat(buffers));
     if(!['Warehouse','Salvage','Story','SalvageCine','Mvp'].includes(g.folder))throw Error('Invalid output');
-    const out=path.join(root,'assets',g.folder);fs.mkdirSync(out,{recursive:true});
+    const out=path.join(outputRoot,g.folder);fs.mkdirSync(out,{recursive:true});
     const name=(g.name||(g.folder==='Salvage'?'run-model-':'model-')+g.index)+'.bin',bytes=model(g);fs.writeFileSync(path.join(out,name),bytes);
     res.end(JSON.stringify({model:g.folder+'/'+name,material:g.material,shadow:g.shadow,triangles:g.idx.length/3,bytes:bytes.length}));
    }catch(e){res.writeHead(500);res.end(String(e));}return;
@@ -58,7 +61,8 @@ function model(g){
  try{
   const page=await browser.newPage();page.on('console',m=>console.log(m.text()));page.on('pageerror',e=>console.error(e));
   await page.goto('http://127.0.0.1:'+server.address().port+'/migration.html');
-  const result=await page.evaluate(async(selected)=>{
+  const result=await page.evaluate(async(selection)=>{
+   const selected=selection.scene,selectedStoryLevel=selection.level;
    const T=await import('three');const scenes={};
    if(selected==='SalvageCine')scenes.SalvageCine=await (await import('/migration/salvage-cine-export.js')).build();
    if(selected==='Mvp')scenes.Mvp=await (await import('/migration/mvp-export.js')).build();
@@ -90,6 +94,7 @@ function model(g){
     const {STORY_LEVELS}=await import('/shared/story/chapter1.js');
     scenes.Story={group:holo.scene,lights:[],levels:[]};
     for(const lv of STORY_LEVELS){
+     if(selectedStoryLevel&&lv.no!==selectedStoryLevel)continue;
      holo.setLevel(lv);holo.level.updateMatrixWorld(true);
      const entries=[];
      holo.level.traverse(o=>{if(o.isMesh){o.userData.storyLevel=lv.no;entries.push(o.clone());}});
@@ -143,6 +148,7 @@ function model(g){
      }g.dispose();
     }
     scene.group.traverse(o=>{
+     if(folder==='Story'&&selectedStoryLevel&&o.userData.storyLevel!==selectedStoryLevel)return;
      if(o.isLight){const p=new T.Vector3().setFromMatrixPosition(o.matrixWorld);const target=o.target?new T.Vector3().setFromMatrixPosition(o.target.matrixWorld):null;scene.lights.push({type:o.type,color:o.color.toArray(),intensity:o.intensity,position:p.toArray(),target:target?.toArray(),direction:o.getWorldDirection(new T.Vector3()).toArray(),range:o.distance||100,angle:o.angle,penumbra:o.penumbra,width:o.width,height:o.height,shadow:o.castShadow});return;}
      if(o.isLineSegments2){
       const start=o.geometry.attributes.instanceStart,end=o.geometry.attributes.instanceEnd;
@@ -166,10 +172,11 @@ function model(g){
     output[folder]={materials,textures,models,lights:scene.lights,motion:scene.motion,motionSamples:scene.motionSamples,cineSamples:scene.cineSamples,smokeTextures:scene.smokeTextures,limit:scene.limit,terrain:scene.terrain,levels:scene.levels,starter:scene.starter,stashCells:scene.stashCells,mvpSamples:scene.mvpSamples};console.log(folder+' converted '+models.length+' batches');
     if(scene.salvage)output[folder].salvage=await scene.salvage(material);
    }return output;
-  },process.env.VOX_EXPORT_SCENE||'');
-  fs.writeFileSync(path.join(root,'.tmp/outgame-scenes-export.json'),JSON.stringify(result));
+  },{scene:process.env.VOX_EXPORT_SCENE||'',level:storyLevel});
+  fs.mkdirSync(outputRoot,{recursive:true});
+  fs.writeFileSync(process.env.VOX_EXPORT_OUTPUT?path.join(outputRoot,'outgame-scenes-export.json'):path.join(root,'.tmp/outgame-scenes-export.json'),JSON.stringify(result));
   for(const [folder,data] of Object.entries(result)){
-   const out=path.join(root,'assets',folder);
+   const out=path.join(outputRoot,folder);
    if(data.mvpSamples){fs.writeFileSync(path.join(root,'tools/migration/source-mvp.json'),JSON.stringify({baseline:baseline.commit,samples:data.mvpSamples}));delete data.mvpSamples;}
    if(data.smokeTextures){data.smokeTextures.forEach((t,i)=>fs.writeFileSync(path.join(out,'smoke-'+i+'.png'),Buffer.from(t.split(',')[1],'base64')));delete data.smokeTextures;}
    if(data.cineSamples){fs.writeFileSync(path.join(root,'tools/migration/source-salvage-cine.json'),JSON.stringify({baseline:baseline.commit,samples:data.cineSamples}));delete data.cineSamples;}

@@ -46,6 +46,10 @@ function C.Fit(vg,text,width,size,body)
     while utf8.len(text)>1 and C.Width(vg,text..'…',size,body)>width do text=text:sub(1,utf8.offset(text,-1)-1) end
     return text..'…'
 end
+function C.FitFont(vg,text,width,size,body)
+    local measured=C.Width(vg,text,size,body)
+    return measured>width and math.floor(size*width/measured) or size
+end
 function C.Number(n)
     local s=tostring(math.floor(n+.5)):reverse():gsub('(%d%d%d)','%1,'):reverse();return (s:gsub('^,',''))
 end

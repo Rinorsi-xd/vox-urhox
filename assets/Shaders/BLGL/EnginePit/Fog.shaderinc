@@ -1,0 +1,25 @@
+vec4 craterFog(vec3 vFogWorld, vec3 sourceCamera) {
+vec3 fRay = vFogWorld - sourceCamera;
+		float fLen = max( length( fRay ), 1e-3 );
+		vec3 fDir = fRay / fLen;
+		float fy = fDir.y;
+		float fb = 0.02200;
+		float fAmt = 0.00125 * exp( - fb * ( sourceCamera.y - ( -10.00 ) ) );
+		fAmt *= abs( fy ) > 1e-4 ? ( 1.0 - exp( - fLen * fy * fb ) ) / ( fy * fb ) : fLen;
+		float fogFactor = min( 1.0 - exp( - max( fAmt, 0.0 ) ), 0.800 );
+		float fSun = pow( max( dot( fDir, vec3( -0.5209, 0.5009, -0.6912 ) ), 0.0 ), 6.0 );
+		vec3 fCol = mix( vec3(0.4969,0.3968,0.2747), vec3( 0.8963, 0.5776, 0.2961 ) * 1.25, fSun * 0.700 );
+		vec3 fogRGB = fCol * fogFactor;
+		// 低洼浮尘：同样的解析积分，衰减快得多（几米就淡掉）；浓淡按视线中点的位置起伏（大片的一团一团）
+		float pb = 0.3200;
+		float pAmt = 0.00600 * exp( - pb * ( sourceCamera.y - ( -12.50 ) ) );
+		pAmt *= abs( fy ) > 1e-4 ? ( 1.0 - exp( - fLen * fy * pb ) ) / ( fy * pb ) : fLen;
+		vec2 pm = ( sourceCamera.xz + vFogWorld.xz ) * 0.009;
+		vec2 pi = floor( pm ), pf = fract( pm ); pf = pf * pf * ( 3.0 - 2.0 * pf );
+		vec4 ph = fract( sin( vec4( dot( pi, vec2( 127.1, 311.7 ) ), dot( pi + vec2( 1.0, 0.0 ), vec2( 127.1, 311.7 ) ),
+			dot( pi + vec2( 0.0, 1.0 ), vec2( 127.1, 311.7 ) ), dot( pi + vec2( 1.0, 1.0 ), vec2( 127.1, 311.7 ) ) ) ) * 43758.5453 );
+		float pn = mix( mix( ph.x, ph.y, pf.x ), mix( ph.z, ph.w, pf.x ), pf.y );
+		float poolF = min( 1.0 - exp( - max( pAmt, 0.0 ) * ( 0.45 + 1.1 * pn ) ), 0.420 );
+		fogRGB = mix( fogRGB, mix( fCol, vec3( 0.8963, 0.5776, 0.2961 ) * 1.1, 0.35 + fSun * 0.4 ), poolF );
+float a = fogFactor + poolF*(1.0-fogFactor);return vec4(fogRGB/max(a,0.00001),a);
+}

@@ -1,9 +1,8 @@
 local Data=require('core.ResourceData').Read('UI/Outgame.json')
 local Rules=require('core.ResourceData').Read('UI/SalvageRules.json')
 local M={};M.__index=M
-local function Valid(d)
-    return type(d)=='table' and d.v==1 and type(d.credits)=='number' and d.credits>=0 and type(d.items)=='table'
-end
+local Stash=require('salvage.StashRules')
+local Valid=Stash.Valid
 M.Valid=Valid
 function M.New(app)
     local self=setmetatable({app=app,store=require('storage.BlueprintStore').New(app.isValidation and 'vox-validation-salvage' or 'vox-salvage')},M)
@@ -21,11 +20,26 @@ function M:Usage()
 end
 function M:Loose(id,usage) return math.max(0,self:Owned(id)-((usage or self:Usage())[id] or 0)) end
 function M:Save() return self.store:Write('stash',self.data,Valid) end
+function M:Shortfall(usage) return Stash.Shortfall(self.data.items,usage or self:Usage()) end
+function M:BuyAll(list)
+    local result=Stash.Buy(self.data,list);if not result.ok then return result end
+    local previous=self.data;self.data=result.data
+    local ok,err=self:Save()
+    if not ok then self.data=previous;return {ok=false,cost=result.cost,reason=err} end
+    return {ok=true,cost=result.cost}
+end
+function M:BeginRun(runId)
+    if self.data.lastStartedRun==runId then return true end
+    local previous=self.data;local nextData={};for k,v in pairs(previous) do nextData[k]=v end
+    local stats=previous.stats or {};nextData.stats={};for k,v in pairs(stats) do nextData.stats[k]=v end
+    nextData.stats.raids=(stats.raids or 0)+1;nextData.lastStartedRun=runId;self.data=nextData
+    local ok,err=self:Save();if not ok then self.data=previous end;return ok,err
+end
 function M:CommitRun(runId,result,originalParts)
     if self.data.lastRun==runId then return true end
     local previous=self.data;local nextData={};for k,v in pairs(previous) do nextData[k]=v end
     nextData.items={};for id,n in pairs(previous.items) do nextData.items[id]=n end
-    local stats=previous.stats or {};nextData.stats={raids=(stats.raids or 0)+1,extracted=(stats.extracted or 0)+(result.ok and 1 or 0),lost=(stats.lost or 0)+(result.ok and 0 or 1)}
+    local stats=previous.stats or {};nextData.stats={raids=(stats.raids or 0)+(previous.lastStartedRun==runId and 0 or 1),extracted=(stats.extracted or 0)+(result.ok and 1 or 0),lost=(stats.lost or 0)+(result.ok and 0 or 1)}
     if result.ok then for id,n in pairs(result.cargo) do nextData.items[id]=(nextData.items[id] or 0)+n end
     elseif not result.keepCar then
         for _,p in ipairs(originalParts) do if p[1]~='core' then local id='part:'..p[1];nextData.items[id]=math.max(0,(nextData.items[id] or 0)-1) end end

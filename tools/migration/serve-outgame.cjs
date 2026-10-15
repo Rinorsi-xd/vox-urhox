@@ -8,20 +8,35 @@ const main=manifest.files.find(f=>f.fs_path==='main.lua');
 const mainName=main.uuid+'-'+main.hash+main.ext;
 const qa=process.argv.includes('--qa');
 const loadProfile=qa&&process.argv.includes('--profile-loads');
+const combatProfile=qa&&process.argv.includes('--profile-combat');
+const warmBatchArg=process.argv.find(arg=>arg.startsWith('--warm-batch-size='));
+const warmBatchSize=warmBatchArg?Number(warmBatchArg.split('=')[1]):null;
+if(warmBatchSize!==null&&(!loadProfile||!Number.isInteger(warmBatchSize)||warmBatchSize<1||warmBatchSize>64))throw Error('Warm-up batch size is a QA load-profile option, range 1..64');
 const renderExperiment=qa&&process.argv.includes('--render-experiment');
 const warmExperiment=renderExperiment&&process.argv.includes('--warm-experiment');
 const warmIntroExperiment=warmExperiment&&process.argv.includes('--warm-intro-experiment');
 const concurrencyArg=process.argv.find(arg=>arg.startsWith('--download-concurrency='));
 const downloadConcurrency=concurrencyArg?Number(concurrencyArg.split('=')[1]):null;
 if(downloadConcurrency!==null&&(!loadProfile||!Number.isInteger(downloadConcurrency)||downloadConcurrency<1||downloadConcurrency>16))throw Error('Download concurrency is a QA load-profile option, range 1..16');
-const probe=qa?(loadProfile?'G0_DOWNLOAD_CONCURRENCY='+(downloadConcurrency??'nil')+'\n'+fs.readFileSync(path.join(__dirname,'profile-load-bindings.lua'),'utf8')+'\n':'')+(renderExperiment?'G0_WARM_EXPERIMENT='+String(warmExperiment)+'\nG0_WARM_INTRO_EXPERIMENT='+String(warmIntroExperiment)+'\n'+fs.readFileSync(path.join(__dirname,'probe-render-experiment.lua'),'utf8')+'\n':'')+fs.readFileSync(path.join(__dirname,'probe-outgame-web.lua'),'utf8'):'';
+const probe=qa?(loadProfile?'G0_DOWNLOAD_CONCURRENCY='+(downloadConcurrency??'nil')+'\nG0_WARM_BATCH_SIZE='+(warmBatchSize??'nil')+'\n'+fs.readFileSync(path.join(__dirname,'profile-load-bindings.lua'),'utf8')+'\n':'')+(renderExperiment?'G0_WARM_EXPERIMENT='+String(warmExperiment)+'\nG0_WARM_INTRO_EXPERIMENT='+String(warmIntroExperiment)+'\n'+fs.readFileSync(path.join(__dirname,'probe-render-experiment.lua'),'utf8')+'\n':'')+fs.readFileSync(path.join(__dirname,'probe-outgame-web.lua'),'utf8')+(combatProfile?'\n'+fs.readFileSync(path.join(__dirname,'probe-combat-performance.lua'),'utf8'):''):'';
 const probeSha256=qa?require('node:crypto').createHash('sha256').update(probe).digest('hex'):null;
 const port=Number(process.env.VOX_PREVIEW_PORT||4203);
 const sourceCache=require('./cached-engine-sources.cjs');
+const sourceBaseline=JSON.parse(fs.readFileSync(path.join(root,'docs/migration/outgame-baseline.json')));
+const sourceRoot=path.resolve(root,sourceBaseline.snapshot);
 const server=http.createServer((req,res)=>{
  if(req.url==='/identity.json'){
   res.setHeader('Content-Type','application/json');res.setHeader('Cache-Control','no-store');
-  res.end(JSON.stringify({...prepared,qa,loadProfile,downloadConcurrency,renderExperiment,warmExperiment,warmIntroExperiment,probeSha256,port,processId:process.pid,servedManifest:path.basename(prepared.manifest_path)}));return;
+  res.end(JSON.stringify({...prepared,qa,loadProfile,combatProfile,downloadConcurrency,warmBatchSize,renderExperiment,warmExperiment,warmIntroExperiment,probeSha256,port,processId:process.pid,servedManifest:path.basename(prepared.manifest_path)}));return;
+ }
+ if(req.url.startsWith('/baseline/')){
+  const relative=decodeURIComponent(req.url.split('?')[0].slice('/baseline/'.length));
+  const file=path.resolve(sourceRoot,relative),registered=sourceBaseline.files[relative];
+  if(!file.startsWith(sourceRoot+path.sep)||!registered||!fs.existsSync(file)){res.writeHead(404).end();return;}
+  const bytes=fs.readFileSync(file);
+  if(require('node:crypto').createHash('sha256').update(bytes).digest('hex')!==registered.sha256){res.writeHead(409).end();return;}
+  res.setHeader('Content-Type',({'.css':'text/css','.woff2':'font/woff2','.png':'image/png'})[path.extname(file)]||'application/octet-stream');
+  res.setHeader('Cross-Origin-Resource-Policy','same-origin');res.end(bytes);return;
  }
  if(req.url.startsWith('/cached-engine-source/')){
   const cached=sourceCache.read('https://tapcode-sce.spark.xd.com/'+req.url.slice('/cached-engine-source/'.length));

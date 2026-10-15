@@ -17,22 +17,8 @@ local function Lines(vg,text,width,size,font)
 end
 function Detail:SetPart(id)
     self.partType=id;self.imageEntry=0;local d=Defs.PARTS[id];if not d then return end
-    self.rows={{'chip','预算',d.budget==0 and '免费' or d.budget..' 点','budget',d.budget},
-        {'weight','质量',d.mass..' kg','mass',d.mass},{'shield','耐久',tostring(d.hp),'hp',d.hp}}
-    local function Row(icon,label,text) self.rows[#self.rows+1]={icon,label,text} end
-    if d.load>0 then Row('weight','承载',d.load..' kg');Row('gauge','基础速度',d.speed..' km/h') end
-    if d.speedLimit then Row('gauge','参考限速（不叠加）',d.speedLimit..' km/h') end
-    if d.wheel then Row('wheel','转向',d.steer and ('会转向，最大 '..d.steerAngle..'°') or '不转向（动力轮）') end
-    if d.track then Row('wheel','转向','原地差速转向，不需要转向轮') end
-    if d.wtier then Row(d.weapon and 'crosshair' or 'wheel',d.weapon and '武器阶位' or '阶位','T'..d.wtier..'（车辆档位不能更低）') end
     local ws=d.weapon and require('combat.WeaponDefs').Stats(id)
-    if ws then
-        local n=math.floor(1/ws.share+.5)
-        Row('gauge','火力',n==1 and '1 份（一把就满）' or ('1/'..n..' 份（'..n..' 把同类凑满）'))
-        Row('crosshair','单把秒伤',tostring(math.floor(ws.damage*(ws.rate or 1/ws.interval)+.5))..(ws.spinUp and '（转满后）' or ''))
-        Row('chip','每发耗能',tostring(tonumber(string.format('%.2f',ws.energy))))
-    end
-    Row('build','占用',#d.cells..' 格');Row('lock','解锁',d.unlock..'（原型已全部开放）')
+    self.rows=require('ui.InventoryDetailRows').Build(d,ws)
     self.layoutKey=nil
 end
 function Detail:Update(dt) self.imageEntry=math.min(.24,(self.imageEntry or 0)+math.max(0,dt)) end
@@ -77,7 +63,7 @@ function Detail:Render(vg)
             local unit=i==1 and (d.budget>0 and ' 点' or '') or i==2 and ' kg' or ''
             local value=i==1 and (d.budget>0 and tostring(d.budget) or '免费') or i==2 and tostring(d.mass) or tostring(d.hp)
             local unitWidth=D.Width(vg,unit,12,'vox-body')
-            D.Text(vg,value,x+w-unitWidth,cy+5,value=='免费' and 12 or 24,nil,value=='免费' and 'vox-body' or 'vox-display',NVG_ALIGN_RIGHT)
+            D.Text(vg,value,x+w-unitWidth,cy+5,value=='免费' and 12 or 24,nil,value=='免费' and 'vox-body' or 'vox-tabular',NVG_ALIGN_RIGHT)
             D.Text(vg,unit,x+w,cy+14,12,nil,'vox-body',NVG_ALIGN_RIGHT)
             local ratio=math.max(.02,math.min(1,row[5]/maximum[row[4]]));D.Rect(vg,x+24,cy+height-12,w-24,3,{37,62,86,255});D.Rect(vg,x+24,cy+height-12,(w-24)*ratio,3,{117,185,223,255})
         else

@@ -1,5 +1,6 @@
 -- Frozen approved samples; ten reusable voices, one queue loop, one radio.
 local Data=require('core.ResourceData').Read('Combat/FlowSounds.json')
+local Levels=require 'audio.AudioLevels'
 local M={};M.__index=M
 function M.Dependencies(queue)
     local paths={}
@@ -27,14 +28,14 @@ function M:Play(id)
     if cue.pool then cue=Data.cues[cue.pool[math.random(1,#cue.pool)]] end
     self.cursor=self.cursor%10+1;local source=self.slots[self.cursor]
     if not source then source=self:Source('Feedback'..self.cursor);self.slots[self.cursor]=source end
-    source:StopImmediate();source:Play(cache:GetResource('Sound',cue.path),0,math.min(1,cue.gain));return true
+    source:StopImmediate();Levels.Play(source,cache:GetResource('Sound',cue.path),0,math.min(1,cue.gain));return true
 end
 function M:Queue(enabled)
     self.search=enabled
     if not enabled then if self.loop then self.loop:StopImmediate() end;return end
     if not self.ready or self.disposed or not input.focus or input.minimized then return end
     if not self.loop then self.loop=self:Source('Search') end
-    if not self.loop.playing then local cue=Data.cues.match_search;local sound=cache:GetResource('Sound',cue.path);sound.looped=true;self.loop:Play(sound,0,math.min(1,cue.gain)) end
+    if not self.loop.playing then local cue=Data.cues.match_search;local sound=cache:GetResource('Sound',cue.path);sound.looped=true;Levels.Play(self.loop,sound,0,math.min(1,cue.gain)) end
 end
 function M:Found()
     self:Queue(false);self:Play('match_found_latch');self.voiceAt=self.time+.38
@@ -68,7 +69,7 @@ function M:Update(dt)
         if self.ready then
             if not self.voice then self.voice=self:Source('FoundRadio') end
             local id=Data.foundVoice[math.random(1,#Data.foundVoice)]
-            self.voice:Play(cache:GetResource('Sound','Sounds/Match/'..id..'.wav'),0,.7)
+            Levels.Play(self.voice,cache:GetResource('Sound','Sounds/Match/'..id..'.wav'),0,.7,nil,'voice')
         end
     end
 end

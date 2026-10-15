@@ -10,12 +10,11 @@ const source=baseline.snapshot,url=p=>pathToFileURL(path.join(source,p)).href;
 const entry=url('three/src/battle/storyView.js');
 registerHooks({resolve(s,c,n){return n(s==='three'?url('three/vendor/three/build/three.module.js'):s,c);},
  load(u,c,n){const r=n(u,c);if(u!==entry)return r;
-  // Canvas glow sprites have no geometry. Keep their hierarchy placeholders;
-  // the native view uses the original beam/ring shaders and mesh geometry.
-  return {...r,source:String(r.source).replace(/const glowSprite = .*?;(?=\r?\n)/,'const glowSprite = () => new THREE.Group();')
+  // Preserve the original sprite parameters for the bounded native billboard batch.
+  return {...r,source:String(r.source).replace(/const glowSprite = .*?;(?=\r?\n)/,'const glowSprite = (color,size,opacity) => { const g=new THREE.Group();g.scale.setScalar(size);g.userData.glow={color:new THREE.Color(color).toArray(),opacity};return g; };')
    .replace(/function foxFlagTexture\( company \) \{[\s\S]*?\n\}/,'function foxFlagTexture() { return null; }')
    .replace(/function textSprite\( text,[\s\S]*?\n\}/,'function textSprite() { return new THREE.Group(); }')
-   .replace('const t = { pos, hitT: - 1, roll: 0 };','g.userData = { wheels, lamp, flash }; const t = { pos, hitT: - 1, roll: 0 };')+'\nexport {Beacon,IntelCube,collectorModel};'};
+   .replace('const t = { pos, hitT: - 1, roll: 0 };','g.userData = { wheels, lamp, flash, glow }; const t = { pos, hitT: - 1, roll: 0 };')+'\nexport {Beacon,IntelCube,collectorModel};'};
  }});
 const THREE=await import(url('three/vendor/three/build/three.module.js'));
 const {LEVEL1}=await import(url('shared/story/level1.js'));
@@ -54,37 +53,42 @@ function material(m){
  const id=materials.length+1,uniform=m.uniforms||{};
  const shader=m.isShaderMaterial?(uniform.uProgress?'Ring':'Beam'):m.transparent?'Holo':m.isMeshBasicMaterial?'Unlit':'Body';
  const color=uniform.uColor?.value||m.color;
- materials.push({shader,color:color?.toArray()||[1,1,1],alpha:uniform.uAlpha?.value??m.opacity,roughness:m.roughness??.5,metalness:m.metalness??0,
+ materials.push({shader,line:m.isLineBasicMaterial===true,color:color?.toArray()||[1,1,1],alpha:uniform.uAlpha?.value??m.opacity,roughness:m.roughness??.5,metalness:m.metalness??0,
   emission:m.emissive?.toArray()||[0,0,0]});materialMap.set(m.uuid,id);return id;
 }
 function tree(object){
  const nodes=[],ids=new Map();
  function walk(o,parent){const id=nodes.length+1;ids.set(o,id);
   nodes.push({parent,position:o.position.toArray(),quaternion:o.quaternion.toArray(),scale:o.scale.toArray(),visible:o.visible,
-   ...(o.isMesh?{model:model(o.geometry),material:material(o.material),shadow:!!o.castShadow}:{})});
-  for(const child of o.children)if(!child.isLine)walk(child,id);
+   ...(o.isMesh?{model:model(o.geometry),material:material(o.material),shadow:!!o.castShadow}:{}),
+   ...(o.isLineSegments?{lines:Array.from(o.geometry.attributes.position.array),material:material(o.material)}:{}),
+   ...(o.isPointLight?{light:{color:o.color.toArray(),intensity:o.intensity,range:o.distance,decay:o.decay}}:{}),
+   ...(Array.isArray(o.userData.glow?.color)?{glow:o.userData.glow}:{})});
+  for(const child of o.children)walk(child,id);
  }walk(object,0);return {nodes,ids};
 }
 const scene=new THREE.Scene(),clock={value:0};
 const beacon=new Beacon(scene,clock),intel=new IntelCube(scene,[0,0,0],clock),collector=collectorModel(clock);
 const b=tree(beacon.g),i=tree(intel.g),c=tree(collector),u=collector.userData;
-const rig={};for(const key of ['body','drill','lamp','halo','flame','up'])rig[key]=c.ids.get(u[key]);
+const rig={};for(const key of ['body','drill','lamp','halo','glow','flame','up'])rig[key]=c.ids.get(u[key]);
 rig.legs=u.legs.map(o=>c.ids.get(o));rig.rings=u.rings.map(o=>c.ids.get(o));
 const zone=model(new THREE.PlaneGeometry(2,2).rotateX(-Math.PI/2));
 const view={models,materials,zone,beacon:{nodes:b.nodes,gem:b.ids.get(beacon.gem),ring:b.ids.get(beacon.ring),ring2:b.ids.get(beacon.ring2)},
- intel:{nodes:i.nodes,float:i.ids.get(intel.float),core:i.ids.get(intel.core),inner:i.ids.get(intel.inner),rings:intel.rings.map(o=>i.ids.get(o)),pad2:i.ids.get(intel.pad2),shards:i.ids.get(intel.shards),shardNodes:intel.shards.children.map(o=>i.ids.get(o))},collector:{nodes:c.nodes,rig},
- limitations:['Canvas halo sprites and mesh edge lines are not exported; original mesh silhouettes, beam/ring formulas and animation hierarchy are retained.']};
+ intel:{nodes:i.nodes,float:i.ids.get(intel.float),halo:i.ids.get(intel.halo),core:i.ids.get(intel.core),inner:i.ids.get(intel.inner),rings:intel.rings.map(o=>i.ids.get(o)),pad2:i.ids.get(intel.pad2),shards:i.ids.get(intel.shards),shardNodes:intel.shards.children.map(o=>i.ids.get(o))},collector:{nodes:c.nodes,rig},
+ limitations:[]};
 const truckScene=new THREE.Scene(),truckHost={scene:truckScene,objects:[],time:clock};
 const random=Math.random;let seed=0x132026;Math.random=()=>((seed=(Math.imul(seed,1664525)+1013904223)>>>0)/2**32);
 try{StoryView.prototype.addTruck.call(truckHost,[0,0,0],0);}finally{Math.random=random;}
 const truckRoot=truckScene.children[0],truckTree=tree(truckRoot);
-view.truck={nodes:truckTree.nodes,wheels:truckRoot.userData.wheels.map(o=>truckTree.ids.get(o)),lamp:truckTree.ids.get(truckRoot.userData.lamp),
+view.truck={nodes:truckTree.nodes,wheels:truckRoot.userData.wheels.map(o=>truckTree.ids.get(o)),lamp:truckTree.ids.get(truckRoot.userData.lamp),glow:truckTree.ids.get(truckRoot.userData.glow),
  flash:materialMap.get(truckRoot.userData.flash)};
 const siteScene=new THREE.Scene(),siteHost={scene:siteScene,objects:[],addCollector:()=>null};
 StoryView.prototype.addSite.call(siteHost,'A',[0,0,0]);
 const siteTree=tree(siteHost.sites.A.flag);
 view.site={nodes:siteTree.nodes,cloth:siteTree.ids.get(siteHost.sites.A.cloth)};
 view.graffiti=model(new THREE.PlaneGeometry(11.2,2.1));
+const alarmView=new StoryView({scene3:new THREE.Scene()});
+const alarmTree=tree(alarmView.alarm);view.alarm={nodes:alarmTree.nodes};
 const voiceIndex=JSON.parse(fs.readFileSync(path.join(source,'shared/assets/story/vo/lines.json'))),byText=new Map();
 const norm=s=>String(s).replace(/^【[^】]*】/,'').replace(/[^\p{Script=Han}A-Za-z0-9]/gu,'');
 for(const [id,v] of Object.entries(voiceIndex))for(const text of v.text)byText.set(norm(text),id);

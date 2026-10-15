@@ -4,7 +4,7 @@ local D=require 'ui.SourceDraw'
 local Card=require 'ui.ModeCard'
 local Action=require 'ui.ModeAction'
 local Paragraph=require 'ui.SourceParagraph'
-local Data=require('core.ResourceData').Read('UI/Outgame.json')
+local Modes=require('combat.ArenaData').modes
 local Config=require 'Config'
 local Page=UI.Panel:Extend('VoxModePage')
 local M={}
@@ -19,7 +19,7 @@ local function Fade(vg,x,y,w,h,a,b,horizontal)
 end
 function Page:Render(vg)
     D.Begin(vg);local r=self:GetAbsoluteLayout();local w,h=r.w,r.h
-    local x,y=r.x,r.y;local s=self.owner;local p=Data.modes[s.modeChoice]
+    local x,y=r.x,r.y;local s=self.owner;local p=Modes[s.modeChoice]
     local test=s.modeChoice=='test';local dark={11,12,15,255};local transparent={11,12,15,0}
     D.Rect(vg,x,y,w,h,{10,20,34,255})
     require('ui.WorkshopPaint').Image(vg,'UI/Modes/Filtered/'..(test and 'test' or 'crater')..'-map.jpg',{x=x+w*.4,y=y,w=w*.6,h=h},1,.5)
@@ -39,7 +39,7 @@ function Page:Render(vg)
     local name=p and p.name or test and '试车场' or '自由探索'
     D.Text(vg,name,tx,y+298.8,30,nil,nil,nil,2)
     local tag=p and (p.en..' · '..p.size..'V'..p.size..' · '..sublines[p.id]) or sublines[s.modeChoice]
-    D.Text(vg,tag,tx+D.Width(vg,name,30,nil,2)+14,y+314.8,13,{230,243,255,255},nil,nil,2)
+    D.Text(vg,tag,tx+D.Width(vg,name,30,nil,2)+14,y+314.8,13,{219,238,255,255},nil,nil,2)
     local rules=p and p.rules or test and {'自由驾驶，熟悉操控和武器','靶车会逐块被打坏，看看你的火力','可以选任意档位'}
         or {'开着自己的车在地图里随便转（没有敌人）','N 键传送到各个区域，Backspace 回出生点','熟悉路线、找狙击位和掩体'}
     local yy=y+352.8
@@ -54,7 +54,7 @@ function Page:Render(vg)
     D.Rect(vg,x,y+59,w,1,{255,255,255,20})
 end
 function M.Start(s)
-    if Data.modes[s.modeChoice] then s.app:EnterBattle(s.modeChoice);return end
+    if Modes[s.modeChoice] then s.app:EnterBattle(s.modeChoice);return end
     s.app:EnterTrial(s.modeChoice=='test' and 'trial' or 'crater')
 end
 function M.Create(s)
@@ -78,7 +78,7 @@ function M.Create(s)
     end
     local icons={'target','tower','car'}
     for i,id in ipairs({'elimination','conquest','escort'}) do
-        local p=Data.modes[id];local item={id=id,name=p.name,en=p.en,size=p.size,icon=icons[i],no='0'..i,
+        local p=Modes[id];local item={id=id,name=p.name,en=p.en,size=p.size,icon=icons[i],no='0'..i,
             sub=sublines[id]..' · 约 '..p.minutes..' 分钟',focus=i==1 and .4 or .45,bias=i==1 and .7 or .62}
         local card=s.Track(Card{text=p.name,position='absolute',left=44+(i-1)*(gridWidth+14)/3,top=201,width=(gridWidth-28)/3,height=modesHeight,onClick=function() Choose(id) end})
         card.item=item;card.owner=s;left:AddChild(card)
@@ -90,7 +90,7 @@ function M.Create(s)
         card.item=p;card.owner=s;card.wide=true;left:AddChild(card);sx=sx+width+14
     end
     page:AddChild(UI.ScrollView{position='absolute',width=leftWidth,height=h,scrollY=true,scrollX=false,bounces=false,showScrollbar=false,children={left}})
-    local selected=Data.modes[s.modeChoice]
+    local selected=Modes[s.modeChoice]
     local name=selected and '开始匹配' or s.modeChoice=='test' and '开始试车' or '进入地图'
     local subtitle=selected and (selected.size..'V'..selected.size..' · 预计等待 0:'..string.format('%02d',8+selected.size*2)) or '单人 · 不计战绩'
     local valid=true

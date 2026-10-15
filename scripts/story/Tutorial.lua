@@ -41,9 +41,9 @@ function M:Advance()
     if not self.visible or self.rules:StepSpec().next~='button' then return end
     local s=self.rules:StepSpec();local line=s.lines[self.line]
     local count=utf8.len(line[2]);local duration=self.typing or count*.032
-    if self.lineAge<duration then
+    if self.lineAge<duration and not (self.voice and self.voice.card and self.voice.card.finishedTyping) then
         self.lineAge=duration
-        if self.voice and self.voice.card then self.voice.card.age=duration end
+        if self.voice then self.voice:FinishLine() end
     elseif self.line<#s.lines then self.line=self.line+1;self.lineAge=0
     else self.rules:Advance(self:State()) end
 end
@@ -72,14 +72,19 @@ function M:Update(dt)
     if self.skipConfirm then self.skipConfirm=math.max(0,self.skipConfirm-dt) end
     if self.revision~=self.rules.revision then self.revision=self.rules.revision;self.line=1;self.lineAge=0;self.skipConfirm=0 end
     if not self.visible then
-        self.page:CancelInput();if self.voice then self.voice:Hide();self.voiceKey=false end
+        self.page:CancelInput()
+        if self.voice then
+            if not self.rules.running or state.drive or self.app.loadingFlow.active then self.voice:Hide();self.voiceKey=false
+            else self.voice:Update(0,false) end
+        end
         return
     end
     local s=self.rules:StepSpec();local line=s.lines[self.line]
     if not self.voice then self.voice=require('audio.StoryComms').New(self.app.scene,self.data,true) end
+    if not self.voice:Owns() then self.voice:Use(true);self.voiceKey=false end
     local key=self.rules.revision..':'..self.line
     if self.voiceKey~=key then self.voiceKey=key;self.voice:Say({line},true) end
-    self.voice:Update(math.min(dt,.1),true)
+    self.voice:Update(dt,true)
     local card=self.voice.card;self.typing=card and card.typing or utf8.len(line[2])*.032
     self.lineAge=card and card.age or 0
     local length=card and card.length or utf8.len(line[2])*.102+1.8

@@ -59,6 +59,11 @@ function M.Create(session)
     badge.session=session;root:AddChild(badge);state.modeBadge=badge
     local rotor=require('ui.RotorHud'){position='absolute',width='100%',height='100%',pointerEvents='none'}
     rotor.session=session;root:AddChild(rotor);state.rotor=rotor
+    local desktopOnly={toolbar,state.dock,stats.root,hover,badge}
+    local function TouchVisibility()
+        if session.buildCamera.touch then for _,child in ipairs(desktopOnly) do child:SetVisible(false) end end
+    end
+    TouchVisibility()
     if session.buildCamera.touch then state.touchControls=require('ui.TouchBuildControls').Create(session,root,playfield) end
     local owned={};for _,child in ipairs(root.children) do owned[#owned+1]=child end
     local pointerModes={};for _,child in ipairs(owned) do pointerModes[child]=child.props.pointerEvents or 'auto' end
@@ -74,9 +79,14 @@ function M.Create(session)
         if inventoryHidden~=hidden then
             inventoryHidden=hidden
             for _,child in ipairs(owned) do if child~=shade then child:SetVisible(not hidden) end end
+            if not hidden then TouchVisibility() end
             if hidden then state.SetColor(false) end
         end
-        if state.touchControls then state.touchControls.Update(hidden or session.dialog~=nil or state.colorOpen or not input.focus or input.minimized) end
+        if state.touchControls then
+            local focused=state.touchControls.focus and state.touchControls.focus() or (not state.touchControls.focus and input.focus and not input.minimized)
+            state.touchControls.Update(hidden or session.dialog~=nil or state.colorOpen or not focused)
+            if session.buildCamera.touch then stats.root:SetVisible(not hidden and state.touchControls.statsOpen==true) end
+        end
         state.RefreshDock()
         state.buttons.mirror.props.selected=editor.mirror;state.buttons.xray.props.selected=session.app.buildXray==true
         state.buttons.shell.props.selected=editor.paintChannel=='shell';state.buttons.accent.props.selected=editor.paintChannel=='accent'

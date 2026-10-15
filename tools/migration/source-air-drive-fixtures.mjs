@@ -10,9 +10,27 @@ const {hoverForce}=await load('shared/drive/hoverControl.js');
 const {stepHoverMotion}=await load('shared/drive/hoverMotion.js');
 const {stepThrusters}=await load('shared/drive/thrusterControl.js');
 const {PARTS}=await load('shared/parts/defs.js');
+const {hoverInfo,HOVER_HEIGHT_SCALE}=await load('shared/parts/hoverMount.js');
+const {Blueprint,partSockets}=await load('shared/build/blueprint.js');
+const {IDENTITY}=await load('shared/core/rotations.js');
+const {buildVehicleSpec}=await load('shared/drive/vehicleSpec.js');
+const hoverSpecs=[];
+for(let tier=1;tier<=5;tier++)for(let rot=0;rot<24;rot++){
+ const type='hover'+tier,bp=new Blueprint(),pos=[0,12,0];
+ bp.add({type,pos,rot});
+ const socket=partSockets(type,pos,rot).find(s=>!bp.overlaps('core',s.cell.map((v,i)=>v+s.dir[i]),IDENTITY));
+ if(!socket)throw Error('No external mounting socket: '+type+'/'+rot);
+ bp.add({type:'core',pos:socket.cell.map((v,i)=>v+socket.dir[i]),rot:IDENTITY});
+ const result=buildVehicleSpec(bp);
+ if(!result.ok||result.hovers.length!==1)throw Error('Disconnected hover fixture: '+type+'/'+rot);
+ const pick=(v,keys)=>Object.fromEntries(keys.map(k=>[k,v[k]]));
+ const h=result.hovers[0],hull=result.hulls.find(b=>b.partId===h.partId);
+ hoverSpecs.push({type,rot,data:bp.toJSON(),hover:pick(h,['partId','type','mount','pos','dir','load','height','radius','speed','works','emits']),
+  hull:pick(hull,['partId','center','half','quat','mass'])});
+}
 const forces=[];
 for(let tier=1;tier<=5;tier++)for(const ratio of [.2,1,1.5,2.05])for(const speed of [-4,0,3])for(const load of [.3,1,2.2])for(const scale of [.6,1,1.35]){
- const h=PARTS['hover'+tier],args={h:{height:h.height,load:h.load},d:ratio*h.height,speed,share:h.load*load,scale};
+ const h=PARTS['hover'+tier],height=hoverInfo(h.id).height*HOVER_HEIGHT_SCALE,args={h:{height,load:h.load},d:ratio*height,speed,share:h.load*load,scale};
  forces.push({...args,result:hoverForce(args.h,args.d,speed,args.share,scale)});
 }
 const thrusters=[[-1,0,-1.5],[1,0,-1.5],[-1,0,1.5],[1,0,1.5]].map((pos,i)=>({partId:i+1,type:'thruster3',pos,dir:[0,1,0],thrust:1900,speedLimit:96/3.6}));
@@ -32,7 +50,7 @@ for(const tilt of [0,.15])for(const support of [0,1800,6000])for(const altitude 
  }
  cases.push({state,support,com:v.com,inertiaY:v.inertiaY,samples});
 }
-const files=['shared/drive/hoverControl.js','shared/drive/hoverMotion.js','shared/drive/thrusterControl.js'];
+const files=['shared/drive/hoverControl.js','shared/drive/hoverMotion.js','shared/drive/thrusterControl.js','shared/drive/vehicleSpec.js','shared/parts/hoverMount.js','shared/parts/hoverData.js','shared/parts/defs.js','shared/build/blueprint.js'];
 const provenance=Object.fromEntries(files.map(p=>[p,createHash('sha256').update(fs.readFileSync(path.join(source,p))).digest('hex')]));
 for(const [name,sha256] of Object.entries(provenance))if(sha256!==baseline.files[name]?.sha256)throw Error('Frozen source changed: '+name);
 const hoverMotion=[];
@@ -43,5 +61,5 @@ for(const ground of [0,.3,1])for(const hoverMode of [false,true])for(const vel o
   addForce:force=>applied.push({force}),addTorque:torque=>applied.push({torque})}};
  hoverMotion.push({initial,command,result:{telemetry:stepHoverMotion(v,command,initial.frame),applied}});
 }
-fs.writeFileSync(path.join(root,'tools/migration/source-air-drive-fixtures.json'),JSON.stringify({sourceCommit:baseline.commit,provenance,forces,spec,cases,hoverMotion}));
+fs.writeFileSync(path.join(root,'tools/migration/source-air-drive-fixtures.json'),JSON.stringify({sourceCommit:baseline.commit,provenance,forces,spec,cases,hoverMotion,hoverSpecs}));
 console.log(`Frozen air drive: ${forces.length} hover forces, ${cases.length*commands.length} actuator samples, ${hoverMotion.length} motion cases; existing native test blueprints unchanged`);

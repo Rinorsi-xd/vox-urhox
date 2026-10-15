@@ -19,7 +19,7 @@ function Chrome:Render(vg)
     local home=s.tab=='hangar';local dx=home and 6 or 0;local dy=home and 2 or 0
     nvgSave(vg);nvgTranslate(vg,41+dx,30+dy);nvgRotate(vg,math.pi/4);nvgScale(vg,.86,.86)
     D.Rect(vg,-15,-15,13.5,13.5,D.orange);D.Rect(vg,1.5,-15,13.5,13.5,{255,255,255,71});D.Rect(vg,-15,1.5,13.5,13.5,D.white);D.Rect(vg,1.5,1.5,13.5,13.5,{255,255,255,153});nvgRestore(vg)
-    D.Text(vg,'方块战车',68+dx,18+dy,24,D.white,nil,nil,1,false,24);D.Rect(vg,186+dx,13+dy,1,34,{255,255,255,36})
+    D.Text(vg,'构装纪元',68+dx,18+dy,24,D.white,nil,nil,1,false,24);D.Rect(vg,186+dx,13+dy,1,34,{255,255,255,36})
     end
     if s.tab=='hangar' then D.Rect(vg,32,63,w-64,1,{122,216,255,34}) end
     local metaX=w-(s.tab=='hangar' and 364.15625 or 356.15625);local metaY=s.tab=='hangar' and 2 or 0

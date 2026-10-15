@@ -16,13 +16,20 @@ function M.New(root,limit)
     return self
 end
 function M:Begin() self.count=0 end
+function M:Reserve(count)
+    local target=math.max(0,math.min(self.limit,math.floor(count or 0)))
+    for i=#self.slots+1,target do
+        local node=self.root:CreateChild('Missile'..i)
+        for _,name in ipairs({'body','glow'}) do local sm=node:CreateComponent('StaticModel');sm.model=self.models[name];sm.material=self.materials[name];sm.castShadows=false end
+        node.enabled=false;self.slots[i]=node
+    end
+    return #self.slots
+end
 function M:Add(p)
     if self.count>=self.limit then return end
     self.count=self.count+1;local node=self.slots[self.count]
     if not node then
-        node=self.root:CreateChild('Missile'..self.count)
-        for _,name in ipairs({'body','glow'}) do local sm=node:CreateComponent('StaticModel');sm.model=self.models[name];sm.material=self.materials[name];sm.castShadows=false end
-        self.slots[self.count]=node
+        self:Reserve(self.count);node=self.slots[self.count]
     end
     local size=Data.sizes[tostring(p.s.tier)];local dir=V.Normalize(p.vel);local tail=V.Sub(p.pos,V.Scale(dir,size.l))
     node.enabled=true;node.position=Coord.Vec(table.unpack(tail));node.rotation=Quaternion(Vector3.FORWARD,Coord.Vec(table.unpack(dir)))

@@ -1,0 +1,258 @@
+{
+  "rawHashes": {
+    "damage-after.png": "42a18454e7041e71951fbc1cadf44d87b807fdac4f285ffda074440a678c21a5",
+    "damage-before.png": "5fc9786e0c3147d96a3df15f08a34fc212a534cd10c02d4da67af5678d08cc90",
+    "fox-base.material.json": "653f25dbb80ae8b338e58e12746636335bc0474b75d249df4f38c466166a119c",
+    "fox-repaint.png": "ea90681672b5f74866b3d8e54bb1f7f607e7ec74841c9d5e223ef46afb317c70",
+    "fox-restored.png": "3ad608c9bb141aff4c9514863f7df432c81335406cff4464d493f91c63a2e146",
+    "fox-shared.png": "de4cb01e362a80e6b39ac30dcd7c38cc72e1ef82bea16bca9a038f0cddb79c78",
+    "fox-variant.material.json": "120db450156881a2f908ffc0f352f77aba2428a672e75408d5d7a08940f0cf95",
+    "fox-xray.png": "de6a8bdea429ad1e679e3b1e39d8f37f7462aeefb4b531c6a39a5a947a57f074",
+    "manifest.json": "3dcbc481e18ffda0be93cc03d38aca108fbd53ba7f36a8fdf97ade899fa06102",
+    "manta-base.material.json": "653f25dbb80ae8b338e58e12746636335bc0474b75d249df4f38c466166a119c",
+    "manta-repaint.png": "cc75a7366d78ca04d85027b1d82b01401af5a0b8b745fdd65060e049eddf65ab",
+    "manta-restored.png": "ad1d9fb39eed4eb22aad8a0668fbef7f3d25d20854dea8cae2ca0e71acd88373",
+    "manta-shared.png": "ad1d9fb39eed4eb22aad8a0668fbef7f3d25d20854dea8cae2ca0e71acd88373",
+    "manta-variant.material.json": "06a12ab431e151db6f77f521de319dcf2ad05b4829a715e716d0df37b1c480b1",
+    "manta-xray.png": "f28acb18b147757c04ab0d30dfc8a4c5f03c787518ff25f8d9c873022b8169de",
+    "result.json": "47c80b08ef1d8e6d3c6ffab346876fcd56a75e96b24493f729efe4841ccef258",
+    "scorpion-base.material.json": "653f25dbb80ae8b338e58e12746636335bc0474b75d249df4f38c466166a119c",
+    "scorpion-repaint.png": "1087fcc62dfe29e6f3cece3ed9cc967222ce607b0e48159b26d1dd4e4a756737",
+    "scorpion-restored.png": "66556f5d6658079ee4d2e5267e1b045ceba9c08904345678676046e4651b9251",
+    "scorpion-shared.png": "66556f5d6658079ee4d2e5267e1b045ceba9c08904345678676046e4651b9251",
+    "scorpion-variant.material.json": "5b201273a4e4063fb3f7a086cc89c672865f2ba4a10260151ed49025d859c10c",
+    "scorpion-xray.png": "b4a58f0c285194b8f6c8edec4ef9a4e3210725716fe2ac1e1f0024c9d4632bbc",
+    "shell-native.json": "4c6975375cce68e631355ff24381b5baeb716f0a210fbea5d663facdc08e982f",
+    "stderr.txt": "4ad38281e95b79ee53cc083e59800c0076313376b19206e0c210f2bfacc6ff33",
+    "stdout.txt": "f515e05296fa2f405e2a6455ca1262e7f313e1773cfe71aab23c31b5c278fdc6",
+    "trooper-base.material.json": "653f25dbb80ae8b338e58e12746636335bc0474b75d249df4f38c466166a119c",
+    "trooper-repaint.png": "32abc794e3eec7c3933856e8e4d16c001250fd79833b51c06a847219927c2c1d",
+    "trooper-restored.png": "048147d61c169bbb2e51090b882091da7985216d37468baf133f5407f8dd0ee1",
+    "trooper-shared.png": "556a87903422272de3f885d102d9a8985aa9f7b2cdcb871bf08dc2536a850f64",
+    "trooper-variant.material.json": "13f86af3a9306fcc6f672355940776b731e3308344f7205c832756de6b443a75",
+    "trooper-xray.png": "46eadf2513e70fd8a8e19b04a7c5c4c9e838b13782b6d0d84f7ce4805a70b997"
+  },
+  "productionAndFixtureDrift": [],
+  "functionalAssertions": {
+    "total": 413,
+    "passed": 413,
+    "failed": 0
+  },
+  "complete": true,
+  "nativeMaterials": [
+    {
+      "preset": "scorpion",
+      "differences": [
+        {
+          "path": "/shaderParameters/base_color",
+          "base": "0.597202 0.637597 0.679542 1",
+          "variant": "0.0122865 0.0137021 0.017642 1"
+        }
+      ],
+      "pass": true
+    },
+    {
+      "preset": "fox",
+      "differences": [
+        {
+          "path": "/shaderParameters/base_color",
+          "base": "0.597202 0.637597 0.679542 1",
+          "variant": "0.450786 0.00651209 0.0109601 1"
+        }
+      ],
+      "pass": true
+    },
+    {
+      "preset": "trooper",
+      "differences": [
+        {
+          "path": "/shaderParameters/base_color",
+          "base": "0.597202 0.637597 0.679542 1",
+          "variant": "0.760525 0.791298 0.822786 1"
+        }
+      ],
+      "pass": true
+    },
+    {
+      "preset": "manta",
+      "differences": [
+        {
+          "path": "/shaderParameters/base_color",
+          "base": "0.597202 0.637597 0.679542 1",
+          "variant": "0.0109601 0.028426 0.124772 1"
+        }
+      ],
+      "pass": true
+    }
+  ],
+  "nativePixelDifferences": [
+    {
+      "preset": "scorpion",
+      "state": "repaint",
+      "changedPixelsOver2": 721,
+      "bbox": [
+        709,
+        471,
+        762,
+        542
+      ],
+      "pass": true,
+      "boundary": "Real repaint/xray must change rendered pixels."
+    },
+    {
+      "preset": "scorpion",
+      "state": "xray",
+      "changedPixelsOver2": 1063,
+      "bbox": [
+        705,
+        471,
+        762,
+        542
+      ],
+      "pass": true,
+      "boundary": "Real repaint/xray must change rendered pixels."
+    },
+    {
+      "preset": "scorpion",
+      "state": "restored",
+      "changedPixelsOver2": 0,
+      "bbox": null,
+      "pass": null,
+      "boundary": "Restored pose pixels are informational; exact restored bindings are verified by native assertions."
+    },
+    {
+      "preset": "fox",
+      "state": "repaint",
+      "changedPixelsOver2": 624,
+      "bbox": [
+        799,
+        463,
+        997,
+        640
+      ],
+      "pass": true,
+      "boundary": "Real repaint/xray must change rendered pixels."
+    },
+    {
+      "preset": "fox",
+      "state": "xray",
+      "changedPixelsOver2": 1200,
+      "bbox": [
+        798,
+        463,
+        997,
+        640
+      ],
+      "pass": true,
+      "boundary": "Real repaint/xray must change rendered pixels."
+    },
+    {
+      "preset": "fox",
+      "state": "restored",
+      "changedPixelsOver2": 588,
+      "bbox": [
+        798,
+        463,
+        997,
+        640
+      ],
+      "pass": null,
+      "boundary": "Restored pose pixels are informational; exact restored bindings are verified by native assertions."
+    },
+    {
+      "preset": "trooper",
+      "state": "repaint",
+      "changedPixelsOver2": 5134,
+      "bbox": [
+        759,
+        499,
+        978,
+        702
+      ],
+      "pass": true,
+      "boundary": "Real repaint/xray must change rendered pixels."
+    },
+    {
+      "preset": "trooper",
+      "state": "xray",
+      "changedPixelsOver2": 10757,
+      "bbox": [
+        759,
+        499,
+        978,
+        706
+      ],
+      "pass": true,
+      "boundary": "Real repaint/xray must change rendered pixels."
+    },
+    {
+      "preset": "trooper",
+      "state": "restored",
+      "changedPixelsOver2": 1060,
+      "bbox": [
+        764,
+        522,
+        978,
+        712
+      ],
+      "pass": null,
+      "boundary": "Restored pose pixels are informational; exact restored bindings are verified by native assertions."
+    },
+    {
+      "preset": "manta",
+      "state": "repaint",
+      "changedPixelsOver2": 8261,
+      "bbox": [
+        796,
+        363,
+        1027,
+        503
+      ],
+      "pass": true,
+      "boundary": "Real repaint/xray must change rendered pixels."
+    },
+    {
+      "preset": "manta",
+      "state": "xray",
+      "changedPixelsOver2": 9057,
+      "bbox": [
+        775,
+        364,
+        1054,
+        513
+      ],
+      "pass": true,
+      "boundary": "Real repaint/xray must change rendered pixels."
+    },
+    {
+      "preset": "manta",
+      "state": "restored",
+      "changedPixelsOver2": 0,
+      "bbox": null,
+      "pass": null,
+      "boundary": "Restored pose pixels are informational; exact restored bindings are verified by native assertions."
+    }
+  ],
+  "clonesCreated": 22,
+  "leasesRetired": 22,
+  "damage": {
+    "type": "sniper5",
+    "targetId": 1557,
+    "wallMs": 65,
+    "transferred": 0,
+    "amount": 380,
+    "debris": 0,
+    "alive": true
+  },
+  "rawValidatorResult": "FAIL",
+  "rawValidatorSummary": {
+    "lua_errors": 0,
+    "resource_errors": 0,
+    "engine_errors": 338,
+    "total_errors": 338
+  },
+  "frameSpikesOver100ms": 338,
+  "allValidatorErrorsAreFrameSpikes": true,
+  "boundary": "Exact saved native Material JSON and actual captured pixels. Lease zero-ref disposal observation, not an external allocation profiler. Whole validator FAIL remains FAIL; screenshot captures and synchronous fixture building are included. No Web/mobile/whole-game parity or performance acceptance.",
+  "functionalAndPixelReview": "PASS"
+}

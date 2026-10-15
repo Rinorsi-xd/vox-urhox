@@ -3,11 +3,13 @@
 if not rawget(_G,'_tr') then require('urhox-libs/Engine/i18n') end
 local App=require "app.HangarApp"
 local Storage=require 'storage.CloudStorage'
+local MapShot=require 'render.MatchMapShot'
 ---@type HangarApp|nil
 local app=nil
 local running=false
 function Start()
     running=true
+    MapShot.Initialize()
     SubscribeToEvent("Update","HandleUpdate")
     Storage.Boot(function()
         if not running then return end
@@ -19,6 +21,7 @@ function Start()
             app:Start()
             SubscribeToEvent("PostUpdate","HandlePostUpdate")
             SubscribeToEvent("EndAllViewsRender","HandleViewsRendered")
+            SubscribeToEvent("EndFrame","HandleFramePresented")
             SubscribeToEvent("FileChanged","HandleFileChanged")
         end)
     end)
@@ -28,13 +31,23 @@ function Stop()
     UnsubscribeFromEvent("Update")
     UnsubscribeFromEvent("PostUpdate")
     UnsubscribeFromEvent("EndAllViewsRender")
+    UnsubscribeFromEvent("EndFrame")
     UnsubscribeFromEvent("FileChanged")
     if app then app:Stop();app=nil end
+    MapShot.Shutdown()
     Storage.Stop()
     _G.VOX_APP_BOOTSTRAP=nil
 end
 function HandleViewsRendered()
     if app and app.loadingFlow and renderer:GetViewport(0) then app.loadingFlow:Rendered() end
+end
+function HandleFramePresented()
+    if app and app.trial and app.trial.story then app.trial.story:FramePresented() end
+    if app and app.loadingFlow then
+        app.loadingFlow:FramePresented()
+        app.loader:FramePresented()
+        if app.opening and app.opening.active and app.opening.host.FramePresented then app.opening.host.FramePresented(app.opening) end
+    end
 end
 function HandlePostUpdate(eventType,eventData)
     if app then app:PostUpdate(eventData:GetFloat("TimeStep")) end

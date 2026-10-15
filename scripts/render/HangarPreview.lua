@@ -53,7 +53,7 @@ function M:LoadScene()
         self.camera=nil;self.cameraNode=nil
         for _,r in ipairs(self.queue) do if not r.cancelled then self:Complete(r,nil,message) end end
         self.queue={}
-    end)
+    end,{resources=require('scene.HangarResources').For()})
 end
 function M:Start(request)
     local data=request.data;local context=request.ref and request.ref.context or {}

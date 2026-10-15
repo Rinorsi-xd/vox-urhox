@@ -23,6 +23,8 @@ function Loader:init()
     self.gate=require('app.ResourceGate').New()
     self.prepareFrames=0;self.maxPrepareMs=0;self.prepareBudgetMs=3
     self.warmIndex=1;self.warmWait=0;self.warmPath='';self.sceneProgressStart=.35
+    self.presentedPhase='';self.phaseFrames=0
+    self.sceneLoadedProgress=0;self.prepareProgress={}
 end
 function Loader:Cancel()
     self.generation=self.generation+1
@@ -33,6 +35,8 @@ function Loader:Cancel()
     if self.pending then self.pending:StopAsyncLoading(); self.pending:Dispose(); self.pending=nil end
     if self.sourceFile then self.sourceFile:Dispose();self.sourceFile=nil end
     self.state="idle";self.phase='idle';self.onReady=nil;self.onError=nil
+    self.beginDownload=nil
+    self.readSceneToken=nil
     self.warmIndex=1;self.warmWait=0;self.warmPath='';self.sceneProgressStart=.35
     if options and options.cancel then options.cancel() end
 end
@@ -44,8 +48,17 @@ function Loader:Load(path,onReady,onError,options)
     self.onReady,self.onError=onReady,onError
     self.options=options;self.phase='download';self.prepareFrames=0;self.maxPrepareMs=0
     self.prepareStage='world';self.prepareStageMax={};self.prepareTotalMs=0
+    self.sceneLoadedProgress=0;self.prepareProgress={}
     self.phaseStarted=Now();self.phaseTimes={};self.observedPhase=self.phase
-    self.gate:Start(options and options.resources or {path},function(ok,message)
+    self.presentedPhase='';self.phaseFrames=0
+    self.beginDownload=function()
+    local resources=options and options.resources or {path}
+    if type(resources)=='function' then
+        local ok,result=pcall(resources)
+        if not ok then self:Fail(tostring(result));return end
+        resources=result
+    end
+    self.gate:Start(resources,function(ok,message)
         if self.generation~=token then return end
         if not ok then self:Fail(message);return end
         if Platform.IsWebPlatform() and options and options.webWarmup and #options.webWarmup>0 then
@@ -53,8 +66,9 @@ function Loader:Load(path,onReady,onError,options)
             return
         end
         self.phase='scene';self.elapsed=0
-        self:ReadScene(path,token)
+        self.warmPath=path;self.readSceneToken=token
     end)
+    end
 end
 function Loader:ReadScene(path,token)
     -- Open through ResourceCache so packaged resources and remote manifests work too.
@@ -89,14 +103,28 @@ function Loader:Fail(message)
 end
 function Loader:Update(dt)
     if self.state~="loading" then return end
+    if self.beginDownload then
+        if self.canStart and not self.canStart() then return end
+        local begin=self.beginDownload;self.beginDownload=nil;begin()
+        return
+    end
     self:MeasurePhase()
+    -- Source LoadingPage.run yields two presented frames before each stage.
+    if self.canStart and (self.presentedPhase~=self.phase or self.phaseFrames<2) then return end
     self.elapsed=self.elapsed+dt
-    -- Download size is not a deadline. Only stalled downloads use the idle
-    -- timeout; scene decoding and preparation retain their bounded phase time.
+    -- The watchdog measures stalled work, not the total size of a map or car.
     if self.phase=='download' and (self.gate.completed>self.downloadCompleted or self.gate.bytes>self.downloadBytes) then
         self.elapsed=0;self.downloadCompleted=self.gate.completed;self.downloadBytes=self.gate.bytes
     end
+    if self.phase=='scene' and self.pending and self.pending.asyncProgress>self.sceneLoadedProgress then
+        self.elapsed=0;self.sceneLoadedProgress=self.pending.asyncProgress
+    end
     if self.elapsed>90 then self:Fail("Scene loading timed out");return end
+    if self.phase=='scene' and self.readSceneToken then
+        local token=self.readSceneToken;self.readSceneToken=nil
+        self:ReadScene(self.warmPath,token);return
+    end
+    if self.phase=='activate' then self:Commit();return end
     if self.phase=='download' then
         self.progress=self.gate.total>0 and .35*self.gate.completed/self.gate.total or 0;return
     end
@@ -109,11 +137,12 @@ function Loader:Update(dt)
         local item=resources[self.warmIndex]
         if not item then
             self.phase='scene';self.elapsed=0
-            self:ReadScene(self.warmPath,self.generation);return
+            self.readSceneToken=self.generation;return
         end
         local ok,resource=pcall(cache.GetResource,cache,item.type,item.name)
         if not ok or not resource then self:Fail('Cannot prepare texture: '..item.name);return end
         print('[SceneLoader] Prepared '..item.name..' bytes='..resource.memoryUse..' cache='..cache:GetTotalMemoryUse())
+        self.elapsed=0
         self.warmIndex=self.warmIndex+1;self.warmWait=3
         self.progress=.35+.1*(self.warmIndex-1)/#resources
         return
@@ -138,6 +167,10 @@ function Loader:Update(dt)
         self.job=coroutine.create(function()
             self.options.prepare(self.pending,function(progress,stage)
                 self.prepareStage=stage or self.prepareStage
+                local previous=self.prepareProgress[self.prepareStage]
+                if previous==nil or progress>previous then
+                    self.elapsed=0;self.prepareProgress[self.prepareStage]=progress
+                end
                 self.progress=.75+.24*progress
                 if Now()-self.sliceStart>=self.prepareBudgetMs then coroutine.yield() end
             end)
@@ -146,8 +179,15 @@ function Loader:Update(dt)
     end
     self:Commit()
 end
+function Loader:FramePresented()
+    if self.state~='loading' then return end
+    if self.presentedPhase~=self.phase then
+        self.presentedPhase=self.phase;self.phaseFrames=1
+    else self.phaseFrames=self.phaseFrames+1 end
+end
 function Loader:MeasurePhase()
     if not self.phaseStarted then return end
+    if self.observedPhase~=self.phase then self.elapsed=0 end
     local now=Now()
     self.phaseTimes[self.observedPhase]=(self.phaseTimes[self.observedPhase] or 0)+math.max(0,now-self.phaseStarted)/1000
     self.phaseStarted=now;self.observedPhase=self.phase
@@ -160,7 +200,10 @@ function Loader:Commit()
     if not self:EnvironmentReady(candidate) then
         self.phase='environment';self.progress=.99;return
     end
-    self:MeasurePhase();self.phase='activate';self.observedPhase='activate'
+    if self.phase~='activate' then
+        self:MeasurePhase();self.phase='activate';return
+    end
+    self:MeasurePhase()
     local ok,err=pcall(self.onReady,candidate)
     self:MeasurePhase()
     if ok then

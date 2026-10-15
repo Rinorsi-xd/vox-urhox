@@ -1,8 +1,8 @@
 {
   "baseline": {
-    "branch": "2026-10-13",
-    "commit": "90862445074e7e146da900037979ad97899ecf6c"
+    "branch": "2026-10-14",
+    "commit": "2b169a9964645f5f346a7158bcb14447f040814a"
   },
   "countText": "16 辆预制车",
-  "countWidth": 65.625
+  "countWidth": 63.25
 }

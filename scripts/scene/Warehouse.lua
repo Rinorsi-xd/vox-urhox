@@ -54,6 +54,8 @@ function M:Activate()
     self.oldLights={}
     for _,light in ipairs(self.app.scene:GetComponents('Light',true)) do if light.node.parent~=self.root then self.oldLights[#self.oldLights+1]={light=light,enabled=light.enabled};light.enabled=false end end
     self.previousLimit=self.app.camera.roomLimit;self.app.camera.roomLimit=Data.limit
+    self.previousSafety=self.app.camera.safety
+    self.app.camera.safety=require('controls.PreviewRoom').New(self.app.scene,self.root,Data.limit)
     local hall=self.app.hangar;self.previousPad=hall.padMat;hall.padMat=self.deck
     hall.reflMats[#hall.reflMats+1]=self.deck;hall.reflFilter:Bind(self.deck)
     for index,d in ipairs(Data.models) do if Data.materials[d.material+1].name=='WarehouseDeck' then self.batches[index]:GetComponent('StaticModel').viewMask=2 end end
@@ -84,6 +86,7 @@ function M:Dispose()
     if self.ready then
         local hall=self.app.hangar;hall.padMat=self.previousPad;table.remove(hall.reflMats)
         hall.root:ResetDeepEnabled();for _,entry in ipairs(self.oldLights) do entry.light.enabled=entry.enabled end;self.app.camera.roomLimit=self.previousLimit
+        self.app.camera.safety=self.previousSafety
     end
     if self.effects then self.effects:Dispose();self.effects=nil end
     self.motion:Dispose();self.batches={}

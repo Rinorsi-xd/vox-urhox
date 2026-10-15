@@ -37,7 +37,7 @@ function M:Sample()
         local down=Math.Rotate(q,w.down or {0,-1,0})
         local s=self.states[i]
         s.hard=Math.Add(position,Math.Rotate(q,w.conn))
-        local hit=v.space:Raycast(s.hard,down,w.rest+w.radius,body)
+        local hit=v.space:Raycast(s.hard,down,w.rest+w.radius,body,nil,false,require('drive.TerrainObstacles').SUPPORT_MASK)
         s.grounded=hit~=nil;s.groundBody=hit and hit.body or nil
         if hit then
             s.point=hit.point;s.normal=hit.normal;s.length=Math.Clamp(hit.dist-w.radius,w.rest-w.maxTravel,w.rest+w.maxTravel)
@@ -81,7 +81,9 @@ function M:Apply(dt)
                 return math.max(1e-9,body.impulseDenominator(p,d)+(ground and ground.impulseDenominator(p,d) or 0))
             end
             s.sideImpulse=-.2*Math.Dot(relative,s.axle)/Denominator(s.axle)*s.side
-            s.forwardImpulse=s.engine~=0 and s.engine*dt or Math.Clamp(-Math.Dot(relative,s.forward)/Denominator(s.forward)/math.max(1,grounded),-s.brake,s.brake)
+            -- ContactControl already apportions the requested brake impulse by
+            -- wheel load; dividing again weakens braking as wheel count grows.
+            s.forwardImpulse=s.engine~=0 and s.engine*dt or Math.Clamp(-Math.Dot(relative,s.forward)/Denominator(s.forward),-s.brake,s.brake)
             local length=math.sqrt((s.forwardImpulse*.5)^2+s.sideImpulse^2)
             local cap=s.force*dt*w.friction
             if length>cap and length>0 then s.skid=cap/length;s.forwardImpulse=s.forwardImpulse*s.skid;s.sideImpulse=s.sideImpulse*s.skid end

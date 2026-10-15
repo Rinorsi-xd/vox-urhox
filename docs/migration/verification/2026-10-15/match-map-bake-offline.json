@@ -1,0 +1,7 @@
+{
+  "result": "PASSED",
+  "assertions": 103,
+  "productionSha256": "ea4d4d6054b35fc3df4f26daee01d0f5a0be0c4c2187756ca997b4cd46493a7d",
+  "resourceGateSha256": "70899f296af00a493ab43a16f11aae7678097041a781b99a11479e8b55586df4",
+  "scope": "Actual Lua ResourceGate modern/legacy/cached/synchronous/throw paths; optional baked validation/fallback; exact 10 second cancellation; late callbacks; Process upload/filter failure release and transferred ownership. No renderer, Web or performance claim."
+}

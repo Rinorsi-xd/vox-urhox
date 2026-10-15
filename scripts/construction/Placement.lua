@@ -14,6 +14,7 @@ function M.Rotation(type,normal,forward,spin,sampled)
 end
 function M.For(type,hit,place,forward,spin,sampled)
     local def=Defs[type];local n=hit.normal
+    if def.mech then return {pos=place,rot=Rot.RotIndex({0,-1,0},{0,0,1}),reason=n[2]~=-1 and '机械足要装在车身底面' or nil} end
     if def.leg then
         return {pos=place,rot=n[2]~=0 and Rot.IDENTITY or Rot.RotIndex({0,1,0},{-n[3],0,n[1]}),reason=n[2]~=0 and '节足要装在车身侧面' or nil}
     end

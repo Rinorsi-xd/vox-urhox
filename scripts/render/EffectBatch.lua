@@ -8,31 +8,37 @@ function M.New(root,kind,limit,shaderDirectory)
     self.mesh.dynamic=true;self.mesh.castShadows=false
     self.mesh.enabled=false
     self.material=Material:new();assert(self.material:SetSurfaceShader((shaderDirectory or "Shaders/BLGL/Combat/")..kind..".shader"))
-    self.material.renderOrder=142;self.mesh.material=self.material
-    self.limit=limit;self.count=0
+    self.material.renderOrder=kind=='Smoke' and 139 or kind=='Glow' and 143 or 142
+    self.mesh.material=self.material
+    self.limit=limit;self.count=0;self.kind=kind
     self.points={{0,0,0},{0,0,0},{0,0,0},{0,0,0}}
     self.uvs={{0,0},{0,0},{0,0},{0,0}};self.params={0,0,0}
     return self
 end
 function M:Begin(camera,time)
-    self.count=0;self.camera=camera
-    self.mesh:BeginGeometry(0,TRIANGLE_LIST)
-    self.material:SetShaderParameter("clock",Variant(time))
+    self.count=0;self.camera=camera;self.time=time;self.started=false
 end
 local order={1,2,3,3,2,4}
 function M:Quad(points,uvs,color,alpha,params)
     if self.count>=self.limit then return end
+    if not self.started then
+        self.mesh:BeginGeometry(0,TRIANGLE_LIST)
+        self.material:SetShaderParameter("clock",Variant(self.time));self.started=true
+    end
     self.count=self.count+1
-    local tint=Color(color[1]/16,color[2]/16,color[3]/16,math.min(1,alpha))
+    local intensity=math.max(1,alpha)
+    local tint=Color(color[1]*intensity/16,color[2]*intensity/16,color[3]*intensity/16,math.min(1,alpha))
     local normal=Vector3(params and params[1] or 0,params and params[2] or 0,params and params[3] or 0)
+    local tangent=self.kind=='Streak' and Vector4(params and params[4] or .85,0,0,1)
     for _,i in ipairs(order) do
         self.mesh:DefineVertex(Coord.Vec(table.unpack(points[i])))
         self.mesh:DefineNormal(normal);self.mesh:DefineColor(tint);self.mesh:DefineTexCoord(Vector2(table.unpack(uvs[i])))
+        if tangent then self.mesh:DefineTangent(tangent) end
     end
 end
 local function SetPoint(p,x,y,z) p[1]=x;p[2]=y;p[3]=z end
 local function SetUV(p,u,v) p[1]=u;p[2]=v end
-function M:Segment(a,b,width,color,alpha,core,u0,u1,streak)
+function M:Segment(a,b,width,color,alpha,core,u0,u1,streak,taper)
     if self.count>=self.limit then return end
     local dx,dy,dz=b[1]-a[1],b[2]-a[2],b[3]-a[3]
     local length=math.sqrt(dx*dx+dy*dy+dz*dz);local inverse=length>0 and 1/length or 1
@@ -55,9 +61,10 @@ function M:Segment(a,b,width,color,alpha,core,u0,u1,streak)
     local start=streak and 0 or (u0 or 0)
     SetUV(uvs[1],start,-1);SetUV(uvs[2],start,1);SetUV(uvs[3],finish,-1);SetUV(uvs[4],finish,1)
     SetPoint(params,core or .3,streak and length or 0,streak and width or 0)
+    params[4]=taper or .85
     self:Quad(points,uvs,color,alpha,params)
 end
-function M:Disc(pos,size,color,alpha,right,up,thick)
+function M:Disc(pos,size,color,alpha,right,up,thick,profile)
     if self.count>=self.limit then return end
     local half=size*.5;local rx,ry,rz=right[1]*half,right[2]*half,right[3]*half
     local ux,uy,uz=up[1]*half,up[2]*half,up[3]*half
@@ -67,7 +74,7 @@ function M:Disc(pos,size,color,alpha,right,up,thick)
     SetPoint(points[3],pos[1]-rx+ux,pos[2]-ry+uy,pos[3]-rz+uz)
     SetPoint(points[4],pos[1]+rx+ux,pos[2]+ry+uy,pos[3]+rz+uz)
     SetUV(uvs[1],-1,-1);SetUV(uvs[2],1,-1);SetUV(uvs[3],-1,1);SetUV(uvs[4],1,1)
-    SetPoint(params,thick or .18,0,0);self:Quad(points,uvs,color,alpha,params)
+    SetPoint(params,thick or .18,profile or 0,0);self:Quad(points,uvs,color,alpha,params)
 end
 function M:Finish()
     self.mesh.enabled=self.count>0

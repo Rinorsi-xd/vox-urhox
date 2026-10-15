@@ -1,6 +1,7 @@
 -- Authored shots and timings from frozen three/src/battle/matchIntro.js.
 local UI=require 'urhox-libs/UI'
 local Coord=require 'core.Coord'
+local Levels=require 'audio.AudioLevels'
 local M={};M.__index=M
 local function Shot(duration,fov,label,from,look,to,toLook,say,vo,face)
     return {dur=duration,fov=fov,label=label,from=from,look=look,to=to,toLook=toLook,say=say,vo=vo,face=face or 'nono_talk'}
@@ -14,8 +15,8 @@ function M.New(session)
         self.shots={
             Shot(6,50,{'CRASH CRATER','坠舰陨坑'},{300,170,-260},{0,0,0},{230,120,40},{0,-10,0},'嘿，'..battle.player.name..'。欢迎来到坠舰陨坑——坑底躺着的那艘就是 CV-07 ARGUS 号，今天的战场就在它身上。',1,'nono_smile'),
             Shot(6,55,{'HULL HALL','舰体大厅'},{-120,hall+7,-14},{0,hall+2,0},{-40,hall+5,-10},{40,hall+1,0},'今天是歼灭战，三局两胜。对面三台车，回合里没有复活——把他们全部打爆就赢下这一回合。',2),
-            Shot(6,48,{'BREATHING REPAIR','呼吸回血'},{40,world:GroundAt(40,120)+30,110},{0,6,234},{20,world:GroundAt(20,160)+18,170},{0,6,234},'五秒没挨打，你的车会自己修结构，每秒 15%。打不过就先撤，修好了再回来。',3),
-            Shot(6,50,{'SUDDEN DEATH','决胜时刻'},{-150,70,-150},{0,-10,0},{-90,45,-110},{0,-10,0},'每回合最后一分钟是决胜时刻，修理系统会被干扰。时间到了还没分出胜负，就比谁活得多、谁剩的血多——记得活下来。',nil,'nono_deadpan'),
+            Shot(6,48,{'AUTO REPAIR','自动维修'},{40,world:GroundAt(40,120)+30,110},{0,6,234},{20,world:GroundAt(20,160)+18,170},{0,6,234},'五秒没挨打，你的车会自己修结构，每秒 15%。打不过就先撤，修好了再回来。',3),
+            Shot(6,50,{'FINAL MINUTE','决胜时刻'},{-150,70,-150},{0,-10,0},{-90,45,-110},{0,-10,0},'每回合最后一分钟是决胜时刻，修理系统会被干扰。时间到了还没分出胜负，就比谁活得多、谁剩的血多——记得活下来。',nil,'nono_deadpan'),
         }
     end
     if self.full and battle.mode~='elimination' then
@@ -48,8 +49,9 @@ function M.New(session)
         shot.team=team;self.shots[#self.shots+1]=shot
     end
     self.root=session.scene:CreateChild('MatchIntroAudio');self.voice=self.root:CreateComponent('SoundSource');self.voice:SetSoundType('VoxMatchVoice')
+    self.comms=require('audio.StoryComms').New(session.scene,{voices={}},true)
     for _,shot in ipairs(self.shots) do
-        if shot.vo then local sound=cache:GetResource('Sound',string.format('Sounds/Match/m%02d.wav',shot.vo));shot.dur=math.max(shot.dur,sound.length+1.1) end
+        if shot.vo then local sound=cache:GetResource('Sound',string.format('Sounds/Match/m%02d.wav',shot.vo));shot.voiceLength=sound.length;shot.dur=math.max(shot.dur,sound.length+1.1) end
     end
     session:Pause();session.hud.root:SetVisible(false)
     self.page=require('ui.MatchIntro').New(self);UI.RegisterGlobalComponent('vox-match-intro',self.page);UI.PushOverlay(self.page)
@@ -57,6 +59,8 @@ function M.New(session)
 end
 function M:Update(dt)
     if self.done then return end
+    if not self.session:HasFocus() then audio:PauseSoundType('VoxMatchVoice');return end
+    audio:ResumeSoundType('VoxMatchVoice')
     self.time=self.time+math.max(0,dt);local t=self.time;local index=1
     while index<=#self.shots and t>=self.shots[index].dur do t=t-self.shots[index].dur;index=index+1 end
     if index>#self.shots then self:Finish();return end
@@ -64,8 +68,10 @@ function M:Update(dt)
     if index~=self.index then
         self.index=index;self.shot=self.shots[index]
         self.voice:StopImmediate()
-        if self.shot.vo then self.voice:Play(cache:GetResource('Sound',string.format('Sounds/Match/m%02d.wav',self.shot.vo)),0,.7) end
+        if self.shot.vo then Levels.Play(self.voice,cache:GetResource('Sound',string.format('Sounds/Match/m%02d.wav',self.shot.vo)),0,.7) end
     end
+    local shot=self.shot;local duration=shot.voiceLength
+    self.comms:Present('nono',shot.say,shot.face,self.time,self.localTime,duration and duration*.95 or utf8.len(shot.say)/26,duration and .18 or 0,duration and duration+.26 or nil)
 end
 function M:Camera()
     if self.done then return end
@@ -85,6 +91,7 @@ function M:Finish()
     if self.session.touch then self.session:Resume() end
 end
 function M:Dispose()
+    if self.comms then self.comms:Dispose();self.comms=nil end
     if self.page then UI.PopOverlay(self.page);UI.UnregisterGlobalComponent('vox-match-intro');self.page:Destroy();self.page=nil end
     if self.voice then self.voice:StopImmediate();self.voice:Dispose();self.voice=nil end
     if self.root then self.root:Dispose();self.root=nil end

@@ -12,6 +12,10 @@ function M.Open(session,restore)
     session.buildCamera:Release()
     local self=setmetatable({session=session,model=session.inventory,hoverType=false,shown=false,closed=false,trimTime=0,motionClock=0,listEpoch=0},M)
     session.inventoryPanel=self;session.controls:Cancel();session.editor.preview=nil;session.ghost:Refresh(session.editor,false)
+    if session.app.lobby=='salvage' then
+        self.stockRemaining={};local lobby=session.app.salvageLobby;local used=lobby:Usage()
+        for id,n in pairs(lobby.data.items) do if id:sub(1,5)=='part:' then self.stockRemaining[id:sub(6)]=math.max(0,n-(used[id] or 0)) end end
+    end
     local current=Defs.PARTS[self.model:Current()];if not restore and current and current.mat then self.model.material=current.mat end
     local sw,sh=UI.GetViewportSize();self.narrow=sh<=600 and sw>sh
     local width,height=math.min(1580,sw*.94),math.min(960,sh*.92)
@@ -95,24 +99,27 @@ function M:CreateRow()
     for i=1,self.columns do
         local cell={type=false}
         cell.root=Art.Card{height=self.itemHeight,compact=self.narrow,flexGrow=1,flexBasis=0,
-            onClick=function(_,event) if cell.type and (not event or not cell.suppressClick) and (not event or event:IsPrimaryButton()) then self.session:PickHotbar(cell.type);self:Detail(cell.type);self.hotbar.Refresh() end end,
+            onClick=function(_,event) if cell.type and (not event or not cell.suppressClick) and (not event or event:IsPrimaryButton()) then
+                self.session:PickHotbar(cell.type)
+                if not self.closed then self:Detail(cell.type);self.hotbar.Refresh() end
+            end end,
             onPointerDown=function(event) cell.suppressClick=false;cell.dragSource=event.pointerType=='mouse' and event:IsPrimaryButton() and event.pointerId;self.keyboardFocus=nil end,
             onPointerCancel=function(event,w)
                 if self.dragWidget~=w or self.dragPointer~=event.pointerId then return end
                 w.state.isDragging=false;self.dragType=nil;self.dragPoint=nil;self.dragWidget=nil;self.dragPointer=nil
             end,
-            onDoubleTap=function() if cell.type then self.session:PickHotbar(cell.type);self:Close() end end,
+            onDoubleTap=function() if cell.type and not self:Unavailable(cell.type) then self.session:PickHotbar(cell.type);self:Close() end end,
             onPointerEnter=function() self.hoverType=cell.type;if cell.type then self:Detail(cell.type) end end,
             onPointerLeave=function() if self.hoverType==cell.type then self.hoverType=false end end,
             onPanEnd=function(event,w)
                 if self.dragWidget~=w or self.dragPointer~=event.pointerId then return end
                 local slot=self.hotbar.Hit(event.x,event.y)
-                if slot and self.dragType then self.session:AssignHotbar(slot,self.dragType);self.hotbar.Refresh() end
+                if slot and self.dragType then self.session:AssignHotbar(slot,self.dragType);if not self.closed then self.hotbar.Refresh() end end
                 w.state.isDragging=false;self.dragType=nil;self.dragPoint=nil;self.dragWidget=nil;self.dragPointer=nil
             end}
         cell.root.inventory=self.model;cell.root.inventoryOwner=self
         cell.root.OnPanStart=function(w,event)
-            cell.suppressClick=true;if event.pointerType~='mouse' or cell.dragSource~=event.pointerId or not cell.type or self.dragWidget then return false end
+            cell.suppressClick=true;if event.pointerType~='mouse' or cell.dragSource~=event.pointerId or not cell.type or self.dragWidget or self:Unavailable(cell.type) then return false end
             self.dragType=cell.type;self.dragPoint={x=event.x,y=event.y};self.dragWidget=w;self.dragPointer=event.pointerId;w.state.isDragging=true;return true
         end
         cell.root.OnPanMove=function(w,event) if self.dragWidget==w and self.dragPointer==event.pointerId then self.dragPoint={x=event.x,y=event.y} end end
@@ -120,9 +127,19 @@ function M:CreateRow()
     end
     root.cells=cells;return root
 end
+function M:Remaining(type)
+    if not self.stockRemaining or type=='core' then return nil end
+    return self.stockRemaining[type] or 0
+end
+function M:Unavailable(type)
+    local count=self:Remaining(type);return count~=nil and count<=0
+end
 function M:BindRow(widget,row,index)
     for i,cell in ipairs(widget.cells) do
         local d=row[i];cell.type=d and d.id or false;cell.root.props.partType=cell.type
+        if cell.type then local count=self:Remaining(cell.type)
+            cell.root.props.tooltip=count~=nil and (count<=0 and '仓库里没有，点击购买' or ('仓库里还有 '..count..' 个')) or nil
+        end
         if UI.GetFocus()==cell.root then UI.ClearFocus();self.keyboardFocus=nil end
         require('ui.InventoryCardMotion').Bind(cell.root,((index or 1)-1)*self.columns+i,self.motionClock-self.listEpoch)
         cell.root:SetStyle({visibility=d and 'visible' or 'hidden'})
@@ -157,7 +174,8 @@ function M:Detail(id)
 end
 function M:Digit(i)
     local focus=UI.GetFocus();local id=focus and focus.inventoryOwner==self and focus.props.partType or self.hoverType
-    if id then self.session:AssignHotbar(i,id) else self.session:SelectHotbar(i) end;self.hotbar.Refresh()
+    if id then self.session:AssignHotbar(i,id) else self.session:SelectHotbar(i) end
+    if not self.closed then self.hotbar.Refresh() end
 end
 function M:Keys()
     local typing=UI.GetFocus()==self.search

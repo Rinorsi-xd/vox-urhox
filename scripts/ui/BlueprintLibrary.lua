@@ -21,6 +21,9 @@ local function Layout(slots,width,height)
 end
 function M.Open(owner,mode)
     mode=mode or 'load'
+    if mode~='save' and owner.editor and owner.app.lobby=='salvage' then
+        Host.Notify(owner,'打捞行动的车在大厅「车库」里新建和切换','warn');return
+    end
     local app=owner.app;local slots=app.bays:Slots();local used=0
     for _,data in ipairs(slots) do if data then used=used+1 end end
     local previews=false

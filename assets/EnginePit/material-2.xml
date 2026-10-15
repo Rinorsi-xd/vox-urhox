@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='utf-8'?>
+<material>
+  <surfaceshader name="Shaders/BLGL/Crater/Far.shader" />
+  <parameter name="tint" value="1 1 1 1" />
+  <parameter name="roughness" value="1" type="Float" />
+  <parameter name="metalness" value="0" type="Float" />
+  <parameter name="alpha_cut" value="0" type="Float" />
+  <parameter name="emission" value="0 0 0" />
+  <parameter name="uMode" value="0" type="Float" />
+  <parameter name="uGroundHalf" value="190" type="Float" />
+  <parameter name="uBakeFade" value="100000 100001" />
+  <surfacetexture name="tAlb" texture="Crater/albedo.xml" type="Texture2DArray" />
+  <surfacetexture name="tNra" texture="Crater/nra.xml" type="Texture2DArray" />
+  <surfacetexture name="tGround" texture="EnginePit/texture-0.png" type="Texture2D" />
+  <parameter name="uGroundHalf" value="500" type="Float" />
+  <surfacetexture name="craterDFG" texture="Crater/dfg.png" type="Texture2D" />
+</material>

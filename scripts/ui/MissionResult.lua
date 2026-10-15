@@ -7,7 +7,7 @@ local Panel=UI.Panel:Extend('VoxMissionResult')
 local Button=UI.Button:Extend('VoxMissionResultButton')
 local M={}
 local cyan={70,200,255,255};local orange={255,106,19,255};local white={244,245,247,255};local muted={154,163,173,255}
-local function Text(vg,text,x,y,size,color,align) D.Text(vg,text,x,y,size,color or white,'vox-story',align) end
+local function Text(vg,text,x,y,size,color,align) D.Text(vg,text,x,y,size,color or white,'vox-display',align) end
 local function Layout(self)
     local r=self:GetAbsoluteLayout();local scale=math.min(1,(r.w-40)/728,(r.h-36)/660)
     return r,scale,r.x+(r.w-728*scale)/2,r.y+(r.h-640*scale)/2
@@ -19,7 +19,7 @@ function Button:Render(vg)
     D.Path(vg,{0,0,w,0,w-(back and 18 or 0),h,0,h})
     nvgFillColor(vg,D.Color(back and (hover and {255,140,69,255} or orange) or {255,255,255,hover and 38 or 20}));nvgFill(vg)
     local color=back and {26,13,5,255} or white;local key=back and 'Enter' or 'R'
-    local total=D.Width(vg,self.props.text,22,'vox-story')+12+(back and 52 or 24)
+    local total=D.Width(vg,self.props.text,22,'vox-display')+12+(back and 52 or 24)
     Text(vg,self.props.text,(w-total)/2,17,22,color)
     local kx=(w-total)/2+total-(back and 52 or 24)
     D.Rect(vg,kx,19,back and 52 or 24,22,back and {0,0,0,51} or {0,0,0,128})
@@ -39,14 +39,14 @@ function Panel:Render(vg)
     Text(vg,'//  +',78,178,16,cyan);Text(vg,'任务数据',132,174,23);Text(vg,'DEBRIEF',242,184,11,muted)
     local rows={{'用时','TIME',string.format('%d:%02d',math.floor(r.time/60),math.floor(r.time%60))},
         {'情报','INTEL',r.stats.intel..' / 3'},{'采集器','COLLECTOR',r.stats.collectors..' / 3'},
-        {'击退海盗','KILLS',r.stats.kills},{'战车损毁','LOSSES',r.stats.deaths..' 次'}}
+        {'击退海盗','WRECKED',r.stats.kills},{'战车损毁','LOSSES',r.stats.deaths..' 次'}}
     if mission.level.resultPolicy=='truck' then
         rows[2]={'运输车耐久','CARGO HP',string.format('%d%%',math.floor((r.stats.truckHp or 0)*100+.5))}
         rows[3]={'检查点','CHECKPOINT',(r.stats.checkpoints or 0)..' / 3'}
     end
     if mission.level.resultPolicy=='shield' then
         rows[2]={'护盾剩余','SHIELD',string.format('%d%%',math.floor(math.max(0,r.stats.shield or 0)*100+.5))}
-        rows[3]={'击退海盗','KILLS',r.stats.kills};rows[4]={'重来次数','RETRIES',r.stats.fails}
+        rows[3]={'击退海盗','WRECKED',r.stats.kills};rows[4]={'重来次数','RETRIES',r.stats.fails}
     end
     if mission.level.resultPolicy=='sites' then
         rows[2]={'夺回采集器','RECLAIMED',(r.stats.sites or 0)..' / 3'}

@@ -1,10 +1,11 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const {chromium}=require('C:/Users/XD/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
-const root=path.resolve(__dirname,'../..'),out=path.join(root,'docs/migration/evidence');
+const root=path.resolve(__dirname,'../..'),out=process.env.VOX_QA_OUTPUT_DIR||path.join(root,'docs/migration/evidence');
+fs.mkdirSync(out,{recursive:true});
 const prepared=JSON.parse(fs.readFileSync(path.join(root,'.tmp/outgame-prepare-cached.json')));
 const manifest=JSON.parse(fs.readFileSync(prepared.manifest_path));
 const catalog=JSON.parse(fs.readFileSync(path.join(root,'assets/UI/Music/Catalog.json')));
-const source=JSON.parse(fs.readFileSync(path.join(out,'source-music-box.json')));
+const source=JSON.parse(fs.readFileSync(path.join(root,'docs/migration/evidence/source-music-box.json')));
 const musicFiles=new Map();
 for(const t of catalog.tracks){const file=manifest.files.find(f=>f.fs_path===t.file);assert.ok(file,'Catalog audio packaged: '+t.id);assert.ok(!file.flags?.includes('#blocking')&&!file.groups?.includes('boot')&&!file.groups?.includes('#blocking'),'Music is deferred: '+t.id);musicFiles.set(file.uuid+'-'+file.hash+file.ext,t.id);}
 const cases=[{name:'pc',width:1920,height:1080,dpr:1},{name:'phone-landscape',width:840,height:378,dpr:3,touch:true},{name:'phone-16-9',width:800,height:450,dpr:3,touch:true},{name:'tablet',width:1024,height:768,dpr:2,touch:true}];
@@ -33,13 +34,13 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
    }return state;}
    async function dump(){const n=states.length;await page.keyboard.down('F8');await sleep(70);await page.keyboard.up('F8');await wait(()=>states.length>n,'probe',10000);return state;}
    function point(rect){const [x,y,w,h]=rect;return [(x+w/2)*test.width/state.width,(y+h/2)*test.height/state.height];}
-   async function tapRect(rect){const [x,y]=point(rect);if(test.touch)await page.touchscreen.tap(x,y);else await page.mouse.click(x,y);await sleep(120);await dump();}
+   async function tapRect(rect){const [x,y]=point(rect);if(test.touch)await page.touchscreen.tap(x,y);else await page.mouse.click(x,y,{delay:70});await sleep(120);await dump();}
    async function click(text,icon){await dump();const w=state.widgets.find(w=>(icon?w.icon===icon:w.text===text)&&!w.disabled);assert.ok(w,'Live control '+(text||icon));await tapRect(w.rect);}
    async function key(key){await page.keyboard.down(key);await sleep(100);await page.keyboard.up(key);await sleep(100);await dump();}
    const check=(condition,message)=>{assert.ok(condition,message);checks.push(message);};
    try{
-    await page.goto('http://127.0.0.1:4204/outgame.html?-game_url=http://127.0.0.1:4204/game-dist/&-log=info&cached=1');
-    await wait(s=>s.tab==='hangar','home');await sleep(1200);await dump();
+    await page.goto(process.env.VOX_QA_URL||'http://127.0.0.1:4204/outgame.html?-game_url=http://127.0.0.1:4204/game-dist/&-log=info&cached=1');
+    await wait(s=>s.tab==='hangar'&&s.sceneVisible&&!s.loadingFlow?.active,'visible home');await sleep(1800);await dump();
     check(requests.length===0,'No unopened music downloads at boot');
     await click('音乐盒');await wait(s=>s.music?.duration>0,'compressed MP3 playback');await dump();
     check(state.music.count===13,'Original approved 13 tracks');

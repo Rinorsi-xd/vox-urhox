@@ -5,7 +5,8 @@ function M.Current(owner) return owner.editor and owner.app.build or owner end
 function M.Notify(owner,text,kind)
     local current=M.Current(owner);if not current then return end
     if current.editor then current:Notify(text,kind);current.slot=current.app.bays.active or current.slot;current:Refresh()
-    else current.message:Push(text,kind) end
+    elseif current.message and current.message.Push then current.message:Push(text,kind)
+    elseif current.app and current.app.toasts then current.app.toasts:Push(text,kind) end
 end
 function M.Close(owner) if owner.dialog then owner.dialog:Close() end end
 function M.Update(owner,dt)

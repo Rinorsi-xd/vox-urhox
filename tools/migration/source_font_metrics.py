@@ -85,7 +85,7 @@ def export_face(path, include):
 
 def main():
     baseline = json.loads((ROOT / 'docs/migration/outgame-baseline.json').read_text(encoding='utf-8'))
-    source = Path(baseline['snapshot']) / 'shared/fonts'
+    source = ROOT / baseline['snapshot'] / 'shared/fonts'
     inputs = {
         'vox-title': (ROOT / 'assets/Fonts/VoxIndustrial-Bold.otf', lambda cp: True),
         'vox-display': (source / 'BarlowCondensed-BoldItalic.ttf', latin),
