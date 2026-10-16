@@ -1,6 +1,7 @@
 -- Frozen 2026-10-14 wingControl.js: per-surface aerodynamic forces, keyboard
 -- flight assistance and low-speed lift. Source-space metres; never aim-follow.
 local V=require 'core.Math3'
+local FlightResponse=require 'drive.FlightResponse'
 local clamp,rotate,dot,cross,sub,len=V.Clamp,V.Rotate,V.Dot,V.Cross,V.Sub,V.Length
 local M={}
 local RHO,STALL,STALL_END,CAMBER=3.5,math.rad(15),math.rad(28),.22
@@ -13,7 +14,7 @@ function M.NormalCoefficient(alpha)
     local t=clamp((a-STALL)/(STALL_END-STALL),0,1);local k=t*t*(3-2*t)
     return Sign(alpha)*(2*math.pi*STALL*(1-k)*(1-.35*k)+1.2*math.sin(math.min(a,math.pi/2))*k)
 end
-local function Init(v,ws)
+local function Init(v,ws,com)
     v.wingSurfaces={};v.wingLever={.05,.05,.05};v.wingArea=0;v.wingLiftArea=0
     local left,right,pitch,rudder=false,false,false,false
     for _,w in ipairs(ws) do
@@ -21,16 +22,16 @@ local function Init(v,ws)
         if w.kind=='wing' then v.wingLiftArea=v.wingLiftArea+w.area*w.lift*math.abs(w.n[2]) end
         rudder=rudder or w.kind=='rudder'
         for _,s in ipairs(w.surfaces) do
-            local torque=cross(sub(s.pos,v.com),w.n)
+            local torque=cross(sub(s.pos,com),w.n)
             v.wingSurfaces[#v.wingSurfaces+1]={wing=w,s=s,key=w.partId..':'..s.name,torque=torque}
             for k=1,3 do v.wingLever[k]=math.max(v.wingLever[k],math.abs(torque[k])) end
-            if w.kind=='wing' then pitch=true;left=left or s.pos[1]<v.com[1];right=right or s.pos[1]>v.com[1] end
+            if w.kind=='wing' then pitch=true;left=left or s.pos[1]<com[1];right=right or s.pos[1]>com[1] end
         end
     end
     v.wingLiftArea=math.max(.5,v.wingLiftArea)
     local inertia={0,0,0}
     local function Add(c,h,m)
-        local d=sub(c,v.com);h=h or {0,0,0}
+        local d=sub(c,com);h=h or {0,0,0}
         inertia[1]=inertia[1]+m*(d[2]^2+d[3]^2+(h[2]^2+h[3]^2)/3)
         inertia[2]=inertia[2]+m*(d[1]^2+d[3]^2+(h[1]^2+h[3]^2)/3)
         inertia[3]=inertia[3]+m*(d[1]^2+d[2]^2+(h[1]^2+h[2]^2)/3)
@@ -44,11 +45,13 @@ function M.Step(v,cmd,dt,contact,support)
     local ws=v.spec.wings;if not ws or #ws==0 then return {} end
     contact=contact==true or type(contact)=='number' and contact>0
     local body=v.body;local q=body.rotation();local iq=V.Inverse(q)
+    if body.addFlightAngularAcceleration and v.flightResponse==nil then v.flightResponse=FlightResponse.New(v) or false end
+    local response=v.flightResponse or nil;local com=response and response.com or v.com
     local p,lv,av=body.translation(),body.linvel(),body.angvel()
     local vb,wb=rotate(iq,V.Array(lv)),rotate(iq,V.Array(av));local up=rotate(iq,{0,1,0})
     local airspeed,forward=len(vb),vb[3]
     local st=v.wingState or {surfaces={},phase='parked',airTime=0,groundTime=0,deploy=0,brake=0,controls={0,0,0},height=0};v.wingState=st
-    if not v.wingSurfaces then Init(v,ws) end
+    if not v.wingSurfaces then Init(v,ws,com) end
     if contact then st.groundTime=st.groundTime+dt;st.airTime=0 else st.airTime=st.airTime+dt;st.groundTime=0 end
     local hit=not contact and v.space:Raycast({p.x,p.y+v.spec.bounds.min[2]+.05,p.z},{0,-1,0},40,body,nil,false) or nil
     st.height=contact and 0 or hit and hit.dist or 40
@@ -98,18 +101,22 @@ function M.Step(v,cmd,dt,contact,support)
     local qRef=.5*RHO*26^2;local tx=clamp((p.y-140)/60,0,1);local thin=math.sqrt(1-tx*tx)
     local function ForceAt(fb,pb)
         local wd,r=rotate(q,fb),rotate(q,pb);if wd[2]>0 then wd[2]=wd[2]*thin end
-        body.addForceAtPoint(V.Vec(wd),{x=p.x+r[1],y=p.y+r[2],z=p.z+r[3]},true)
+        local force,point=V.Vec(wd),{x=p.x+r[1],y=p.y+r[2],z=p.z+r[3]}
+        if response then
+            body.addForce(force,true)
+            body.addFlightAngularAcceleration(response:ForceAt(force,point))
+        else body.addForceAtPoint(force,point,true) end
     end
     local liftTotal,alphaSum,alphaW=0,0,0
     for _,w in ipairs(ws) do
-        local pv=V.Add(vb,cross(wb,sub(w.pos,v.com)));local vn,vc=dot(pv,w.n),dot(pv,w.c);local speed2=vn*vn+vc*vc;local speed=math.sqrt(speed2)
+        local pv=V.Add(vb,cross(wb,sub(w.pos,com)));local vn,vc=dot(pv,w.n),dot(pv,w.c);local speed2=vn*vn+vc*vc;local speed=math.sqrt(speed2)
         if speed>=.5 then
             local alpha=math.atan(vn,math.abs(vc));local qa=.5*RHO*speed2*w.area*w.lift
             local lifting=w.kind=='wing' and Sign(w.n[2]) or 0
             local camber=CAMBER*lifting*clamp(1-math.abs(alpha)/STALL_END,0,1);local flaps=.35*st.deploy*lifting
             local fn=-M.NormalCoefficient(alpha)*qa+(camber+flaps)*qa*math.min(1,math.abs(vc)/math.max(speed,1e-6))
             local drag=.035*.5*RHO*len(pv)*w.area*(1+st.deploy*.6);local arm={}
-            for k=1,3 do arm[k]=v.com[k]+(w.pos[k]-v.com[k])*ARM[k] end
+            for k=1,3 do arm[k]=com[k]+(w.pos[k]-com[k])*ARM[k] end
             ForceAt(V.Sub(V.Scale(w.n,fn),V.Scale(pv,drag)),arm)
             local lift=fn*dot(w.n,up);liftTotal=liftTotal+lift*(lift>0 and thin or 1)
             if w.kind=='wing' then alphaSum=alphaSum+math.abs(alpha)*w.area;alphaW=alphaW+w.area end
@@ -135,7 +142,10 @@ function M.Step(v,cmd,dt,contact,support)
             torqueB[1]=torqueB[1]-hp*4.5*v.wingInertia[1]*hover;torqueB[2]=torqueB[2]+hy*4.5*v.wingInertia[2]*hover;torqueB[3]=torqueB[3]-hr*4.5*v.wingInertia[3]*hover
         end
     end
-    if power>.001 or vane>0 or hover>.01 then body.addTorque(V.Vec(rotate(q,torqueB)),true) end
+    if power>.001 or vane>0 or hover>.01 then
+        local torque=V.Vec(rotate(q,torqueB))
+        if response then body.addFlightAngularAcceleration(response:Torque(torque)) else body.addTorque(torque,true) end
+    end
     local schedule=clamp(qRef/math.max(qNow,qRef*.25),.45,1)
     for _,x in ipairs(v.wingSurfaces) do
         local want=0;for k=1,3 do want=want+tau[k]*x.torque[k]/v.wingLever[k] end
@@ -143,7 +153,7 @@ function M.Step(v,cmd,dt,contact,support)
         want=clamp(want+st.deploy*lifting*.7,-1,1);local cur=st.surfaces[x.key] or 0
         st.surfaces[x.key]=cur+clamp(want-cur,-3.2*dt,3.2*dt)
     end
-    if st.brake>.01 and airspeed>1 then ForceAt(V.Scale(vb,-st.brake*.3*.5*RHO*airspeed*v.wingArea),v.com) end
+    if st.brake>.01 and airspeed>1 then ForceAt(V.Scale(vb,-st.brake*.3*.5*RHO*airspeed*v.wingArea),com) end
     return {wingLift=liftTotal,wingPhase=phase,airspeed=airspeed,stallSpeed=stallSpeed,wingStall=st.stall,wingBank=bank,wingHover=hover,wingVtol=st.vtol}
 end
 return M

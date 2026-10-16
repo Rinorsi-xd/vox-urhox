@@ -1,0 +1,34 @@
+{
+  "result": "PASS",
+  "lua": "Lua 5.4",
+  "assertions": 5865,
+  "passed": 5865,
+  "failed": 0,
+  "failures": [],
+  "sourceCommit": "b276064942ae09c0227ec28d4cfda1d5ff006455",
+  "sourceBranch": "2026-10-15",
+  "sourceHashes": {
+    "shared/drive/wingControl.js": "8f1975492e9989c85d7160caa37c4ec6896463aae622d12ba9a35bf428758c0b",
+    "shared/drive/thrusterControl.js": "9e7fa29f2e836d46e6f57e3ff6c51d8665c30c9d6d6fb310b322386b95d231ad",
+    "shared/parts/wingData.js": "4167d7ec37fa8f938807236d65878c5b924411ba774f7352bb25f686f709cb59"
+  },
+  "frozenSourceHashes": {
+    "shared/drive/wingControl.js": "35ffc8d49a7f02d5d4a75e22b6dac7ef149f3fe7d62196693bf4e2f15ce4bdb5",
+    "shared/drive/thrusterControl.js": "ec341406fe4b592b853208a89c9c022de5b177b1a040d868e8da1a02350b54ff",
+    "shared/parts/wingData.js": "0377e1eb8c5b331b1a51c8001d7110a55acec611d3d315924e3ce877796681a0"
+  },
+  "sourceLFHashes": {
+    "shared/drive/wingControl.js": "8f1975492e9989c85d7160caa37c4ec6896463aae622d12ba9a35bf428758c0b",
+    "shared/drive/thrusterControl.js": "9e7fa29f2e836d46e6f57e3ff6c51d8665c30c9d6d6fb310b322386b95d231ad",
+    "shared/parts/wingData.js": "4167d7ec37fa8f938807236d65878c5b924411ba774f7352bb25f686f709cb59"
+  },
+  "liveMatchesFrozenAfterLFNormalization": true,
+  "productionHashes": {
+    "scripts/drive/WingControl.lua": "355d1f48eacdc0402d182b5657766eb75a37d9c176efc0bf5be29c02dab40659",
+    "scripts/drive/ThrusterControl.lua": "c0bfc4f81b5c205e7a0ada78810c2f29c16fc4f42d81aad1667f976ae8cf67d4",
+    "scripts/core/Math3.lua": "e0f583fecb8ea72676f3d54b173c7ec3b17edbcaea4ab504eb574ad94adb3dce"
+  },
+  "fixtureSha256": "0ad9ee16a434c4c299824a707574cb466f7c36a06815c8e80a124709a08c0d86",
+  "generatorOutput": "{\"scenarios\":16,\"frames\":1920,\"coefficients\":81,\"jets\":8}",
+  "scope": "Actual source and production Lua force, torque, telemetry and state replay; no native Bullet integration or measured flight handling."
+}

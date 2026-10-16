@@ -1,0 +1,19 @@
+{
+  "result": "PASS",
+  "baselineCommit": "d910f11da5db463818ca31627b91cf155a2ac089",
+  "sourceCommit": "b276064942ae09c0227ec28d4cfda1d5ff006455",
+  "productionSha256": {
+    "scripts/drive/FlightResponse.lua": "5c56b383577e483da4b4d602433730e18853d7111eeb327ee973d4d5490f9a3d",
+    "scripts/drive/WingControl.lua": "355d1f48eacdc0402d182b5657766eb75a37d9c176efc0bf5be29c02dab40659",
+    "scripts/drive/ThrusterControl.lua": "c0bfc4f81b5c205e7a0ada78810c2f29c16fc4f42d81aad1667f976ae8cf67d4",
+    "scripts/drive/Vehicle.lua": "6f21c77d9cfd8d777423dc8ddbe99be9e4a11e632db2e8105d3ba92cd3ce8d53",
+    "scripts/physics/Body.lua": "4229366f23833dd418c96cf7fb1eee8247d43ca02fcf781ed90547fd44faa63b"
+  },
+  "probes": {
+    "motion": "18 Native segments per version, 16 aircraft Rapier comparisons, 120 steps/segment",
+    "helper": "72 cases",
+    "formulas": "5865 checks fallback path only",
+    "syntax": "534 Lua"
+  },
+  "boundary": "No rendered flight, map collision, subjective feel or sustained mobile performance acceptance"
+}

@@ -35,6 +35,11 @@ function Vehicle:init(space,spec)
     local b=self.native
     b:DisableMassUpdate();b.friction=.55;b.restitution=.05
     b.linearDamping=.02;b.angularDamping=.6;b.linearRestThreshold=0;b.angularRestThreshold=0
+    if #(spec.wings or {})>0 then
+        -- Rapier: 1/(1+d*dt); Bullet: (1-d)^dt. Match the fixed 60 Hz step.
+        b.linearDamping=1-(1+.02/60)^(-60)
+        b.angularDamping=1-(1+.6/60)^(-60)
+    end
     b.collisionLayer=2;b.collisionMask=0xffff;b.ccdRadius=.15;b.ccdMotionThreshold=.1
     self.rotors=RotorMotion.New(spec.rotors);self.rotorShapes={}
     for _,list in ipairs({spec.boxes,spec.hulls}) do for _,h in ipairs(list) do

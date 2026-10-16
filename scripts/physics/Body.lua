@@ -66,6 +66,22 @@ function M.Wrap(native)
         end
         native.angularVelocity=saved
     end
+    -- Invert the measured local tensor once. Flight controllers can request an
+    -- angular acceleration without depending on Bullet's compound mass weights.
+    local a,b,c=inverse[1].x,inverse[2].x,inverse[3].x
+    local d,e,f=inverse[2].y,inverse[3].y,inverse[3].z
+    local det=a*(d*f-e*e)-b*(b*f-c*e)+c*(b*e-c*d)
+    local inertia=nil ---@type number[]|nil
+    if det>0 then inertia={(d*f-e*e)/det,(c*e-b*f)/det,(b*e-c*d)/det,
+        (a*f-c*c)/det,(b*c-a*e)/det,(a*d-b*b)/det} end
+    local function FlightAcceleration(alpha)
+        if not inertia then return end
+        local q=ReadRotation();local v=q:Inverse()*Axial(alpha)
+        local torque=Vector3(inertia[1]*v.x+inertia[2]*v.y+inertia[3]*v.z,
+            inertia[2]*v.x+inertia[4]*v.y+inertia[5]*v.z,
+            inertia[3]*v.x+inertia[5]*v.y+inertia[6]*v.z)
+        native:ApplyTorque(q*torque)
+    end
     local function InvInertia(value)
         local q=ReadRotation();local inv
         if scoped then inverseRotation=inverseRotation or q:Inverse();inv=inverseRotation else inv=q:Inverse() end
@@ -107,6 +123,7 @@ function M.Wrap(native)
         addForce=function(force) native:ApplyForce(Polar(force)) end,
         applyImpulse=function(impulse) native:ApplyImpulse(Polar(impulse));linear=nil end,
         addTorque=function(torque) native:ApplyTorque(Axial(torque)) end,
+        addFlightAngularAcceleration=inertia and FlightAcceleration or nil,
         applyTorqueImpulse=function(torque) native:ApplyTorqueImpulse(Axial(torque));angular=nil end,
         addForceAtPoint=function(force,point)
             local f=Polar(force);native:ApplyForce(f);native:ApplyTorque((Polar(point)-Center()):CrossProduct(f))
