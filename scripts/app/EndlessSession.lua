@@ -239,7 +239,7 @@ end
 function M:HandleKey(key)
     if self.edit then return self.edit:HandleKey(key) end
     if key==KEY_G then self:EnterEdit();return true elseif key==KEY_V then if not self.run:UseRepair() then self.session.app.toasts:Push('没有可用的维修补给','info') end;self:Events();return true
-    elseif key==KEY_RETURN then self:NextWave();return true
+    elseif key==KEY_RETURN or key==KEY_KP_ENTER then self:NextWave();return true
     elseif key==KEY_BACKSPACE or key==KEY_N or key==KEY_T then return true end;return false
 end
 function M:Update(dt) self.audio:Update(dt,self.run,self.session.camera:GetNode(),self.session.feedbackAudio.volume);if self.edit then self.edit:Update(dt) end end

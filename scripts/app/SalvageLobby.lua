@@ -67,6 +67,27 @@ function M:MaxQuantity(id,sell)
     local it=Data.items[id];if not it then return 1 end
     return sell and math.max(1,self:Loose(id)) or math.max(1,math.min(99,math.floor(self.data.credits/it.price)))
 end
+function M:CargoSale()
+    local usage=self:Usage();local sale={items={},gain=0,count=0}
+    for _,id in ipairs(Rules.itemOrder) do
+        local item=Data.items[id];local n=self:Loose(id,usage)
+        if item.cat=='cargo' and n>0 then
+            sale.items[#sale.items+1]={id=id,n=n}
+            sale.gain=sale.gain+math.max(1,math.floor(item.price*Rules.sellRate))*n;sale.count=sale.count+n
+        end
+    end
+    return sale
+end
+function M:SellCargo()
+    local sale=self:CargoSale();if sale.count==0 then return true,nil,0,0 end
+    local previous=self.data;local nextData={};for k,v in pairs(previous) do nextData[k]=v end
+    nextData.items={};for id,n in pairs(previous.items) do nextData.items[id]=n end
+    for _,row in ipairs(sale.items) do local left=nextData.items[row.id]-row.n;nextData.items[row.id]=left>0 and left or nil end
+    nextData.credits=previous.credits+sale.gain;self.data=nextData
+    local called,ok,err=pcall(self.Save,self)
+    if not called or not ok then self.data=previous;return false,called and err or tostring(ok),0,0 end
+    return true,nil,sale.gain,sale.count
+end
 function M:Trade(id,qty,sell)
     local item=Data.items[id];qty=math.floor(qty)
     if not item or qty<1 then return false,'数量无效' end

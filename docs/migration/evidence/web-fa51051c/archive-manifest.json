@@ -1,0 +1,75 @@
+{
+  "baseline": "fa51051c99d78de5615612e9ef26704a494f82c2",
+  "manifest": "manifest-11c5d9cd.json",
+  "boundary": "Historical package observations. Failures retained; not validation of later production changes.",
+  "files": [
+    {
+      "source": "salvage-quantity-web-manifest-11c5d9cd-2026-10-16T11-36-09-484Z/report.json",
+      "file": "quantity-report.json.gz",
+      "bytes": 205313,
+      "sha256": "c2a03b178dde1f55f314aa126190d07e5ba7e37fbdb37930b50da463684ea9d0",
+      "gzipBytes": 41594,
+      "gzipSha256": "4a17a3b54c71b928d3de54b2e85a9f24ed95da140cbaef8f8cd368383b409ee9"
+    },
+    {
+      "source": "match-radio-web-manifest-11c5d9cd-2026-10-16T11-43-58-469Z/report.json",
+      "file": "match-report.json.gz",
+      "bytes": 4955279,
+      "sha256": "5071af71a30665a6d030f7f0e555f756a583d940e72572c3a78c4f014df12c2d",
+      "gzipBytes": 421499,
+      "gzipSha256": "2b4557cd74623256e4a0d6b279c988bed4d7e95b484e99d33aa263dbb66f6033"
+    },
+    {
+      "source": "match-radio-web-manifest-11c5d9cd-2026-10-16T11-38-13-494Z/report.json",
+      "file": "matchWrongAssertion-report.json.gz",
+      "bytes": 3620379,
+      "sha256": "8e9536f5d17ffb21775487451b07920ebef237be3abec4d1637bc05a4451ca17",
+      "gzipBytes": 214661,
+      "gzipSha256": "8847f90e3088d02ad6e2d000623b1db359cf1fbeecc8d583643ff6609190054b"
+    },
+    {
+      "source": "home-giants-web-manifest-11c5d9cd-2026-10-16T11-48-02-700Z/report.json",
+      "file": "giants-report.json.gz",
+      "bytes": 125793,
+      "sha256": "96d7fc9e5d9aa06b8bc4f2a384307bc7ef7e805cf6e9e5f09331e55afeae051c",
+      "gzipBytes": 35065,
+      "gzipSha256": "b7ddf84b377c7974f62215974d41031ce2e6bab2fa31c56de869e375ba401f64"
+    },
+    {
+      "source": "salvage-quantity-web-manifest-11c5d9cd-2026-10-16T11-36-09-484Z/02-market.png",
+      "file": "quantity-market.png",
+      "bytes": 262290,
+      "sha256": "5ed2e184c64f68aff08d5ff7db9371e02c1c1430f2bc9b905cb7afbaae85adab"
+    },
+    {
+      "source": "salvage-quantity-web-manifest-11c5d9cd-2026-10-16T11-36-09-484Z/06-inspect-2000x900.png",
+      "file": "quantity-wide.png",
+      "bytes": 767898,
+      "sha256": "c394f014edca8f8de40c478eb2b6dcdec53ef77cf9468454ab17bfbc0455a74a"
+    },
+    {
+      "source": "match-radio-web-manifest-11c5d9cd-2026-10-16T11-43-58-469Z/unified-pause.png",
+      "file": "match-unified-pause.png",
+      "bytes": 1100646,
+      "sha256": "56c3a37d734704d87f73f63361764f19795df561d56552375b1e4410a5ed07dc"
+    },
+    {
+      "source": "match-radio-web-manifest-11c5d9cd-2026-10-16T11-43-58-469Z/live.png",
+      "file": "match-live.png",
+      "bytes": 2110092,
+      "sha256": "7ee5dcd27385bddc6ac673aa53414a3ed3576b6173bffd54e1d68df030b1f8a6"
+    },
+    {
+      "source": "home-giants-web-manifest-11c5d9cd-2026-10-16T11-48-02-700Z/warm-fox.png",
+      "file": "giant-fox.png",
+      "bytes": 1154729,
+      "sha256": "177e4b263b989f98cec734d0e15edcedd904aeb65493a92275e3ed2a4e9a2412"
+    },
+    {
+      "source": "home-giants-web-manifest-11c5d9cd-2026-10-16T11-48-02-700Z/warm-megaMech.png",
+      "file": "giant-mech.png",
+      "bytes": 1147807,
+      "sha256": "29b0f106a540b730d07a58f196df7286fb112a8ae5712d8085fb1ee1ff3a814a"
+    }
+  ]
+}

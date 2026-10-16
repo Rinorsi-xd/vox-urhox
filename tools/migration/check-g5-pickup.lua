@@ -1,6 +1,7 @@
 local checks={}
 local function Check(ok,name) assert(ok,name);checks[#checks+1]=name end
-package.path='scripts/?.lua;'..package.path
+package.path='scripts/?.lua;tools/migration/?.lua;'..package.path
+require('g5-offline-imports').Salvage()
 package.loaded['core.ResourceData']={Read=function(path) return resources[path] end}
 package.loaded['combat.CarUnit']={};package.loaded['salvage.Drops']={}
 package.loaded['ui.SourceDraw']={}

@@ -14,7 +14,8 @@ function M:Surface(x,z,nest)
     if not h or h.normal[2]<.75 or not nest and h.point[2]>self.world:GroundAt(x,z)+3 then return nil end;return h.point
 end
 function M:Add(kind,at,yaw,enc,seed)
-    if #self.entries>=15 or not at then return nil end
+    local alive=0;for i=2,#self.entries do if self.entries[i].unit.alive then alive=alive+1 end end
+    if alive>=14 or not at then return nil end
     local variants=Data.enemies[kind] or Data.enemies.rat;local def=variants[((seed or 1)-1)%4+1]
     local u=Unit.New(self.world,def.source,{name=def.name,spawn={pos={at[1],at[2]+1.2,at[3]},yaw=yaw},team='red',
         autoRespawn=false,externalControl=true,combat=true,hpMultiplier=def.hp*self.run.rules.op.enemyHp})
@@ -43,9 +44,8 @@ function M:Alert(enc,why)
 end
 function M:Noise(at,r) for _,e in ipairs(self.encounters) do if e.state=='active' and not e.alerted and Flat(at,e.g)<r then self:Alert(e,'听到动静') end end end
 function M:Spawn(enc)
-    local types=enc.left;local rand=self.run.rules.rand
+    local types=#enc.left>0 and enc.left or enc.squad;local rand=self.run.rules.rand;enc.units={}
     for i,kind in ipairs(types) do
-        if #self.entries>=15 then return end
         local at=false;local yaw=0
         if enc.kind=='nest' then
             local p=enc.posts[(i-1)%#enc.posts+1];local x,z=-p[1],p[2]
@@ -72,7 +72,7 @@ function M:Spawn(enc)
             if e then e.wp=enc.kind=='patrol' and math.min(#enc.route,i*2+1) or 1 end
         end
     end
-    if #enc.units>0 then enc.state='active';enc.left={};if enc.kind=='ambush' then self:Alert(enc) end end
+    enc.state='active';enc.left={}
 end
 function M:Remove(entry)
     local u=entry.unit;u:Dispose()
@@ -92,8 +92,7 @@ function M:Step(dt)
         local center=e.kind=='patrol' and e.units[1] and e.units[1].unit.alive and e.units[1].unit:Position() or e.g
         local d=Flat(center,pos)
         if e.state=='dormant' and d<(e.kind=='ambush' and e.triggerR or 380) then
-            -- Do not truncate a squad when the active cap is full.
-            if #self.entries-1+#e.left<=14 then self:Spawn(e) end
+            self:Spawn(e);if e.kind=='ambush' then self:Alert(e) end
         elseif e.state=='active' then
             if not e.hinted and not e.alerted and d<280 then e.hinted=true;self.run:Feed(e.name,e.hint or '',e.kind=='elite' and '#ff5a3c' or '#f0a21c') end
             local alive=0;local hit=false

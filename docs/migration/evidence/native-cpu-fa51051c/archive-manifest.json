@@ -1,0 +1,76 @@
+{
+  "compression": "gzip lossless",
+  "raw": {
+    "none.json": {
+      "bytes": 2039170,
+      "sha256": "cf55c6589762d3ef81d6850472e4b51934c29da611206afe5add9897c7085525",
+      "gzipFile": "none.json.gz",
+      "gzipBytes": 82614,
+      "gzipSha256": "50ad1c27d406456f7d117cce9c3e5e30503358de56116931639d51d39e8dfe7e"
+    },
+    "coarse.json": {
+      "bytes": 4971431,
+      "sha256": "ab087f6e7c3ad368804c21d67b3efd60e6b70d60cf615965c22c0ab2193a239c",
+      "gzipFile": "coarse.json.gz",
+      "gzipBytes": 170607,
+      "gzipSha256": "dfb0279915938565ee72778d7b72cbe0219aa42d2b911254effb1fa1e8a8848a"
+    },
+    "respawn-coverage.json": {
+      "bytes": 2830614,
+      "sha256": "9af384abd353f4ad761685cecf7d27153f3004abcdfaced4011ce2ce0dba36f8",
+      "gzipFile": "respawn-coverage.json.gz",
+      "gzipBytes": 87315,
+      "gzipSha256": "4152d70598843956db9e2343b65dbe5da6ef7dea1a68e348388d6a8ea1430f3a"
+    }
+  },
+  "files": {
+    "coarse.json.gz": {
+      "bytes": 170607,
+      "sha256": "dfb0279915938565ee72778d7b72cbe0219aa42d2b911254effb1fa1e8a8848a"
+    },
+    "frozen-scripts.json": {
+      "bytes": 55282,
+      "sha256": "bd0a3b9324a01f4a28e9b22de2eb76a0ba8eb7d273e6a18e9a0cf74ab3c8e549"
+    },
+    "integrity.json": {
+      "bytes": 2608,
+      "sha256": "0a72d171b1c889936d40741a019738f9308eac6543ed00cd77e3d4f958807d3d"
+    },
+    "NativeBattleCPU.lua": {
+      "bytes": 12282,
+      "sha256": "f7baf9dd42e8b34684f9ab02bab7a54e0dd102ebecef788a8c31f282f69e83a4"
+    },
+    "none.json.gz": {
+      "bytes": 82614,
+      "sha256": "50ad1c27d406456f7d117cce9c3e5e30503358de56116931639d51d39e8dfe7e"
+    },
+    "original-run.ps1": {
+      "bytes": 2770,
+      "sha256": "05e542c742dd21c9df669435b08dc9401f60b3f169db5da67244d96f57ec046d"
+    },
+    "README.md": {
+      "bytes": 2497,
+      "sha256": "c71a4242820549388a0d73aaebe33cabead5a3c4ef8c38cade27c32a58b7e0b1"
+    },
+    "respawn-coverage.json.gz": {
+      "bytes": 87315,
+      "sha256": "4152d70598843956db9e2343b65dbe5da6ef7dea1a68e348388d6a8ea1430f3a"
+    },
+    "run.ps1": {
+      "bytes": 2524,
+      "sha256": "25584cc0b6014d2d33b04560a5bd379c6281cb832448f5935f6e7f621f3ea41c"
+    },
+    "summarize.cjs": {
+      "bytes": 3523,
+      "sha256": "7e398761d4e2d71651e2a99d1a47937be412f4ddd2666337948984a8798a9a00"
+    },
+    "summary.json": {
+      "bytes": 103814,
+      "sha256": "96f22641cd71832ad0120229e4b1240dbaaddba97c862d0e8d4f828c105c45f2"
+    },
+    "verify-integrity.cjs": {
+      "bytes": 2075,
+      "sha256": "c156a9965de60b85c52511efcb96bb692112a4c758c3eee10f5fa3bcdc66f327"
+    }
+  }
+}

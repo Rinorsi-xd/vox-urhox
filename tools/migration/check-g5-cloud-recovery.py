@@ -1,4 +1,5 @@
 """Exercise G5 checkpoints through the real cloud adapter with controlled SDK/FS."""
+import argparse
 import hashlib
 import json
 import os
@@ -8,7 +9,7 @@ import sys
 ROOT = Path(__file__).resolve().parents[2]
 os.chdir(ROOT)
 sys.path.insert(0, str(ROOT / '.tmp/nav-python-deps'))
-from lupa.lua54 import LuaRuntime, lua_type
+from lupa.lua54 import LuaRuntime, LuaError, lua_type
 
 PRODUCTION = [
     'scripts/storage/CloudStorage.lua', 'scripts/storage/CloudSync.lua',
@@ -28,7 +29,8 @@ for source_path in ['shared/battle/endless.js', 'three/src/battle/endlessSession
     SOURCE_HASHES[source_path] = digest
 RESOURCE_HASHES = {}
 LUA = r'''
-package.path='scripts/?.lua;'..package.path
+package.path='scripts/?.lua;tools/migration/?.lua;'..package.path
+require('g5-offline-imports').Exclude({'render.Quality','render.CraterPostProcess'})
 local checks={}
 local function Check(ok,name) assert(ok,name);checks[#checks+1]=name end
 local function Copy(t) if type(t)~='table' then return t end;local out={};for k,v in pairs(t) do out[k]=Copy(v) end;return out end
@@ -194,7 +196,7 @@ def execute(mutation=None):
     if mutation:
         path, old, new = mutation
         text = (ROOT / path).read_text(encoding='utf-8')
-        assert old in text, path
+        assert text.count(old) == 1, 'Mutation anchor must be unique: ' + path
         text = text.replace(old, new, 1)
         lua.globals().overrideSource = text
         module = path.removeprefix('scripts/').removesuffix('.lua').replace('/', '.')
@@ -205,16 +207,22 @@ def execute(mutation=None):
 checks = execute()
 mutations = [
     ('scripts/storage/CloudStorage.lua', "local ok,restored=pcall(Store.Hydrate,namespace,key,record)", "local ok,restored=true,true"),
-    ('scripts/storage/CloudStorage.lua', "valid=require('endless.Records').Run(data)", "valid=true"),
+    ('scripts/storage/CloudStorage.lua', "valid=Records.Run(data)", "valid=true"),
     ('scripts/storage/CloudSync.lua', "self.ack[key]=item.version;self.active=false", "self.ack[key]=item.version;self.active=false;self.pending={};self.queue={}"),
     ('scripts/app/SalvageLobby.lua', "if self.data.lastRun==runId then return true end", "if false then return true end"),
     ('scripts/app/SalvageLobby.lua', "if not ok then self.data=previous end;return ok,err\nend\nfunction M:Cells", "return ok,err\nend\nfunction M:Cells"),
 ]
 negative = []
-for mutation in mutations:
+expected_assertions = ['new local store reads hydrated checkpoint generation',
+    'dead run checkpoint rejected before hydration',
+    'late definitive ack safely starts retained latest revision',
+    'restored settlement cannot grant same cargo twice',
+    'real stash settlement rolls back entire object on file-open failure']
+for mutation, expected in zip(mutations, expected_assertions, strict=True):
     try:
         execute(mutation)
-    except Exception as error:
+    except LuaError as error:
+        assert expected in str(error).splitlines()[0], 'Negative failed outside intended assertion: ' + str(error)
         negative.append({'file': mutation[0], 'mutation': mutation[2], 'rejected': True,
                          'reason': str(error).splitlines()[0]})
     else:
@@ -224,9 +232,12 @@ report = {'result': 'PASS', 'checks': checks, 'runtime': 'Lua 5.4 via lupa',
           'sourceCommit': 'b276064942ae09c0227ec28d4cfda1d5ff006455',
           'sourceHashes': SOURCE_HASHES,
           'productionHashes': BEFORE, 'resources': RESOURCE_HASHES,
-          'testInputs': {'tools/migration/check-g5-cloud-recovery.py': hashlib.sha256(Path(__file__).read_bytes()).hexdigest()},
+          'testInputs': {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest() for name in
+              ['tools/migration/check-g5-cloud-recovery.py', 'tools/migration/g5-offline-imports.lua']},
           'negativeControls': negative,
-          'boundary': 'Real Run/Inventory/Blueprint, Records, BlueprintStore, CloudStorage.Boot/Decode and CloudSync executed. SDK callbacks, account identity, JSON bridge and filesystem are controlled adapters. No actual account/network, browser reload, natural battle completion, rendering, audio or mobile performance acceptance.'}
-out = ROOT / 'docs/migration/evidence/g5-cloud-recovery-offline.json'
+          'boundary': 'Real Run/Inventory/Blueprint, Records, BlueprintStore, CloudStorage.Boot/Decode and CloudSync executed. Frozen JS is hash-bound provenance only in this runner, not an executed oracle. SDK callbacks, account identity, JSON bridge and filesystem are controlled adapters. Unused render hoists fail on access. No actual account/network, browser reload, natural battle completion, rendering, audio or mobile performance acceptance.'}
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--output', type=Path, default=Path('docs/migration/evidence/g5-cloud-recovery-offline.json'))
+out = ROOT / parser.parse_args().output
 out.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
 print(json.dumps({'result': report['result'], 'checks': len(checks), 'negativeControls': len(negative), 'evidence': str(out)}))

@@ -1050,8 +1050,18 @@ local function Dump(app)
     data.craterModelResident=cache:GetExistingResource('Model','Crater/mesh-0.bin')~=nil
     data.vehicleLoading={busy=app.vehicleSwitch and app.vehicleSwitch:IsBusy() or false,
         ready=app.vehicleSwitch and app.vehicleSwitch.pending and app.vehicleSwitch.pending.ready or false,
-        state=app.vehicleSwitch and app.vehicleSwitch.gate.state or '',draft=app.vehicleGate.state}
+        state=app.vehicleSwitch and app.vehicleSwitch.gate.state or '',draft=app.vehicleGate.state,
+        assembling=app.vehicleSwitch and app.vehicleSwitch:IsAssembling() or false,
+        assemblyFrames=app.vehicleSwitch and app.vehicleSwitch.assemblyFrames or 0,
+        maxAssemblyMs=app.vehicleSwitch and app.vehicleSwitch.maxAssemblyMs or 0,
+        progress=app.vehicleSwitch and app.vehicleSwitch.pending and app.vehicleSwitch.pending.progress,
+        lift=app.vehicleSwitch and app.vehicleSwitch.lift.anim}
     data.garage={used=home and home.usedCount or 0,active=app.bays.active}
+    data.garage.cards={}
+    for i,card in ipairs(home and home.cards or {}) do
+        local r=card:GetAbsoluteLayoutForHitTest()
+        data.garage.cards[i]={r.x,r.y,r.w,r.h}
+    end
     data.garage.slots={}
     for i,slot in ipairs(app.bays:Slots()) do data.garage.slots[i]=slot and {name=slot.name,parts=#slot.parts} or false end
     data.carVisuals=0

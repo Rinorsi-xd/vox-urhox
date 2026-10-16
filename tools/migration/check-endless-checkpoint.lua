@@ -1,4 +1,7 @@
-package.path='scripts/?.lua;'..package.path
+package.path='scripts/?.lua;tools/migration/?.lua;'..package.path
+require('g5-offline-imports').Exclude({'parts.Dependencies','endless.Audio','drive.SpawnSpecCache',
+    'endless.View','drive.VehicleSpec','combat.DriverActions','drive.RotorMotion',
+    'render.NodeVisibility','combat.PlayerViewSync','Config'})
 local checks={}
 local function Check(ok,name) assert(ok,name);checks[#checks+1]=name end
 local config={runKey='checkpoint',bossEvery=5,maxTier=5,startTier=1,shieldBase=100,shieldPerWave=10,spawnInvulnerability=3}

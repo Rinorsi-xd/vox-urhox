@@ -6,7 +6,8 @@ local function Same(a,b)
     for k,v in pairs(a) do if not Same(v,b[k]) then return false end end
     for k in pairs(b) do if a[k]==nil then return false end end;return true
 end
-package.path='scripts/?.lua;'..package.path
+package.path='scripts/?.lua;tools/migration/?.lua;'..package.path
+require('g5-offline-imports').Salvage()
 package.loaded['core.ResourceData']={Read=function(path) return resources[path] end}
 package.loaded['combat.CarUnit']={};package.loaded['salvage.Drops']={};package.loaded['ui.SourceDraw']={}
 local Rules=require 'salvage.RunRules'

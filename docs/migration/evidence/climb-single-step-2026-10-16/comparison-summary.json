@@ -1,0 +1,2174 @@
+{
+  "single": [
+    {
+      "id": "feather",
+      "checkpoint": 133,
+      "mode": "free",
+      "before": {
+        "position": 0.006089694045369801,
+        "linearVelocity": 0.00005424022674610519,
+        "angularVelocity": 0.000011412729997730821,
+        "attitudeDegrees": 0.002653232896851712
+      },
+      "after": {
+        "position": 0.006089694045369801,
+        "linearVelocity": 0.00005424022674610519,
+        "angularVelocity": 0.000011412729997730821,
+        "attitudeDegrees": 0.002653232896851712
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 133,
+      "mode": "wing",
+      "before": {
+        "position": 0.0037027282495471527,
+        "linearVelocity": 0.00004205490566368723,
+        "angularVelocity": 0.00020468637596701459,
+        "attitudeDegrees": 0.011693388964595179
+      },
+      "after": {
+        "position": 0.003704710632373849,
+        "linearVelocity": 0.00004205490566368723,
+        "angularVelocity": 0.000008722551628696616,
+        "attitudeDegrees": 0.011498052543199836
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 133,
+      "mode": "full",
+      "before": {
+        "position": 0.007322707217321095,
+        "linearVelocity": 0.00020397352878601018,
+        "angularVelocity": 0.00004884119852509441,
+        "attitudeDegrees": 0.0005453522188107794
+      },
+      "after": {
+        "position": 0.007321193885606045,
+        "linearVelocity": 0.00020397352878601018,
+        "angularVelocity": 0.000011829795826759435,
+        "attitudeDegrees": 0.0005897641923392943
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 133,
+      "mode": "freeZero",
+      "before": {
+        "position": 0.0012542021309411332,
+        "linearVelocity": 0.00005424022674610519,
+        "angularVelocity": 0,
+        "attitudeDegrees": 0
+      },
+      "after": {
+        "position": 0.0012542021309411332,
+        "linearVelocity": 0.00005424022674610519,
+        "angularVelocity": 0,
+        "attitudeDegrees": 0
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 133,
+      "mode": "wingZero",
+      "before": {
+        "position": 0.0010665467306214533,
+        "linearVelocity": 0.00004694761994759493,
+        "angularVelocity": 0.00001932854768942865,
+        "attitudeDegrees": 0.0008543096478517308
+      },
+      "after": {
+        "position": 0.0010665610797239726,
+        "linearVelocity": 0.00004694761994759493,
+        "angularVelocity": 1.6514382804065442e-9,
+        "attitudeDegrees": 0.0008358579169288558
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 133,
+      "mode": "fullZero",
+      "before": {
+        "position": 0.005157490677716049,
+        "linearVelocity": 0.0001968187065907342,
+        "angularVelocity": 0.00027166694829346095,
+        "attitudeDegrees": 0.012009067579634032
+      },
+      "after": {
+        "position": 0.0051463940313286665,
+        "linearVelocity": 0.0001968187065907342,
+        "angularVelocity": 1.7223844806585088e-7,
+        "attitudeDegrees": 0.011749668286745394
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 150,
+      "mode": "free",
+      "before": {
+        "position": 0.008259037813505066,
+        "linearVelocity": 0.000054273752312804196,
+        "angularVelocity": 0.000020523340209703152,
+        "attitudeDegrees": 0.0038571206715446644
+      },
+      "after": {
+        "position": 0.008259037813505066,
+        "linearVelocity": 0.000054273752312804196,
+        "angularVelocity": 0.000020523340209703152,
+        "attitudeDegrees": 0.0038571206715446644
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 150,
+      "mode": "wing",
+      "before": {
+        "position": 0.007782557852036219,
+        "linearVelocity": 0.00003903389697226945,
+        "angularVelocity": 0.0000748875348244046,
+        "attitudeDegrees": 0.007041982174229812
+      },
+      "after": {
+        "position": 0.007783101853768102,
+        "linearVelocity": 0.00003903389697226945,
+        "angularVelocity": 0.000019016958049247383,
+        "attitudeDegrees": 0.006973245583192053
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 150,
+      "mode": "full",
+      "before": {
+        "position": 0.010492563748699169,
+        "linearVelocity": 0.0001978470107337099,
+        "angularVelocity": 0.00018221950906646822,
+        "attitudeDegrees": 0.004116356105979661
+      },
+      "after": {
+        "position": 0.010488087503440092,
+        "linearVelocity": 0.0001978470107337099,
+        "angularVelocity": 0.000025147812788777853,
+        "attitudeDegrees": 0.003944811588387665
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 150,
+      "mode": "freeZero",
+      "before": {
+        "position": 0.0012594183626391355,
+        "linearVelocity": 0.000054273752312804196,
+        "angularVelocity": 0,
+        "attitudeDegrees": 0
+      },
+      "after": {
+        "position": 0.0012594183626391355,
+        "linearVelocity": 0.000054273752312804196,
+        "angularVelocity": 0,
+        "attitudeDegrees": 0
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 150,
+      "mode": "wingZero",
+      "before": {
+        "position": 0.0005670659178459494,
+        "linearVelocity": 0.000023558962344505856,
+        "angularVelocity": 0.000043233103247532524,
+        "attitudeDegrees": 0.0019115120605607903
+      },
+      "after": {
+        "position": 0.0005677640089554923,
+        "linearVelocity": 0.000023558962344505856,
+        "angularVelocity": 9.968383236789874e-9,
+        "attitudeDegrees": 0.0018701158978350427
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 150,
+      "mode": "fullZero",
+      "before": {
+        "position": 0.0049206947796966586,
+        "linearVelocity": 0.00019470268035211283,
+        "angularVelocity": 0.0002955870441876702,
+        "attitudeDegrees": 0.013065298980429511
+      },
+      "after": {
+        "position": 0.004908470692581695,
+        "linearVelocity": 0.00019470268035211283,
+        "angularVelocity": 1.8746616494768778e-7,
+        "attitudeDegrees": 0.012782831334900853
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 180,
+      "mode": "free",
+      "before": {
+        "position": 0.017065874801507452,
+        "linearVelocity": 0.00005292893295083967,
+        "angularVelocity": 0.0000993255158636059,
+        "attitudeDegrees": 0.008760942267860368
+      },
+      "after": {
+        "position": 0.017065874801507452,
+        "linearVelocity": 0.00005292893295083967,
+        "angularVelocity": 0.0000993255158636059,
+        "attitudeDegrees": 0.008760942267860368
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 180,
+      "mode": "wing",
+      "before": {
+        "position": 0.013270284860456527,
+        "linearVelocity": 0.00014681493972593907,
+        "angularVelocity": 0.00012842451495982693,
+        "attitudeDegrees": 0.004629908607237701
+      },
+      "after": {
+        "position": 0.01326891284880815,
+        "linearVelocity": 0.00014681493972593907,
+        "angularVelocity": 0.00009568508484842683,
+        "attitudeDegrees": 0.004716627053826107
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 180,
+      "mode": "full",
+      "before": {
+        "position": 0.01565972295375786,
+        "linearVelocity": 0.0001829232681567817,
+        "angularVelocity": 0.00032697859144025415,
+        "attitudeDegrees": 0.0049904789560872714
+      },
+      "after": {
+        "position": 0.015652989250224056,
+        "linearVelocity": 0.0001829232681567817,
+        "angularVelocity": 0.00010721977279628003,
+        "attitudeDegrees": 0.004695506988107722
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 180,
+      "mode": "freeZero",
+      "before": {
+        "position": 0.0013063930691402,
+        "linearVelocity": 0.00005292893295083967,
+        "angularVelocity": 0,
+        "attitudeDegrees": 0.000006389056940260397
+      },
+      "after": {
+        "position": 0.0013063930691402,
+        "linearVelocity": 0.00005292893295083967,
+        "angularVelocity": 0,
+        "attitudeDegrees": 0.000006389056940260397
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 180,
+      "mode": "wingZero",
+      "before": {
+        "position": 0.0040493453539571745,
+        "linearVelocity": 0.00019117524532389176,
+        "angularVelocity": 0.0005411158480051636,
+        "attitudeDegrees": 0.023929042578454504
+      },
+      "after": {
+        "position": 0.004044949617771504,
+        "linearVelocity": 0.00019117524532389176,
+        "angularVelocity": 1.1629273379467106e-7,
+        "attitudeDegrees": 0.0234090360354729
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 180,
+      "mode": "fullZero",
+      "before": {
+        "position": 0.006147772534268807,
+        "linearVelocity": 0.00023894935066480445,
+        "angularVelocity": 0.0007573232637998059,
+        "attitudeDegrees": 0.03347877375187551
+      },
+      "after": {
+        "position": 0.00612176381233718,
+        "linearVelocity": 0.00023894935066480445,
+        "angularVelocity": 3.7539145393545245e-7,
+        "attitudeDegrees": 0.032757841045386024
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 210,
+      "mode": "free",
+      "before": {
+        "position": 0.02247061357575539,
+        "linearVelocity": 0.00006678447102578987,
+        "angularVelocity": 0.00019557558779439838,
+        "attitudeDegrees": 0.011999076982918544
+      },
+      "after": {
+        "position": 0.02247061357575539,
+        "linearVelocity": 0.00006678447102578987,
+        "angularVelocity": 0.00019557558779439838,
+        "attitudeDegrees": 0.011999076982918544
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 210,
+      "mode": "wing",
+      "before": {
+        "position": 0.01574469680043096,
+        "linearVelocity": 0.000289355301709883,
+        "angularVelocity": 0.00018745268326710816,
+        "attitudeDegrees": 0.013510395501166237
+      },
+      "after": {
+        "position": 0.015744475334723562,
+        "linearVelocity": 0.000289355301709883,
+        "angularVelocity": 0.0001905168005328321,
+        "attitudeDegrees": 0.013482519972511597
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 210,
+      "mode": "full",
+      "before": {
+        "position": 0.017374657439263173,
+        "linearVelocity": 0.0002913506253289091,
+        "angularVelocity": 0.00022684859143771828,
+        "attitudeDegrees": 0.00665122658905186
+      },
+      "after": {
+        "position": 0.01737112472896407,
+        "linearVelocity": 0.0002913506253289091,
+        "angularVelocity": 0.00019982896926491178,
+        "attitudeDegrees": 0.0067700150197334535
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 210,
+      "mode": "freeZero",
+      "before": {
+        "position": 0.0014128472567636538,
+        "linearVelocity": 0.00006678447102578987,
+        "angularVelocity": 0,
+        "attitudeDegrees": 0.000006830189170012752
+      },
+      "after": {
+        "position": 0.0014128472567636538,
+        "linearVelocity": 0.00006678447102578987,
+        "angularVelocity": 0,
+        "attitudeDegrees": 0.000006830189170012752
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 210,
+      "mode": "wingZero",
+      "before": {
+        "position": 0.008266985846422352,
+        "linearVelocity": 0.0003874503323014605,
+        "angularVelocity": 0.0005995911095779891,
+        "attitudeDegrees": 0.026514627873571284
+      },
+      "after": {
+        "position": 0.008264592857425533,
+        "linearVelocity": 0.0003874503323014605,
+        "angularVelocity": 2.230551591299578e-7,
+        "attitudeDegrees": 0.02593936553226548
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 210,
+      "mode": "fullZero",
+      "before": {
+        "position": 0.008678208950300088,
+        "linearVelocity": 0.00037629559852294883,
+        "angularVelocity": 0.0007545561404300344,
+        "attitudeDegrees": 0.0333679465698843
+      },
+      "after": {
+        "position": 0.008666184281261303,
+        "linearVelocity": 0.00037629559852294883,
+        "angularVelocity": 3.388853817574927e-7,
+        "attitudeDegrees": 0.03263717833921587
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 240,
+      "mode": "free",
+      "before": {
+        "position": 0.0162152336328427,
+        "linearVelocity": 0.00004577885064699931,
+        "angularVelocity": 0.0012232676815119672,
+        "attitudeDegrees": 0.009073112755748782
+      },
+      "after": {
+        "position": 0.0162152336328427,
+        "linearVelocity": 0.00004577885064699931,
+        "angularVelocity": 0.0012232676815119672,
+        "attitudeDegrees": 0.009073112755748782
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 240,
+      "mode": "wing",
+      "before": {
+        "position": 0.01058642504814959,
+        "linearVelocity": 0.0002542160128137999,
+        "angularVelocity": 0.0013341819613894772,
+        "attitudeDegrees": 0.023284896114171363
+      },
+      "after": {
+        "position": 0.010586164270249474,
+        "linearVelocity": 0.0002542160128137999,
+        "angularVelocity": 0.0012957154706331388,
+        "attitudeDegrees": 0.022931739259225856
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 240,
+      "mode": "full",
+      "before": {
+        "position": 0.011926435739005273,
+        "linearVelocity": 0.0002488262003688678,
+        "angularVelocity": 0.0013156321040161349,
+        "attitudeDegrees": 0.018349402378633868
+      },
+      "after": {
+        "position": 0.011925716985930538,
+        "linearVelocity": 0.0002488262003688678,
+        "angularVelocity": 0.0013019550180379123,
+        "attitudeDegrees": 0.018076505521953567
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 240,
+      "mode": "freeZero",
+      "before": {
+        "position": 0.0014718338977193365,
+        "linearVelocity": 0.00004577885064699931,
+        "angularVelocity": 0,
+        "attitudeDegrees": 0
+      },
+      "after": {
+        "position": 0.0014718338977193365,
+        "linearVelocity": 0.00004577885064699931,
+        "angularVelocity": 0,
+        "attitudeDegrees": 0
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 240,
+      "mode": "wingZero",
+      "before": {
+        "position": 0.0076378152540439595,
+        "linearVelocity": 0.0003260679160982006,
+        "angularVelocity": 0.000561599591200214,
+        "attitudeDegrees": 0.024833680268437415
+      },
+      "after": {
+        "position": 0.007631741218951833,
+        "linearVelocity": 0.0003260679160982006,
+        "angularVelocity": 3.681075486714399e-7,
+        "attitudeDegrees": 0.024296993600596586
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 240,
+      "mode": "fullZero",
+      "before": {
+        "position": 0.007425030240848044,
+        "linearVelocity": 0.00032426752098680284,
+        "angularVelocity": 0.0005813419386821763,
+        "attitudeDegrees": 0.025706282550845325
+      },
+      "after": {
+        "position": 0.007421046313697898,
+        "linearVelocity": 0.00032426752098680284,
+        "angularVelocity": 0.0000018571321757973692,
+        "attitudeDegrees": 0.025152084900470453
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 280,
+      "mode": "free",
+      "before": {
+        "position": 0.018036692399925506,
+        "linearVelocity": 0.00004581856769208101,
+        "angularVelocity": 0.009045687774765459,
+        "attitudeDegrees": 0.015213149473879308
+      },
+      "after": {
+        "position": 0.018036692399925506,
+        "linearVelocity": 0.00004581856769208101,
+        "angularVelocity": 0.009045687774765459,
+        "attitudeDegrees": 0.015213149473879308
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 280,
+      "mode": "wing",
+      "before": {
+        "position": 0.014070452128576643,
+        "linearVelocity": 0.00024209995054552078,
+        "angularVelocity": 0.00896899342160293,
+        "attitudeDegrees": 0.020881489679280177
+      },
+      "after": {
+        "position": 0.01406898929404544,
+        "linearVelocity": 0.00024209995054552078,
+        "angularVelocity": 0.008995083371314843,
+        "attitudeDegrees": 0.02068792707075091
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 280,
+      "mode": "full",
+      "before": {
+        "position": 0.014938063749409133,
+        "linearVelocity": 0.00023547066695752387,
+        "angularVelocity": 0.008998037148814784,
+        "attitudeDegrees": 0.015766154408841698
+      },
+      "after": {
+        "position": 0.014935404967938801,
+        "linearVelocity": 0.00023547066695752387,
+        "angularVelocity": 0.009034571672345912,
+        "attitudeDegrees": 0.015708205342739243
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 280,
+      "mode": "freeZero",
+      "before": {
+        "position": 0.0014490412067532294,
+        "linearVelocity": 0.00004581856769208101,
+        "angularVelocity": 0,
+        "attitudeDegrees": 0.0000024148365394514667
+      },
+      "after": {
+        "position": 0.0014490412067532294,
+        "linearVelocity": 0.00004581856769208101,
+        "angularVelocity": 0,
+        "attitudeDegrees": 0.0000024148365394514667
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 280,
+      "mode": "wingZero",
+      "before": {
+        "position": 0.008423741215389786,
+        "linearVelocity": 0.0003462455105974665,
+        "angularVelocity": 0.002050818641511267,
+        "attitudeDegrees": 0.0906822406123205
+      },
+      "after": {
+        "position": 0.008383903916732136,
+        "linearVelocity": 0.0003462455105974665,
+        "angularVelocity": 0.000006904308761554386,
+        "attitudeDegrees": 0.08872726936240774
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 280,
+      "mode": "fullZero",
+      "before": {
+        "position": 0.008191336266287855,
+        "linearVelocity": 0.0003229859931732413,
+        "angularVelocity": 0.0020582004131761175,
+        "attitudeDegrees": 0.09102043112543039
+      },
+      "after": {
+        "position": 0.008148302181246314,
+        "linearVelocity": 0.0003229859931732413,
+        "angularVelocity": 0.000011154626482838261,
+        "attitudeDegrees": 0.08905526119402674
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 300,
+      "mode": "free",
+      "before": {
+        "position": 0.011119216368963068,
+        "linearVelocity": 0.00006681167559866712,
+        "angularVelocity": 0.004066351614404889,
+        "attitudeDegrees": 0.01198793424700563
+      },
+      "after": {
+        "position": 0.011119216368963068,
+        "linearVelocity": 0.00006681167559866712,
+        "angularVelocity": 0.004066351614404889,
+        "attitudeDegrees": 0.01198793424700563
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 300,
+      "mode": "wing",
+      "before": {
+        "position": 0.009415352052540984,
+        "linearVelocity": 0.00016361004878248748,
+        "angularVelocity": 0.003933169177063822,
+        "attitudeDegrees": 0.02041059645114825
+      },
+      "after": {
+        "position": 0.009411188969965378,
+        "linearVelocity": 0.00016361004878248748,
+        "angularVelocity": 0.0039640535777474666,
+        "attitudeDegrees": 0.02011796751053953
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 300,
+      "mode": "full",
+      "before": {
+        "position": 0.00967189259598047,
+        "linearVelocity": 0.0001428602852712555,
+        "angularVelocity": 0.003955517353747066,
+        "attitudeDegrees": 0.0157992657698085
+      },
+      "after": {
+        "position": 0.00967116591459199,
+        "linearVelocity": 0.0001428602852712555,
+        "angularVelocity": 0.0040005777023037325,
+        "attitudeDegrees": 0.015626484786490105
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 300,
+      "mode": "freeZero",
+      "before": {
+        "position": 0.0014131414115757979,
+        "linearVelocity": 0.00006681167559866712,
+        "angularVelocity": 0,
+        "attitudeDegrees": 0
+      },
+      "after": {
+        "position": 0.0014131414115757979,
+        "linearVelocity": 0.00006681167559866712,
+        "angularVelocity": 0,
+        "attitudeDegrees": 0
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 300,
+      "mode": "wingZero",
+      "before": {
+        "position": 0.006451342933967384,
+        "linearVelocity": 0.00021557258935632224,
+        "angularVelocity": 0.0021401057767634927,
+        "attitudeDegrees": 0.09461451101431743
+      },
+      "after": {
+        "position": 0.006394361831773337,
+        "linearVelocity": 0.00021557258935632224,
+        "angularVelocity": 0.000013188413698662776,
+        "attitudeDegrees": 0.09256578221985765
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 300,
+      "mode": "fullZero",
+      "before": {
+        "position": 0.005859705920607714,
+        "linearVelocity": 0.00019620675762227073,
+        "angularVelocity": 0.0021275200056873615,
+        "attitudeDegrees": 0.09405330342493969
+      },
+      "after": {
+        "position": 0.005800483195315965,
+        "linearVelocity": 0.00019620675762227073,
+        "angularVelocity": 0.000011133832645153152,
+        "attitudeDegrees": 0.09202375837458783
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 360,
+      "mode": "free",
+      "before": {
+        "position": 0.005295325618871212,
+        "linearVelocity": 0.00006488490559835073,
+        "angularVelocity": 0.001098993294844923,
+        "attitudeDegrees": 0.010172281444852155
+      },
+      "after": {
+        "position": 0.005295325618871212,
+        "linearVelocity": 0.00006488490559835073,
+        "angularVelocity": 0.001098993294844923,
+        "attitudeDegrees": 0.010172281444852155
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 360,
+      "mode": "wing",
+      "before": {
+        "position": 0.0052819971669292205,
+        "linearVelocity": 0.00007494690973048591,
+        "angularVelocity": 0.0011502075776023864,
+        "attitudeDegrees": 0.008175050787167768
+      },
+      "after": {
+        "position": 0.005279576643976627,
+        "linearVelocity": 0.00007494690973048591,
+        "angularVelocity": 0.0010783294608233014,
+        "attitudeDegrees": 0.008151319103932715
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 360,
+      "mode": "full",
+      "before": {
+        "position": 0.004767513728472581,
+        "linearVelocity": 0.000053235190340114886,
+        "angularVelocity": 0.0011923050039804573,
+        "attitudeDegrees": 0.01148200065323121
+      },
+      "after": {
+        "position": 0.0047619277105512186,
+        "linearVelocity": 0.000053235190340114886,
+        "angularVelocity": 0.001056813388744556,
+        "attitudeDegrees": 0.011354089041365636
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 360,
+      "mode": "freeZero",
+      "before": {
+        "position": 0.0014096252104700464,
+        "linearVelocity": 0.00006488490559835073,
+        "angularVelocity": 0,
+        "attitudeDegrees": 0.0000024148365394514667
+      },
+      "after": {
+        "position": 0.0014096252104700464,
+        "linearVelocity": 0.00006488490559835073,
+        "angularVelocity": 0,
+        "attitudeDegrees": 0.0000024148365394514667
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 360,
+      "mode": "wingZero",
+      "before": {
+        "position": 0.004902225605076056,
+        "linearVelocity": 0.00008585187862478595,
+        "angularVelocity": 0.002159186119843404,
+        "attitudeDegrees": 0.0954367698085885
+      },
+      "after": {
+        "position": 0.004817067886119525,
+        "linearVelocity": 0.00008585187862478595,
+        "angularVelocity": 0.000011241096654408833,
+        "attitudeDegrees": 0.09337556662683706
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 360,
+      "mode": "fullZero",
+      "before": {
+        "position": 0.004528078571369557,
+        "linearVelocity": 0.00005702940516795736,
+        "angularVelocity": 0.0021624600010061103,
+        "attitudeDegrees": 0.09560765566927505
+      },
+      "after": {
+        "position": 0.004444196194500335,
+        "linearVelocity": 0.00005702940516795736,
+        "angularVelocity": 0.000013545946972590097,
+        "attitudeDegrees": 0.09354793780281526
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 420,
+      "mode": "free",
+      "before": {
+        "position": 0.022592579256664108,
+        "linearVelocity": 0.00004582601080598554,
+        "angularVelocity": 0.01120039985957568,
+        "attitudeDegrees": 0.017150820079036934
+      },
+      "after": {
+        "position": 0.022592579256664108,
+        "linearVelocity": 0.00004582601080598554,
+        "angularVelocity": 0.01120039985957568,
+        "attitudeDegrees": 0.017150820079036934
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 420,
+      "mode": "wing",
+      "before": {
+        "position": 0.0166464779375083,
+        "linearVelocity": 0.0002949984593933346,
+        "angularVelocity": 0.011233992379100657,
+        "attitudeDegrees": 0.013461108240452595
+      },
+      "after": {
+        "position": 0.016641658247319554,
+        "linearVelocity": 0.0002949984593933346,
+        "angularVelocity": 0.011247584178788194,
+        "attitudeDegrees": 0.01353048213896424
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 420,
+      "mode": "full",
+      "before": {
+        "position": 0.017484152232806027,
+        "linearVelocity": 0.0002926397463075358,
+        "angularVelocity": 0.011261503923674157,
+        "attitudeDegrees": 0.01045927245599862
+      },
+      "after": {
+        "position": 0.017482249822532808,
+        "linearVelocity": 0.0002926397463075358,
+        "angularVelocity": 0.011277395902215546,
+        "attitudeDegrees": 0.010594732400932708
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 420,
+      "mode": "freeZero",
+      "before": {
+        "position": 0.001446892094253669,
+        "linearVelocity": 0.00004582601080598554,
+        "angularVelocity": 0,
+        "attitudeDegrees": 0.0000024148365394514667
+      },
+      "after": {
+        "position": 0.001446892094253669,
+        "linearVelocity": 0.00004582601080598554,
+        "angularVelocity": 0,
+        "attitudeDegrees": 0.0000024148365394514667
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 420,
+      "mode": "wingZero",
+      "before": {
+        "position": 0.009322153906067441,
+        "linearVelocity": 0.00039954287636484887,
+        "angularVelocity": 0.0021366942152366516,
+        "attitudeDegrees": 0.09446926838013467
+      },
+      "after": {
+        "position": 0.009283720235994376,
+        "linearVelocity": 0.00039954287636484887,
+        "angularVelocity": 0.00002559976179189625,
+        "attitudeDegrees": 0.09242971397618681
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 420,
+      "mode": "fullZero",
+      "before": {
+        "position": 0.00938769579986546,
+        "linearVelocity": 0.0003934007701140613,
+        "angularVelocity": 0.0021652847219833416,
+        "attitudeDegrees": 0.09573854577477532
+      },
+      "after": {
+        "position": 0.00934386092448456,
+        "linearVelocity": 0.0003934007701140613,
+        "angularVelocity": 0.000029513428710668833,
+        "attitudeDegrees": 0.09366648441474579
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 480,
+      "mode": "free",
+      "before": {
+        "position": 0.017004810107049052,
+        "linearVelocity": 0.000041983338743355355,
+        "angularVelocity": 0.00821252057787257,
+        "attitudeDegrees": 0.014561291939159357
+      },
+      "after": {
+        "position": 0.017004810107049052,
+        "linearVelocity": 0.000041983338743355355,
+        "angularVelocity": 0.00821252057787257,
+        "attitudeDegrees": 0.014561291939159357
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 480,
+      "mode": "wing",
+      "before": {
+        "position": 0.013286261591423895,
+        "linearVelocity": 0.00022110646463694306,
+        "angularVelocity": 0.008159890241304247,
+        "attitudeDegrees": 0.013871738080650243
+      },
+      "after": {
+        "position": 0.013283900548001567,
+        "linearVelocity": 0.00022110646463694306,
+        "angularVelocity": 0.008207074714192889,
+        "attitudeDegrees": 0.013840792630416885
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 480,
+      "mode": "full",
+      "before": {
+        "position": 0.013923718700475264,
+        "linearVelocity": 0.0002221651817241285,
+        "angularVelocity": 0.008211009872599557,
+        "attitudeDegrees": 0.012016268482586193
+      },
+      "after": {
+        "position": 0.013920643103996511,
+        "linearVelocity": 0.0002221651817241285,
+        "angularVelocity": 0.008226413667674914,
+        "attitudeDegrees": 0.012043385048252418
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 480,
+      "mode": "freeZero",
+      "before": {
+        "position": 0.0014836573434471305,
+        "linearVelocity": 0.000041983338743355355,
+        "angularVelocity": 0,
+        "attitudeDegrees": 0.0000024148365394514667
+      },
+      "after": {
+        "position": 0.0014836573434471305,
+        "linearVelocity": 0.000041983338743355355,
+        "angularVelocity": 0,
+        "attitudeDegrees": 0.0000024148365394514667
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 480,
+      "mode": "wingZero",
+      "before": {
+        "position": 0.007515307239014674,
+        "linearVelocity": 0.0003069601938331622,
+        "angularVelocity": 0.002118822619879925,
+        "attitudeDegrees": 0.09366417762342492
+      },
+      "after": {
+        "position": 0.007473791497351013,
+        "linearVelocity": 0.0003069601938331622,
+        "angularVelocity": 0.00001535634079364969,
+        "attitudeDegrees": 0.09163438169958325
+      }
+    },
+    {
+      "id": "feather",
+      "checkpoint": 480,
+      "mode": "fullZero",
+      "before": {
+        "position": 0.007521239667578475,
+        "linearVelocity": 0.00028924644876193365,
+        "angularVelocity": 0.0021322093136645908,
+        "attitudeDegrees": 0.09425939609337816
+      },
+      "after": {
+        "position": 0.007476234657434738,
+        "linearVelocity": 0.00028924644876193365,
+        "angularVelocity": 0.0000162221178400501,
+        "attitudeDegrees": 0.0922480972423888
+      }
+    },
+    {
+      "id": "hawk",
+      "checkpoint": 180,
+      "mode": "free",
+      "before": {
+        "position": 0.007876048267479561,
+        "linearVelocity": 0.00005582254236262697,
+        "angularVelocity": 0.00020184417185885374,
+        "attitudeDegrees": 0.005701193565109267
+      },
+      "after": {
+        "position": 0.007876048267479561,
+        "linearVelocity": 0.00005582254236262697,
+        "angularVelocity": 0.00020184417185885374,
+        "attitudeDegrees": 0.005701193565109267
+      }
+    },
+    {
+      "id": "hawk",
+      "checkpoint": 180,
+      "mode": "wing",
+      "before": {
+        "position": 0.0059354417066165115,
+        "linearVelocity": 0.00003158683551503584,
+        "angularVelocity": 0.00025158808233620986,
+        "attitudeDegrees": 0.0006540597137733555
+      },
+      "after": {
+        "position": 0.005936523726878677,
+        "linearVelocity": 0.00003158683551503584,
+        "angularVelocity": 0.0002062527583920255,
+        "attitudeDegrees": 0.0005300442435407085
+      }
+    },
+    {
+      "id": "hawk",
+      "checkpoint": 180,
+      "mode": "full",
+      "before": {
+        "position": 0.007149381473510146,
+        "linearVelocity": 0.0001359522135311355,
+        "angularVelocity": 0.00036795972682407977,
+        "attitudeDegrees": 0.0075975048249148636
+      },
+      "after": {
+        "position": 0.007146068240620285,
+        "linearVelocity": 0.0001359522135311355,
+        "angularVelocity": 0.00021069579093373062,
+        "attitudeDegrees": 0.007310332038012606
+      }
+    },
+    {
+      "id": "hawk",
+      "checkpoint": 180,
+      "mode": "freeZero",
+      "before": {
+        "position": 0.0012694188831500978,
+        "linearVelocity": 0.00005582254236262697,
+        "angularVelocity": 0,
+        "attitudeDegrees": 0
+      },
+      "after": {
+        "position": 0.0012694188831500978,
+        "linearVelocity": 0.00005582254236262697,
+        "angularVelocity": 0,
+        "attitudeDegrees": 0
+      }
+    },
+    {
+      "id": "hawk",
+      "checkpoint": 180,
+      "mode": "wingZero",
+      "before": {
+        "position": 0.0010515676375381416,
+        "linearVelocity": 0.0000484130702367679,
+        "angularVelocity": 0.00040015129869121625,
+        "attitudeDegrees": 0.01768551081781287
+      },
+      "after": {
+        "position": 0.0010467206444719664,
+        "linearVelocity": 0.0000484130702367679,
+        "angularVelocity": 3.67677661024581e-7,
+        "attitudeDegrees": 0.017302503596357904
+      }
+    },
+    {
+      "id": "hawk",
+      "checkpoint": 180,
+      "mode": "fullZero",
+      "before": {
+        "position": 0.003938435877117621,
+        "linearVelocity": 0.00013845142888350908,
+        "angularVelocity": 0.0005583428521453509,
+        "attitudeDegrees": 0.024678130204634347
+      },
+      "after": {
+        "position": 0.003919243478976612,
+        "linearVelocity": 0.00013845142888350908,
+        "angularVelocity": 6.124881546869055e-7,
+        "attitudeDegrees": 0.02414576301072819
+      }
+    },
+    {
+      "id": "hawk",
+      "checkpoint": 240,
+      "mode": "free",
+      "before": {
+        "position": 0.011244217556088166,
+        "linearVelocity": 0.00006675720224882703,
+        "angularVelocity": 0.0004927334100621736,
+        "attitudeDegrees": 0.00923771659691356
+      },
+      "after": {
+        "position": 0.011244217556088166,
+        "linearVelocity": 0.00006675720224882703,
+        "angularVelocity": 0.0004927334100621736,
+        "attitudeDegrees": 0.00923771659691356
+      }
+    },
+    {
+      "id": "hawk",
+      "checkpoint": 240,
+      "mode": "wing",
+      "before": {
+        "position": 0.006194567300201301,
+        "linearVelocity": 0.00020452289930149311,
+        "angularVelocity": 0.0005192205388721406,
+        "attitudeDegrees": 0.01746096835299225
+      },
+      "after": {
+        "position": 0.006191593443861595,
+        "linearVelocity": 0.00020452289930149311,
+        "angularVelocity": 0.0004842839913002781,
+        "attitudeDegrees": 0.01728859912573993
+      }
+    },
+    {
+      "id": "hawk",
+      "checkpoint": 240,
+      "mode": "full",
+      "before": {
+        "position": 0.0063696173464909195,
+        "linearVelocity": 0.00020261952798147047,
+        "angularVelocity": 0.0004954906172760443,
+        "attitudeDegrees": 0.012581552140714268
+      },
+      "after": {
+        "position": 0.006369364591010494,
+        "linearVelocity": 0.00020261952798147047,
+        "angularVelocity": 0.0004899382608777644,
+        "attitudeDegrees": 0.012507695224265944
+      }
+    },
+    {
+      "id": "hawk",
+      "checkpoint": 240,
+      "mode": "freeZero",
+      "before": {
+        "position": 0.00140878069215152,
+        "linearVelocity": 0.00006675720224882703,
+        "angularVelocity": 0,
+        "attitudeDegrees": 0
+      },
+      "after": {
+        "position": 0.00140878069215152,
+        "linearVelocity": 0.00006675720224882703,
+        "angularVelocity": 0,
+        "attitudeDegrees": 0
+      }
+    },
+    {
+      "id": "hawk",
+      "checkpoint": 240,
+      "mode": "wingZero",
+      "before": {
+        "position": 0.005536445380829485,
+        "linearVelocity": 0.00023468951203440603,
+        "angularVelocity": 0.00017672522374436445,
+        "attitudeDegrees": 0.007815678244560248
+      },
+      "after": {
+        "position": 0.005535146879874559,
+        "linearVelocity": 0.00023468951203440603,
+        "angularVelocity": 1.7197357865034325e-7,
+        "attitudeDegrees": 0.007639491973159852
+      }
+    },
+    {
+      "id": "hawk",
+      "checkpoint": 240,
+      "mode": "fullZero",
+      "before": {
+        "position": 0.005530166978135044,
+        "linearVelocity": 0.00023436363616275438,
+        "angularVelocity": 0.00028742903633093757,
+        "attitudeDegrees": 0.012710550340655193
+      },
+      "after": {
+        "position": 0.005524452332681926,
+        "linearVelocity": 0.00023436363616275438,
+        "angularVelocity": 2.0781360460686308e-7,
+        "attitudeDegrees": 0.012433936365153872
+      }
+    },
+    {
+      "id": "hawk",
+      "checkpoint": 360,
+      "mode": "free",
+      "before": {
+        "position": 0.0014438011450090445,
+        "linearVelocity": 0.00004578630021723978,
+        "angularVelocity": 2.7746499702835197e-9,
+        "attitudeDegrees": 0.00004638749512560077
+      },
+      "after": {
+        "position": 0.0014438011450090445,
+        "linearVelocity": 0.00004578630021723978,
+        "angularVelocity": 2.7746499702835197e-9,
+        "attitudeDegrees": 0.00004638749512560077
+      }
+    },
+    {
+      "id": "hawk",
+      "checkpoint": 360,
+      "mode": "wing",
+      "before": {
+        "position": 0.001679940023605072,
+        "linearVelocity": 0.00008418961961584613,
+        "angularVelocity": 0.000002769749274453005,
+        "attitudeDegrees": 0.00011181501571035856
+      },
+      "after": {
+        "position": 0.001679940027570296,
+        "linearVelocity": 0.00008418961961584613,
+        "angularVelocity": 1.8025024543007298e-8,
+        "attitudeDegrees": 0.00011154087889840607
+      }
+    },
+    {
+      "id": "hawk",
+      "checkpoint": 360,
+      "mode": "full",
+      "before": {
+        "position": 0.00047040157948739054,
+        "linearVelocity": 0.00002479581878569882,
+        "angularVelocity": 0.00008014863894739078,
+        "attitudeDegrees": 0.003527792706450899
+      },
+      "after": {
+        "position": 0.00047040157948739054,
+        "linearVelocity": 0.00002479581878569882,
+        "angularVelocity": 1.1813696137679697e-7,
+        "attitudeDegrees": 0.003448168424567982
+      }
+    },
+    {
+      "id": "hawk",
+      "checkpoint": 360,
+      "mode": "freeZero",
+      "before": {
+        "position": 0.0014515922333100833,
+        "linearVelocity": 0.00004578630021723978,
+        "angularVelocity": 0,
+        "attitudeDegrees": 0.000006389056940260397
+      },
+      "after": {
+        "position": 0.0014515922333100833,
+        "linearVelocity": 0.00004578630021723978,
+        "angularVelocity": 0,
+        "attitudeDegrees": 0.000006389056940260397
+      }
+    },
+    {
+      "id": "hawk",
+      "checkpoint": 360,
+      "mode": "wingZero",
+      "before": {
+        "position": 0.0016805055702274678,
+        "linearVelocity": 0.00005382220213804659,
+        "angularVelocity": 0.0000030609995097710878,
+        "attitudeDegrees": 0.00013529551386878076
+      },
+      "after": {
+        "position": 0.0016805055702274678,
+        "linearVelocity": 0.00005382220213804659,
+        "angularVelocity": 1.928916743965948e-8,
+        "attitudeDegrees": 0.00012413528241871771
+      }
+    },
+    {
+      "id": "hawk",
+      "checkpoint": 360,
+      "mode": "fullZero",
+      "before": {
+        "position": 0.0004664142795731873,
+        "linearVelocity": 0.00002830789244564041,
+        "angularVelocity": 0.00008039872968437987,
+        "attitudeDegrees": 0.0035359181670008657
+      },
+      "after": {
+        "position": 0.00046697582191807067,
+        "linearVelocity": 0.00002830789244564041,
+        "angularVelocity": 1.1259718912035896e-7,
+        "attitudeDegrees": 0.0034677922946167138
+      }
+    }
+  ],
+  "motion": [
+    {
+      "id": "feather",
+      "name": "neutral",
+      "meanBefore": {
+        "position": 0.04758613622421583,
+        "linearVelocity": 0.009005084654490023,
+        "angularVelocity": 0.000470830137414245,
+        "attitudeDegrees": 0.02451108795267716
+      },
+      "meanAfter": {
+        "position": 0.04970209145249187,
+        "linearVelocity": 0.00774253593485564,
+        "angularVelocity": 0.00046413413912648794,
+        "attitudeDegrees": 0.020008040013297073
+      },
+      "endBefore": {
+        "position": 0.07663166123771875,
+        "linearVelocity": 0.01369806399241372,
+        "angularVelocity": 0.0010401858879161548,
+        "attitudeDegrees": 0.025857504849311416
+      },
+      "endAfter": {
+        "position": 0.07936966742490666,
+        "linearVelocity": 0.009917983589728136,
+        "angularVelocity": 0.0010945825355560205,
+        "attitudeDegrees": 0.013077653357387765
+      }
+    },
+    {
+      "id": "feather",
+      "name": "steerRight",
+      "meanBefore": {
+        "position": 0.19684614457346733,
+        "linearVelocity": 0.1998254393290513,
+        "angularVelocity": 0.02030548424407875,
+        "attitudeDegrees": 0.768393602596955
+      },
+      "meanAfter": {
+        "position": 0.20195350051999794,
+        "linearVelocity": 0.18946066977262258,
+        "angularVelocity": 0.01938999945030282,
+        "attitudeDegrees": 0.727379714003945
+      },
+      "endBefore": {
+        "position": 0.20879173125477746,
+        "linearVelocity": 0.5935614580907962,
+        "angularVelocity": 0.02917986698723491,
+        "attitudeDegrees": 1.964888954988098
+      },
+      "endAfter": {
+        "position": 0.2282483920409982,
+        "linearVelocity": 0.5687905899469812,
+        "angularVelocity": 0.02764190644484904,
+        "attitudeDegrees": 1.8823687296778249
+      }
+    },
+    {
+      "id": "feather",
+      "name": "pitchUp",
+      "meanBefore": {
+        "position": 0.4054340597310926,
+        "linearVelocity": 0.06436376638843218,
+        "angularVelocity": 0.00503955651152679,
+        "attitudeDegrees": 0.24006634868793741
+      },
+      "meanAfter": {
+        "position": 0.42657544951628273,
+        "linearVelocity": 0.041235229050618806,
+        "angularVelocity": 0.0016481429653068841,
+        "attitudeDegrees": 0.16980657710284827
+      },
+      "endBefore": {
+        "position": 0.6526030719663587,
+        "linearVelocity": 0.05109789541101913,
+        "angularVelocity": 0.011326984830288604,
+        "attitudeDegrees": 0.6827594513091884
+      },
+      "endAfter": {
+        "position": 0.6985907480873941,
+        "linearVelocity": 0.060279038876391446,
+        "angularVelocity": 0.0010343492456412484,
+        "attitudeDegrees": 0.5504956608498088
+      }
+    },
+    {
+      "id": "feather",
+      "name": "cruise",
+      "meanBefore": {
+        "position": 0.17120639270426588,
+        "linearVelocity": 0.10460098351444817,
+        "angularVelocity": 0.00473340612061134,
+        "attitudeDegrees": 0.14354234952682712
+      },
+      "meanAfter": {
+        "position": 0.17877105215126773,
+        "linearVelocity": 0.08099362747435393,
+        "angularVelocity": 0.0034961501469885545,
+        "attitudeDegrees": 0.11380251202236108
+      },
+      "endBefore": {
+        "position": 0.1392884258271799,
+        "linearVelocity": 0.04467839647334073,
+        "angularVelocity": 0.010039448306963048,
+        "attitudeDegrees": 0.13190977020928185
+      },
+      "endAfter": {
+        "position": 0.1357961787579299,
+        "linearVelocity": 0.10894954058361443,
+        "angularVelocity": 0.005760410777734338,
+        "attitudeDegrees": 0.19438630384102826
+      }
+    },
+    {
+      "id": "feather",
+      "name": "steerRelease",
+      "meanBefore": {
+        "position": 0.13825797320711922,
+        "linearVelocity": 0.1372351741714118,
+        "angularVelocity": 0.011484621266842679,
+        "attitudeDegrees": 0.5050764614582709
+      },
+      "meanAfter": {
+        "position": 0.1421847045748427,
+        "linearVelocity": 0.12938066871883303,
+        "angularVelocity": 0.011225747628346616,
+        "attitudeDegrees": 0.4735214761918029
+      },
+      "endBefore": {
+        "position": 0.10851182264518472,
+        "linearVelocity": 0.2613756668981257,
+        "angularVelocity": 0.003984230974929512,
+        "attitudeDegrees": 0.7032510733542873
+      },
+      "endAfter": {
+        "position": 0.10827828401193643,
+        "linearVelocity": 0.2504558540609704,
+        "angularVelocity": 0.004453035607245602,
+        "attitudeDegrees": 0.6764832150295794
+      }
+    },
+    {
+      "id": "feather",
+      "name": "climbRelease",
+      "meanBefore": {
+        "position": 0.3779808737063582,
+        "linearVelocity": 0.06352081105282256,
+        "angularVelocity": 0.004702404751873339,
+        "attitudeDegrees": 0.23558008797152735
+      },
+      "meanAfter": {
+        "position": 0.39857762634566757,
+        "linearVelocity": 0.041216395953054104,
+        "angularVelocity": 0.0017061032622651547,
+        "attitudeDegrees": 0.15725811745098459
+      },
+      "endBefore": {
+        "position": 0.500147558244276,
+        "linearVelocity": 0.06976658780092049,
+        "angularVelocity": 0.004985947488605461,
+        "attitudeDegrees": 0.6952743700133269
+      },
+      "endAfter": {
+        "position": 0.5408854388834199,
+        "linearVelocity": 0.06548274554737564,
+        "angularVelocity": 0.008177947254548843,
+        "attitudeDegrees": 0.4343428888269545
+      }
+    },
+    {
+      "id": "feather",
+      "name": "reverse",
+      "meanBefore": {
+        "position": 0.17773033814171546,
+        "linearVelocity": 0.0050096347862627726,
+        "angularVelocity": 0.0005941326027209027,
+        "attitudeDegrees": 0.02526822231937949
+      },
+      "meanAfter": {
+        "position": 0.17772507149394481,
+        "linearVelocity": 0.005204452376966393,
+        "angularVelocity": 0.000476727489787915,
+        "attitudeDegrees": 0.021499886949725707
+      },
+      "endBefore": {
+        "position": 0.25949299901218975,
+        "linearVelocity": 0.0019024645683091864,
+        "angularVelocity": 0.0006122035569412277,
+        "attitudeDegrees": 0.017466699669463518
+      },
+      "endAfter": {
+        "position": 0.26013913622059753,
+        "linearVelocity": 0.0019221020210190996,
+        "angularVelocity": 0.0005773164396743176,
+        "attitudeDegrees": 0.011285316090103092
+      }
+    },
+    {
+      "id": "feather",
+      "name": "lowSpeed",
+      "meanBefore": {
+        "position": 0.0007221029508908931,
+        "linearVelocity": 0.00001076690480979729,
+        "angularVelocity": 0.000001017172310484843,
+        "attitudeDegrees": 0.00003486199241748411
+      },
+      "meanAfter": {
+        "position": 0.0007221779448480703,
+        "linearVelocity": 0.000010766421958919735,
+        "angularVelocity": 0.0000010856805048931198,
+        "attitudeDegrees": 0.00003038007550831226
+      },
+      "endBefore": {
+        "position": 0.0014413658482597385,
+        "linearVelocity": 0.000020507460542617038,
+        "angularVelocity": 3.6897959409202745e-7,
+        "attitudeDegrees": 0
+      },
+      "endAfter": {
+        "position": 0.0014411283970982645,
+        "linearVelocity": 0.000020507770734425336,
+        "angularVelocity": 2.256907298338747e-7,
+        "attitudeDegrees": 0
+      }
+    },
+    {
+      "id": "hawk",
+      "name": "neutral",
+      "meanBefore": {
+        "position": 0.042598931746733695,
+        "linearVelocity": 0.006342483032711709,
+        "angularVelocity": 0.0003157384517217607,
+        "attitudeDegrees": 0.020929291846390138
+      },
+      "meanAfter": {
+        "position": 0.044360131275966753,
+        "linearVelocity": 0.005622230243783075,
+        "angularVelocity": 0.00039699674640309156,
+        "attitudeDegrees": 0.018591851273006103
+      },
+      "endBefore": {
+        "position": 0.08123846733100691,
+        "linearVelocity": 0.012697657197257201,
+        "angularVelocity": 0.0007878191516940198,
+        "attitudeDegrees": 0.037336995651778275
+      },
+      "endAfter": {
+        "position": 0.08443380399412813,
+        "linearVelocity": 0.012256806671988637,
+        "angularVelocity": 0.0011141975402741873,
+        "attitudeDegrees": 0.029313164058920416
+      }
+    },
+    {
+      "id": "hawk",
+      "name": "steerRight",
+      "meanBefore": {
+        "position": 0.09200140634750303,
+        "linearVelocity": 0.2784125946645787,
+        "angularVelocity": 0.02637779841733235,
+        "attitudeDegrees": 1.0215846431543463
+      },
+      "meanAfter": {
+        "position": 0.09062161473885218,
+        "linearVelocity": 0.26678220367528754,
+        "angularVelocity": 0.025526993025160528,
+        "attitudeDegrees": 0.9756961923338398
+      },
+      "endBefore": {
+        "position": 0.3285618816542246,
+        "linearVelocity": 0.7663900864626625,
+        "angularVelocity": 0.036933930160292325,
+        "attitudeDegrees": 2.6096559969840536
+      },
+      "endAfter": {
+        "position": 0.3093875488082569,
+        "linearVelocity": 0.7402713323459761,
+        "angularVelocity": 0.035771019409812664,
+        "attitudeDegrees": 2.524994944286626
+      }
+    },
+    {
+      "id": "hawk",
+      "name": "pitchUp",
+      "meanBefore": {
+        "position": 0.18364074084503354,
+        "linearVelocity": 0.04805214517779013,
+        "angularVelocity": 0.0038399104337243613,
+        "attitudeDegrees": 0.18440509899938282
+      },
+      "meanAfter": {
+        "position": 0.19790118196174228,
+        "linearVelocity": 0.028111552326766803,
+        "angularVelocity": 0.0028054511479871018,
+        "attitudeDegrees": 0.11187944490940253
+      },
+      "endBefore": {
+        "position": 0.23542617162757487,
+        "linearVelocity": 0.030330779675039613,
+        "angularVelocity": 0.006702675355504682,
+        "attitudeDegrees": 0.3722190779871904
+      },
+      "endAfter": {
+        "position": 0.24837016000277598,
+        "linearVelocity": 0.03149407510622204,
+        "angularVelocity": 0.01516559561393507,
+        "attitudeDegrees": 0.11803519512092361
+      }
+    },
+    {
+      "id": "hawk",
+      "name": "cruise",
+      "meanBefore": {
+        "position": 0.09788795716194892,
+        "linearVelocity": 0.050151914962351,
+        "angularVelocity": 0.002006098127993523,
+        "attitudeDegrees": 0.0742761732857182
+      },
+      "meanAfter": {
+        "position": 0.10164118876695837,
+        "linearVelocity": 0.03898543894020389,
+        "angularVelocity": 0.0016662068169250946,
+        "attitudeDegrees": 0.05745167021958946
+      },
+      "endBefore": {
+        "position": 0.12497070675116297,
+        "linearVelocity": 0.026140712858210367,
+        "angularVelocity": 0.0042348110542654105,
+        "attitudeDegrees": 0.020804054444034267
+      },
+      "endAfter": {
+        "position": 0.1244543302318738,
+        "linearVelocity": 0.013975869526106683,
+        "angularVelocity": 0.002763181521897482,
+        "attitudeDegrees": 0.05932546462345158
+      }
+    },
+    {
+      "id": "hawk",
+      "name": "steerRelease",
+      "meanBefore": {
+        "position": 0.09412192486416368,
+        "linearVelocity": 0.18853801828337602,
+        "angularVelocity": 0.01618669392016372,
+        "attitudeDegrees": 0.6313146854624032
+      },
+      "meanAfter": {
+        "position": 0.09179057215049924,
+        "linearVelocity": 0.1794028518921358,
+        "angularVelocity": 0.016084575687572253,
+        "attitudeDegrees": 0.5964333257309365
+      },
+      "endBefore": {
+        "position": 0.27233072325762003,
+        "linearVelocity": 0.31493109488290205,
+        "angularVelocity": 0.004532560634896682,
+        "attitudeDegrees": 0.8222251511866592
+      },
+      "endAfter": {
+        "position": 0.2564134113313325,
+        "linearVelocity": 0.30254939897619476,
+        "angularVelocity": 0.004923761278683861,
+        "attitudeDegrees": 0.7977257241780058
+      }
+    },
+    {
+      "id": "hawk",
+      "name": "climbRelease",
+      "meanBefore": {
+        "position": 0.1834851285076108,
+        "linearVelocity": 0.048486937240339686,
+        "angularVelocity": 0.003513168585044794,
+        "attitudeDegrees": 0.1883670212741876
+      },
+      "meanAfter": {
+        "position": 0.197755246688266,
+        "linearVelocity": 0.028223046669729305,
+        "angularVelocity": 0.0018765682548636262,
+        "attitudeDegrees": 0.1189620499941522
+      },
+      "endBefore": {
+        "position": 0.23417223436876966,
+        "linearVelocity": 0.044061843212275506,
+        "angularVelocity": 0.0042313125533242815,
+        "attitudeDegrees": 0.4684281439952757
+      },
+      "endAfter": {
+        "position": 0.2462411918331251,
+        "linearVelocity": 0.03778228638172623,
+        "angularVelocity": 0.010073859574592952,
+        "attitudeDegrees": 0.2514258644948837
+      }
+    },
+    {
+      "id": "hawk",
+      "name": "reverse",
+      "meanBefore": {
+        "position": 0.1277374400012864,
+        "linearVelocity": 0.004757838239825573,
+        "angularVelocity": 0.0002973522808747436,
+        "attitudeDegrees": 0.012062109485660588
+      },
+      "meanAfter": {
+        "position": 0.12785175037602622,
+        "linearVelocity": 0.004913101769501584,
+        "angularVelocity": 0.00023427093801428074,
+        "attitudeDegrees": 0.010545605534736295
+      },
+      "endBefore": {
+        "position": 0.22860205008428228,
+        "linearVelocity": 0.0046130453225275226,
+        "angularVelocity": 0.00004682761147033764,
+        "attitudeDegrees": 0.01106727832598873
+      },
+      "endAfter": {
+        "position": 0.22915847374330783,
+        "linearVelocity": 0.004746568772075606,
+        "angularVelocity": 0.00016506670603422957,
+        "attitudeDegrees": 0.009133495052883616
+      }
+    },
+    {
+      "id": "hawk",
+      "name": "lowSpeed",
+      "meanBefore": {
+        "position": 0.0007487064141481146,
+        "linearVelocity": 0.000011404637285250458,
+        "angularVelocity": 6.707283747529984e-7,
+        "attitudeDegrees": 0.000022958923388581983
+      },
+      "meanAfter": {
+        "position": 0.0007487527307339657,
+        "linearVelocity": 0.000011404310480880475,
+        "angularVelocity": 7.151198078184784e-7,
+        "attitudeDegrees": 0.000019986687970933536
+      },
+      "endBefore": {
+        "position": 0.001478025442997579,
+        "linearVelocity": 0.00002217452887677084,
+        "angularVelocity": 2.4029036406170083e-7,
+        "attitudeDegrees": 0
+      },
+      "endAfter": {
+        "position": 0.0014780254429291899,
+        "linearVelocity": 0.000022174534689357455,
+        "angularVelocity": 1.4414163794058983e-7,
+        "attitudeDegrees": 0
+      }
+    },
+    {
+      "id": "raceCar",
+      "name": "nonWingNeutral",
+      "meanBefore": {
+        "position": 0.10578914604312364,
+        "linearVelocity": 0.006192632833990403,
+        "angularVelocity": 0,
+        "attitudeDegrees": 0
+      },
+      "meanAfter": {
+        "position": 0.10578914604312364,
+        "linearVelocity": 0.006192632833990403,
+        "angularVelocity": 0,
+        "attitudeDegrees": 0
+      },
+      "endBefore": {
+        "position": 0.208139082699706,
+        "linearVelocity": 0.010610770388913449,
+        "angularVelocity": 0,
+        "attitudeDegrees": 0
+      },
+      "endAfter": {
+        "position": 0.208139082699706,
+        "linearVelocity": 0.010610770388913449,
+        "angularVelocity": 0,
+        "attitudeDegrees": 0
+      }
+    },
+    {
+      "id": "raceCar",
+      "name": "nonWingDrive",
+      "meanBefore": {
+        "position": 0.10577579405245596,
+        "linearVelocity": 0.006103746840714078,
+        "angularVelocity": 0.00006512694855562933,
+        "attitudeDegrees": 0.0005796247028967635
+      },
+      "meanAfter": {
+        "position": 0.10577579405245596,
+        "linearVelocity": 0.006103746840714078,
+        "angularVelocity": 0.00006512694855562933,
+        "attitudeDegrees": 0.0005796247028967635
+      },
+      "endBefore": {
+        "position": 0.20794548990042977,
+        "linearVelocity": 0.009819668005929502,
+        "angularVelocity": 0.000690215500097995,
+        "attitudeDegrees": 0.008390570483816315
+      },
+      "endAfter": {
+        "position": 0.20794548990042977,
+        "linearVelocity": 0.009819668005929502,
+        "angularVelocity": 0.000690215500097995,
+        "attitudeDegrees": 0.008390570483816315
+      }
+    }
+  ],
+  "ground": [
+    {
+      "id": "feather",
+      "name": "groundIdle",
+      "meanBefore": {
+        "position": 0.02909614757611956,
+        "linearVelocity": 0.04680183097474,
+        "angularVelocity": 0.010834066430288712,
+        "attitudeDegrees": 0.17500127028376672
+      },
+      "meanAfter": {
+        "position": 0.028257337663208267,
+        "linearVelocity": 0.03867940010854171,
+        "angularVelocity": 0.009484095458384299,
+        "attitudeDegrees": 0.145236411829705
+      },
+      "endBefore": {
+        "position": 0.06188045553700268,
+        "linearVelocity": 0.011296721705914376,
+        "angularVelocity": 6.477865155565154e-8,
+        "attitudeDegrees": 0.01681910629522849
+      },
+      "endAfter": {
+        "position": 0.05480677655947245,
+        "linearVelocity": 0.00874397114072752,
+        "angularVelocity": 6.95344361840238e-8,
+        "attitudeDegrees": 0.013821609168446969
+      }
+    },
+    {
+      "id": "feather",
+      "name": "takeoff",
+      "meanBefore": {
+        "position": 3.5892059868828943,
+        "linearVelocity": 2.5369352083074177,
+        "angularVelocity": 0.12180145833913633,
+        "attitudeDegrees": 4.608297204046106
+      },
+      "meanAfter": {
+        "position": 3.13544293098555,
+        "linearVelocity": 2.2650278884136186,
+        "angularVelocity": 0.10843114247619469,
+        "attitudeDegrees": 4.073123669880535
+      },
+      "endBefore": {
+        "position": 6.900971350739722,
+        "linearVelocity": 10.350827195243513,
+        "angularVelocity": 0.23419348226996542,
+        "attitudeDegrees": 15.71952764572369
+      },
+      "endAfter": {
+        "position": 5.832391201983933,
+        "linearVelocity": 9.38450425450914,
+        "angularVelocity": 0.23545230753222368,
+        "attitudeDegrees": 14.12477637970054
+      }
+    },
+    {
+      "id": "feather",
+      "name": "landing",
+      "meanBefore": {
+        "position": 2.570352958075348,
+        "linearVelocity": 0.5334624878378318,
+        "angularVelocity": 0.03292674661421392,
+        "attitudeDegrees": 1.705560089108754
+      },
+      "meanAfter": {
+        "position": 2.750482861928977,
+        "linearVelocity": 0.5691435840144247,
+        "angularVelocity": 0.03284941115419061,
+        "attitudeDegrees": 1.7020451295737868
+      },
+      "endBefore": {
+        "position": 3.9801595711349185,
+        "linearVelocity": 0.06584498054383825,
+        "angularVelocity": 0.03202898243932564,
+        "attitudeDegrees": 2.1001667903860533
+      },
+      "endAfter": {
+        "position": 4.272708661034208,
+        "linearVelocity": 0.018702897489403878,
+        "angularVelocity": 0.010291365218832721,
+        "attitudeDegrees": 2.0700121036974806
+      }
+    },
+    {
+      "id": "feather",
+      "name": "lowSupport",
+      "meanBefore": {
+        "position": 0.0031124980806266143,
+        "linearVelocity": 0.00007649287193004412,
+        "angularVelocity": 0.000001004647446947449,
+        "attitudeDegrees": 0.00003135366283501749
+      },
+      "meanAfter": {
+        "position": 0.003112501538309355,
+        "linearVelocity": 0.00007649292043346167,
+        "angularVelocity": 8.70019044092654e-7,
+        "attitudeDegrees": 0.000027378519024800455
+      },
+      "endBefore": {
+        "position": 0.006106117921732598,
+        "linearVelocity": 0.00010705060899370964,
+        "angularVelocity": 3.057180162028382e-8,
+        "attitudeDegrees": 0
+      },
+      "endAfter": {
+        "position": 0.006106117931796412,
+        "linearVelocity": 0.00010705060497589216,
+        "angularVelocity": 3.052975058356387e-8,
+        "attitudeDegrees": 0
+      }
+    },
+    {
+      "id": "feather",
+      "name": "damageOneWing",
+      "meanBefore": {
+        "position": 0.3318129847056323,
+        "linearVelocity": 0.12620458899368212,
+        "angularVelocity": 0.005772034138581812,
+        "attitudeDegrees": 0.19569005588269364
+      },
+      "meanAfter": {
+        "position": 0.2771508078606827,
+        "linearVelocity": 0.10441662287258269,
+        "angularVelocity": 0.005502537285832619,
+        "attitudeDegrees": 0.1718536691782342
+      },
+      "endBefore": {
+        "position": 0.5182109617970213,
+        "linearVelocity": 0.10195583638601514,
+        "angularVelocity": 0.0005303008236361214,
+        "attitudeDegrees": 0.15302696092754986
+      },
+      "endAfter": {
+        "position": 0.37685579204289127,
+        "linearVelocity": 0.06447223548328582,
+        "angularVelocity": 0.0005599769285315325,
+        "attitudeDegrees": 0.12999459605863917
+      }
+    },
+    {
+      "id": "feather",
+      "name": "damageAllWings",
+      "meanBefore": {
+        "position": 2.291318262859678,
+        "linearVelocity": 1.1114344595786676,
+        "angularVelocity": 0.0952204943198493,
+        "attitudeDegrees": 1.304257551397813
+      },
+      "meanAfter": {
+        "position": 2.2665075146090072,
+        "linearVelocity": 1.1539688000198074,
+        "angularVelocity": 0.09788030455823772,
+        "attitudeDegrees": 1.4144506054268808
+      },
+      "endBefore": {
+        "position": 9.820295818123865,
+        "linearVelocity": 3.3864346425604572,
+        "angularVelocity": 0.05019943618186766,
+        "attitudeDegrees": 6.5026662663405
+      },
+      "endAfter": {
+        "position": 10.135853482838106,
+        "linearVelocity": 3.682262385625671,
+        "angularVelocity": 0.051472165051790496,
+        "attitudeDegrees": 7.187956636904
+      }
+    },
+    {
+      "id": "hawk",
+      "name": "groundIdle",
+      "meanBefore": {
+        "position": 0.023383680577362554,
+        "linearVelocity": 0.04406170698688593,
+        "angularVelocity": 0.01719848693858151,
+        "attitudeDegrees": 1.0395524660125572
+      },
+      "meanAfter": {
+        "position": 0.027215254219749595,
+        "linearVelocity": 0.044320505194696776,
+        "angularVelocity": 0.01810471838776329,
+        "attitudeDegrees": 1.0516122569107387
+      },
+      "endBefore": {
+        "position": 0.0647239234701164,
+        "linearVelocity": 0.018547603787837905,
+        "angularVelocity": 0.000005449987660730639,
+        "attitudeDegrees": 0.7225427410633074
+      },
+      "endAfter": {
+        "position": 0.06548097424345294,
+        "linearVelocity": 0.018334483806330317,
+        "angularVelocity": 0.000005881515965641261,
+        "attitudeDegrees": 0.6936357024300164
+      }
+    },
+    {
+      "id": "hawk",
+      "name": "takeoff",
+      "meanBefore": {
+        "position": 0.5798772342713053,
+        "linearVelocity": 0.2682079691286867,
+        "angularVelocity": 0.024696318990361555,
+        "attitudeDegrees": 0.8564556248796511
+      },
+      "meanAfter": {
+        "position": 0.5676630926817421,
+        "linearVelocity": 0.20919894243660014,
+        "angularVelocity": 0.02266502000820271,
+        "attitudeDegrees": 0.7752527532803584
+      },
+      "endBefore": {
+        "position": 0.9551684076596494,
+        "linearVelocity": 0.07727069563423239,
+        "angularVelocity": 0.008840275971187916,
+        "attitudeDegrees": 0.10191256497819755
+      },
+      "endAfter": {
+        "position": 0.9158692070112615,
+        "linearVelocity": 0.03602585718602454,
+        "angularVelocity": 0.006646084535193757,
+        "attitudeDegrees": 0.08856735607811314
+      }
+    },
+    {
+      "id": "hawk",
+      "name": "landing",
+      "meanBefore": {
+        "position": 2.62096884456397,
+        "linearVelocity": 0.5085415993458106,
+        "angularVelocity": 0.03571907791790539,
+        "attitudeDegrees": 2.9436468285226813
+      },
+      "meanAfter": {
+        "position": 2.665634434504491,
+        "linearVelocity": 0.5192205963723494,
+        "angularVelocity": 0.036992380551651445,
+        "attitudeDegrees": 2.939934060623097
+      },
+      "endBefore": {
+        "position": 3.9122415141773974,
+        "linearVelocity": 0.04527413849842986,
+        "angularVelocity": 0.029705931534069814,
+        "attitudeDegrees": 4.680195403166028
+      },
+      "endAfter": {
+        "position": 3.9790876456530166,
+        "linearVelocity": 0.0278685805639577,
+        "angularVelocity": 0.02011498259383177,
+        "attitudeDegrees": 4.71853834409617
+      }
+    },
+    {
+      "id": "hawk",
+      "name": "lowSupport",
+      "meanBefore": {
+        "position": 0.0030996709335818716,
+        "linearVelocity": 0.00006371462874537524,
+        "angularVelocity": 6.333426158801135e-7,
+        "attitudeDegrees": 0.00001978531213391662
+      },
+      "meanAfter": {
+        "position": 0.003099677103098503,
+        "linearVelocity": 0.0000637146334895782,
+        "angularVelocity": 5.460536769449646e-7,
+        "attitudeDegrees": 0.00001716828462193735
+      },
+      "endBefore": {
+        "position": 0.006064555243441722,
+        "linearVelocity": 0.00009298360451963722,
+        "angularVelocity": 2.0043007521868482e-8,
+        "attitudeDegrees": 0
+      },
+      "endAfter": {
+        "position": 0.006064555243314586,
+        "linearVelocity": 0.00009298360406643053,
+        "angularVelocity": 2.0030726614004e-8,
+        "attitudeDegrees": 0
+      }
+    },
+    {
+      "id": "hawk",
+      "name": "damageOneWing",
+      "meanBefore": {
+        "position": 0.3351620448775855,
+        "linearVelocity": 0.10194556110652325,
+        "angularVelocity": 0.003377035996586622,
+        "attitudeDegrees": 0.16716555057002971
+      },
+      "meanAfter": {
+        "position": 0.3027500798891404,
+        "linearVelocity": 0.08807742699964573,
+        "angularVelocity": 0.0036089843390677435,
+        "attitudeDegrees": 0.15244086129797788
+      },
+      "endBefore": {
+        "position": 0.776771506811416,
+        "linearVelocity": 0.1279420587318899,
+        "angularVelocity": 0.0012075086457720035,
+        "attitudeDegrees": 0.16806219722015073
+      },
+      "endAfter": {
+        "position": 0.6721358673708437,
+        "linearVelocity": 0.11096865961758304,
+        "angularVelocity": 0.0008385794259489967,
+        "attitudeDegrees": 0.15276155010940637
+      }
+    },
+    {
+      "id": "hawk",
+      "name": "damageAllWings",
+      "meanBefore": {
+        "position": 2.892806590156736,
+        "linearVelocity": 1.9682852138781548,
+        "angularVelocity": 0.07578853204985792,
+        "attitudeDegrees": 4.257644636497809
+      },
+      "meanAfter": {
+        "position": 3.2203432418171354,
+        "linearVelocity": 2.138833779249799,
+        "angularVelocity": 0.07292094218636364,
+        "attitudeDegrees": 4.457586334346416
+      },
+      "endBefore": {
+        "position": 16.701826556191154,
+        "linearVelocity": 8.11025553906212,
+        "angularVelocity": 0.09047755371796327,
+        "attitudeDegrees": 17.089901934394724
+      },
+      "endAfter": {
+        "position": 18.163233605224836,
+        "linearVelocity": 8.45419851557021,
+        "angularVelocity": 0.09234454165941923,
+        "attitudeDegrees": 17.895168056336434
+      }
+    }
+  ]
+}

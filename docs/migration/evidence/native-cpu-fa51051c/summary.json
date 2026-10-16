@@ -1,0 +1,3798 @@
+{
+  "runs": {
+    "none.json": {
+      "result": "PASS",
+      "mode": "none",
+      "file": "none.json",
+      "sha256": "cf55c6589762d3ef81d6850472e4b51934c29da611206afe5add9897c7085525",
+      "warmupSteps": 300,
+      "measuredSteps": 1800,
+      "simSeconds": 30,
+      "totalWallMs": {
+        "count": 1800,
+        "total": 26938,
+        "mean": 14.965555555555556,
+        "p50": 12,
+        "p95": 41,
+        "p99": 64,
+        "max": 87
+      },
+      "totalClockMs": {
+        "count": 1800,
+        "total": 26955.999999999793,
+        "mean": 14.97555555555544,
+        "p50": 12.000000000000455,
+        "p95": 40.000000000000924,
+        "p99": 64.99999999999773,
+        "max": 86.99999999999974
+      },
+      "luaNetKiB": {
+        "count": 1800,
+        "total": 3781.5595703125,
+        "mean": 2.100866427951389,
+        "p50": 1063.1171875,
+        "p95": 1906.15625,
+        "p99": 2459.3671875,
+        "max": 3127.9140625
+      },
+      "allocationNoGC": {
+        "count": 60,
+        "total": 61017.5810546875,
+        "mean": 1016.9596842447917,
+        "p50": 896.609375,
+        "p95": 1746.080078125,
+        "p99": 2241.671875,
+        "max": 2241.671875
+      },
+      "metadata": {
+        "initial": {
+          "kills": 0,
+          "damage": 0,
+          "shots": 0,
+          "debris": 0,
+          "particles": 0,
+          "parts": 1277,
+          "units": [
+            {
+              "parts": 209,
+              "legs": 0,
+              "team": "blue",
+              "name": "你",
+              "wheels": 4,
+              "alive": true
+            },
+            {
+              "parts": 145,
+              "legs": 0,
+              "role": "heavy",
+              "team": "blue",
+              "name": "雷霆小方块",
+              "wheels": 10,
+              "alive": true
+            },
+            {
+              "parts": 168,
+              "legs": 0,
+              "role": "hover",
+              "team": "blue",
+              "name": "护盾下乘凉",
+              "wheels": 0,
+              "alive": true
+            },
+            {
+              "parts": 152,
+              "legs": 6,
+              "role": "sniper",
+              "team": "blue",
+              "name": "Mosswolf",
+              "wheels": 0,
+              "alive": true
+            },
+            {
+              "parts": 140,
+              "legs": 0,
+              "role": "assault",
+              "team": "red",
+              "name": "拆迁办主任",
+              "wheels": 4,
+              "alive": true
+            },
+            {
+              "parts": 143,
+              "legs": 0,
+              "role": "heavy",
+              "team": "red",
+              "name": "慢一点会散架",
+              "wheels": 10,
+              "alive": true
+            },
+            {
+              "parts": 168,
+              "legs": 0,
+              "role": "hover",
+              "team": "red",
+              "name": "lowtide",
+              "wheels": 0,
+              "alive": true
+            },
+            {
+              "parts": 152,
+              "legs": 6,
+              "role": "sniper",
+              "team": "red",
+              "name": "悬浮漂移",
+              "wheels": 0,
+              "alive": true
+            }
+          ],
+          "smoke": 0,
+          "alive": 8,
+          "projectiles": 0
+        },
+        "first": {
+          "kills": 0,
+          "damage": 0,
+          "shots": 0,
+          "debris": 0,
+          "particles": 0,
+          "parts": 1277,
+          "units": [
+            {
+              "parts": 209,
+              "legs": 0,
+              "team": "blue",
+              "name": "你",
+              "wheels": 4,
+              "alive": true
+            },
+            {
+              "parts": 145,
+              "legs": 0,
+              "role": "heavy",
+              "team": "blue",
+              "name": "雷霆小方块",
+              "wheels": 10,
+              "alive": true
+            },
+            {
+              "parts": 168,
+              "legs": 0,
+              "role": "hover",
+              "team": "blue",
+              "name": "护盾下乘凉",
+              "wheels": 0,
+              "alive": true
+            },
+            {
+              "parts": 152,
+              "legs": 6,
+              "role": "sniper",
+              "team": "blue",
+              "name": "Mosswolf",
+              "wheels": 0,
+              "alive": true
+            },
+            {
+              "parts": 140,
+              "legs": 0,
+              "role": "assault",
+              "team": "red",
+              "name": "拆迁办主任",
+              "wheels": 4,
+              "alive": true
+            },
+            {
+              "parts": 143,
+              "legs": 0,
+              "role": "heavy",
+              "team": "red",
+              "name": "慢一点会散架",
+              "wheels": 10,
+              "alive": true
+            },
+            {
+              "parts": 168,
+              "legs": 0,
+              "role": "hover",
+              "team": "red",
+              "name": "lowtide",
+              "wheels": 0,
+              "alive": true
+            },
+            {
+              "parts": 152,
+              "legs": 6,
+              "role": "sniper",
+              "team": "red",
+              "name": "悬浮漂移",
+              "wheels": 0,
+              "alive": true
+            }
+          ],
+          "smoke": 0,
+          "alive": 8,
+          "projectiles": 0
+        },
+        "last": {
+          "kills": 1,
+          "damage": 11700.396161930146,
+          "shots": 1693,
+          "debris": 7,
+          "particles": 226,
+          "parts": 1155,
+          "units": [
+            {
+              "parts": 209,
+              "legs": 0,
+              "team": "blue",
+              "name": "你",
+              "wheels": 4,
+              "alive": true
+            },
+            {
+              "parts": 121,
+              "legs": 0,
+              "role": "heavy",
+              "team": "blue",
+              "name": "雷霆小方块",
+              "wheels": 0,
+              "alive": false
+            },
+            {
+              "parts": 97,
+              "legs": 0,
+              "role": "hover",
+              "team": "blue",
+              "name": "护盾下乘凉",
+              "wheels": 0,
+              "alive": true
+            },
+            {
+              "parts": 152,
+              "legs": 6,
+              "role": "sniper",
+              "team": "blue",
+              "name": "Mosswolf",
+              "wheels": 0,
+              "alive": true
+            },
+            {
+              "parts": 140,
+              "legs": 0,
+              "role": "assault",
+              "team": "red",
+              "name": "拆迁办主任",
+              "wheels": 4,
+              "alive": true
+            },
+            {
+              "parts": 143,
+              "legs": 0,
+              "role": "heavy",
+              "team": "red",
+              "name": "慢一点会散架",
+              "wheels": 10,
+              "alive": true
+            },
+            {
+              "parts": 141,
+              "legs": 0,
+              "role": "hover",
+              "team": "red",
+              "name": "lowtide",
+              "wheels": 0,
+              "alive": true
+            },
+            {
+              "parts": 152,
+              "legs": 6,
+              "role": "sniper",
+              "team": "red",
+              "name": "悬浮漂移",
+              "wheels": 0,
+              "alive": true
+            }
+          ],
+          "smoke": 66,
+          "alive": 7,
+          "projectiles": 14
+        },
+        "aliveRange": [
+          7,
+          8
+        ],
+        "minParts": 1155,
+        "maxParts": 1277,
+        "peakProjectiles": 20,
+        "peakParticles": 544
+      },
+      "methods": {},
+      "stages": {
+        "worldBuildMs": 819,
+        "battleBuildMs": 557
+      },
+      "skipped": {},
+      "allocationMethods": {},
+      "topInclusive": [],
+      "topExclusive": [],
+      "longestSteps": [
+        {
+          "step": 1158,
+          "totalWallMs": 87,
+          "luaNetKiB": -17171.9990234375,
+          "state": {
+            "kills": 1,
+            "damage": 7879.1480036098255,
+            "shots": 1178,
+            "debris": 2,
+            "particles": 334,
+            "parts": 1244,
+            "units": [
+              {
+                "parts": 209,
+                "legs": 0,
+                "team": "blue",
+                "name": "你",
+                "wheels": 4,
+                "alive": true
+              },
+              {
+                "parts": 121,
+                "legs": 0,
+                "role": "heavy",
+                "team": "blue",
+                "name": "雷霆小方块",
+                "wheels": 0,
+                "alive": false
+              },
+              {
+                "parts": 168,
+                "legs": 0,
+                "role": "hover",
+                "team": "blue",
+                "name": "护盾下乘凉",
+                "wheels": 0,
+                "alive": true
+              },
+              {
+                "parts": 152,
+                "legs": 6,
+                "role": "sniper",
+                "team": "blue",
+                "name": "Mosswolf",
+                "wheels": 0,
+                "alive": true
+              },
+              {
+                "parts": 140,
+                "legs": 0,
+                "role": "assault",
+                "team": "red",
+                "name": "拆迁办主任",
+                "wheels": 4,
+                "alive": true
+              },
+              {
+                "parts": 143,
+                "legs": 0,
+                "role": "heavy",
+                "team": "red",
+                "name": "慢一点会散架",
+                "wheels": 10,
+                "alive": true
+              },
+              {
+                "parts": 159,
+                "legs": 0,
+                "role": "hover",
+                "team": "red",
+                "name": "lowtide",
+                "wheels": 0,
+                "alive": true
+              },
+              {
+                "parts": 152,
+                "legs": 6,
+                "role": "sniper",
+                "team": "red",
+                "name": "悬浮漂移",
+                "wheels": 0,
+                "alive": true
+              }
+            ],
+            "smoke": 51,
+            "alive": 7,
+            "projectiles": 6
+          },
+          "top": []
+        },
+        {
+          "step": 1125,
+          "totalWallMs": 76,
+          "luaNetKiB": -16705.078125,
+          "state": {
+            "kills": 1,
+            "damage": 7732.1480036098255,
+            "shots": 1148,
+            "debris": 2,
+            "particles": 323,
+            "parts": 1244,
+            "units": [
+              {
+                "parts": 209,
+                "legs": 0,
+                "team": "blue",
+                "name": "你",
+                "wheels": 4,
+                "alive": true
+              },
+              {
+                "parts": 121,
+                "legs": 0,
+                "role": "heavy",
+                "team": "blue",
+                "name": "雷霆小方块",
+                "wheels": 0,
+                "alive": false
+              },
+              {
+                "parts": 168,
+                "legs": 0,
+                "role": "hover",
+                "team": "blue",
+                "name": "护盾下乘凉",
+                "wheels": 0,
+                "alive": true
+              },
+              {
+                "parts": 152,
+                "legs": 6,
+                "role": "sniper",
+                "team": "blue",
+                "name": "Mosswolf",
+                "wheels": 0,
+                "alive": true
+              },
+              {
+                "parts": 140,
+                "legs": 0,
+                "role": "assault",
+                "team": "red",
+                "name": "拆迁办主任",
+                "wheels": 4,
+                "alive": true
+              },
+              {
+                "parts": 143,
+                "legs": 0,
+                "role": "heavy",
+                "team": "red",
+                "name": "慢一点会散架",
+                "wheels": 10,
+                "alive": true
+              },
+              {
+                "parts": 159,
+                "legs": 0,
+                "role": "hover",
+                "team": "red",
+                "name": "lowtide",
+                "wheels": 0,
+                "alive": true
+              },
+              {
+                "parts": 152,
+                "legs": 6,
+                "role": "sniper",
+                "team": "red",
+                "name": "悬浮漂移",
+                "wheels": 0,
+                "alive": true
+              }
+            ],
+            "smoke": 68,
+            "alive": 7,
+            "projectiles": 11
+          },
+          "top": []
+        },
+        {
+          "step": 1078,
+          "totalWallMs": 74,
+          "luaNetKiB": -17278.8671875,
+          "state": {
+            "kills": 0,
+            "damage": 7508.1480036098255,
+            "shots": 1103,
+            "debris": 0,
+            "particles": 337,
+            "parts": 1251,
+            "units": [
+              {
+                "parts": 209,
+                "legs": 0,
+                "team": "blue",
+                "name": "你",
+                "wheels": 4,
+                "alive": true
+              },
+              {
+                "parts": 125,
+                "legs": 0,
+                "role": "heavy",
+                "team": "blue",
+                "name": "雷霆小方块",
+                "wheels": 0,
+                "alive": true
+              },
+              {
+                "parts": 168,
+                "legs": 0,
+                "role": "hover",
+                "team": "blue",
+                "name": "护盾下乘凉",
+                "wheels": 0,
+                "alive": true
+              },
+              {
+                "parts": 152,
+                "legs": 6,
+                "role": "sniper",
+                "team": "blue",
+                "name": "Mosswolf",
+                "wheels": 0,
+                "alive": true
+              },
+              {
+                "parts": 140,
+                "legs": 0,
+                "role": "assault",
+                "team": "red",
+                "name": "拆迁办主任",
+                "wheels": 4,
+                "alive": true
+              },
+              {
+                "parts": 143,
+                "legs": 0,
+                "role": "heavy",
+                "team": "red",
+                "name": "慢一点会散架",
+                "wheels": 10,
+                "alive": true
+              },
+              {
+                "parts": 162,
+                "legs": 0,
+                "role": "hover",
+                "team": "red",
+                "name": "lowtide",
+                "wheels": 0,
+                "alive": true
+              },
+              {
+                "parts": 152,
+                "legs": 6,
+                "role": "sniper",
+                "team": "red",
+                "name": "悬浮漂移",
+                "wheels": 0,
+                "alive": true
+              }
+            ],
+            "smoke": 36,
+            "alive": 8,
+            "projectiles": 11
+          },
+          "top": []
+        },
+        {
+          "step": 1369,
+          "totalWallMs": 73,
+          "luaNetKiB": -17070.43359375,
+          "state": {
+            "kills": 1,
+            "damage": 8747.148003609826,
+            "shots": 1377,
+            "debris": 2,
+            "particles": 267,
+            "parts": 1234,
+            "units": [
+              {
+                "parts": 209,
+                "legs": 0,
+                "team": "blue",
+                "name": "你",
+                "wheels": 4,
+                "alive": true
+              },
+              {
+                "parts": 121,
+                "legs": 0,
+                "role": "heavy",
+                "team": "blue",
+                "name": "雷霆小方块",
+                "wheels": 0,
+                "alive": false
+              },
+              {
+                "parts": 165,
+                "legs": 0,
+                "role": "hover",
+                "team": "blue",
+                "name": "护盾下乘凉",
+                "wheels": 0,
+                "alive": true
+              },
+              {
+                "parts": 152,
+                "legs": 6,
+                "role": "sniper",
+                "team": "blue",
+                "name": "Mosswolf",
+                "wheels": 0,
+                "alive": true
+              },
+              {
+                "parts": 140,
+                "legs": 0,
+                "role": "assault",
+                "team": "red",
+                "name": "拆迁办主任",
+                "wheels": 4,
+                "alive": true
+              },
+              {
+                "parts": 143,
+                "legs": 0,
+                "role": "heavy",
+                "team": "red",
+                "name": "慢一点会散架",
+                "wheels": 10,
+                "alive": true
+              },
+              {
+                "parts": 152,
+                "legs": 0,
+                "role": "hover",
+                "team": "red",
+                "name": "lowtide",
+                "wheels": 0,
+                "alive": true
+              },
+              {
+                "parts": 152,
+                "legs": 6,
+                "role": "sniper",
+                "team": "red",
+                "name": "悬浮漂移",
+                "wheels": 0,
+                "alive": true
+              }
+            ],
+            "smoke": 28,
+            "alive": 7,
+            "projectiles": 15
+          },
+          "top": []
+        },
+        {
+          "step": 1063,
+          "totalWallMs": 71,
+          "luaNetKiB": -17019.41015625,
+          "state": {
+            "kills": 0,
+            "damage": 7452.1480036098255,
+            "shots": 1087,
+            "debris": 0,
+            "particles": 378,
+            "parts": 1251,
+            "units": [
+              {
+                "parts": 209,
+                "legs": 0,
+                "team": "blue",
+                "name": "你",
+                "wheels": 4,
+                "alive": true
+              },
+              {
+                "parts": 125,
+                "legs": 0,
+                "role": "heavy",
+                "team": "blue",
+                "name": "雷霆小方块",
+                "wheels": 0,
+                "alive": true
+              },
+              {
+                "parts": 168,
+                "legs": 0,
+                "role": "hover",
+                "team": "blue",
+                "name": "护盾下乘凉",
+                "wheels": 0,
+                "alive": true
+              },
+              {
+                "parts": 152,
+                "legs": 6,
+                "role": "sniper",
+                "team": "blue",
+                "name": "Mosswolf",
+                "wheels": 0,
+                "alive": true
+              },
+              {
+                "parts": 140,
+                "legs": 0,
+                "role": "assault",
+                "team": "red",
+                "name": "拆迁办主任",
+                "wheels": 4,
+                "alive": true
+              },
+              {
+                "parts": 143,
+                "legs": 0,
+                "role": "heavy",
+                "team": "red",
+                "name": "慢一点会散架",
+                "wheels": 10,
+                "alive": true
+              },
+              {
+                "parts": 162,
+                "legs": 0,
+                "role": "hover",
+                "team": "red",
+                "name": "lowtide",
+                "wheels": 0,
+                "alive": true
+              },
+              {
+                "parts": 152,
+                "legs": 6,
+                "role": "sniper",
+                "team": "red",
+                "name": "悬浮漂移",
+                "wheels": 0,
+                "alive": true
+              }
+            ],
+            "smoke": 39,
+            "alive": 8,
+            "projectiles": 10
+          },
+          "top": []
+        },
+        {
+          "step": 1019,
+          "totalWallMs": 69,
+          "luaNetKiB": -16812.751953125,
+          "state": {
+            "kills": 0,
+            "damage": 7214.1480036098255,
+            "shots": 1038,
+            "debris": 0,
+            "particles": 316,
+            "parts": 1255,
+            "units": [
+              {
+                "parts": 209,
+                "legs": 0,
+                "team": "blue",
+                "name": "你",
+                "wheels": 4,
+                "alive": true
+              },
+              {
+                "parts": 128,
+                "legs": 0,
+                "role": "heavy",
+                "team": "blue",
+                "name": "雷霆小方块",
+                "wheels": 5,
+                "alive": true
+              },
+              {
+                "parts": 168,
+                "legs": 0,
+                "role": "hover",
+                "team": "blue",
+                "name": "护盾下乘凉",
+                "wheels": 0,
+                "alive": true
+              },
+              {
+                "parts": 152,
+                "legs": 6,
+                "role": "sniper",
+                "team": "blue",
+                "name": "Mosswolf",
+                "wheels": 0,
+                "alive": true
+              },
+              {
+                "parts": 140,
+                "legs": 0,
+                "role": "assault",
+                "team": "red",
+                "name": "拆迁办主任",
+                "wheels": 4,
+                "alive": true
+              },
+              {
+                "parts": 143,
+                "legs": 0,
+                "role": "heavy",
+                "team": "red",
+                "name": "慢一点会散架",
+                "wheels": 10,
+                "alive": true
+              },
+              {
+                "parts": 163,
+                "legs": 0,
+                "role": "hover",
+                "team": "red",
+                "name": "lowtide",
+                "wheels": 0,
+                "alive": true
+              },
+              {
+                "parts": 152,
+                "legs": 6,
+                "role": "sniper",
+                "team": "red",
+                "name": "悬浮漂移",
+                "wheels": 0,
+                "alive": true
+              }
+            ],
+            "smoke": 37,
+            "alive": 8,
+            "projectiles": 11
+          },
+          "top": []
+        },
+        {
+          "step": 1506,
+          "totalWallMs": 68,
+          "luaNetKiB": -17770.978515625,
+          "state": {
+            "kills": 1,
+            "damage": 9663.148003609826,
+            "shots": 1458,
+            "debris": 1,
+            "particles": 95,
+            "parts": 1223,
+            "units": [
+              {
+                "parts": 209,
+                "legs": 0,
+                "team": "blue",
+                "name": "你",
+                "wheels": 4,
+                "alive": true
+              },
+              {
+                "parts": 121,
+                "legs": 0,
+                "role": "heavy",
+                "team": "blue",
+                "name": "雷霆小方块",
+                "wheels": 0,
+                "alive": false
+              },
+              {
+                "parts": 159,
+                "legs": 0,
+                "role": "hover",
+                "team": "blue",
+                "name": "护盾下乘凉",
+                "wheels": 0,
+                "alive": true
+              },
+              {
+                "parts": 152,
+                "legs": 6,
+                "role": "sniper",
+                "team": "blue",
+                "name": "Mosswolf",
+                "wheels": 0,
+                "alive": true
+              },
+              {
+                "parts": 140,
+                "legs": 0,
+                "role": "assault",
+                "team": "red",
+                "name": "拆迁办主任",
+                "wheels": 4,
+                "alive": true
+              },
+              {
+                "parts": 143,
+                "legs": 0,
+                "role": "heavy",
+                "team": "red",
+                "name": "慢一点会散架",
+                "wheels": 10,
+                "alive": true
+              },
+              {
+                "parts": 147,
+                "legs": 0,
+                "role": "hover",
+                "team": "red",
+                "name": "lowtide",
+                "wheels": 0,
+                "alive": true
+              },
+              {
+                "parts": 152,
+                "legs": 6,
+                "role": "sniper",
+                "team": "red",
+                "name": "悬浮漂移",
+                "wheels": 0,
+                "alive": true
+              }
+            ],
+            "smoke": 31,
+            "alive": 7,
+            "projectiles": 0
+          },
+          "top": []
+        },
+        {
+          "step": 1748,
+          "totalWallMs": 68,
+          "luaNetKiB": -18677.052734375,
+          "state": {
+            "kills": 1,
+            "damage": 11250.148003609826,
+            "shots": 1653,
+            "debris": 6,
+            "particles": 377,
+            "parts": 1166,
+            "units": [
+              {
+                "parts": 209,
+                "legs": 0,
+                "team": "blue",
+                "name": "你",
+                "wheels": 4,
+                "alive": true
+              },
+              {
+                "parts": 121,
+                "legs": 0,
+                "role": "heavy",
+                "team": "blue",
+                "name": "雷霆小方块",
+                "wheels": 0,
+                "alive": false
+              },
+              {
+                "parts": 105,
+                "legs": 0,
+                "role": "hover",
+                "team": "blue",
+                "name": "护盾下乘凉",
+                "wheels": 0,
+                "alive": true
+              },
+              {
+                "parts": 152,
+                "legs": 6,
+                "role": "sniper",
+                "team": "blue",
+                "name": "Mosswolf",
+                "wheels": 0,
+                "alive": true
+              },
+              {
+                "parts": 140,
+                "legs": 0,
+                "role": "assault",
+                "team": "red",
+                "name": "拆迁办主任",
+                "wheels": 4,
+                "alive": true
+              },
+              {
+                "parts": 143,
+                "legs": 0,
+                "role": "heavy",
+                "team": "red",
+                "name": "慢一点会散架",
+                "wheels": 10,
+                "alive": true
+              },
+              {
+                "parts": 144,
+                "legs": 0,
+                "role": "hover",
+                "team": "red",
+                "name": "lowtide",
+                "wheels": 0,
+                "alive": true
+              },
+              {
+                "parts": 152,
+                "legs": 6,
+                "role": "sniper",
+                "team": "red",
+                "name": "悬浮漂移",
+                "wheels": 0,
+                "alive": true
+              }
+            ],
+            "smoke": 41,
+            "alive": 7,
+            "projectiles": 14
+          },
+          "top": []
+        }
+      ]
+    },
+    "coarse.json": {
+      "result": "PASS",
+      "mode": "coarse",
+      "file": "coarse.json",
+      "sha256": "ab087f6e7c3ad368804c21d67b3efd60e6b70d60cf615965c22c0ab2193a239c",
+      "warmupSteps": 300,
+      "measuredSteps": 1800,
+      "simSeconds": 30,
+      "totalWallMs": {
+        "count": 1800,
+        "total": 27983,
+        "mean": 15.546111111111111,
+        "p50": 12,
+        "p95": 43,
+        "p99": 63,
+        "max": 121
+      },
+      "totalClockMs": {
+        "count": 1800,
+        "total": 27968.999999999807,
+        "mean": 15.538333333333226,
+        "p50": 12.000000000000455,
+        "p95": 41.999999999999815,
+        "p99": 62.999999999998835,
+        "max": 120.000000000001
+      },
+      "luaNetKiB": {
+        "count": 1800,
+        "total": 10221.943359375,
+        "mean": 5.678857421875,
+        "p50": 1094.9375,
+        "p95": 1958.140625,
+        "p99": 2490.58203125,
+        "max": 3159.0546875
+      },
+      "allocationNoGC": {
+        "count": 60,
+        "total": 58577.1904296875,
+        "mean": 976.2865071614583,
+        "p50": 844.1640625,
+        "p95": 1722.9375,
+        "p99": 2332.4228515625,
+        "max": 2332.4228515625
+      },
+      "metadata": {
+        "initial": {
+          "smoke": 0,
+          "shots": 0,
+          "particles": 0,
+          "projectiles": 0,
+          "damage": 0,
+          "debris": 0,
+          "alive": 8,
+          "units": [
+            {
+              "legs": 0,
+              "wheels": 4,
+              "alive": true,
+              "name": "你",
+              "team": "blue",
+              "parts": 209
+            },
+            {
+              "legs": 0,
+              "wheels": 10,
+              "role": "heavy",
+              "alive": true,
+              "name": "雷霆小方块",
+              "team": "blue",
+              "parts": 145
+            },
+            {
+              "legs": 0,
+              "wheels": 0,
+              "role": "hover",
+              "alive": true,
+              "name": "护盾下乘凉",
+              "team": "blue",
+              "parts": 168
+            },
+            {
+              "legs": 6,
+              "wheels": 0,
+              "role": "sniper",
+              "alive": true,
+              "name": "Mosswolf",
+              "team": "blue",
+              "parts": 152
+            },
+            {
+              "legs": 0,
+              "wheels": 4,
+              "role": "assault",
+              "alive": true,
+              "name": "拆迁办主任",
+              "team": "red",
+              "parts": 140
+            },
+            {
+              "legs": 0,
+              "wheels": 10,
+              "role": "heavy",
+              "alive": true,
+              "name": "慢一点会散架",
+              "team": "red",
+              "parts": 143
+            },
+            {
+              "legs": 0,
+              "wheels": 0,
+              "role": "hover",
+              "alive": true,
+              "name": "lowtide",
+              "team": "red",
+              "parts": 168
+            },
+            {
+              "legs": 6,
+              "wheels": 0,
+              "role": "sniper",
+              "alive": true,
+              "name": "悬浮漂移",
+              "team": "red",
+              "parts": 152
+            }
+          ],
+          "kills": 0,
+          "parts": 1277
+        },
+        "first": {
+          "smoke": 0,
+          "shots": 0,
+          "particles": 0,
+          "projectiles": 0,
+          "damage": 0,
+          "debris": 0,
+          "alive": 8,
+          "units": [
+            {
+              "legs": 0,
+              "wheels": 4,
+              "alive": true,
+              "name": "你",
+              "team": "blue",
+              "parts": 209
+            },
+            {
+              "legs": 0,
+              "wheels": 10,
+              "role": "heavy",
+              "alive": true,
+              "name": "雷霆小方块",
+              "team": "blue",
+              "parts": 145
+            },
+            {
+              "legs": 0,
+              "wheels": 0,
+              "role": "hover",
+              "alive": true,
+              "name": "护盾下乘凉",
+              "team": "blue",
+              "parts": 168
+            },
+            {
+              "legs": 6,
+              "wheels": 0,
+              "role": "sniper",
+              "alive": true,
+              "name": "Mosswolf",
+              "team": "blue",
+              "parts": 152
+            },
+            {
+              "legs": 0,
+              "wheels": 4,
+              "role": "assault",
+              "alive": true,
+              "name": "拆迁办主任",
+              "team": "red",
+              "parts": 140
+            },
+            {
+              "legs": 0,
+              "wheels": 10,
+              "role": "heavy",
+              "alive": true,
+              "name": "慢一点会散架",
+              "team": "red",
+              "parts": 143
+            },
+            {
+              "legs": 0,
+              "wheels": 0,
+              "role": "hover",
+              "alive": true,
+              "name": "lowtide",
+              "team": "red",
+              "parts": 168
+            },
+            {
+              "legs": 6,
+              "wheels": 0,
+              "role": "sniper",
+              "alive": true,
+              "name": "悬浮漂移",
+              "team": "red",
+              "parts": 152
+            }
+          ],
+          "kills": 0,
+          "parts": 1277
+        },
+        "last": {
+          "smoke": 39,
+          "shots": 1651,
+          "particles": 216,
+          "projectiles": 16,
+          "damage": 11190.252003609825,
+          "debris": 3,
+          "alive": 6,
+          "units": [
+            {
+              "legs": 0,
+              "wheels": 4,
+              "alive": true,
+              "name": "你",
+              "team": "blue",
+              "parts": 209
+            },
+            {
+              "legs": 0,
+              "wheels": 0,
+              "role": "heavy",
+              "alive": false,
+              "name": "雷霆小方块",
+              "team": "blue",
+              "parts": 121
+            },
+            {
+              "legs": 0,
+              "wheels": 0,
+              "role": "hover",
+              "alive": true,
+              "name": "护盾下乘凉",
+              "team": "blue",
+              "parts": 150
+            },
+            {
+              "legs": 6,
+              "wheels": 0,
+              "role": "sniper",
+              "alive": true,
+              "name": "Mosswolf",
+              "team": "blue",
+              "parts": 152
+            },
+            {
+              "legs": 0,
+              "wheels": 4,
+              "role": "assault",
+              "alive": true,
+              "name": "拆迁办主任",
+              "team": "red",
+              "parts": 140
+            },
+            {
+              "legs": 0,
+              "wheels": 10,
+              "role": "heavy",
+              "alive": true,
+              "name": "慢一点会散架",
+              "team": "red",
+              "parts": 143
+            },
+            {
+              "legs": 0,
+              "wheels": 0,
+              "role": "hover",
+              "alive": false,
+              "name": "lowtide",
+              "team": "red",
+              "parts": 1
+            },
+            {
+              "legs": 6,
+              "wheels": 0,
+              "role": "sniper",
+              "alive": true,
+              "name": "悬浮漂移",
+              "team": "red",
+              "parts": 150
+            }
+          ],
+          "kills": 2,
+          "parts": 1066
+        },
+        "aliveRange": [
+          6,
+          8
+        ],
+        "minParts": 1066,
+        "maxParts": 1277,
+        "peakProjectiles": 20,
+        "peakParticles": 544
+      },
+      "methods": {
+        "drive.Vehicle.Step": {
+          "calls": 13544,
+          "wallMs": {
+            "count": 1800,
+            "total": 6343,
+            "mean": 3.523888888888889,
+            "p50": 2,
+            "p95": 5,
+            "p99": 47,
+            "max": 69
+          },
+          "selfWallMs": {
+            "count": 1800,
+            "total": 6343,
+            "mean": 3.523888888888889,
+            "p50": 2,
+            "p95": 5,
+            "p99": 47,
+            "max": 69
+          },
+          "clockMs": {
+            "count": 1800,
+            "total": 6395.999999999965,
+            "mean": 3.553333333333314,
+            "p50": 2.0000000000024443,
+            "p95": 5.000000000000782,
+            "p99": 47.0000000000006,
+            "max": 68.99999999999906
+          },
+          "selfClockMs": {
+            "count": 1800,
+            "total": 6395.999999999965,
+            "mean": 3.553333333333314,
+            "p50": 2.0000000000024443,
+            "p95": 5.000000000000782,
+            "p99": 47.0000000000006,
+            "max": 68.99999999999906
+          },
+          "activeWallMs": {
+            "count": 1800,
+            "total": 6343,
+            "mean": 3.523888888888889,
+            "p50": 2,
+            "p95": 5,
+            "p99": 47,
+            "max": 69
+          },
+          "callsPerStep": 7.524444444444445
+        },
+        "combat.BattleController.SyncPlayer": {
+          "calls": 1800,
+          "wallMs": {
+            "count": 1800,
+            "total": 7,
+            "mean": 0.0038888888888888888,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 1
+          },
+          "selfWallMs": {
+            "count": 1800,
+            "total": 7,
+            "mean": 0.0038888888888888888,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 1
+          },
+          "clockMs": {
+            "count": 1800,
+            "total": 6.999999999997897,
+            "mean": 0.0038888888888877204,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 1.0000000000012221
+          },
+          "selfClockMs": {
+            "count": 1800,
+            "total": 6.999999999997897,
+            "mean": 0.0038888888888877204,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 1.0000000000012221
+          },
+          "activeWallMs": {
+            "count": 1800,
+            "total": 7,
+            "mean": 0.0038888888888888888,
+            "p50": 0,
+            "p95": 0,
+            "p99": 0,
+            "max": 1
+          },
+          "callsPerStep": 1
+        },
+        "combat.WeaponSystem.Step": {
+          "calls": 13544,
+          "wallMs": {
+            "count": 1800,
+            "total": 1759,
+            "mean": 0.9772222222222222,
+            "p50": 1,
+            "p95": 2,
+            "p99": 4,
+            "max": 53
+          },
+          "selfWallMs": {
+            "count": 1800,
+            "total": 1759,
+            "mean": 0.9772222222222222,
+            "p50": 1,
+            "p95": 2,
+            "p99": 4,
+            "max": 53
+          },
+          "clockMs": {
+            "count": 1800,
+            "total": 1747.0000000000223,
+            "mean": 0.9705555555555679,
+            "p50": 0.9999999999976694,
+            "p95": 2.000000000000668,
+            "p99": 3.0000000000001137,
+            "max": 53.000000000000824
+          },
+          "selfClockMs": {
+            "count": 1800,
+            "total": 1747.0000000000223,
+            "mean": 0.9705555555555679,
+            "p50": 0.9999999999976694,
+            "p95": 2.000000000000668,
+            "p99": 3.0000000000001137,
+            "max": 53.000000000000824
+          },
+          "activeWallMs": {
+            "count": 1800,
+            "total": 1759,
+            "mean": 0.9772222222222222,
+            "p50": 1,
+            "p95": 2,
+            "p99": 4,
+            "max": 53
+          },
+          "callsPerStep": 7.524444444444445
+        },
+        "render.CombatEffects.Update": {
+          "calls": 1800,
+          "wallMs": {
+            "count": 1800,
+            "total": 7176,
+            "mean": 3.986666666666667,
+            "p50": 4,
+            "p95": 6,
+            "p99": 9,
+            "max": 59
+          },
+          "selfWallMs": {
+            "count": 1800,
+            "total": 7176,
+            "mean": 3.986666666666667,
+            "p50": 4,
+            "p95": 6,
+            "p99": 9,
+            "max": 59
+          },
+          "clockMs": {
+            "count": 1800,
+            "total": 7148.000000000017,
+            "mean": 3.971111111111121,
+            "p50": 3.9999999999995595,
+            "p95": 6.000000000000227,
+            "p99": 8.000000000002672,
+            "max": 57.99999999999983
+          },
+          "selfClockMs": {
+            "count": 1800,
+            "total": 7148.000000000017,
+            "mean": 3.971111111111121,
+            "p50": 3.9999999999995595,
+            "p95": 6.000000000000227,
+            "p99": 8.000000000002672,
+            "max": 57.99999999999983
+          },
+          "activeWallMs": {
+            "count": 1800,
+            "total": 7176,
+            "mean": 3.986666666666667,
+            "p50": 4,
+            "p95": 6,
+            "p99": 9,
+            "max": 59
+          },
+          "callsPerStep": 1
+        },
+        "physics.Space.Step": {
+          "calls": 1800,
+          "wallMs": {
+            "count": 1800,
+            "total": 1685,
+            "mean": 0.9361111111111111,
+            "p50": 1,
+            "p95": 2,
+            "p99": 2,
+            "max": 5
+          },
+          "selfWallMs": {
+            "count": 1800,
+            "total": 1685,
+            "mean": 0.9361111111111111,
+            "p50": 1,
+            "p95": 2,
+            "p99": 2,
+            "max": 5
+          },
+          "clockMs": {
+            "count": 1800,
+            "total": 1679.000000000009,
+            "mean": 0.9327777777777828,
+            "p50": 0.9999999999994458,
+            "p95": 1.9999999999988916,
+            "p99": 2.0000000000024443,
+            "max": 4.999999999999005
+          },
+          "selfClockMs": {
+            "count": 1800,
+            "total": 1679.000000000009,
+            "mean": 0.9327777777777828,
+            "p50": 0.9999999999994458,
+            "p95": 1.9999999999988916,
+            "p99": 2.0000000000024443,
+            "max": 4.999999999999005
+          },
+          "activeWallMs": {
+            "count": 1800,
+            "total": 1685,
+            "mean": 0.9361111111111111,
+            "p50": 1,
+            "p95": 2,
+            "p99": 2,
+            "max": 5
+          },
+          "callsPerStep": 1
+        },
+        "combat.CarUnit.Flush": {
+          "calls": 27945,
+          "wallMs": {
+            "count": 1800,
+            "total": 439,
+            "mean": 0.24388888888888888,
+            "p50": 0,
+            "p95": 1,
+            "p99": 7,
+            "max": 55
+          },
+          "selfWallMs": {
+            "count": 1800,
+            "total": 185,
+            "mean": 0.10277777777777777,
+            "p50": 0,
+            "p95": 0,
+            "p99": 2,
+            "max": 50
+          },
+          "clockMs": {
+            "count": 1800,
+            "total": 430.99999999999727,
+            "mean": 0.23944444444444293,
+            "p50": 0,
+            "p95": 0,
+            "p99": 7.0000000000014495,
+            "max": 53.999999999998494
+          },
+          "selfClockMs": {
+            "count": 1800,
+            "total": 179.9999999999926,
+            "mean": 0.0999999999999959,
+            "p50": 0,
+            "p95": 0,
+            "p99": 2.999999999996561,
+            "max": 48.999999999995936
+          },
+          "activeWallMs": {
+            "count": 1800,
+            "total": 439,
+            "mean": 0.24388888888888888,
+            "p50": 0,
+            "p95": 1,
+            "p99": 7,
+            "max": 55
+          },
+          "callsPerStep": 15.525
+        },
+        "render.CombatView.Update": {
+          "calls": 1800,
+          "wallMs": {
+            "count": 1800,
+            "total": 4828,
+            "mean": 2.6822222222222223,
+            "p50": 2,
+            "p95": 4,
+            "p99": 7,
+            "max": 64
+          },
+          "selfWallMs": {
+            "count": 1800,
+            "total": 2487,
+            "mean": 1.3816666666666666,
+            "p50": 1,
+            "p95": 3,
+            "p99": 4,
+            "max": 49
+          },
+          "clockMs": {
+            "count": 1800,
+            "total": 4839.999999999967,
+            "mean": 2.688888888888871,
+            "p50": 2.0000000000024443,
+            "p95": 4.000000000001336,
+            "p99": 7.0000000000014495,
+            "max": 64.00000000000006
+          },
+          "selfClockMs": {
+            "count": 1800,
+            "total": 2610.9999999999973,
+            "mean": 1.450555555555554,
+            "p50": 1.0000000000012221,
+            "p95": 3.0000000000001137,
+            "p99": 4.000000000001336,
+            "max": 50.00000000000071
+          },
+          "activeWallMs": {
+            "count": 1800,
+            "total": 4828,
+            "mean": 2.6822222222222223,
+            "p50": 2,
+            "p95": 4,
+            "p99": 7,
+            "max": 64
+          },
+          "callsPerStep": 1
+        },
+        "render.DriveView.Update": {
+          "calls": 13611,
+          "wallMs": {
+            "count": 1800,
+            "total": 2541,
+            "mean": 1.4116666666666666,
+            "p50": 1,
+            "p95": 3,
+            "p99": 4,
+            "max": 60
+          },
+          "selfWallMs": {
+            "count": 1800,
+            "total": 2541,
+            "mean": 1.4116666666666666,
+            "p50": 1,
+            "p95": 3,
+            "p99": 4,
+            "max": 60
+          },
+          "clockMs": {
+            "count": 1800,
+            "total": 2458.999999999967,
+            "mean": 1.3661111111110926,
+            "p50": 1.0000000000012221,
+            "p95": 3.0000000000001137,
+            "p99": 4.000000000001336,
+            "max": 60.000000000002274
+          },
+          "selfClockMs": {
+            "count": 1800,
+            "total": 2458.999999999967,
+            "mean": 1.3661111111110926,
+            "p50": 1.0000000000012221,
+            "p95": 3.0000000000001137,
+            "p99": 4.000000000001336,
+            "max": 60.000000000002274
+          },
+          "activeWallMs": {
+            "count": 1800,
+            "total": 2541,
+            "mean": 1.4116666666666666,
+            "p50": 1,
+            "p95": 3,
+            "p99": 4,
+            "max": 60
+          },
+          "callsPerStep": 7.5616666666666665
+        },
+        "combat.BattleController.AfterStep": {
+          "calls": 1800,
+          "wallMs": {
+            "count": 1800,
+            "total": 2047,
+            "mean": 1.1372222222222221,
+            "p50": 0,
+            "p95": 5,
+            "p99": 7,
+            "max": 97
+          },
+          "selfWallMs": {
+            "count": 1800,
+            "total": 228,
+            "mean": 0.12666666666666668,
+            "p50": 0,
+            "p95": 1,
+            "p99": 1,
+            "max": 47
+          },
+          "clockMs": {
+            "count": 1800,
+            "total": 2055.0000000000045,
+            "mean": 1.1416666666666693,
+            "p50": 0,
+            "p95": 5.000000000000782,
+            "p99": 7.0000000000014495,
+            "max": 97.00000000000131
+          },
+          "selfClockMs": {
+            "count": 1800,
+            "total": 202.9999999999994,
+            "mean": 0.11277777777777745,
+            "p50": 0,
+            "p95": 0.9999999999994458,
+            "p99": 1.0000000000012221,
+            "max": 47.0000000000006
+          },
+          "activeWallMs": {
+            "count": 1800,
+            "total": 2047,
+            "mean": 1.1372222222222221,
+            "p50": 0,
+            "p95": 5,
+            "p99": 7,
+            "max": 97
+          },
+          "callsPerStep": 1
+        },
+        "render.CombatView.Consume": {
+          "calls": 1800,
+          "wallMs": {
+            "count": 1800,
+            "total": 75,
+            "mean": 0.041666666666666664,
+            "p50": 0,
+            "p95": 0,
+            "p99": 1,
+            "max": 3
+          },
+          "selfWallMs": {
+            "count": 1800,
+            "total": 72,
+            "mean": 0.04,
+            "p50": 0,
+            "p95": 0,
+            "p99": 1,
+            "max": 3
+          },
+          "clockMs": {
+            "count": 1800,
+            "total": 64.00000000002225,
+            "mean": 0.03555555555556792,
+            "p50": 0,
+            "p95": 0,
+            "p99": 1.0000000000012221,
+            "max": 3.0000000000001137
+          },
+          "selfClockMs": {
+            "count": 1800,
+            "total": 58.00000000002559,
+            "mean": 0.03222222222223644,
+            "p50": 0,
+            "p95": 0,
+            "p99": 1.0000000000012221,
+            "max": 3.0000000000001137
+          },
+          "activeWallMs": {
+            "count": 1800,
+            "total": 75,
+            "mean": 0.041666666666666664,
+            "p50": 0,
+            "p95": 0,
+            "p99": 1,
+            "max": 3
+          },
+          "callsPerStep": 1
+        },
+        "combat.BattleController.BeforeStep": {
+          "calls": 1800,
+          "wallMs": {
+            "count": 1800,
+            "total": 11013,
+            "mean": 6.118333333333333,
+            "p50": 4,
+            "p95": 15,
+            "p99": 51,
+            "max": 83
+          },
+          "selfWallMs": {
+            "count": 1800,
+            "total": 900,
+            "mean": 0.5,
+            "p50": 0,
+            "p95": 2,
+            "p99": 3,
+            "max": 45
+          },
+          "clockMs": {
+            "count": 1800,
+            "total": 11001.999999999894,
+            "mean": 6.112222222222163,
+            "p50": 3.9999999999995595,
+            "p95": 14.000000000001123,
+            "p99": 51.00000000000193,
+            "max": 82.00000000000074
+          },
+          "selfClockMs": {
+            "count": 1800,
+            "total": 901.0000000000198,
+            "mean": 0.5005555555555665,
+            "p50": 0,
+            "p95": 1.9999999999988916,
+            "p99": 3.0000000000001137,
+            "max": 43.99999999999693
+          },
+          "activeWallMs": {
+            "count": 1800,
+            "total": 11013,
+            "mean": 6.118333333333333,
+            "p50": 4,
+            "p95": 15,
+            "p99": 51,
+            "max": 83
+          },
+          "callsPerStep": 1
+        },
+        "render.CombatEffects.Consume": {
+          "calls": 15344,
+          "wallMs": {
+            "count": 1800,
+            "total": 244,
+            "mean": 0.13555555555555557,
+            "p50": 0,
+            "p95": 1,
+            "p99": 1,
+            "max": 45
+          },
+          "selfWallMs": {
+            "count": 1800,
+            "total": 244,
+            "mean": 0.13555555555555557,
+            "p50": 0,
+            "p95": 1,
+            "p99": 1,
+            "max": 45
+          },
+          "clockMs": {
+            "count": 1800,
+            "total": 238.99999999999454,
+            "mean": 0.13277777777777475,
+            "p50": 0,
+            "p95": 0.9999999999994458,
+            "p99": 1.0000000000012221,
+            "max": 45.999999999999375
+          },
+          "selfClockMs": {
+            "count": 1800,
+            "total": 238.99999999999454,
+            "mean": 0.13277777777777475,
+            "p50": 0,
+            "p95": 0.9999999999994458,
+            "p99": 1.0000000000012221,
+            "max": 45.999999999999375
+          },
+          "activeWallMs": {
+            "count": 1800,
+            "total": 244,
+            "mean": 0.13555555555555557,
+            "p50": 0,
+            "p95": 1,
+            "p99": 1,
+            "max": 45
+          },
+          "callsPerStep": 8.524444444444445
+        },
+        "render.ObjectiveView.Update": {
+          "calls": 1800,
+          "wallMs": {
+            "count": 1800,
+            "total": 1819,
+            "mean": 1.0105555555555557,
+            "p50": 0,
+            "p95": 5,
+            "p99": 7,
+            "max": 97
+          },
+          "selfWallMs": {
+            "count": 1800,
+            "total": 1819,
+            "mean": 1.0105555555555557,
+            "p50": 0,
+            "p95": 5,
+            "p99": 7,
+            "max": 97
+          },
+          "clockMs": {
+            "count": 1800,
+            "total": 1852.0000000000066,
+            "mean": 1.0288888888888925,
+            "p50": 0,
+            "p95": 5.000000000000782,
+            "p99": 7.0000000000014495,
+            "max": 97.00000000000131
+          },
+          "selfClockMs": {
+            "count": 1800,
+            "total": 1852.0000000000066,
+            "mean": 1.0288888888888925,
+            "p50": 0,
+            "p95": 5.000000000000782,
+            "p99": 7.0000000000014495,
+            "max": 97.00000000000131
+          },
+          "activeWallMs": {
+            "count": 1800,
+            "total": 1819,
+            "mean": 1.0105555555555557,
+            "p50": 0,
+            "p95": 5,
+            "p99": 7,
+            "max": 97
+          },
+          "callsPerStep": 1
+        },
+        "combat.EnemyDriver.Step": {
+          "calls": 11738,
+          "wallMs": {
+            "count": 1800,
+            "total": 1657,
+            "mean": 0.9205555555555556,
+            "p50": 0,
+            "p95": 4,
+            "p99": 9,
+            "max": 76
+          },
+          "selfWallMs": {
+            "count": 1800,
+            "total": 1657,
+            "mean": 0.9205555555555556,
+            "p50": 0,
+            "p95": 4,
+            "p99": 9,
+            "max": 76
+          },
+          "clockMs": {
+            "count": 1800,
+            "total": 1612.9999999999536,
+            "mean": 0.8961111111110853,
+            "p50": 0,
+            "p95": 4.000000000001336,
+            "p99": 8.000000000000895,
+            "max": 76.99999999999818
+          },
+          "selfClockMs": {
+            "count": 1800,
+            "total": 1612.9999999999536,
+            "mean": 0.8961111111110853,
+            "p50": 0,
+            "p95": 4.000000000001336,
+            "p99": 8.000000000000895,
+            "max": 76.99999999999818
+          },
+          "activeWallMs": {
+            "count": 1799,
+            "total": 1657,
+            "mean": 0.9210672595886603,
+            "p50": 0,
+            "p95": 5,
+            "p99": 9,
+            "max": 76
+          },
+          "callsPerStep": 6.521111111111111
+        },
+        "drive.VehicleSpec.Build": {
+          "calls": 68,
+          "wallMs": {
+            "count": 1800,
+            "total": 254,
+            "mean": 0.1411111111111111,
+            "p50": 0,
+            "p95": 0,
+            "p99": 5,
+            "max": 13
+          },
+          "selfWallMs": {
+            "count": 1800,
+            "total": 254,
+            "mean": 0.1411111111111111,
+            "p50": 0,
+            "p95": 0,
+            "p99": 5,
+            "max": 13
+          },
+          "clockMs": {
+            "count": 1800,
+            "total": 251.00000000000477,
+            "mean": 0.1394444444444471,
+            "p50": 0,
+            "p95": 0,
+            "p99": 4.999999999999005,
+            "max": 13.000000000001677
+          },
+          "selfClockMs": {
+            "count": 1800,
+            "total": 251.00000000000477,
+            "mean": 0.1394444444444471,
+            "p50": 0,
+            "p95": 0,
+            "p99": 4.999999999999005,
+            "max": 13.000000000001677
+          },
+          "activeWallMs": {
+            "count": 68,
+            "total": 254,
+            "mean": 3.735294117647059,
+            "p50": 4,
+            "p95": 10,
+            "p99": 13,
+            "max": 13
+          },
+          "callsPerStep": 0.03777777777777778
+        }
+      },
+      "stages": {
+        "worldBuildMs": 813,
+        "battleBuildMs": 604
+      },
+      "skipped": {},
+      "allocationMethods": {
+        "drive.Vehicle.Step": {
+          "inclusiveKiB": {
+            "count": 60,
+            "total": 24674.671875,
+            "mean": 411.24453125,
+            "p50": 418.4296875,
+            "p95": 433.8046875,
+            "p99": 447.6484375,
+            "max": 447.6484375
+          },
+          "selfKiB": {
+            "count": 60,
+            "total": 24674.671875,
+            "mean": 411.24453125,
+            "p50": 418.4296875,
+            "p95": 433.8046875,
+            "p99": 447.6484375,
+            "max": 447.6484375
+          }
+        },
+        "combat.EnemyDriver.Step": {
+          "inclusiveKiB": {
+            "count": 60,
+            "total": 6290.7353515625,
+            "mean": 104.84558919270833,
+            "p50": 28.34375,
+            "p95": 925.1171875,
+            "p99": 1005.8125,
+            "max": 1005.8125
+          },
+          "selfKiB": {
+            "count": 60,
+            "total": 6290.7353515625,
+            "mean": 104.84558919270833,
+            "p50": 28.34375,
+            "p95": 925.1171875,
+            "p99": 1005.8125,
+            "max": 1005.8125
+          }
+        },
+        "render.CombatEffects.Update": {
+          "inclusiveKiB": {
+            "count": 60,
+            "total": 3140.25,
+            "mean": 52.3375,
+            "p50": 51.796875,
+            "p95": 81.34375,
+            "p99": 126.9453125,
+            "max": 126.9453125
+          },
+          "selfKiB": {
+            "count": 60,
+            "total": 3140.25,
+            "mean": 52.3375,
+            "p50": 51.796875,
+            "p95": 81.34375,
+            "p99": 126.9453125,
+            "max": 126.9453125
+          }
+        },
+        "combat.WeaponSystem.Step": {
+          "inclusiveKiB": {
+            "count": 60,
+            "total": 5805.2041015625,
+            "mean": 96.75340169270834,
+            "p50": 93.09375,
+            "p95": 178.2890625,
+            "p99": 229.5556640625,
+            "max": 229.5556640625
+          },
+          "selfKiB": {
+            "count": 60,
+            "total": 5805.2041015625,
+            "mean": 96.75340169270834,
+            "p50": 93.09375,
+            "p95": 178.2890625,
+            "p99": 229.5556640625,
+            "max": 229.5556640625
+          }
+        },
+        "render.CombatView.Update": {
+          "inclusiveKiB": {
+            "count": 60,
+            "total": 7618.28125,
+            "mean": 126.97135416666667,
+            "p50": 126.0234375,
+            "p95": 134.109375,
+            "p99": 254.0234375,
+            "max": 254.0234375
+          },
+          "selfKiB": {
+            "count": 60,
+            "total": 4197.4140625,
+            "mean": 69.95690104166667,
+            "p50": 66.265625,
+            "p95": 66.6875,
+            "p99": 193.9921875,
+            "max": 193.9921875
+          }
+        },
+        "physics.Space.Step": {
+          "inclusiveKiB": {
+            "count": 60,
+            "total": 6.09375,
+            "mean": 0.1015625,
+            "p50": 0.1015625,
+            "p95": 0.1015625,
+            "p99": 0.1015625,
+            "max": 0.1015625
+          },
+          "selfKiB": {
+            "count": 60,
+            "total": 6.09375,
+            "mean": 0.1015625,
+            "p50": 0.1015625,
+            "p95": 0.1015625,
+            "p99": 0.1015625,
+            "max": 0.1015625
+          }
+        },
+        "combat.CarUnit.Flush": {
+          "inclusiveKiB": {
+            "count": 60,
+            "total": 1080.1318359375,
+            "mean": 18.002197265625,
+            "p50": 1.421875,
+            "p95": 248.40625,
+            "p99": 251.4052734375,
+            "max": 251.4052734375
+          },
+          "selfKiB": {
+            "count": 60,
+            "total": 510.75,
+            "mean": 8.5125,
+            "p50": 1.421875,
+            "p95": 107.046875,
+            "p99": 108.4375,
+            "max": 108.4375
+          }
+        },
+        "render.DriveView.Update": {
+          "inclusiveKiB": {
+            "count": 60,
+            "total": 3617.2734375,
+            "mean": 60.287890625,
+            "p50": 62.8671875,
+            "p95": 69.359375,
+            "p99": 70.6796875,
+            "max": 70.6796875
+          },
+          "selfKiB": {
+            "count": 60,
+            "total": 3617.2734375,
+            "mean": 60.287890625,
+            "p50": 62.8671875,
+            "p95": 69.359375,
+            "p99": 70.6796875,
+            "max": 70.6796875
+          }
+        },
+        "render.CombatView.Consume": {
+          "inclusiveKiB": {
+            "count": 60,
+            "total": 132.6796875,
+            "mean": 2.211328125,
+            "p50": 0.375,
+            "p95": 25.625,
+            "p99": 27.2421875,
+            "max": 27.2421875
+          },
+          "selfKiB": {
+            "count": 60,
+            "total": 129.4609375,
+            "mean": 2.1576822916666667,
+            "p50": 0.375,
+            "p95": 24.8203125,
+            "p99": 26.4375,
+            "max": 26.4375
+          }
+        },
+        "combat.BattleController.AfterStep": {
+          "inclusiveKiB": {
+            "count": 60,
+            "total": 4548.619140625,
+            "mean": 75.81031901041666,
+            "p50": 9.6953125,
+            "p95": 505.6796875,
+            "p99": 505.6796875,
+            "max": 505.6796875
+          },
+          "selfKiB": {
+            "count": 60,
+            "total": 515.09375,
+            "mean": 8.584895833333333,
+            "p50": 8.6015625,
+            "p95": 8.6015625,
+            "p99": 8.6015625,
+            "max": 8.6015625
+          }
+        },
+        "combat.BattleController.SyncPlayer": {
+          "inclusiveKiB": {
+            "count": 60,
+            "total": 6.09375,
+            "mean": 0.1015625,
+            "p50": 0.1015625,
+            "p95": 0.1015625,
+            "p99": 0.1015625,
+            "max": 0.1015625
+          },
+          "selfKiB": {
+            "count": 60,
+            "total": 6.09375,
+            "mean": 0.1015625,
+            "p50": 0.1015625,
+            "p95": 0.1015625,
+            "p99": 0.1015625,
+            "max": 0.1015625
+          }
+        },
+        "render.ObjectiveView.Update": {
+          "inclusiveKiB": {
+            "count": 60,
+            "total": 4033.525390625,
+            "mean": 67.22542317708333,
+            "p50": 1.09375,
+            "p95": 497.078125,
+            "p99": 497.078125,
+            "max": 497.078125
+          },
+          "selfKiB": {
+            "count": 60,
+            "total": 4033.525390625,
+            "mean": 67.22542317708333,
+            "p50": 1.09375,
+            "p95": 497.078125,
+            "p99": 497.078125,
+            "max": 497.078125
+          }
+        },
+        "render.CombatEffects.Consume": {
+          "inclusiveKiB": {
+            "count": 60,
+            "total": 649.5859375,
+            "mean": 10.826432291666666,
+            "p50": 0.7109375,
+            "p95": 36.7734375,
+            "p99": 46.828125,
+            "max": 46.828125
+          },
+          "selfKiB": {
+            "count": 60,
+            "total": 649.5859375,
+            "mean": 10.826432291666666,
+            "p50": 0.7109375,
+            "p95": 36.7734375,
+            "p99": 46.828125,
+            "max": 46.828125
+          }
+        },
+        "combat.BattleController.BeforeStep": {
+          "inclusiveKiB": {
+            "count": 60,
+            "total": 40022.236328125,
+            "mean": 667.0372721354166,
+            "p50": 594.0859375,
+            "p95": 1497.2734375,
+            "p99": 1578.0244140625,
+            "max": 1578.0244140625
+          },
+          "selfKiB": {
+            "count": 60,
+            "total": 2629.2265625,
+            "mean": 43.82044270833333,
+            "p50": 35.5234375,
+            "p95": 93.5859375,
+            "p99": 189.0234375,
+            "max": 189.0234375
+          }
+        },
+        "drive.VehicleSpec.Build": {
+          "inclusiveKiB": {
+            "count": 60,
+            "total": 569.3818359375,
+            "mean": 9.489697265625,
+            "p50": 0,
+            "p95": 141.359375,
+            "p99": 142.9677734375,
+            "max": 142.9677734375
+          },
+          "selfKiB": {
+            "count": 60,
+            "total": 569.3818359375,
+            "mean": 9.489697265625,
+            "p50": 0,
+            "p95": 141.359375,
+            "p99": 142.9677734375,
+            "max": 142.9677734375
+          }
+        }
+      },
+      "topInclusive": [
+        "combat.BattleController.BeforeStep",
+        "render.CombatEffects.Update",
+        "drive.Vehicle.Step",
+        "render.CombatView.Update",
+        "render.DriveView.Update",
+        "combat.BattleController.AfterStep",
+        "render.ObjectiveView.Update",
+        "combat.WeaponSystem.Step",
+        "physics.Space.Step",
+        "combat.EnemyDriver.Step",
+        "combat.CarUnit.Flush",
+        "drive.VehicleSpec.Build",
+        "render.CombatEffects.Consume",
+        "render.CombatView.Consume",
+        "combat.BattleController.SyncPlayer"
+      ],
+      "topExclusive": [
+        "render.CombatEffects.Update",
+        "drive.Vehicle.Step",
+        "render.DriveView.Update",
+        "render.CombatView.Update",
+        "render.ObjectiveView.Update",
+        "combat.WeaponSystem.Step",
+        "physics.Space.Step",
+        "combat.EnemyDriver.Step",
+        "combat.BattleController.BeforeStep",
+        "drive.VehicleSpec.Build",
+        "render.CombatEffects.Consume",
+        "combat.BattleController.AfterStep",
+        "combat.CarUnit.Flush",
+        "render.CombatView.Consume",
+        "combat.BattleController.SyncPlayer"
+      ],
+      "longestSteps": [
+        {
+          "step": 1065,
+          "totalWallMs": 121,
+          "luaNetKiB": -17317.224609375,
+          "state": {
+            "smoke": 39,
+            "shots": 1089,
+            "particles": 348,
+            "projectiles": 11,
+            "damage": 7466.1480036098255,
+            "debris": 0,
+            "alive": 8,
+            "units": [
+              {
+                "legs": 0,
+                "wheels": 4,
+                "alive": true,
+                "name": "你",
+                "team": "blue",
+                "parts": 209
+              },
+              {
+                "legs": 0,
+                "wheels": 0,
+                "role": "heavy",
+                "alive": true,
+                "name": "雷霆小方块",
+                "team": "blue",
+                "parts": 125
+              },
+              {
+                "legs": 0,
+                "wheels": 0,
+                "role": "hover",
+                "alive": true,
+                "name": "护盾下乘凉",
+                "team": "blue",
+                "parts": 168
+              },
+              {
+                "legs": 6,
+                "wheels": 0,
+                "role": "sniper",
+                "alive": true,
+                "name": "Mosswolf",
+                "team": "blue",
+                "parts": 152
+              },
+              {
+                "legs": 0,
+                "wheels": 4,
+                "role": "assault",
+                "alive": true,
+                "name": "拆迁办主任",
+                "team": "red",
+                "parts": 140
+              },
+              {
+                "legs": 0,
+                "wheels": 10,
+                "role": "heavy",
+                "alive": true,
+                "name": "慢一点会散架",
+                "team": "red",
+                "parts": 143
+              },
+              {
+                "legs": 0,
+                "wheels": 0,
+                "role": "hover",
+                "alive": true,
+                "name": "lowtide",
+                "team": "red",
+                "parts": 162
+              },
+              {
+                "legs": 6,
+                "wheels": 0,
+                "role": "sniper",
+                "alive": true,
+                "name": "悬浮漂移",
+                "team": "red",
+                "parts": 152
+              }
+            ],
+            "kills": 0,
+            "parts": 1251
+          },
+          "top": [
+            [
+              "combat.BattleController.AfterStep",
+              {
+                "selfWallMs": 0,
+                "selfClockMs": 0,
+                "calls": 1,
+                "clockMs": 97.00000000000131,
+                "wallMs": 97
+              }
+            ],
+            [
+              "render.ObjectiveView.Update",
+              {
+                "selfWallMs": 97,
+                "selfClockMs": 97.00000000000131,
+                "calls": 1,
+                "clockMs": 97.00000000000131,
+                "wallMs": 97
+              }
+            ],
+            [
+              "render.CombatEffects.Update",
+              {
+                "selfWallMs": 10,
+                "selfClockMs": 7.999999999999119,
+                "calls": 1,
+                "clockMs": 7.999999999999119,
+                "wallMs": 10
+              }
+            ],
+            [
+              "combat.BattleController.BeforeStep",
+              {
+                "selfWallMs": 2,
+                "selfClockMs": 1.9999999999988916,
+                "calls": 1,
+                "clockMs": 7.0000000000014495,
+                "wallMs": 8
+              }
+            ],
+            [
+              "render.CombatView.Update",
+              {
+                "selfWallMs": 2,
+                "selfClockMs": 2.999999999996561,
+                "calls": 1,
+                "clockMs": 4.999999999999005,
+                "wallMs": 4
+              }
+            ],
+            [
+              "drive.Vehicle.Step",
+              {
+                "selfWallMs": 3,
+                "selfClockMs": 3.0000000000001137,
+                "calls": 8,
+                "clockMs": 3.0000000000001137,
+                "wallMs": 3
+              }
+            ],
+            [
+              "combat.EnemyDriver.Step",
+              {
+                "selfWallMs": 2,
+                "selfClockMs": 0,
+                "calls": 7,
+                "clockMs": 0,
+                "wallMs": 2
+              }
+            ],
+            [
+              "render.DriveView.Update",
+              {
+                "selfWallMs": 2,
+                "selfClockMs": 3.0000000000036664,
+                "calls": 8,
+                "clockMs": 3.0000000000036664,
+                "wallMs": 2
+              }
+            ]
+          ]
+        },
+        {
+          "step": 1081,
+          "totalWallMs": 99,
+          "luaNetKiB": -18207.3525390625,
+          "state": {
+            "smoke": 43,
+            "shots": 1108,
+            "particles": 390,
+            "projectiles": 9,
+            "damage": 7543.1480036098255,
+            "debris": 0,
+            "alive": 8,
+            "units": [
+              {
+                "legs": 0,
+                "wheels": 4,
+                "alive": true,
+                "name": "你",
+                "team": "blue",
+                "parts": 209
+              },
+              {
+                "legs": 0,
+                "wheels": 0,
+                "role": "heavy",
+                "alive": true,
+                "name": "雷霆小方块",
+                "team": "blue",
+                "parts": 123
+              },
+              {
+                "legs": 0,
+                "wheels": 0,
+                "role": "hover",
+                "alive": true,
+                "name": "护盾下乘凉",
+                "team": "blue",
+                "parts": 168
+              },
+              {
+                "legs": 6,
+                "wheels": 0,
+                "role": "sniper",
+                "alive": true,
+                "name": "Mosswolf",
+                "team": "blue",
+                "parts": 152
+              },
+              {
+                "legs": 0,
+                "wheels": 4,
+                "role": "assault",
+                "alive": true,
+                "name": "拆迁办主任",
+                "team": "red",
+                "parts": 140
+              },
+              {
+                "legs": 0,
+                "wheels": 10,
+                "role": "heavy",
+                "alive": true,
+                "name": "慢一点会散架",
+                "team": "red",
+                "parts": 143
+              },
+              {
+                "legs": 0,
+                "wheels": 0,
+                "role": "hover",
+                "alive": true,
+                "name": "lowtide",
+                "team": "red",
+                "parts": 162
+              },
+              {
+                "legs": 6,
+                "wheels": 0,
+                "role": "sniper",
+                "alive": true,
+                "name": "悬浮漂移",
+                "team": "red",
+                "parts": 152
+              }
+            ],
+            "kills": 0,
+            "parts": 1249
+          },
+          "top": [
+            [
+              "combat.BattleController.BeforeStep",
+              {
+                "selfWallMs": 1,
+                "selfClockMs": 0,
+                "calls": 1,
+                "clockMs": 82.00000000000074,
+                "wallMs": 83
+              }
+            ],
+            [
+              "combat.EnemyDriver.Step",
+              {
+                "selfWallMs": 76,
+                "selfClockMs": 76.99999999999818,
+                "calls": 7,
+                "clockMs": 76.99999999999818,
+                "wallMs": 76
+              }
+            ],
+            [
+              "render.CombatEffects.Update",
+              {
+                "selfWallMs": 8,
+                "selfClockMs": 7.0000000000014495,
+                "calls": 1,
+                "clockMs": 7.0000000000014495,
+                "wallMs": 8
+              }
+            ],
+            [
+              "drive.Vehicle.Step",
+              {
+                "selfWallMs": 5,
+                "selfClockMs": 3.0000000000036664,
+                "calls": 8,
+                "clockMs": 3.0000000000036664,
+                "wallMs": 5
+              }
+            ],
+            [
+              "render.CombatView.Update",
+              {
+                "selfWallMs": 1,
+                "selfClockMs": 2.999999999996561,
+                "calls": 1,
+                "clockMs": 4.999999999999005,
+                "wallMs": 3
+              }
+            ],
+            [
+              "physics.Space.Step",
+              {
+                "selfWallMs": 2,
+                "selfClockMs": 1.9999999999988916,
+                "calls": 1,
+                "clockMs": 1.9999999999988916,
+                "wallMs": 2
+              }
+            ],
+            [
+              "render.DriveView.Update",
+              {
+                "selfWallMs": 2,
+                "selfClockMs": 2.0000000000024443,
+                "calls": 8,
+                "clockMs": 2.0000000000024443,
+                "wallMs": 2
+              }
+            ],
+            [
+              "combat.WeaponSystem.Step",
+              {
+                "selfWallMs": 1,
+                "selfClockMs": 0.9999999999976694,
+                "calls": 8,
+                "clockMs": 0.9999999999976694,
+                "wallMs": 1
+              }
+            ]
+          ]
+        },
+        {
+          "step": 976,
+          "totalWallMs": 82,
+          "luaNetKiB": -17662.4326171875,
+          "state": {
+            "smoke": 63,
+            "shots": 992,
+            "particles": 417,
+            "projectiles": 11,
+            "damage": 6969.1480036098255,
+            "debris": 0,
+            "alive": 8,
+            "units": [
+              {
+                "legs": 0,
+                "wheels": 4,
+                "alive": true,
+                "name": "你",
+                "team": "blue",
+                "parts": 209
+              },
+              {
+                "legs": 0,
+                "wheels": 10,
+                "role": "heavy",
+                "alive": true,
+                "name": "雷霆小方块",
+                "team": "blue",
+                "parts": 131
+              },
+              {
+                "legs": 0,
+                "wheels": 0,
+                "role": "hover",
+                "alive": true,
+                "name": "护盾下乘凉",
+                "team": "blue",
+                "parts": 168
+              },
+              {
+                "legs": 6,
+                "wheels": 0,
+                "role": "sniper",
+                "alive": true,
+                "name": "Mosswolf",
+                "team": "blue",
+                "parts": 152
+              },
+              {
+                "legs": 0,
+                "wheels": 4,
+                "role": "assault",
+                "alive": true,
+                "name": "拆迁办主任",
+                "team": "red",
+                "parts": 140
+              },
+              {
+                "legs": 0,
+                "wheels": 10,
+                "role": "heavy",
+                "alive": true,
+                "name": "慢一点会散架",
+                "team": "red",
+                "parts": 143
+              },
+              {
+                "legs": 0,
+                "wheels": 0,
+                "role": "hover",
+                "alive": true,
+                "name": "lowtide",
+                "team": "red",
+                "parts": 163
+              },
+              {
+                "legs": 6,
+                "wheels": 0,
+                "role": "sniper",
+                "alive": true,
+                "name": "悬浮漂移",
+                "team": "red",
+                "parts": 152
+              }
+            ],
+            "kills": 0,
+            "parts": 1258
+          },
+          "top": [
+            [
+              "combat.BattleController.BeforeStep",
+              {
+                "selfWallMs": 2,
+                "selfClockMs": 0,
+                "calls": 1,
+                "clockMs": 67.00000000000017,
+                "wallMs": 67
+              }
+            ],
+            [
+              "drive.Vehicle.Step",
+              {
+                "selfWallMs": 63,
+                "selfClockMs": 62.999999999998835,
+                "calls": 8,
+                "clockMs": 62.999999999998835,
+                "wallMs": 63
+              }
+            ],
+            [
+              "render.CombatEffects.Update",
+              {
+                "selfWallMs": 7,
+                "selfClockMs": 6.000000000000227,
+                "calls": 1,
+                "clockMs": 6.000000000000227,
+                "wallMs": 7
+              }
+            ],
+            [
+              "render.CombatView.Update",
+              {
+                "selfWallMs": 2,
+                "selfClockMs": 1.0000000000012221,
+                "calls": 1,
+                "clockMs": 4.000000000001336,
+                "wallMs": 4
+              }
+            ],
+            [
+              "physics.Space.Step",
+              {
+                "selfWallMs": 3,
+                "selfClockMs": 2.0000000000024443,
+                "calls": 1,
+                "clockMs": 2.0000000000024443,
+                "wallMs": 3
+              }
+            ],
+            [
+              "combat.WeaponSystem.Step",
+              {
+                "selfWallMs": 2,
+                "selfClockMs": 3.0000000000036664,
+                "calls": 8,
+                "clockMs": 3.0000000000036664,
+                "wallMs": 2
+              }
+            ],
+            [
+              "render.DriveView.Update",
+              {
+                "selfWallMs": 2,
+                "selfClockMs": 3.0000000000001137,
+                "calls": 8,
+                "clockMs": 3.0000000000001137,
+                "wallMs": 2
+              }
+            ],
+            [
+              "combat.EnemyDriver.Step",
+              {
+                "selfWallMs": 0,
+                "selfClockMs": 0.9999999999976694,
+                "calls": 7,
+                "clockMs": 0.9999999999976694,
+                "wallMs": 0
+              }
+            ]
+          ]
+        },
+        {
+          "step": 1035,
+          "totalWallMs": 81,
+          "luaNetKiB": -17880.0419921875,
+          "state": {
+            "smoke": 35,
+            "shots": 1056,
+            "particles": 352,
+            "projectiles": 10,
+            "damage": 7298.1480036098255,
+            "debris": 0,
+            "alive": 8,
+            "units": [
+              {
+                "legs": 0,
+                "wheels": 4,
+                "alive": true,
+                "name": "你",
+                "team": "blue",
+                "parts": 209
+              },
+              {
+                "legs": 0,
+                "wheels": 5,
+                "role": "heavy",
+                "alive": true,
+                "name": "雷霆小方块",
+                "team": "blue",
+                "parts": 127
+              },
+              {
+                "legs": 0,
+                "wheels": 0,
+                "role": "hover",
+                "alive": true,
+                "name": "护盾下乘凉",
+                "team": "blue",
+                "parts": 168
+              },
+              {
+                "legs": 6,
+                "wheels": 0,
+                "role": "sniper",
+                "alive": true,
+                "name": "Mosswolf",
+                "team": "blue",
+                "parts": 152
+              },
+              {
+                "legs": 0,
+                "wheels": 4,
+                "role": "assault",
+                "alive": true,
+                "name": "拆迁办主任",
+                "team": "red",
+                "parts": 140
+              },
+              {
+                "legs": 0,
+                "wheels": 10,
+                "role": "heavy",
+                "alive": true,
+                "name": "慢一点会散架",
+                "team": "red",
+                "parts": 143
+              },
+              {
+                "legs": 0,
+                "wheels": 0,
+                "role": "hover",
+                "alive": true,
+                "name": "lowtide",
+                "team": "red",
+                "parts": 163
+              },
+              {
+                "legs": 6,
+                "wheels": 0,
+                "role": "sniper",
+                "alive": true,
+                "name": "悬浮漂移",
+                "team": "red",
+                "parts": 152
+              }
+            ],
+            "kills": 0,
+            "parts": 1254
+          },
+          "top": [
+            [
+              "combat.BattleController.BeforeStep",
+              {
+                "selfWallMs": 0,
+                "selfClockMs": 1.0000000000012221,
+                "calls": 1,
+                "clockMs": 72.00000000000273,
+                "wallMs": 71
+              }
+            ],
+            [
+              "drive.Vehicle.Step",
+              {
+                "selfWallMs": 69,
+                "selfClockMs": 68.99999999999906,
+                "calls": 8,
+                "clockMs": 68.99999999999906,
+                "wallMs": 69
+              }
+            ],
+            [
+              "render.CombatEffects.Update",
+              {
+                "selfWallMs": 4,
+                "selfClockMs": 3.999999999997783,
+                "calls": 1,
+                "clockMs": 3.999999999997783,
+                "wallMs": 4
+              }
+            ],
+            [
+              "render.CombatView.Update",
+              {
+                "selfWallMs": 1,
+                "selfClockMs": 2.0000000000024443,
+                "calls": 1,
+                "clockMs": 4.000000000001336,
+                "wallMs": 3
+              }
+            ],
+            [
+              "combat.WeaponSystem.Step",
+              {
+                "selfWallMs": 2,
+                "selfClockMs": 2.0000000000024443,
+                "calls": 8,
+                "clockMs": 2.0000000000024443,
+                "wallMs": 2
+              }
+            ],
+            [
+              "physics.Space.Step",
+              {
+                "selfWallMs": 2,
+                "selfClockMs": 0.9999999999976694,
+                "calls": 1,
+                "clockMs": 0.9999999999976694,
+                "wallMs": 2
+              }
+            ],
+            [
+              "render.DriveView.Update",
+              {
+                "selfWallMs": 2,
+                "selfClockMs": 1.9999999999988916,
+                "calls": 8,
+                "clockMs": 1.9999999999988916,
+                "wallMs": 2
+              }
+            ],
+            [
+              "combat.EnemyDriver.Step",
+              {
+                "selfWallMs": 0,
+                "selfClockMs": 0,
+                "calls": 7,
+                "clockMs": 0,
+                "wallMs": 0
+              }
+            ]
+          ]
+        },
+        {
+          "step": 1050,
+          "totalWallMs": 79,
+          "luaNetKiB": -18111.619140625,
+          "state": {
+            "smoke": 28,
+            "shots": 1073,
+            "particles": 342,
+            "projectiles": 10,
+            "damage": 7382.1480036098255,
+            "debris": 0,
+            "alive": 8,
+            "units": [
+              {
+                "legs": 0,
+                "wheels": 4,
+                "alive": true,
+                "name": "你",
+                "team": "blue",
+                "parts": 209
+              },
+              {
+                "legs": 0,
+                "wheels": 5,
+                "role": "heavy",
+                "alive": true,
+                "name": "雷霆小方块",
+                "team": "blue",
+                "parts": 127
+              },
+              {
+                "legs": 0,
+                "wheels": 0,
+                "role": "hover",
+                "alive": true,
+                "name": "护盾下乘凉",
+                "team": "blue",
+                "parts": 168
+              },
+              {
+                "legs": 6,
+                "wheels": 0,
+                "role": "sniper",
+                "alive": true,
+                "name": "Mosswolf",
+                "team": "blue",
+                "parts": 152
+              },
+              {
+                "legs": 0,
+                "wheels": 4,
+                "role": "assault",
+                "alive": true,
+                "name": "拆迁办主任",
+                "team": "red",
+                "parts": 140
+              },
+              {
+                "legs": 0,
+                "wheels": 10,
+                "role": "heavy",
+                "alive": true,
+                "name": "慢一点会散架",
+                "team": "red",
+                "parts": 143
+              },
+              {
+                "legs": 0,
+                "wheels": 0,
+                "role": "hover",
+                "alive": true,
+                "name": "lowtide",
+                "team": "red",
+                "parts": 163
+              },
+              {
+                "legs": 6,
+                "wheels": 0,
+                "role": "sniper",
+                "alive": true,
+                "name": "悬浮漂移",
+                "team": "red",
+                "parts": 152
+              }
+            ],
+            "kills": 0,
+            "parts": 1254
+          },
+          "top": [
+            [
+              "render.CombatView.Update",
+              {
+                "selfWallMs": 5,
+                "selfClockMs": 3.999999999997783,
+                "calls": 1,
+                "clockMs": 64.00000000000006,
+                "wallMs": 64
+              }
+            ],
+            [
+              "render.DriveView.Update",
+              {
+                "selfWallMs": 60,
+                "selfClockMs": 60.000000000002274,
+                "calls": 8,
+                "clockMs": 60.000000000002274,
+                "wallMs": 60
+              }
+            ],
+            [
+              "render.CombatEffects.Update",
+              {
+                "selfWallMs": 6,
+                "selfClockMs": 6.000000000000227,
+                "calls": 1,
+                "clockMs": 6.000000000000227,
+                "wallMs": 6
+              }
+            ],
+            [
+              "combat.BattleController.BeforeStep",
+              {
+                "selfWallMs": 0,
+                "selfClockMs": 0,
+                "calls": 1,
+                "clockMs": 6.000000000000227,
+                "wallMs": 6
+              }
+            ],
+            [
+              "drive.Vehicle.Step",
+              {
+                "selfWallMs": 3,
+                "selfClockMs": 3.999999999997783,
+                "calls": 8,
+                "clockMs": 3.999999999997783,
+                "wallMs": 3
+              }
+            ],
+            [
+              "combat.WeaponSystem.Step",
+              {
+                "selfWallMs": 2,
+                "selfClockMs": 1.0000000000012221,
+                "calls": 8,
+                "clockMs": 1.0000000000012221,
+                "wallMs": 2
+              }
+            ],
+            [
+              "physics.Space.Step",
+              {
+                "selfWallMs": 2,
+                "selfClockMs": 2.0000000000024443,
+                "calls": 1,
+                "clockMs": 2.0000000000024443,
+                "wallMs": 2
+              }
+            ],
+            [
+              "combat.EnemyDriver.Step",
+              {
+                "selfWallMs": 1,
+                "selfClockMs": 1.0000000000012221,
+                "calls": 7,
+                "clockMs": 1.0000000000012221,
+                "wallMs": 1
+              }
+            ]
+          ]
+        },
+        {
+          "step": 1429,
+          "totalWallMs": 71,
+          "luaNetKiB": -18346.626953125,
+          "state": {
+            "smoke": 66,
+            "shots": 1427,
+            "particles": 412,
+            "projectiles": 5,
+            "damage": 9278.148003609826,
+            "debris": 0,
+            "alive": 7,
+            "units": [
+              {
+                "legs": 0,
+                "wheels": 4,
+                "alive": true,
+                "name": "你",
+                "team": "blue",
+                "parts": 209
+              },
+              {
+                "legs": 0,
+                "wheels": 0,
+                "role": "heavy",
+                "alive": false,
+                "name": "雷霆小方块",
+                "team": "blue",
+                "parts": 121
+              },
+              {
+                "legs": 0,
+                "wheels": 0,
+                "role": "hover",
+                "alive": true,
+                "name": "护盾下乘凉",
+                "team": "blue",
+                "parts": 162
+              },
+              {
+                "legs": 6,
+                "wheels": 0,
+                "role": "sniper",
+                "alive": true,
+                "name": "Mosswolf",
+                "team": "blue",
+                "parts": 152
+              },
+              {
+                "legs": 0,
+                "wheels": 4,
+                "role": "assault",
+                "alive": true,
+                "name": "拆迁办主任",
+                "team": "red",
+                "parts": 140
+              },
+              {
+                "legs": 0,
+                "wheels": 10,
+                "role": "heavy",
+                "alive": true,
+                "name": "慢一点会散架",
+                "team": "red",
+                "parts": 143
+              },
+              {
+                "legs": 0,
+                "wheels": 0,
+                "role": "hover",
+                "alive": true,
+                "name": "lowtide",
+                "team": "red",
+                "parts": 149
+              },
+              {
+                "legs": 6,
+                "wheels": 0,
+                "role": "sniper",
+                "alive": true,
+                "name": "悬浮漂移",
+                "team": "red",
+                "parts": 152
+              }
+            ],
+            "kills": 1,
+            "parts": 1228
+          },
+          "top": [
+            [
+              "combat.BattleController.AfterStep",
+              {
+                "selfWallMs": 0,
+                "selfClockMs": 0,
+                "calls": 1,
+                "clockMs": 56.00000000000094,
+                "wallMs": 56
+              }
+            ],
+            [
+              "render.ObjectiveView.Update",
+              {
+                "selfWallMs": 56,
+                "selfClockMs": 56.00000000000094,
+                "calls": 1,
+                "clockMs": 56.00000000000094,
+                "wallMs": 56
+              }
+            ],
+            [
+              "render.CombatEffects.Update",
+              {
+                "selfWallMs": 6,
+                "selfClockMs": 6.000000000000227,
+                "calls": 1,
+                "clockMs": 6.000000000000227,
+                "wallMs": 6
+              }
+            ],
+            [
+              "combat.BattleController.BeforeStep",
+              {
+                "selfWallMs": 2,
+                "selfClockMs": 2.0000000000024443,
+                "calls": 1,
+                "clockMs": 4.999999999999005,
+                "wallMs": 5
+              }
+            ],
+            [
+              "drive.Vehicle.Step",
+              {
+                "selfWallMs": 3,
+                "selfClockMs": 1.9999999999953388,
+                "calls": 7,
+                "clockMs": 1.9999999999953388,
+                "wallMs": 3
+              }
+            ],
+            [
+              "render.CombatView.Update",
+              {
+                "selfWallMs": 1,
+                "selfClockMs": 1.0000000000012221,
+                "calls": 1,
+                "clockMs": 1.9999999999988916,
+                "wallMs": 2
+              }
+            ],
+            [
+              "physics.Space.Step",
+              {
+                "selfWallMs": 1,
+                "selfClockMs": 0,
+                "calls": 1,
+                "clockMs": 0,
+                "wallMs": 1
+              }
+            ],
+            [
+              "render.DriveView.Update",
+              {
+                "selfWallMs": 1,
+                "selfClockMs": 0.9999999999976694,
+                "calls": 7,
+                "clockMs": 0.9999999999976694,
+                "wallMs": 1
+              }
+            ]
+          ]
+        },
+        {
+          "step": 461,
+          "totalWallMs": 70,
+          "luaNetKiB": -15005.8857421875,
+          "state": {
+            "smoke": 25,
+            "shots": 370,
+            "particles": 276,
+            "projectiles": 0,
+            "damage": 2961.1480036098246,
+            "debris": 0,
+            "alive": 8,
+            "units": [
+              {
+                "legs": 0,
+                "wheels": 4,
+                "alive": true,
+                "name": "你",
+                "team": "blue",
+                "parts": 209
+              },
+              {
+                "legs": 0,
+                "wheels": 10,
+                "role": "heavy",
+                "alive": true,
+                "name": "雷霆小方块",
+                "team": "blue",
+                "parts": 145
+              },
+              {
+                "legs": 0,
+                "wheels": 0,
+                "role": "hover",
+                "alive": true,
+                "name": "护盾下乘凉",
+                "team": "blue",
+                "parts": 168
+              },
+              {
+                "legs": 6,
+                "wheels": 0,
+                "role": "sniper",
+                "alive": true,
+                "name": "Mosswolf",
+                "team": "blue",
+                "parts": 152
+              },
+              {
+                "legs": 0,
+                "wheels": 4,
+                "role": "assault",
+                "alive": true,
+                "name": "拆迁办主任",
+                "team": "red",
+                "parts": 140
+              },
+              {
+                "legs": 0,
+                "wheels": 10,
+                "role": "heavy",
+                "alive": true,
+                "name": "慢一点会散架",
+                "team": "red",
+                "parts": 143
+              },
+              {
+                "legs": 0,
+                "wheels": 0,
+                "role": "hover",
+                "alive": true,
+                "name": "lowtide",
+                "team": "red",
+                "parts": 168
+              },
+              {
+                "legs": 6,
+                "wheels": 0,
+                "role": "sniper",
+                "alive": true,
+                "name": "悬浮漂移",
+                "team": "red",
+                "parts": 152
+              }
+            ],
+            "kills": 0,
+            "parts": 1277
+          },
+          "top": [
+            [
+              "combat.BattleController.AfterStep",
+              {
+                "selfWallMs": 0,
+                "selfClockMs": 0,
+                "calls": 1,
+                "clockMs": 55.99999999999916,
+                "wallMs": 56
+              }
+            ],
+            [
+              "render.ObjectiveView.Update",
+              {
+                "selfWallMs": 56,
+                "selfClockMs": 55.99999999999916,
+                "calls": 1,
+                "clockMs": 55.99999999999916,
+                "wallMs": 56
+              }
+            ],
+            [
+              "combat.BattleController.BeforeStep",
+              {
+                "selfWallMs": 1,
+                "selfClockMs": 1.0000000000012221,
+                "calls": 1,
+                "clockMs": 6.999999999999673,
+                "wallMs": 7
+              }
+            ],
+            [
+              "drive.Vehicle.Step",
+              {
+                "selfWallMs": 4,
+                "selfClockMs": 3.9999999999995595,
+                "calls": 8,
+                "clockMs": 3.9999999999995595,
+                "wallMs": 4
+              }
+            ],
+            [
+              "render.CombatEffects.Update",
+              {
+                "selfWallMs": 3,
+                "selfClockMs": 3.9999999999995595,
+                "calls": 1,
+                "clockMs": 3.9999999999995595,
+                "wallMs": 3
+              }
+            ],
+            [
+              "render.CombatView.Update",
+              {
+                "selfWallMs": 2,
+                "selfClockMs": 2.000000000000668,
+                "calls": 1,
+                "clockMs": 3.0000000000001137,
+                "wallMs": 3
+              }
+            ],
+            [
+              "combat.EnemyDriver.Step",
+              {
+                "selfWallMs": 1,
+                "selfClockMs": 0.9999999999994458,
+                "calls": 7,
+                "clockMs": 0.9999999999994458,
+                "wallMs": 1
+              }
+            ],
+            [
+              "combat.WeaponSystem.Step",
+              {
+                "selfWallMs": 1,
+                "selfClockMs": 0.9999999999994458,
+                "calls": 8,
+                "clockMs": 0.9999999999994458,
+                "wallMs": 1
+              }
+            ]
+          ]
+        },
+        {
+          "step": 961,
+          "totalWallMs": 69,
+          "luaNetKiB": -17437.7978515625,
+          "state": {
+            "smoke": 60,
+            "shots": 975,
+            "particles": 488,
+            "projectiles": 12,
+            "damage": 6878.1480036098255,
+            "debris": 0,
+            "alive": 8,
+            "units": [
+              {
+                "legs": 0,
+                "wheels": 4,
+                "alive": true,
+                "name": "你",
+                "team": "blue",
+                "parts": 209
+              },
+              {
+                "legs": 0,
+                "wheels": 10,
+                "role": "heavy",
+                "alive": true,
+                "name": "雷霆小方块",
+                "team": "blue",
+                "parts": 132
+              },
+              {
+                "legs": 0,
+                "wheels": 0,
+                "role": "hover",
+                "alive": true,
+                "name": "护盾下乘凉",
+                "team": "blue",
+                "parts": 168
+              },
+              {
+                "legs": 6,
+                "wheels": 0,
+                "role": "sniper",
+                "alive": true,
+                "name": "Mosswolf",
+                "team": "blue",
+                "parts": 152
+              },
+              {
+                "legs": 0,
+                "wheels": 4,
+                "role": "assault",
+                "alive": true,
+                "name": "拆迁办主任",
+                "team": "red",
+                "parts": 140
+              },
+              {
+                "legs": 0,
+                "wheels": 10,
+                "role": "heavy",
+                "alive": true,
+                "name": "慢一点会散架",
+                "team": "red",
+                "parts": 143
+              },
+              {
+                "legs": 0,
+                "wheels": 0,
+                "role": "hover",
+                "alive": true,
+                "name": "lowtide",
+                "team": "red",
+                "parts": 163
+              },
+              {
+                "legs": 6,
+                "wheels": 0,
+                "role": "sniper",
+                "alive": true,
+                "name": "悬浮漂移",
+                "team": "red",
+                "parts": 152
+              }
+            ],
+            "kills": 0,
+            "parts": 1259
+          },
+          "top": [
+            [
+              "render.CombatEffects.Update",
+              {
+                "selfWallMs": 58,
+                "selfClockMs": 57.00000000000216,
+                "calls": 1,
+                "clockMs": 57.00000000000216,
+                "wallMs": 58
+              }
+            ],
+            [
+              "combat.BattleController.BeforeStep",
+              {
+                "selfWallMs": 1,
+                "selfClockMs": 0,
+                "calls": 1,
+                "clockMs": 6.000000000000227,
+                "wallMs": 6
+              }
+            ],
+            [
+              "drive.Vehicle.Step",
+              {
+                "selfWallMs": 4,
+                "selfClockMs": 4.000000000001336,
+                "calls": 8,
+                "clockMs": 4.000000000001336,
+                "wallMs": 4
+              }
+            ],
+            [
+              "render.CombatView.Update",
+              {
+                "selfWallMs": 1,
+                "selfClockMs": 1.9999999999988916,
+                "calls": 1,
+                "clockMs": 3.0000000000001137,
+                "wallMs": 3
+              }
+            ],
+            [
+              "render.DriveView.Update",
+              {
+                "selfWallMs": 3,
+                "selfClockMs": 1.0000000000012221,
+                "calls": 8,
+                "clockMs": 1.0000000000012221,
+                "wallMs": 3
+              }
+            ],
+            [
+              "combat.WeaponSystem.Step",
+              {
+                "selfWallMs": 1,
+                "selfClockMs": 0.9999999999976694,
+                "calls": 8,
+                "clockMs": 0.9999999999976694,
+                "wallMs": 1
+              }
+            ],
+            [
+              "physics.Space.Step",
+              {
+                "selfWallMs": 1,
+                "selfClockMs": 1.0000000000012221,
+                "calls": 1,
+                "clockMs": 1.0000000000012221,
+                "wallMs": 1
+              }
+            ],
+            [
+              "combat.EnemyDriver.Step",
+              {
+                "selfWallMs": 0,
+                "selfClockMs": 1.0000000000012221,
+                "calls": 7,
+                "clockMs": 1.0000000000012221,
+                "wallMs": 0
+              }
+            ]
+          ]
+        }
+      ]
+    }
+  },
+  "boundary": "Per fixed step synchronous Native graphicsheadless. Inclusive rows overlap; self excludes instrumented descendants only. Timers/wrappers perturb timings. os.clock not verified thread CPU. Allocation no-GC pass measures Lua KB net including profiler/report objects. No full-frame FPS or GPU/phone inference."
+}

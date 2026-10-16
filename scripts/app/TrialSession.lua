@@ -253,7 +253,7 @@ function M:NextArea()
     self.app.toasts:Push('传送：'..self.world.layout.teleports[self.teleport].name)
 end
 local digitKeys={KEY_1,KEY_2,KEY_3,KEY_4,KEY_5,KEY_6,KEY_7,KEY_8,KEY_9,KEY_0}
-local actionKeys={KEY_ESCAPE,KEY_T,KEY_R,KEY_BACKSPACE,KEY_I,KEY_C,KEY_N,KEY_E,KEY_F,KEY_G,KEY_V,KEY_RETURN,KEY_SPACE,KEY_TAB,KEY_A,KEY_D,KEY_LEFT,KEY_RIGHT}
+local actionKeys={KEY_ESCAPE,KEY_T,KEY_R,KEY_BACKSPACE,KEY_I,KEY_C,KEY_N,KEY_E,KEY_F,KEY_G,KEY_V,KEY_RETURN,KEY_KP_ENTER,KEY_SPACE,KEY_TAB,KEY_A,KEY_D,KEY_LEFT,KEY_RIGHT}
 local resultKeys={KEY_RETURN,KEY_ESCAPE,KEY_T}
 function M:KeyPressed(key) return input:GetKeyPress(key) end
 function M:HandleKey(key)

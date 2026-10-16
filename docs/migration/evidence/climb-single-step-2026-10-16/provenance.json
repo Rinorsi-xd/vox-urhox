@@ -1,0 +1,89 @@
+{
+  "date": "2026-10-16",
+  "production": [
+    {
+      "file": "scripts/physics/Body.lua",
+      "currentSha256": "4229366f23833dd418c96cf7fb1eee8247d43ca02fcf781ed90547fd44faa63b",
+      "baselineSha256": "4229366f23833dd418c96cf7fb1eee8247d43ca02fcf781ed90547fd44faa63b"
+    },
+    {
+      "file": "scripts/drive/WingControl.lua",
+      "currentSha256": "355d1f48eacdc0402d182b5657766eb75a37d9c176efc0bf5be29c02dab40659",
+      "baselineSha256": "355d1f48eacdc0402d182b5657766eb75a37d9c176efc0bf5be29c02dab40659"
+    },
+    {
+      "file": "scripts/drive/ThrusterControl.lua",
+      "currentSha256": "c0bfc4f81b5c205e7a0ada78810c2f29c16fc4f42d81aad1667f976ae8cf67d4",
+      "baselineSha256": "c0bfc4f81b5c205e7a0ada78810c2f29c16fc4f42d81aad1667f976ae8cf67d4"
+    }
+  ],
+  "source": [
+    {
+      "file": "D:/Rino_Project/Vox/shared/drive/vehicle.js",
+      "sha256": "e17ae7f086c74ef57550b32da1c7106510a9730a592bfe6363074a3fb3176c87"
+    },
+    {
+      "file": "D:/Rino_Project/Vox/shared/drive/wingControl.js",
+      "sha256": "8f1975492e9989c85d7160caa37c4ec6896463aae622d12ba9a35bf428758c0b"
+    },
+    {
+      "file": "D:/Rino_Project/Vox/shared/drive/vehicleSpec.js",
+      "sha256": "e1ffccc3ac32d53c79e7bcbd5bce7042ae497d4e35964ad40757fc39871c38ad"
+    }
+  ],
+  "files": [
+    {
+      "file": "compare-climb.mjs",
+      "sha256": "0050c080bf710c0c1413b45a0c2e836140e54f895893bc4e4d01d55d7af25057"
+    },
+    {
+      "file": "comparison-summary.json",
+      "sha256": "75fc11097d1b149e0b7c13c6d0f72299cdb4e745a78f8250c5707407bb63fabc"
+    },
+    {
+      "file": "native-climb-air-after.json",
+      "sha256": "fc7aca38c60cba333e9898cfd3f3bbbf2005044a36802ced053f7d8db1087299"
+    },
+    {
+      "file": "native-climb-air-before.json",
+      "sha256": "589d069588e59362d4ec9b148992e45400d4231d8192417ae8b0721b6bb7340b"
+    },
+    {
+      "file": "native-climb-air-probe.lua",
+      "sha256": "ec231664b2d91daca4cf5776becfd7b3e303c4be06cae11b576f0753f055f6d8"
+    },
+    {
+      "file": "native-climb-probe.lua",
+      "sha256": "b34f0afc7bee82e15689be2436158b9c8fffabc19fc917ea003d41a582d80ece"
+    },
+    {
+      "file": "native-climb-result.json",
+      "sha256": "e5bad2bca96bde9c268723a47f1062d2fda5fea533bf28d5287718c1d11ebb98"
+    },
+    {
+      "file": "source-climb-air-result.json",
+      "sha256": "a1a91c30db147a3e21395b4184446c8c25963d75bfa80d84b62a557efe6c8424"
+    },
+    {
+      "file": "source-climb-probe.mjs",
+      "sha256": "16b3218955e59d03d51df6bcfc824e0d96d141321531ccc644172d6e34a6f2bb"
+    },
+    {
+      "file": "source-climb-result.json",
+      "sha256": "cf82adcac582ff1146ee394c5e858738498920b422b0d943b29262ea63e9fe23"
+    },
+    {
+      "file": "candidate-only\\Body.lua",
+      "sha256": "111125775f2bf6c4f75331eb20f813ab18dc398883b20a50e4d7645f3fabdd13"
+    },
+    {
+      "file": "candidate-only\\ThrusterControl.lua",
+      "sha256": "521ddc68780f58003fd3d4d8e771d77addd5a922c7d4d4e20cd1821380734787"
+    },
+    {
+      "file": "candidate-only\\WingControl.lua",
+      "sha256": "0974c5e909af0da5182bd36109522b53494fc5ad59ca883bb9b406b5771aa1a4"
+    }
+  ],
+  "scope": "Diagnostic evidence only; candidate excluded from production; Native beta40 headless real Bullet and actual H5 Rapier"
+}

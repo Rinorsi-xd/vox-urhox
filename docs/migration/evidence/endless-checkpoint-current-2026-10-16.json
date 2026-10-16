@@ -1,0 +1,97 @@
+{
+  "result": "PASS",
+  "checks": [
+    "source write eligibility rest/false",
+    "source warning count rest/false",
+    "preserve storage return values false",
+    "unchanged checkpoint key/payload false",
+    "source write eligibility rest/true",
+    "source warning count rest/true",
+    "source exact toast rest",
+    "preserve storage return values true",
+    "unchanged checkpoint key/payload true",
+    "source write eligibility combat/false",
+    "source warning count combat/false",
+    "source write eligibility combat/true",
+    "source warning count combat/true",
+    "source write eligibility editing/false",
+    "source warning count editing/false",
+    "source write eligibility editing/true",
+    "source warning count editing/true",
+    "source write eligibility countdown/false",
+    "source warning count countdown/false",
+    "source write eligibility countdown/true",
+    "source warning count countdown/true",
+    "source write eligibility over/false",
+    "source warning count over/false",
+    "source write eligibility over/true",
+    "source warning count over/true",
+    "actual clear writes one validated checkpoint false",
+    "actual clear warns only on storage failure false",
+    "actual clear preserves wave and credits false",
+    "actual clear writes one validated checkpoint true",
+    "actual clear original warning text",
+    "actual clear warns only on storage failure true",
+    "actual clear preserves wave and credits true",
+    "actual supply writes one validated checkpoint false",
+    "actual supply warns only on storage failure false",
+    "actual supply preserves wave and credits false",
+    "actual supply reward unchanged false",
+    "actual supply writes one validated checkpoint true",
+    "actual supply original warning text",
+    "actual supply warns only on storage failure true",
+    "actual supply preserves wave and credits true",
+    "actual supply reward unchanged true",
+    "actual edit return still completes false",
+    "actual edit-return writes one validated checkpoint false",
+    "actual edit-return warns only on storage failure false",
+    "actual edit-return preserves wave and credits false",
+    "actual edit return still completes true",
+    "actual edit-return writes one validated checkpoint true",
+    "actual edit-return original warning text",
+    "actual edit-return warns only on storage failure true",
+    "actual edit-return preserves wave and credits true"
+  ],
+  "sourceCommit": "b276064942ae09c0227ec28d4cfda1d5ff006455",
+  "sourceHashes": {
+    "three/src/battle/endlessSession.js": "fc152575a0ec7edf8365bedd67d96bc15f90b24f30ccafe7bd1a092b4d0d68ba"
+  },
+  "sourceCases": 10,
+  "productionHashes": {
+    "scripts/app/EndlessSession.lua": "2baa6eae88f6e1c227d1698a5d4e22f5a27757589191b0078d9c04e2b88d75b2",
+    "scripts/endless/Run.lua": "197fd2686bf05e8df50b8274cd14ee7f622f27268c495637e86ba93fc7d1579b"
+  },
+  "testInputs": {
+    "tools/migration/g5-offline-imports.lua": "55e758c499fc2b0a566e90262863ae4e8d7ea7e0ad2121fc6c7e9a64c7ca6d6f",
+    "tools/migration/endless-checkpoint-source.cjs": "0beefde892c18e65738a4bb8e8d1eaf6f10e1a4d4e34bcdf9271f4edbc3dae62",
+    "tools/migration/check-endless-checkpoint.lua": "15f3ec7a8619a019f198e50058e5582b6a6488a103547b3177e79f0258f7cdf7",
+    "tools/migration/verify-endless-checkpoint.py": "f50b42cbd68fde81e6610ce3ce39f12153310977d63045a9f36b7ae862415fdf"
+  },
+  "negativeControl": {
+    "path": ".tmp/outgame-cached-1792125241918/scripts/app/EndlessSession.lua",
+    "sha256": "2661cbf0e34b0a51ac2f423ec49c1808e0df37840127efe552057d488ac8572e",
+    "cases": [
+      {
+        "flow": "source-goldens",
+        "rejected": true,
+        "reason": "[string \"<python>\"]:6: source warning count rest/true"
+      },
+      {
+        "flow": "clear",
+        "rejected": true,
+        "reason": "[string \"<python>\"]:6: actual clear warns only on storage failure true"
+      },
+      {
+        "flow": "supply",
+        "rejected": true,
+        "reason": "[string \"<python>\"]:6: actual supply warns only on storage failure true"
+      },
+      {
+        "flow": "edit-return",
+        "rejected": true,
+        "reason": "[string \"<python>\"]:6: actual edit-return warns only on storage failure true"
+      }
+    ]
+  },
+  "boundary": "Actual frozen JS persist and actual Lua CheckClear/ChooseSupply/ResumeEdit -> Events/Persist. Storage/native/physics/audio/UI edges are controlled adapters. No GPU, natural full-wave battle, successful natural extraction, actual account, visual or performance acceptance."
+}

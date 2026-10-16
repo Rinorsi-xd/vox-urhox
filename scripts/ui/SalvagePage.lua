@@ -51,6 +51,13 @@ function M.Trade(s,sell)
         sv.qty=1
     end;s.revision=-1
 end
+function M.SellCargo(s)
+    local sv=s.salvage;if sv.tab~='market' or sv.market~='sell' or sv.selected then return end
+    local ok,err,gain,count=s.app.salvageLobby:SellCargo()
+    if not ok then s.app.toasts:Push(err,'bad')
+    elseif count>0 then UiSound.Play('remove');s.app.toasts:Push('卖掉 '..count..' 件货物，得 '..D.Number(gain),'ok') end
+    s.revision=-1
+end
 function M.Key(s)
     local sv=s.salvage
     if sv.quantityEnterGuard then
@@ -213,6 +220,9 @@ function M.Create(s)
             local price=Data.items[sv.selected].price;if sv.market=='sell' then price=math.max(1,math.floor(price*.6)) end
             local buy=Add(sv.market=='sell' and '出 售' or '购 买','primary',w-470,h-170,388,76,function() M.Trade(s) end,{subtitle=sv.market=='sell' and '换成信用点' or '放进仓库',key='Enter',disabled=sv.market=='buy' and price*sv.qty>lobby.data.credits})
             page:AddChild(SalvageQuantity.Create(s,function() return lobby:MaxQuantity(sv.selected,sv.market=='sell') end,w-470,h-332,388,function(qty) buy:SetDisabled(sv.market=='buy' and price*qty>lobby.data.credits) end))
+        elseif sv.market=='sell' then
+            local sale=lobby:CargoSale()
+            if sale.count>0 then Add('卖掉全部货物','gear',w-470,h-220,388,68,function() M.SellCargo(s) end,{icon='shop',subtitle='收购价 '..D.Number(sale.gain)}) end
         end
     end
     return page

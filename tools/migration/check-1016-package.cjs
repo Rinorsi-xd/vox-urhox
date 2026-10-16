@@ -22,5 +22,7 @@ assert.equal(fingerprint,prepared.identity.scriptFingerprint);
 const result={result:'PASS',manifest:path.basename(prepared.manifest_path),sourceCommit:prepared.identity.sourceCommit,
  buildParentCommit:prepared.identity.targetCommit,scriptCount:Object.keys(actual).length,scriptFingerprint:fingerprint,
  scope:'Exact current Lua / snapshot / packaged Lua byte comparison. No engine execution or visual/performance acceptance.'};
-fs.writeFileSync(path.join(root,'docs/migration/evidence/perf-1016/package-check.json'),JSON.stringify(result,null,2)+'\n');
+const output=path.resolve(root,process.argv[3]||'docs/migration/evidence/perf-1016/package-check.json');
+fs.mkdirSync(path.dirname(output),{recursive:true});
+fs.writeFileSync(output,JSON.stringify(result,null,2)+'\n');
 console.log(JSON.stringify(result,null,2));

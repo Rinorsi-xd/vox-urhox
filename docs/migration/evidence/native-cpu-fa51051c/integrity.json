@@ -1,0 +1,49 @@
+{
+  "result": "PASS",
+  "productionLuaFiles": 534,
+  "comparison": "Frozen SHA256 against measured isolated snapshot; current production differences reported separately",
+  "provenance": "Initial pre-coverage verification matched all 534 production and snapshot Lua files with original manifest SHA256 98d7cfd0ba9a729d1d0aefab0c6da2cf8c77a7bd5d0295b4b1552440de9d731c. Old runner overwrote manifest during concurrent production edits; restored manifest values from unchanged isolated snapshot. Runner now preserves it.",
+  "failures": [],
+  "currentDifferences": [
+    {
+      "kind": "production",
+      "relative": "scripts/app/EndlessSession.lua",
+      "expected": "8093a188957a83f6fc11a9e44b67a4171973f7e90243a5f304764ca3f3324057",
+      "actual": "2baa6eae88f6e1c227d1698a5d4e22f5a27757589191b0078d9c04e2b88d75b2"
+    },
+    {
+      "kind": "production",
+      "relative": "scripts/app/SalvageLobby.lua",
+      "expected": "af8274b056d49c9707ca56f5a34e94714fb32497817264b6a5511b5325476670",
+      "actual": "9eb9b132a1983fc2f99e738fc2a4482ce897ede40b267102464b5af1d045ce66"
+    },
+    {
+      "kind": "production",
+      "relative": "scripts/app/TrialSession.lua",
+      "expected": "9619951cccb9f4aa8a4f95e9aff9cf0de733344f5e5495762a16aa09be67d846",
+      "actual": "22eee00bad4e206d1aecfe215e76e15f53c16b6f62072092eb787f0ad3ec8107"
+    },
+    {
+      "kind": "production",
+      "relative": "scripts/salvage/Director.lua",
+      "expected": "8aa7b7bccd1d88c7c59c527a9912be37eb0e99116dd95f9614b467d7ee12d739",
+      "actual": "5b23fa2910d34f4e83f36c3d8c1f1f58959ee9c0bf121acaa765ce90cb67394c"
+    },
+    {
+      "kind": "production",
+      "relative": "scripts/ui/SalvagePage.lua",
+      "expected": "27a3585b5c105783023bbc639a875f923e0f473874aa6a4c1c2ae34eca7493e3",
+      "actual": "83b75c430fde4967b810cc3065843c18c36eb3c3e0d496c72368c98c6a49d84c"
+    }
+  ],
+  "evidence": {
+    "none.json": "cf55c6589762d3ef81d6850472e4b51934c29da611206afe5add9897c7085525",
+    "coarse.json": "ab087f6e7c3ad368804c21d67b3efd60e6b70d60cf615965c22c0ab2193a239c",
+    "respawn-coverage.json": "9af384abd353f4ad761685cecf7d27153f3004abcdfaced4011ce2ce0dba36f8",
+    "summary.json": "96f22641cd71832ad0120229e4b1240dbaaddba97c862d0e8d4f828c105c45f2",
+    "NativeBattleCPU.lua": "f7baf9dd42e8b34684f9ab02bab7a54e0dd102ebecef788a8c31f282f69e83a4",
+    "run.ps1": "05e542c742dd21c9df669435b08dc9401f60b3f169db5da67244d96f57ec046d",
+    "summarize.cjs": "7e398761d4e2d71651e2a99d1a47937be412f4ddd2666337948984a8798a9a00",
+    "frozen-scripts.json": "bd0a3b9324a01f4a28e9b22de2eb76a0ba8eb7d273e6a18e9a0cf74ab3c8e549"
+  }
+}

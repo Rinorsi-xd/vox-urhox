@@ -141,7 +141,14 @@ async function run(){
   await wait(s=>s.battle?.state==='live','real countdown reaches live battle',30000);await shot('live');
   check(report.samples.some(x=>x.state.battle.state==='prep')&&report.samples.some(x=>x.state.battle.state==='live'),'observed prep to live without completion injection');
   if(process.env.VOX_QA_RADIO_VOLUME!=='0'){
-   await page.keyboard.press('Escape');await unlocked('release for settings');await widget('设置');
+   await page.keyboard.press('Escape');await unlocked('release for settings');
+   await wait(s=>s.pauseMenu,'one Escape opens the unified pause card');
+   check(!!state.pauseMenu.rows.resume&&!!state.pauseMenu.rows.audio&&!!state.pauseMenu.rows.return,'one Escape exposes resume, audio and return actions');
+   const menuAt=state.battle.time;
+   await page.keyboard.down('w');await sleep(650);await dump();await page.keyboard.up('w');
+   check(state.battle.time>menuAt,'source match world continues simulating while settings are open');
+   check(!state.pointer.captured&&!state.pointer.fire,'settings keep player controls and held fire released');
+   await shot('unified-pause');
    await clickRect(s=>s.pauseMenu?.rows?.audio?.rect,'shared audio settings');await wait(s=>s.audioSettings?.open,'public audio settings');
    report.volume.attempted=true;originalLevel=state.audioSettings.levels.voice;
    const beforePlaying=voicePlaying(state).map(j=>j.path);await clickRect(s=>s.audioSettings?.rects?.voice,'voice slider');await page.keyboard.press('End');await dump();
@@ -153,7 +160,8 @@ async function run(){
   }
   await captured('live input before exit');
   await page.keyboard.press('Escape');await dump();await unlocked('release for exit');
-  await widget('退出对局');await wait(s=>s.battle?.leaveConfirm||s.mode==='hangar','public leave confirmation');
+  await wait(s=>s.pauseMenu,'one Escape opens exit actions');
+  await clickRect(s=>s.pauseMenu?.rows?.return?.rect,'shared pause return to garage');await wait(s=>s.battle?.leaveConfirm||s.mode==='hangar','public leave confirmation');
   if(state.mode!=='hangar'){await widget('确定');}
   await wait(s=>s.mode==='hangar'&&!s.loadingFlow?.active,'normal battle return',60000);await dump();
   check(!state.battle,'normal return removes battle and radio ownership');check(!state.audioSettings?.introAudioTail?.active,'no intro tail remains after return');

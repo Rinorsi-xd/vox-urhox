@@ -1,4 +1,5 @@
 """Actual session persistence and event chains, with the frozen old package as a negative control."""
+import argparse
 import hashlib
 import json
 import os
@@ -9,7 +10,7 @@ import sys
 root=Path(__file__).resolve().parents[2]
 os.chdir(root)
 sys.path.insert(0,str(root/'.tmp/nav-python-deps'))
-from lupa.lua54 import LuaRuntime
+from lupa.lua54 import LuaRuntime, LuaError
 
 source=json.loads(subprocess.check_output(['node','tools/migration/endless-checkpoint-source.cjs','--stdout'],text=True,encoding='utf-8'))
 paths=['scripts/app/EndlessSession.lua','scripts/endless/Run.lua']
@@ -33,15 +34,19 @@ negative={'path':str(old.relative_to(root)).replace('\\','/'),'sha256':hashlib.s
 for flow in [None,'clear','supply','edit-return']:
     try:
         execute(old.read_text(encoding='utf-8'),flow)
-    except Exception as error:
+    except LuaError as error:
+        expected = 'source warning count rest/true' if flow is None else 'actual ' + flow + ' warns only on storage failure true'
+        assert expected in str(error).splitlines()[0], 'Old package failed outside intended assertion: ' + str(error)
         negative['cases'].append({'flow':flow or 'source-goldens','rejected':True,'reason':str(error).splitlines()[0]})
     else:
         raise AssertionError('Old actual package must fail missing-warning check: '+str(flow))
 assert hashes=={name:hashlib.sha256((root/name).read_bytes()).hexdigest() for name in paths},'Production drift'
-tool_paths=['tools/migration/endless-checkpoint-source.cjs','tools/migration/check-endless-checkpoint.lua','tools/migration/verify-endless-checkpoint.py']
+tool_paths=['tools/migration/g5-offline-imports.lua','tools/migration/endless-checkpoint-source.cjs','tools/migration/check-endless-checkpoint.lua','tools/migration/verify-endless-checkpoint.py']
 report={'result':'PASS','checks':checks,'sourceCommit':source['commit'],'sourceHashes':source['sourceHashes'],
         'sourceCases':len(source['cases']),'productionHashes':hashes,'testInputs':{name:hashlib.sha256((root/name).read_bytes()).hexdigest() for name in tool_paths},
         'negativeControl':negative,'boundary':'Actual frozen JS persist and actual Lua CheckClear/ChooseSupply/ResumeEdit -> Events/Persist. Storage/native/physics/audio/UI edges are controlled adapters. No GPU, natural full-wave battle, successful natural extraction, actual account, visual or performance acceptance.'}
-out=root/'docs/migration/evidence/endless-checkpoint-offline.json'
+parser=argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--output',type=Path,default=Path('docs/migration/evidence/endless-checkpoint-offline.json'))
+out=root/parser.parse_args().output
 out.write_text(json.dumps(report,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
 print(json.dumps({'result':'PASS','checks':len(checks),'sourceCases':len(source['cases']),'negativeControl':negative,'productionHashes':hashes}))

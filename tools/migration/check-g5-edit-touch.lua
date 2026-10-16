@@ -1,5 +1,11 @@
 local checks={}
 local function Check(ok,name) assert(ok,name);checks[#checks+1]=name end
+package.path='scripts/?.lua;tools/migration/?.lua;'..package.path
+local Imports=require 'g5-offline-imports'
+Imports.Exclude({'app.ResourceGate','controls.OrbitCamera','controls.TouchPreferences',
+    'render.VehicleView','construction.Inventory','render.NodeVisibility',
+    'render.WindowViewports','controls.TouchMode'})
+Imports.Salvage()
 local function Node(props)
     local n={props=props or {},children={}}
     for _,child in ipairs(n.props.children or {}) do n.children[#n.children+1]=child end
@@ -25,10 +31,10 @@ package.loaded['ui.SourceDraw']={Number=tostring}
 package.loaded['ui.VoxTheme']={Thumbnail=function(id) return id..'.png' end}
 local widgets={Frame=Node,Button=Node}
 package.loaded['ui.EndlessWidgets']=widgets
-local Edit=dofile('scripts/endless/Edit.lua')
-local Editor=dofile('scripts/construction/BuildEditor.lua')
-package.loaded['construction.BuildStretch']=dofile('scripts/construction/BuildStretch.lua')
-local Controls=dofile('scripts/controls/BuildInput.lua')
+local Edit=require 'endless.Edit'
+local Editor=require 'construction.BuildEditor'
+local Controls=require 'controls.BuildInput'
+if sourceOnly then return checks end
 local calls=0
 local original={name='entry',parts={}}
 local bp={parts={}}
@@ -72,7 +78,7 @@ for _,key in ipairs({'stretch','hit','preview','focusIds','boxing','down','hold'
 Check(editor.selectionVersion==1 and editor.dirty,'reset notifies real editor selection state')
 Check(build.controls.pointer==nil and build.controls.selectionBox==nil and build.controls.dragSelection==nil and not build.controls.touchPrimary,'reset cancels real pointer and touch holds')
 Check(table.concat(inventory.hotbar,'|')==snapshot and controller.run.inventory.part3==2,'reset preserves purchased stock and shortcut choices')
-local Bar=dofile('scripts/ui/EndlessEditBar.lua')
+local Bar=require 'ui.EndlessEditBar'
 build.buildCamera={Release=function() end}
 local function FindButtons(node,out)
     out=out or {};if node.props.shop then out[#out+1]=node end
@@ -96,7 +102,7 @@ Check(calls==oldCalls+1 and inventory.hotbar[1]=='part1','real shop callback use
 Check(modal.destroyed and edit.shop and edit.shop~=modal,'real shop callback rebuilds displayed currency and stock')
 edit.shop:Close()
 package.loaded['combat.CarUnit']={};package.loaded['salvage.Loot']={};package.loaded['salvage.Drops']={}
-local Run=dofile('scripts/salvage/Run.lua')
+local Run=require 'salvage.Run'
 local run=setmetatable({rules={}},Run)
 local states={
     {prompt=nil,search=nil,swap=false,interactive=false},

@@ -6,7 +6,7 @@ V.atFrame(10,function()
     local player={Position=function() return pos end}
     local run={player=player,entries={{unit=player}},rules={time=10,heat=0,kills=3,rand=function() return .5 end,
         AddExtra=function(_,object) events[#events+1]=object end},Feed=function(_,a,b) feed[#feed+1]={a,b} end,
-        cine={NameCard=function() end,Flash=function() end}}
+        cine={NameCard=function() end,Flash=function() end},fx={Loot=function() end}}
     local d=setmetatable({run=run,entries=run.entries,world={layout={salvage={gameplay={enemySpawns={}}}}},encounters={},timer=0,huntLeft=60},Director)
     d.Surface=function(_,x,z) return {x,0,z} end
     d.Add=function(_,kind,at,yaw,enc,seed)
@@ -29,7 +29,9 @@ V.atFrame(10,function()
     V.assert(Near(camp.units[1].yaw,math.atan(camp.units[1].post[1],camp.units[1].post[3])),'source camp guard faces outward before alert')
     local ambush={kind='ambush',name='伏击',g={0,0,0},left={'rat'},units={},ring={20,50}}
     d:Spawn(ambush)
-    V.assert(ambush.alerted and Near(ambush.units[1].yaw,math.atan(pos[1]-ambush.units[1].post[1],pos[3]-ambush.units[1].post[3])),'source ambush faces player and alerts immediately')
+    V.assert(not ambush.alerted and Near(ambush.units[1].yaw,math.atan(pos[1]-ambush.units[1].post[1],pos[3]-ambush.units[1].post[3])),'source direct ambush spawn faces player without alerting')
+    ambush.state='dormant';ambush.left={'rat'};ambush.triggerR=300;d.encounters={ambush};d:Step(.25)
+    V.assert(ambush.alerted and ambush.state=='active','source encounter step alerts ambush immediately after spawning')
     local convoy={kind='patrol',id='convoy',name='车队',g={0,0,0},state='active',units={},reward=2}
     d.encounters={convoy};d:Step(.25)
     local reward=events[#events];local loot=reward.loot;local n=#Data.crateLoot[3]
