@@ -154,27 +154,42 @@ function M:UnitTick(entry,dt)
         end
     elseif self.id=='escort' and u.team==rule.attack and M.InPoint(u,{pos=self:At(rule.s).pos,radius=Data.escort.push}) then u:Heal(Data.escort.heal*dt) end
 end
-function M:Goal(entry,enemy)
-    if self.id=='elimination' then return enemy end
+function M:Goal(entry,pick)
+    local enemy=pick and pick.unit
+    if self.id=='elimination' then
+        if enemy then return enemy,self.battle.rules.sudden or self.battle.rules.t>40 and not pick.seen end
+        local center={0,self.world.layout.nav.nodes.iC1[2],0}
+        return {pos=center,passive=true,radius=20},false
+    end
     local u=entry.unit;local rule=self.battle.rules;local p=u:Position()
     local distance=enemy and Flat(p,enemy:Position()) or math.huge
-    local near=self.id=='conquest' and 90 or u.team==rule.attack and (entry.member.role=='heavy' or entry.member.role=='assault') and 60 or 100
-    if enemy and distance<near and entry.driver:Visible(p,enemy:Position(),enemy) then return enemy end
+    local attacking=u.team==rule.attack
+    local pusher=attacking and (entry.member.role=='heavy' or entry.member.role=='assault')
+    local near=self.id=='conquest' and 90 or attacking and (pusher and 60 or 130) or 100
+    if enemy and pick.seen and distance<near then return enemy,false end
     local pos,radius,shoot
     if self.id=='conquest' then
         local team=u.team
         if self.world.time>=(self.assignAt[team] or 0) then
-            self.assignAt[team]=self.world.time+2;local load={0,0,0};local raiders=not rule.shield[Other(team)] and 2 or 0
-            for _,e in ipairs(self.battle.entries) do if e.driver and e.unit.alive and e.unit.team==team then
+            self.assignAt[team]=self.world.time+2;local load={0,0,0}
+            local raiders=not rule.shield[Other(team)] and rule.score[team]<100 and 2 or 0
+            local bots={}
+            for _,e in ipairs(self.battle.entries) do if e.driver and e.unit.alive and e.unit.team==team then bots[#bots+1]={entry=e,index=#bots+1} end end
+            local function Rank(e) return (e.member.role=='heavy' or e.member.role=='sniper') and -1 or 1 end
+            table.sort(bots,function(a,b) local x,y=Rank(a.entry),Rank(b.entry);return x<y or x==y and a.index<b.index end)
+            for _,bot in ipairs(bots) do local e=bot.entry
                 if raiders>0 then self.goals[e]={reactor=true};raiders=raiders-1
                 else local best,cost=1,math.huge
-                    for i,q in ipairs(self.points) do local st=rule.points[i]
+                    for i,q in ipairs(self.points) do
+                        local st=nil ---@type table?
+                        for _,state in ipairs(rule.points) do if state.id==q.id then st=state;break end end
+                        assert(st,'Missing capture point '..tostring(q.id))
                         local c=Flat(e.unit:Position(),q.pos)+(st.owner==team and (st.count[Other(team)]>0 and -40 or 260) or st.owner and -30 or 0)+load[i]*120
                         if c<cost then best=i;cost=c end
                     end
                     self.goals[e]={point=best};load[best]=load[best]+1
                 end
-            end end
+            end
         end
         local job=self.goals[entry] or {point=3}
         if job.reactor then pos=self.bases[Other(team)].aim;radius=45;shoot=true else pos=self.points[job.point].pos;radius=self.points[job.point].radius end

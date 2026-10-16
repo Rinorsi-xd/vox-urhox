@@ -35,7 +35,10 @@ local function Wrap(object,key,label)
 end
 local targets={
  ['combat.CarUnit']={'Flush','Spawn','Build','Explode'},
- ['drive.VehicleSpec']={'Build'},
+ ['construction.Blueprint']={'Graph','Connectivity'},
+ ['construction.Rotors']={'Spec'},
+ ['construction.TurretRange']={'For'},
+ ['drive.VehicleSpec']={'Build','BuildParts','MergeBoxes'},
  ['drive.Vehicle']={'New'},
  ['drive.RaySuspension']={'Sample','Apply'},
  ['drive.ContactControl']={'Step'},
@@ -43,7 +46,9 @@ local targets={
  ['drive.ThrusterControl']={'Step'},
  ['drive.ChassisStability']={'Step'},
  ['drive.LegControl']={'Step'},
+ ['drive.LegHitboxes']={'Update'},
  ['drive.MechControl']={'Step'},
+ ['drive.MechHitboxes']={'Update'},
  ['combat.EnemyDriverThink']={'Run','Sniper','Route'},
  ['combat.EnemyDriverNav']={'Graph','Nearest','Path','Direct'},
  ['physics.Space']={'Raycast','Step'},

@@ -50,7 +50,7 @@ function M:Save()
     local ok,err=self.store:Write('music',{volume=self.volume,enabled=self.enabled,mode=self.playMode,favorites=self.favorites,last=self.last},Valid)
     if not ok then print('[MusicPlayer] '..err) end
 end
-function M:CanPlay() return not self.disposed and self.unlocked and self.enabled and self.volume>0 and not self.userPaused and not self.hidden end
+function M:CanPlay() return not self.disposed and self.unlocked and self.enabled and self.volume>0 and not self.userPaused and not self.hidden and not self.contextPaused end
 function M:PauseBus()
     if self:CanPlay() then audio:ResumeSoundType(self.bus) else audio:PauseSoundType(self.bus) end
 end
@@ -106,7 +106,7 @@ function M:Clear(index)
     slot.gate:Cancel();self.serial=self.serial+1;slot.token=self.serial
     local file=slot.track and slot.track.file
     if slot.source then slot.source:StopImmediate();slot.source:Dispose();slot.source=nil end
-    slot.sound=nil;slot.track=nil;slot.fade=nil;slot.level=0;slot.target=0
+    slot.preparation=nil;slot.sound=nil;slot.track=nil;slot.fade=nil;slot.level=0;slot.target=0
     if file then self.backend:ReleaseResource('Sound',file,false) end
 end
 function M:Choose()
@@ -136,6 +136,43 @@ function M:Played(track)
     self.history[#self.history+1]=track.id;if #self.history>50 then table.remove(self.history,1) end
     self:Save()
 end
+function M:FailPending(index,message)
+    local slot=self.slots[index];local track=slot.track
+    self.failed[track.id]=true;self.errors[#self.errors+1]={id=track.id,message=message}
+    print('[MusicPlayer] Unable to play '..track.id..': '..tostring(message));self:Clear(index)
+    self.pending=nil;self.advanceRequested=true;self.retryAt=self.time+.5
+end
+function M:PreparePending(dt)
+    local index=self.pending;local slot=self.slots[index]
+    local preparation=slot and slot.preparation
+    if not preparation or slot.token~=preparation.token then return end
+    if preparation.error then self:FailPending(index,preparation.error);return end
+    if not preparation.downloaded then return end
+    local track=slot.track
+    if not slot.sound then
+        local sound=self.backend:GetExistingResource('Sound',track.file)
+        if sound and sound.length>0 then slot.sound=sound
+        else
+            if not preparation.queued then
+                preparation.queued=true
+                local ok,message=pcall(self.backend.BackgroundLoadResource,self.backend,'Sound',track.file,true)
+                if not ok then self:FailPending(index,tostring(message));return end
+                -- false can also mean this file is already queued by another
+                -- observer. Poll the shared cache without synchronously waiting.
+            end
+            if self:CanPlay() then preparation.elapsed=preparation.elapsed+math.max(0,dt) end
+            if preparation.elapsed>=20 then self:FailPending(index,'音频后台准备超时') end
+            return
+        end
+    end
+    if not self:CanPlay() then return end
+    local sound=slot.sound
+    slot.preparation=nil;slot.source=self.root:CreateComponent('SoundSource');slot.source.soundType=self.bus
+    slot.source:Play(sound,0,0)
+    local old=self.slots[self.current];if old and old~=slot then self:Fade(old,0) end
+    self.current=index;self.pending=nil;self:Fade(slot,1);self:Played(track);self:PauseBus()
+    print('[MusicPlayer] '..track.id..' compressed='..tostring(sound.compressed)..' bytes='..sound.dataSize)
+end
 function M:Next()
     if not self:CanPlay() or not self.group then return false end
     self.advanceRequested=true
@@ -145,20 +182,13 @@ function M:Next()
     local track=self:Choose()
     if not track then self.retryAt=self.time+5;self.advanceRequested=false;return false end
     self:Clear(index);self.pending=index;self.advanceRequested=false;slot.track=track
-    local token=slot.token
+    local token=slot.token;local preparation={token=token,downloaded=false,elapsed=0,queued=false}
+    slot.preparation=preparation
     slot.gate:Start({track.file},function(ok,err)
         if self.disposed or slot.token~=token then return end
-        local sound=ok and self.backend:GetResource('Sound',track.file) or nil
-        if not sound then
-            self.failed[track.id]=true;self.errors[#self.errors+1]={id=track.id,message=err or '音频解码失败'}
-            print('[MusicPlayer] Unable to play '..track.id..': '..tostring(err));self:Clear(index)
-            self.pending=nil;self.advanceRequested=true;self.retryAt=self.time+.5;return
-        end
-        slot.sound=sound;slot.source=self.root:CreateComponent('SoundSource');slot.source.soundType=self.bus
-        slot.source:Play(sound,0,0)
-        local old=self.slots[self.current];if old and old~=slot then self:Fade(old,0) end
-        self.current=index;self.pending=nil;self:Fade(slot,1);self:Played(track);self:PauseBus()
-        print('[MusicPlayer] '..track.id..' compressed='..tostring(sound.compressed)..' bytes='..sound.dataSize)
+        -- Download callbacks may run under the native download-manager lock.
+        -- Audio preparation and playback belong to the following Update.
+        preparation.downloaded=ok==true;preparation.error=not ok and (err or '音频下载失败') or nil
     end)
     return true
 end
@@ -190,13 +220,14 @@ function M:Status()
     if self.pending or self.advanceRequested then return '正在载入' end
     return '正在播放'
 end
-function M:Update(dt,group,hidden)
-    local duck=not self.libraryMode and Levels.Speaking() and .5 or 1
+function M:Update(dt,group,hidden,context)
+    local duck=self.libraryMode and 1 or context and context.duck or Levels.Speaking() and .5 or 1
     self.duck=duck;local response=duck<self.duckLevel and .12 or 1.2
     self.duckLevel=self.duckLevel+(duck-self.duckLevel)*(1-math.exp(-math.max(0,dt)/response))
     if self.disposed then return end
     if self.saveDelay then self.saveDelay=self.saveDelay-dt;if self.saveDelay<=0 then self.saveDelay=nil;self:Save() end end
-    self.hidden=hidden==true;self:PauseBus();if self:CanPlay() then self.time=self.time+math.max(0,dt) end
+    self.hidden=hidden==true;self.contextPaused=not self.libraryMode and context and context.paused==true or false
+    self:PauseBus();if self:CanPlay() then self.time=self.time+math.max(0,dt) end
     local destination=self.libraryMode and 'music-box' or group
     if self.group~=destination then
         self.group=destination
@@ -209,6 +240,7 @@ function M:Update(dt,group,hidden)
         slot.level=self:Level(slot);slot.source.gain=M.Gain(self.volume)*slot.level*self.duckLevel
         if slot.target==0 and slot.level==0 and self.current~=i and self.pending~=i then self:Clear(i) end
     end end
+    self:PreparePending(dt)
     if not self:CanPlay() then return end
     local slot=self.slots[self.current]
     if slot and slot.source and self.libraryMode and self.playMode=='repeat' and not slot.source.playing and not self.pending then

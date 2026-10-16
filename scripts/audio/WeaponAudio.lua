@@ -10,7 +10,7 @@ function M.New(scene)
     local self=setmetatable({},M);self:init(scene);return self
 end
 function M:init(scene)
-    self.root=scene:CreateChild('WeaponAudio');self.sounds={};self.slots={};self.voiceIds={};self.started={};self.loops={};self.last={};self.counts={}
+    self.root=scene:CreateChild('WeaponAudio');self.sounds={};self.slots={};self.voiceIds={};self.started={};self.loops={};self.loopSources={};self.loopTails={};self.last={};self.counts={}
     self.cursor=0;self.time=0;self.active=false;self.volume=.65;self.duck=1;self.disposed=false;self.nextPing=0
     self.focus=function() return input.focus and not input.minimized end
     for id,cue in pairs(Data.cues) do
@@ -43,25 +43,59 @@ function M:Play(id,amount,pan)
     if not source then source=self:Source('Voice'..index);self.slots[index]=source end
     self.voiceIds[index]=id;self.started[index]=self.cursor
     source:StopImmediate();local sound=self.sounds[id];local pitch=cue.jitter and .97+math.random()*.06 or 1
-    Levels.Play(source,sound,sound:GetFrequency()*pitch,math.min(1,cue.gain*(amount or 1)*self.volume*self.duck),pan or 0)
+    Levels.Play(source,sound,sound:GetFrequency()*pitch,cue.gain*math.max(0,math.min(1,amount or 1))*self.volume,pan or 0,nil,id=='energy_online' and 'feedback' or 'weapons')
     self.counts[id]=(self.counts[id] or 0)+1;return true
 end
 function M:Loop(id,amount,pitch,pan,dt)
     local cue=Data.cues[id];amount=self:Audible() and amount or 0
     local loop=self.loops[id]
-    if not loop and amount<=.0001 then return end
-    if not loop then loop={source=self:Source(id),amount=0};self.loops[id]=loop end
-    local target=cue.gain*math.min(1,amount)*self.volume*self.duck
-    local alpha=1-math.exp(-math.max(0,dt)/(target>loop.amount and cue.attack or cue.release))
+    if amount<=.005 then self:ReleaseLoop(id);return false end
+    if not loop or loop.released or not loop.source.playing then
+        local slot=nil
+        for _,candidate in ipairs(self.loopSources) do if not candidate.source.playing and candidate.id==id then slot=candidate;break end end
+        if not slot then for _,candidate in ipairs(self.loopSources) do if not candidate.source.playing then slot=candidate;break end end end
+        if not slot then
+            if #self.loopSources>=20 then return false end
+            slot={source=self:Source(id)};self.loopSources[#self.loopSources+1]=slot
+        end
+        local previous=slot.id and self.loops[slot.id]
+        if slot.id~=id and previous and previous.source==slot.source then self.loops[slot.id]=nil end
+        slot.id=id;loop={source=slot.source,amount=0,pitch=1,pan=0,release=cue.release};self.loops[id]=loop
+    end
+    local step=math.max(0,dt)
+    local target=cue.gain*math.min(1,amount)*self.volume
+    local alpha=1-math.exp(-step/cue.attack)
     loop.amount=loop.amount+(target-loop.amount)*alpha
+    loop.pitchTarget=V.Clamp(pitch or 1,.65,1.5);loop.panTarget=pan or 0
+    loop.pitch=loop.pitch+(loop.pitchTarget-loop.pitch)*(1-math.exp(-step/.12))
+    loop.pan=loop.pan+(loop.panTarget-loop.pan)*(1-math.exp(-step/.08))
     local sound=self.sounds[id]
-    if amount>0 and not loop.source.playing then Levels.Play(loop.source,sound,sound:GetFrequency()*(pitch or 1),loop.amount,pan or 0) end
-    Levels.SetGain(loop.source,loop.amount);loop.source.frequency=sound:GetFrequency()*V.Clamp(pitch or 1,.65,1.5);loop.source.panning=pan or 0
-    if amount==0 and loop.amount<.0001 then loop.source:StopImmediate();loop.amount=0 end
+    if not loop.source.playing then Levels.Play(loop.source,sound,sound:GetFrequency()*loop.pitch,loop.amount,loop.pan,nil,'weapons') end
+    Levels.SetGain(loop.source,loop.amount);loop.source.frequency=sound:GetFrequency()*loop.pitch;loop.source.panning=loop.pan
+    return true
+end
+function M:ReleaseLoop(id)
+    local loop=self.loops[id]
+    if not loop or loop.released then return end
+    -- H5 deletes the active key immediately; its old source keeps a five-tau tail.
+    loop.released=true;loop.releaseAge=0;self.loopTails[#self.loopTails+1]=loop
+end
+function M:UpdateLoopTails(dt)
+    local step=math.max(0,dt)
+    for i=#self.loopTails,1,-1 do local loop=self.loopTails[i]
+        loop.releaseAge=loop.releaseAge+step
+        loop.amount=loop.amount*math.exp(-step/loop.release)
+        loop.pitch=loop.pitch+(loop.pitchTarget-loop.pitch)*(1-math.exp(-step/.12))
+        loop.pan=loop.pan+(loop.panTarget-loop.pan)*(1-math.exp(-step/.08))
+        Levels.SetGain(loop.source,loop.amount);loop.source.frequency=loop.source.sound:GetFrequency()*loop.pitch;loop.source.panning=loop.pan
+        if loop.releaseAge>=loop.release*5 then loop.source:StopImmediate();Levels.SetGain(loop.source,0);loop.amount=0;table.remove(self.loopTails,i) end
+    end
 end
 function M:Stop()
     for _,source in ipairs(self.slots) do source:StopImmediate() end
-    for _,loop in pairs(self.loops) do loop.source:StopImmediate();loop.amount=0 end
+    for _,slot in ipairs(self.loopSources) do slot.source:StopImmediate();Levels.SetGain(slot.source,0) end
+    for _,loop in pairs(self.loops) do loop.amount=0;loop.released=true end
+    self.loopTails={}
     self.lockedRef=nil;self.nextPing=0
 end
 function M:SetActive(active)
@@ -72,7 +106,7 @@ function M:Consume(events,remote)
         local gain,pan=self:Spatial(e.pos,e.type=='blast' and 32 or 24)
         if gain>.005 then
             if e.type=='shot' and e.kind=='sniper' then
-                if not remote and self.loops.sniper_charge then self.loops.sniper_charge.source:StopImmediate() end
+                if not remote then self:ReleaseLoop('sniper_charge') end
                 self:Play('sniper_fire',gain,pan)
             elseif e.type=='shot' and e.kind=='missile' then self:Play('missile_eject',gain,pan);self:Play('missile_launch',gain,pan)
             elseif e.type=='blast' and e.kind=='missile' then self:Play('missile_blast',gain,pan) end
@@ -91,10 +125,11 @@ function M:Consume(events,remote)
     end
 end
 function M:Update(dt,system,camera,entries,speaking)
-    if self.disposed then return end;self.time=self.time+math.max(0,dt);self.duck=speaking and .3 or 1
+    if self.disposed then return end;self.time=self.time+math.max(0,dt)
     local p=camera.worldPosition;local right=camera.worldRotation*Vector3.RIGHT
     self.listener={-p.x,p.y,p.z};self.right={-right.x,right.y,right.z}
     if not self:Audible() then self:Stop();return end
+    self:UpdateLoopTails(dt)
     local spin=0;for _,g in ipairs(system.groups) do for _,w in ipairs(g.weapons) do spin=math.max(spin,w.spin or 0) end end
     self:Loop('mg_motor',spin>.02 and .25+spin*.75 or 0,.65+spin*.5,0,dt)
     local group=system:Group();local windup=0
@@ -121,6 +156,6 @@ function M:Update(dt,system,camera,entries,speaking)
     end
 end
 function M:Dispose()
-    if self.disposed then return end;self:Stop();self.disposed=true;self.root:Dispose();self.slots={};self.loops={};self.sounds={}
+    if self.disposed then return end;self:Stop();self.disposed=true;self.root:Dispose();self.slots={};self.loops={};self.loopSources={};self.sounds={}
 end
 return M

@@ -17,6 +17,20 @@ local function Poll()
  if not I.ready then
   if I.host.state.warmup and not I.checkedBoot then I.checkedBoot=true;V.assert(I.stage=='boot' and #I.log==0 and not I.playing,'hidden shader warmup never consumes narrative or player control') end
   local warm=I.host.state.warmup
+  if warm and warm.sample=='idyll-start' and not I.checkedIdyllStart then
+   I.checkedIdyllStart=true;local glass=false
+   for _,item in ipairs(warm.batch.items)do
+    local model=item.drawable:GetTypeName()=='StaticModel' and item.drawable.model
+    if model and model.name=='Hangar/Models/OrbitalHangar-Architecture2-glass.bin' then glass=true end
+   end
+   local camera=I.host.state.hallCamera;local p=camera.node.position
+   V.assert(glass and warm.phase=='idyll' and warm.index==1 and p.x==-7 and p.y==1 and p.z==-28 and camera.fov==52,'original first idyll camera admits actual exterior glass before narrative')
+  end
+  if warm and warm.sample=='idyll' then I.checkedIdyllTerminal=true end
+  if warm and warm.sample=='leave-capture' and not I.checkedLeaveCapture then
+   I.checkedLeaveCapture=true
+   V.assert(not I.host.state.garage.root.enabled and not I.host.state.hallActor.root.enabled and I.host.state.leaveCapture~=nil,'comic leave background captures the actor-free original hall before reveal')
+  end
   if warm and warm.phase=='build' and not I.checkedFlashWarmup then
    I.checkedFlashWarmup=true;local seen=false;local flashes={}
    for _,list in pairs(I.host.state.assembly.flashes) do for _,model in ipairs(list) do flashes[model]=true end end
@@ -28,6 +42,8 @@ local function Poll()
  local state=I.host.state;local s=state.session
  if phase==0 then
   V.assert(state.warmup.completed and state.warmup.index==8,'original scene, crossing and single plus instanced effects warmup poses rendered')
+  V.assert(I.checkedIdyllStart and I.checkedIdyllTerminal,'additional first camera preserves original terminal sample within seven phases')
+  V.assert(I.checkedLeaveCapture and state.leaveCapture.ready and state.captures.leave==state.leaveCapture.texture,'original leave background texture is ready after its three presented frames')
   V.assert(state.warmup.frames>10 and state.warmup.batches>0,'shader warmup advances through actual presented frame batches')
   V.assert(not state.garage.root.enabled and state.garage.time==0,'warmup restores original hidden props and flyby clock')
   local hidden=true;for _,kind in ipairs({'StaticModel','CustomGeometry'}) do for _,drawable in ipairs(state.garage.root:GetComponents(kind,true)) do hidden=hidden and not drawable.enabledEffective end end

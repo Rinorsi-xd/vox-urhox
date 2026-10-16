@@ -2,7 +2,7 @@
 local UI=require 'urhox-libs/UI'
 local D=require 'ui.SourceDraw'
 local Images=require 'urhox-libs/UI/Core/ImageCache'
-local Button=require('urhox-libs/UI/Widgets/Button'):Extend('VoxSourceDriveTouchButton')
+local Button=require('ui.ActionButton'):Extend('VoxSourceDriveTouchButton')
 local Stick=UI.Panel:Extend('VoxSourceDriveTouchStick')
 local Readiness=UI.Widget:Extend('VoxSourceDriveTouchReadiness')
 local M={Button=Button,Stick=Stick,Readiness=Readiness}

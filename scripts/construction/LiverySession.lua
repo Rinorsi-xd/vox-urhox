@@ -1,13 +1,14 @@
 local Data=require 'construction.LiveryData'
 local Project=require 'render.LiveryProjection'
 local M={};M.__index=M
-function M.New(app)
-    local self=setmetatable({},M);self:init(app);return self
+function M.New(app,onCue)
+    local self=setmetatable({},M);self:init(app,onCue);return self
 end
-function M:init(app)
+function M:init(app,onCue)
     self.app=app;self.sel=0;self.pick=false;self.mirrorNew=false;self.history={cjson.encode(app.blueprint.livery)};self.hi=1
-    self.start=self.history[1];self.revision=0;self.pending=0;self.active=true
+    self.start=self.history[1];self.revision=0;self.pending=0;self.active=true;self.onCue=onCue
 end
+function M:Cue(id) if self.onCue then self.onCue(id) end end
 function M:List() return self.app.blueprint.livery end
 function M:Apply(list)
     self.app.blueprint.livery=list;self.app.car.livery:Set(list);self.app.bays:Changed();self.revision=self.revision+1
@@ -46,6 +47,7 @@ function M:Place(hit)
     local d=self:NewDecal(self.pick,hit);list[#list+1]=d;self.sel=#list
     if self.mirrorNew and not Data.OnCenter(d) and #list<48 then d.m=self:Group(list);list[#list+1]=Data.Mirror(d,Data.Catalog().byId[d.s]) end
     self.pick=false;self.app.car.livery:SetPreview(nil);self:Apply(list);self:Record()
+    self:Cue('paint')
 end
 function M:Mirror()
     if self.sel==0 then return end;local list=Data.Clone(self:List());local d=list[self.sel];local j=self:Twin(self.sel,list)
@@ -67,6 +69,7 @@ function M:Remove()
     if self.sel==0 then return end;local twin=self:Twin(self.sel);local list={}
     for i,d in ipairs(self:List()) do if i~=self.sel and i~=twin then list[#list+1]=d end end
     self.sel=0;self:Apply(list);self:Record()
+    self:Cue('remove')
 end
 function M:MoveLayer(dir)
     local i,j=self.sel,self.sel+dir;local list=Data.Clone(self:List());if i==0 or j<1 or j>#list then return end

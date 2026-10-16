@@ -1,7 +1,7 @@
 local D=require 'ui.SourceDraw'
 local R=require 'ui.ReticleDraw'
 local M={}
-local STREAK={'击毁','双杀','三杀','四杀','无人能挡'}
+local STREAK={'击毁','双连破','三连破','四连破','无人能挡'}
 local COLORS={{255,59,48,255},{255,59,48,255},{232,237,240,255},{154,164,172,255},{255,106,90,255}}
 local function Edge(vg,l,color,alpha,inner)
     if alpha<=0 then return end
@@ -29,7 +29,13 @@ function M.Render(vg,state,l)
     local lift=s.age>1.64 and -12*k*(s.age-1.64)/.36 or 0
     nvgSave(vg);nvgTranslate(vg,l.cx,top+s.size*.5+lift);nvgScale(vg,scale,scale)
     D.Text(vg,'+'..math.floor(s.shown+.5),0,-s.size*.5,s.size,{255,210,74,255},'vox-display',NVG_ALIGN_CENTER);nvgRestore(vg)
-    R.Text(vg,STREAK[s.n]..'  '..s.name,l.cx,top+s.size+22*k+lift,16*k,R.white,NVG_ALIGN_CENTER,true)
+    local label=STREAK[s.n];local labelSize=(s.n>1 and 24 or 16)*k;local nameSize=16*k
+    local labelWidth=D.Width(vg,label,labelSize,'vox-title',labelSize*.25)
+    local nameWidth=D.Width(vg,s.name,nameSize,'vox-title',nameSize*.12)
+    local x=l.cx-(labelWidth+labelSize*.5+nameWidth)/2;local y=top+s.size+nameSize*.3+lift
+    local labelAscent=D.FontMetrics(vg,labelSize,'vox-title');local nameAscent=D.FontMetrics(vg,nameSize,'vox-title')
+    D.Text(vg,label,x,y,labelSize,R.red,'vox-title',NVG_ALIGN_LEFT,labelSize*.25)
+    D.Text(vg,s.name,x+labelWidth+labelSize*.5,y+labelAscent-nameAscent,nameSize,R.white,'vox-title',NVG_ALIGN_LEFT,nameSize*.12)
     nvgRestore(vg)
     for _,c in ipairs(state.cubes) do
         local scale=c.t<c.fly and 1 or math.max(.35,1-(c.t-c.fly)*1.4);local size=c.size*scale

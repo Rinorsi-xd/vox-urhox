@@ -25,7 +25,18 @@ function M.SafeCamera(at,look,cast,previousLift)
  lift=math.max(lift,(previousLift or 0)-.15)
  return {at[1],at[2]+lift,at[3]},lift
 end
+function M.BeginPayslip(I,target,cast)
+ local p=target and target:Position() or {30,0,-170}
+ local x,z=p[1]+8,p[3]-12
+ local at=M.SafeCamera({x,I.host.GroundAt(x,z)+2.5,z},{p[1],p[2]+1,p[3]},cast)
+ I.payslipShot={target=target,at=at}
+end
 function M.Camera(id,t,I)
+ if id=='payslip' then
+  local shot=assert(I.payslipShot,'Payslip requires its entry camera pose')
+  local p=shot.target and shot.target:Position() or {30,0,-170}
+  return {shot.at[1]-t*2,shot.at[2],shot.at[3]},{p[1],p[2]+1.5,p[3]},44
+ end
  local ground=I.host.GroundAt or function()return 0 end
  local status=I.host.SortieStatus and I.host.SortieStatus(I) or {}
  local p=status.pos or {66,ground(66,-174)+1.5,-174};local yaw=status.yaw or 0
@@ -34,7 +45,8 @@ function M.Camera(id,t,I)
   return {98-t*.8,ground(98,-212)+13-t*.15,-212+t*.6},{46,ground(46,-140)+2,-140},50
  elseif id=='sortie-countdown' then
   local k=math.min(1,t/1.8);k=k<.5 and 4*k^3 or 1-(-2*k+2)^3/2
-  local from={94,ground(98,-212)+12.5,-209};local look={46,ground(46,-140)+2,-140}
+  local start=assert(I.sortieCountdownFrom,'Countdown requires the last presented brief camera pose')
+  local from={start[1],start[2],start[3]};local look={46,ground(46,-140)+2,-140}
   local to={p[1]-f[1]*9,p[2]+3.6,p[3]-f[2]*9};local target={p[1]+f[1]*10,p[2]+1.2,p[3]+f[2]*10}
   for n=1,3 do from[n]=from[n]+(to[n]-from[n])*k;look[n]=look[n]+(target[n]-look[n])*k end
   return from,look,50+6*k
@@ -53,7 +65,7 @@ function M.Camera(id,t,I)
  elseif id=='m-salvage' then
   local a=2.4+t*.4;local x=p[1]+math.sin(a)*24;local z=p[3]+math.cos(a)*24
   return {x,math.max(p[2]+3,ground(x,z)+1.6),z},{p[1],p[2]+2.4,p[3]},46
- elseif id=='recruit' or id=='peacekeeper' or id=='master' or id=='mechanic' or id=='motto' then
+ elseif id=='recruit' or id=='peacekeeper' or id=='master' or id=='mechanic' or id=='motto' or id=='disclaimer' then
   local age=I.recruitAt and I.time-I.recruitAt or t;local a=4+age*.06;local x=p[1]+math.sin(a)*21;local z=p[3]+math.cos(a)*21
   return {x,math.max(p[2]+3+age*.2,ground(x,z)+1.6),z},{p[1],p[2]+3,p[3]},40
  end

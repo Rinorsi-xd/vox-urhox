@@ -2,6 +2,10 @@
 local D=require 'ui.SourceDraw'
 local P=require 'ui.SourceParagraph'
 local Typography=require 'ui.IntroTypography'
+local Motion=require 'ui.IntroPromoMotion'
+local Fx=require 'ui.IntroPromoFx'
+local Opacity=require 'ui.IntroOpacity'
+local nvgGlobalAlpha=Opacity.Set
 local M={};local white={255,255,255,255};local red={255,59,48,255};local gold={255,211,106,255}
 local function Image(page,vg,name,x,y,w,h,cover) require('ui.IntroPage').Image(vg,page.owner,name,x,y,w,h,1,cover) end
 local function Big(vg,text,x,y,size,time,color)
@@ -22,12 +26,35 @@ local function Panel(page,vg,points,name,x,y,w,h,age)
  end
  D.Path(vg,points);nvgStrokeColor(vg,nvgRGBA(8,12,20,255));nvgStrokeWidth(vg,7);nvgStroke(vg)
 end
-local function Title(vg,I,w,h,u,id,text,age)
+local function Title(vg,I,w,h,u,id,text,age,exitAge)
  local module=require 'ui.IntroTitleCard';local plan=module.Plan(id,text)
- if plan then module.Draw(vg,w,h,u,age or I.age,plan) end
+ if plan then module.Draw(vg,w,h,u,age or I.age,plan,exitAge) end
+end
+local function Salvage(page,vg,w,h,t,offsetX,offsetY)
+ local I=page.owner;local x=w*.52;local y=h*.1;local width=w*.5;local height=h*.74
+ nvgSave(vg);nvgTranslate(vg,offsetX,offsetY)
+ local points={x+width*.18,y,x+width,y,x+width,y+height,x,y+height}
+ D.Path(vg,points);nvgFillColor(vg,nvgRGBA(8,18,31,230));nvgFill(vg)
+ nvgSave(vg);nvgIntersectScissor(vg,x,y,width,height)
+ for stripe=0,13 do
+  local sy=y+((stripe*height/14+t*height*.24)%height)
+  D.Line(vg,x+width*.15,sy,x+width,sy-height*.18,{122,216,255,stripe%3==0 and 90 or 35},stripe%3==0 and 3 or 1)
+ end
+ nvgRestore(vg)
+ local images=require('urhox-libs/UI/Core/ImageCache');local path=I.data.images.machinist_hero;local handle=images.Get(path)
+ if handle and handle>0 then
+  local iw,ih=images.GetSize(path);local scale=math.min(width*.925/iw,height*1.16/ih)
+  local dw,dh=iw*scale,ih*scale
+  D.Path(vg,points);nvgFillPaint(vg,nvgImagePattern(vg,x+width*.04+(width*.925-dw)/2,y-height*.04+height*1.16-dh,dw,dh,0,handle,1));nvgFill(vg)
+ end
+ D.Path(vg,points);nvgStrokeColor(vg,nvgRGBA(8,12,20,255));nvgStrokeWidth(vg,7);nvgStroke(vg);nvgRestore(vg)
 end
 function M.Draw(page,vg,w,h,u)
  local I=page.owner;local id=I.shot;local t=I.age
+ local film=require 'ui.IntroFilm';film.Under(vg,I,w,h,u,page.k)
+ local showSalvage,offsetX,offsetY,salvageAge=Motion.Salvage(I,w,h)
+ if showSalvage then Salvage(page,vg,w,h,salvageAge,offsetX,offsetY) end
+ local recruit=require 'ui.IntroRecruitTitles';recruit.Draw(vg,I,w,h,u)
  if id=='crt' then
   local tall=t<.23 and .004 or math.min(1,(t-.23)/.26);D.Rect(vg,0,h*(1-tall)/2,w,h*tall,{255,255,255,math.floor(255*(1-math.max(0,(t-.49)/.16)))})
  elseif id=='tvcut' then
@@ -39,31 +66,20 @@ function M.Draw(page,vg,w,h,u)
   end end
   local y=-h*.2+t/.45*h*.8;D.Rect(vg,0,y,w,h*.055,{255,255,255,130});D.Rect(vg,0,y+h*.065,w,h*.025,{0,0,0,190})
  elseif id=='logo' then
-  D.Rect(vg,0,0,w,h,{7,13,21,255})
-  for x=0,w,6*u do D.Line(vg,x,0,x,h,{214,240,255,12},1) end
-  for y=0,h,6*u do D.Line(vg,0,y,w,y,{214,240,255,12},1) end
-  Image(page,vg,'company-emblem',w/2-44*u,h*.38,20*u,20*u)
-  D.Text(vg,'星际前途',w/2-18*u,h*.41,8*u,white,'vox-title');D.Text(vg,'INTERSTELLAR PROSPECTS LTD.',w/2-18*u,h*.53,1.9*u,gold,'vox-title')
-  D.Text(vg,'PUBLIC SERVICE FILM — NO.077',w*.06,h*.12,1.1*u,white,'vox-title')
-  D.Text(vg,'SPECIAL SECURITY DIV. / SEC-07',w*.94,h*.12,1.1*u,white,'vox-title',NVG_ALIGN_RIGHT)
-  Image(page,vg,'division-insignia',w*.06,h*.8,6*u,6*u);D.Text(vg,'特别安保部 · 荣誉出品',w*.06+8*u,h*.82,1.4*u,white,'vox-title')
+  require('ui.IntroBrand').Draw(vg,I,w,h,u,t)
  elseif id=='prosper' or id=='order' or id=='leave' or id=='no' then
-  require('ui.IntroComic').Draw(page,vg,w,h,u)
-  if id=='no' and t>=.5 then
-   local age=math.max(0,t-.5);for row=0,5 do for col=0,5 do
-    local x=w*.72+col*w*.027;local y=h*.09+row*h*.0485
-    local dx=(col-2.5)*age*18*u;local dy=(row-2.5)*age*10*u+age^2*18*u
-    nvgSave(vg);nvgIntersectScissor(vg,x+dx,y+dy,w*.027,h*.0485);nvgTranslate(vg,dx,dy);Image(page,vg,'dove',w*.72,h*.09,w*.1615,h*.2914);nvgRestore(vg)
-   end end
-  end
+  local comic=require('ui.IntroComic');comic.BeginPanels(page,vg,w,h,u)
+  comic.Draw(page,vg,w,h,u)
+  if id=='no' and t>=.5 then require('ui.IntroComicBurst').Draw(page,vg,w,h) end
   if id~='no' then
+   comic.EndPanels(vg)
    -- Original comic titles accumulate until the laser wipes the whole page.
    for _,entry in ipairs(I.log or {{shot=id,t=I.time-t}}) do
     if entry.shot=='prosper' or entry.shot=='order' or entry.shot=='leave' then Title(vg,I,w,h,u,entry.shot,nil,I.time-entry.t) end
    end
-   require('ui.IntroComic').Confetti(page,vg,w,h,u)
+   comic.Confetti(page,vg,w,h,u)
   elseif id=='no' then
-   local tx,ty=w*.808825,h*.212388
+   local dove=comic.DoveBounds(I,w,h);local tx,ty=dove.x+dove.w*.55,dove.y+dove.h*.42
    if t<.4 and math.floor(t/.06)%2==0 then
     nvgBeginPath(vg);nvgCircle(vg,tx,ty,4.2*u);nvgFillPaint(vg,nvgRadialGradient(vg,tx,ty,0,4.2*u,nvgRGBA(255,42,26,204),nvgRGBA(255,42,26,0)));nvgFill(vg)
     nvgBeginPath(vg);nvgCircle(vg,tx,ty,1.2*u);nvgFillColor(vg,nvgRGBA(255,42,26,255));nvgFill(vg)
@@ -80,20 +96,18 @@ function M.Draw(page,vg,w,h,u)
    if t>=.4 and t<.6 then D.Rect(vg,0,0,w,h,{255,90,58,math.floor((.6-t)/.2*178)}) end
    if t>=.5 then
     local flash=math.max(0,1-(t-.5)/.36);D.Rect(vg,0,0,w,h,{255,255,255,math.floor(flash*255)})
-    D.Rect(vg,0,0,w,h,{255,30,15,48});Big(vg,'砰——！',tx-h*.2,ty+h*.08,13*u,t-.5,red);Big(vg,'NO!',w/2,h*.36,34*u,t-.5,red)
+    D.Rect(vg,0,0,w,h,{255,30,15,48});require('ui.IntroComicText').Bang(vg,tx-h*.2,ty+h*.08,u,t-.5)
    end
+   comic.EndPanels(vg)
+   if t<.15 then
+    for _,entry in ipairs(I.log or {}) do
+     if entry.shot=='prosper' or entry.shot=='order' or entry.shot=='leave' then Title(vg,I,w,h,u,entry.shot,nil,I.time-entry.t,t) end
+    end
+   end
+   if t>=.5 then require('ui.IntroComicText').No(vg,w,h,u,t-.5) end
   end
  elseif id=='familiar' then
-  D.Rect(vg,0,0,w,h,{21,20,23,255})
-  if I.host.DrawCapture then
-   I.host.DrawCapture(vg,'charge',{x=w*.025,y=h*.05,w=w*.42,h=h*.9,points={w*.025,h*.05,w*.445,h*.05,w*.3526,h*.95,w*.025,h*.95}})
-   I.host.DrawCapture(vg,'wreck',{x=w*.37,y=h*.05,w=w*.605,h=h*.43,points={w*.42445,h*.05,w*.975,h*.05,w*.975,h*.48,w*.37,h*.48}})
-  end
-  Panel(page,vg,{w*.3499,h*.51,w*.975,h*.51,w*.975,h*.95,w*.31,h*.95},'workshop',w*.31,h*.51,w*.665,h*.44,t)
-  nvgSave(vg);nvgIntersectScissor(vg,w*.35,h*.51,w*.625,h*.44);Image(page,vg,'machinist_idle',w*.37,h*.53,w*.42,h*.78);nvgRestore(vg)
-  D.Text(vg,'第 7 边境星区 · 坠舰陨坑',w*.05,h*.1,1.8*u,white,'vox-title');Big(vg,'轰——！',w*.15,h*.76,11*u,t,red)
-  D.Text(vg,'公司资产 · 你开的那辆（已损毁）',w*.93,h*.08,1.4*u,white,'vox-title',NVG_ALIGN_RIGHT)
-  D.Text(vg,'你（初级装配员）',w*.94,h*.86,1.7*u,white,'vox-title',NVG_ALIGN_RIGHT)
+  require('ui.IntroFamiliar').Draw(page,vg,w,h,u)
  elseif id=='galaxy' then
   D.Rect(vg,0,0,w,h,{5,7,13,255});local k=math.min(1,t/((I.voiceDuration or 4.84)*.95));local cx=w*.56;local cy=h*.54;local R=math.min(w,h)*(.62+k*.12)
   nvgBeginPath(vg);nvgRect(vg,0,0,w,h);nvgFillPaint(vg,nvgRadialGradient(vg,cx,cy,0,R*.5,nvgRGBA(255,220,180,89),nvgRGBA(0,0,0,0)));nvgFill(vg)
@@ -101,27 +115,21 @@ function M.Draw(page,vg,w,h,u)
    local a=s.a+t*.05;local alpha=math.floor((.45+.4*math.sin(t*2+s.tw))*255);local color=s.c=='#9fd4ff' and {159,212,255,alpha} or s.c=='#ffe4c4' and {255,228,196,alpha} or {255,255,255,alpha}
    D.Rect(vg,cx+math.cos(a)*s.r*R,cy+math.sin(a)*s.r*R*.58,s.s,s.s,color)
   end
-  local count=0
+  local count=0;local last
   for _,hit in ipairs(I.data.galaxy.hits) do if hit.at<=k then
-   count=count+1;local s=hit.star;local a=s.a+t*.05;local x=cx+math.cos(a)*s.r*R;local y=cy+math.sin(a)*s.r*R*.58;local age=math.min(1,(k-hit.at)*6)
+   count=count+1;last=hit;local s=hit.star;local a=s.a+t*.05;local x=cx+math.cos(a)*s.r*R;local y=cy+math.sin(a)*s.r*R*.58;local age=math.min(1,(k-hit.at)*6)
    nvgBeginPath(vg);nvgCircle(vg,x,y,4+age*26);nvgStrokeColor(vg,nvgRGBA(255,59,48,math.floor((1-age)*255)));nvgStrokeWidth(vg,2);nvgStroke(vg)
    nvgBeginPath(vg);nvgCircle(vg,x,y,2.6+(math.sin(t*9+hit.id)>0 and 1.2 or 0));nvgFillColor(vg,D.Color(red));nvgFill(vg)
   end end
-  D.Text(vg,'星际前途 · 资产安全监控',w*.07,h*.14,1.4*u,white,'vox-title');D.Text(vg,'受袭开采星区',w*.07,h*.2,3*u,white,'vox-title')
-  D.Text(vg,string.format('%03d',count),w*.07,h*.29,12*u,red,'vox-title');D.Text(vg,'/ 200',w*.07,h*.43,2.8*u,white,'vox-title')
-  D.Text(vg,'WARNING · 多星区同时遭到攻击',w*.07,h*.75,2*u,red,'vox-title')
+  require('ui.IntroGalaxyText').Draw(page,vg,I,w,h,u,count,last)
  elseif id=='payslip' then
-  local x=w/2-25*u;local y=h*.14;local rows={{'基本工资','3,200.00'},{'机油咖啡（强制订阅）','-480.00'},{'工位租金','-900.00'},{'安全帽折旧','-320.00'},{'呼吸空气使用费','-12.50'},{'绩效扣减（跳过广告）','-50.00'},{'战车维修费（实机演示）','-1,200.00'}}
-  if t<(I.voiceDuration or 5.86)-1.3 then
-   D.Rect(vg,x,y,50*u,64*u,{244,239,219,255});Image(page,vg,'company-emblem',x+2*u,y+2*u,5.4*u,5.4*u)
-   D.Text(vg,'星际前途有限公司',x+9*u,y+2*u,2.4*u,{30,27,23,255},'vox-title');D.Text(vg,'PAYROLL · 薪资结算单',x+9*u,y+5*u,1.3*u,{30,27,23,255},'vox-title')
-   D.Text(vg,'员工：初级装配员 #0721      结算期：10 月',x+2*u,y+11*u,1.4*u,{30,27,23,255},'vox-title')
-   for i,row in ipairs(rows) do D.Text(vg,row[1],x+2*u,y+(14+i*4)*u,1.6*u,{30,27,23,255},'vox-title');D.Text(vg,row[2],x+48*u,y+(14+i*4)*u,1.6*u,i==1 and {40,92,32,255} or {194,36,15,255},'vox-title',NVG_ALIGN_RIGHT) end
-   D.Text(vg,'实发',x+2*u,y+51*u,2*u,red,'vox-title');D.Text(vg,'237.50',x+48*u,y+51*u,3.4*u,red,'vox-title',NVG_ALIGN_RIGHT);Big(vg,'已扣款',x+35*u,y+56*u,4*u,t,red)
-  else for i=0,62 do local col=i%7;local row=math.floor(i/7);local a=t-((I.voiceDuration or 5.86)-1.3);D.Rect(vg,x+col*7*u+(col-3)*a*12*u,y+row*7*u+(row-4)*a*5*u+a*26*u,6*u,6*u,{244,239,219,math.floor(math.max(0,1-a/1.1)*255)}) end end
+  require('ui.IntroPayslip').Draw(vg,I,w,h,u,page,true)
  elseif id=='decide' or id=='decided' then
   D.Rect(vg,0,0,w,h,{0,0,0,255});local q=id=='decided' and 1 or I.holdProgress or 0
-  nvgSave(vg);nvgGlobalAlpha(vg,.18+q*.8);Image(page,vg,id=='decided' and 'machinist_hero' or 'machinist_idle',w/2-62.3*u,h*.16,104.3*u,104*u);nvgRestore(vg)
+  nvgSave(vg);nvgGlobalAlpha(vg,id=='decided' and 1 or .18+q*.8)
+  local scale=Fx.Plan(I).heroScale
+  nvgTranslate(vg,w/2-10.15*u,h*.68);nvgScale(vg,scale,scale);nvgTranslate(vg,-(w/2-10.15*u),-h*.68)
+  Image(page,vg,id=='decided' and 'machinist_hero' or 'machinist_idle',w/2-62.3*u,h*.16,104.3*u,104*u);nvgRestore(vg)
   if id=='decide' and I.deciding then
    nvgBeginPath(vg);nvgCircle(vg,w/2,h*.75,4.4*u);nvgStrokeColor(vg,nvgRGBA(255,255,255,51));nvgStrokeWidth(vg,.6*u);nvgStroke(vg)
    nvgBeginPath(vg);nvgArc(vg,w/2,h*.75,4.4*u,-math.pi/2,-math.pi/2+q*math.pi*2,NVG_CW);nvgStrokeColor(vg,nvgRGBA(122,216,255,255));nvgStrokeWidth(vg,.6*u);nvgStroke(vg)
@@ -132,41 +140,21 @@ function M.Draw(page,vg,w,h,u)
   require('ui.IntroSortieUi').Chrome(vg,w,h,u,I.time,I.sortie and I.sortie.step or 0)
   if id=='sortie-brief' and t<2.2 then
    D.Rect(vg,0,h*.36,w,h*.14,{255,59,48,235});D.Text(vg,'财产受损警告 · PROPERTY DAMAGE ALERT',w/2,h*.39,3.8*u,white,'vox-title',NVG_ALIGN_CENTER)
-   D.Text(vg,'敌军正在拆解公司的贵重矿车！（矿车价值约等于你 40 年工资）',w/2,h*.54,1.8*u,white,'vox-title',NVG_ALIGN_CENTER)
+   D.Text(vg,'请注意，敌军正在拆解公司的贵重矿车！（矿车价值约等于你 40 年工资）',w/2,h*.54,1.8*u,white,'vox-title',NVG_ALIGN_CENTER)
   elseif id=='sortie-brief' and not I.playing then
    require('ui.IntroSortieUi').Brief(vg,w,h,u,t)
   elseif I.sortie then
    local s=I.sortie
    local visual=I.host.state and I.host.state.sortieUi;if visual then visual:Draw(vg,I,w,h,u) end
-   if s.step==3 and s.elapsed<1.2 then Big(vg,'击毁！',w/2,h*.34,8*u,s.elapsed,white);D.Text(vg,s.mine and '绩效 +1' or '（感谢友军炮火）',w/2,h*.45,2*u,white,'vox-title',NVG_ALIGN_CENTER) end
    if s.step==5 then
     require('ui.IntroSortieUi').Stamp(vg,w,h,u,s)
    end
   end
  elseif id=='motto' or id=='disclaimer' then
-  D.Rect(vg,0,0,w,h,{0,0,0,178});Image(page,vg,'company-emblem',w/2-8*u,h*.22,16*u,16*u)
-  D.Text(vg,'以发展之眼光，促螺旋之上升。',w/2,h*.47,3.6*u,white,'vox-title',NVG_ALIGN_CENTER)
-  D.Text(vg,'为星系予和平，许员工以价值。',w/2,h*.55,3.6*u,white,'vox-title',NVG_ALIGN_CENTER);D.Text(vg,'*最终解释权归公司所有',w*.75,h*.64,1.2*u,gold,'vox-title',NVG_ALIGN_RIGHT)
- elseif I.big and I.big~='' then Title(vg,I,w,h,u,id,I.big,t-(I.wordAt or 0))
- elseif id=='m-salvage' then
-  local progress=math.min(1,t/.28);local ease=1-(1-progress)^3;local offsetX=(1-ease)*w*.45;local offsetY=-(1-ease)*h*.2
-  local x=w*.52;local y=h*.1;local width=w*.5;local height=h*.74
-  nvgSave(vg);nvgTranslate(vg,offsetX,offsetY)
-  local points={x+width*.18,y,x+width,y,x+width,y+height,x,y+height}
-  D.Path(vg,points);nvgFillColor(vg,nvgRGBA(8,18,31,230));nvgFill(vg)
-  nvgSave(vg);nvgIntersectScissor(vg,x,y,width,height)
-  for stripe=0,13 do
-   local sy=y+((stripe*height/14+t*height*.24)%height)
-   D.Line(vg,x+width*.15,sy,x+width,sy-height*.18,{122,216,255,stripe%3==0 and 90 or 35},stripe%3==0 and 3 or 1)
-  end
-  nvgRestore(vg)
-  local images=require('urhox-libs/UI/Core/ImageCache');local path=I.data.images.machinist_hero;local handle=images.Get(path)
-  if handle and handle>0 then
-   local iw,ih=images.GetSize(path);local scale=math.min(width*.925/iw,height*1.16/ih)
-   local dw,dh=iw*scale,ih*scale
-   D.Path(vg,points);nvgFillPaint(vg,nvgImagePattern(vg,x+width*.04+(width*.925-dw)/2,y-height*.04+height*1.16-dh,dw,dh,0,handle,1));nvgFill(vg)
-  end
-  D.Path(vg,points);nvgStrokeColor(vg,nvgRGBA(8,12,20,255));nvgStrokeWidth(vg,7);nvgStroke(vg);nvgRestore(vg)
+  local alpha,first,second=Motion.Motto(I)
+   D.Rect(vg,0,0,w,h,{0,0,0,math.floor(255*Fx.MottoBlack(I))})
+   require('ui.IntroMotto').Draw(page,vg,w,h,u,alpha,first,second)
+ elseif I.big and I.big~='' and not recruit.Handles(id) then Title(vg,I,w,h,u,id,I.big,t-(I.wordAt or 0))
  end
  if I.caption and I.caption~='' then
   page.caption=page.caption or P.New(3.3*u,4.8*u);page.caption.font='vox-title';page.caption.size=3.3*u;page.caption.lineHeight=4.8*u
@@ -174,5 +162,8 @@ function M.Draw(page,vg,w,h,u)
   D.Rect(vg,(w-width)/2-u,h*.9-m.height-u,width+2*u,m.height+2*u,{0,0,0,180})
   page.caption:Draw(vg,text,(w-width)/2,h*.9-m.height,width,white,true)
  end
+ film.Over(vg,I,w,h,u)
+ if id=='payslip' then require('ui.IntroPayslip').DrawForeground(vg,I,w,h,u) end
+ Fx.Draw(vg,I,w,h)
 end
 return M

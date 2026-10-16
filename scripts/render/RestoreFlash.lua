@@ -9,14 +9,17 @@ local function Layers(data,out)
     if data.model and data.slots then out[data.model]=data.slots;return end
     for _,value in pairs(data) do if type(value)=='table' then Layers(value,out) end end
 end
-function M.New(scene)
-    local self=setmetatable({},M);self:init(scene);return self
+function M.New(scene,options)
+    local self=setmetatable({},M);self:init(scene,options);return self
 end
-function M:init(scene)
+function M:init(scene,options)
+    options=options or {}
     self.root=scene:CreateChild('PlayerRestoreFlashes');self.items={};self.time=0;self.disposed=false
+    self.pool={};self.poolSize=options.poolSize or 0
     self.copyCache={};self.copyOwners={}
     self.material=Material:new();assert(self.material:SetSurfaceShader('Shaders/BLGL/RestoreFlash.shader'))
     self.material.depthBias=BiasParameters(-.00004,-1);self.material.renderOrder=134
+    if options.whiteBase then self.material:SetShaderParameter('flash_color',Variant(Vector3(1,1,1))) end
 end
 function M:AcquireCopy(model,selected)
     local key=table.concat(selected,',');local entries=self.copyCache[model]
@@ -40,23 +43,55 @@ function M:ReleaseCopy(copy)
     end
     self.copyOwners[copy]=nil;copy:Dispose()
 end
-function M:Drop(item)
+function M:Destroy(item)
     local current=self.view and self.view.visuals[item.id]
     if current==item.vis and item.pop then current.node.scale=item.baseScale end
     item.node:Dispose();item.models={}
     for _,model in ipairs(item.copies) do self:ReleaseCopy(model) end
     item.copies={};if item.material then item.material:Dispose();item.material=nil end
 end
-function M:Clear()
-    for _,item in ipairs(self.items) do self:Drop(item) end
-    self.items={}
+function M:Drop(item)
+    if self.poolSize>0 and not self.clearing and self.view.visuals[item.id]==item.vis then
+        require('render.NodeVisibility').Set(item.node,false,true)
+        if #self.pool>=self.poolSize then self:Destroy(table.remove(self.pool,1)) end
+        self.pool[#self.pool+1]=item
+    else self:Destroy(item) end
 end
-function M:Add(part)
+function M:Clear()
+    self.clearing=true
+    for _,item in ipairs(self.items) do self:Drop(item) end
+    for _,item in ipairs(self.pool) do self:Destroy(item) end
+    self.items={};self.pool={};self.clearing=false
+end
+function M:Bind(view)
+    if self.view~=view or self.generation~=view.visuals then self:Clear();self.view=view;self.generation=view.visuals end
+end
+function M:Activate(item,options)
+    item.t0=self.time;item.color=options.color or {1,1,1};item.pop=options.pop~=false and not item.vis.joined
+    item.node.position=item.vis.node.position;item.node.rotation=item.vis.node.rotation
+    require('render.NodeVisibility').Set(item.node,true)
+    if item.sources then
+        local localFromWorld=item.vis.node.worldTransform:Inverse()
+        for _,entry in ipairs(item.sources) do entry.node:SetTransform(localFromWorld*entry.source.node.worldTransform) end
+    end
+    if item.material then item.material:SetShaderParameter('joined_color',Variant(Vector3(table.unpack(item.color)))) end
+    self.root:SetTransform(self.view.root.worldPosition,self.view.root.worldRotation,self.view.root.worldScale)
+    self:Apply(item)
+end
+function M:Add(part,options)
+    options=options or {}
     local vis=self.view.visuals[part.id];if not vis then return end
-    for i=#self.items,1,-1 do if self.items[i].id==part.id then self:Drop(self.items[i]);table.remove(self.items,i) end end
+    if self.poolSize>0 then
+        for i=#self.pool,1,-1 do local item=self.pool[i];if item.id==part.id and item.vis==vis then
+            table.remove(self.pool,i);self.items[#self.items+1]=item;self:Activate(item,options);return
+        end end
+    end
+    if self.poolSize==0 then
+        for i=#self.items,1,-1 do if self.items[i].id==part.id then self:Drop(self.items[i]);table.remove(self.items,i) end end
+    end
     local node=self.root:CreateChild('Restored'..part.id)
     node.position=vis.node.position;node.rotation=vis.node.rotation
-    local item={id=part.id,vis=vis,node=node,models={},copies={},t0=self.time,baseScale=vis.node.scale,pop=not vis.joined}
+    local item={id=part.id,vis=vis,node=node,models={},copies={},sources={},baseScale=vis.node.scale}
     if vis.joined then
         local shape=Surface.Shape(part);local geometry=node:CreateComponent('CustomGeometry')
         geometry:BeginGeometry(0,TRIANGLE_LIST)
@@ -82,18 +117,18 @@ function M:Add(part)
                 local mesh=n:CreateComponent('StaticModel');mesh.model=copy;mesh.material=self.material;mesh.castShadows=false
                 item.models[#item.models+1]=mesh
                 item.copies[#item.copies+1]=copy
+                item.sources[#item.sources+1]={node=n,source=source}
             end
         end
     end
     self.items[#self.items+1]=item
-    self.root:SetTransform(self.view.root.worldPosition,self.view.root.worldRotation,self.view.root.worldScale)
-    self:Apply(item)
+    self:Activate(item,options)
 end
 function M:Apply(item)
     local k=math.min(1,math.max(0,(self.time-item.t0)/.34))
     local alpha=1.1*(1-k)^1.5;item.alpha=alpha
     item.node.scale=item.baseScale*(1+.14*(1-(1-k)^3))
-    for _,mesh in ipairs(item.models) do mesh.instanceColor=Color(1,1,1,alpha) end
+    for _,mesh in ipairs(item.models) do mesh.instanceColor=Color(item.color[1],item.color[2],item.color[3],alpha) end
     if item.geometry then
         item.material:SetShaderParameter('joined_alpha',Variant(alpha))
     end
@@ -105,7 +140,7 @@ function M:Apply(item)
 end
 function M:Consume(player,view,events)
     if self.disposed then return end
-    if self.view~=view or self.generation~=view.visuals then self:Clear();self.view=view;self.generation=view.visuals end
+    self:Bind(view)
     local ids={}
     for _,event in ipairs(events) do if event.unit==player then
         if event.type=='unitKilled' or event.type=='unitRemoved' then self:Clear();ids={}
@@ -121,6 +156,9 @@ end
 function M:Update(dt)
     if self.disposed or not self.view then return end
     if self.generation~=self.view.visuals then self:Clear();self.generation=self.view.visuals end
+    for i=#self.pool,1,-1 do local item=self.pool[i]
+        if self.view.visuals[item.id]~=item.vis then self:Destroy(item);table.remove(self.pool,i) end
+    end
     self.time=self.time+math.max(0,dt or 0)
     if #self.items==0 then return end
     self.root:SetTransform(self.view.root.worldPosition,self.view.root.worldRotation,self.view.root.worldScale)

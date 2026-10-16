@@ -12,6 +12,7 @@ end
 function M:Push(text,kind,ms)
     if self.disposed then return end
     self.text=text or '';if self.text=='' then return end
+    if kind=='bad' then require('audio.UiSound').Play('error') end
     local item={text=self.text,kind=kind or 'info',age=0,hold=(ms or 2200)/1000}
     self.items[#self.items+1]=item;if #self.items>3 then table.remove(self.items,1) end
     return item

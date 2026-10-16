@@ -1,4 +1,13 @@
 -- One capture of the existing scene. No copied world, live camera or per-frame RT.
+---@class MatchMapShot
+---@field size integer
+---@field half integer
+---@field bakePending boolean
+---@field bakeFinished boolean
+---@field bakeStarted integer
+---@field bakeDownloaded boolean
+---@field bakeFailure string|nil
+---@field captureFrame integer
 local M={};M.__index=M
 local active
 local subscribed=false
@@ -57,14 +66,29 @@ local function CancelBake(self)
     self.bakePending=false
     if self.bakeGate then self.bakeGate:Cancel();self.bakeGate=nil end
 end
+-- 拿不到底图时退化为纯色底（色调曲线的最暗色），小地图的单位、据点照常显示，进对局不受影响
+local function Flat(self,reason)
+    print('[MatchMapShot] Minimap base unavailable ('..reason..'); using a flat base')
+    local image=Image();image:SetSize(4,4,4);image:Clear(Color(30/255,40/255,54/255,1))
+    local texture=Texture2D:new();texture:SetNumLevels(1);texture:SetSRGB(false)
+    local ok=texture:SetData(image);image:Dispose()
+    assert(ok,'Cannot upload minimap base');texture:SetFilterMode(FILTER_BILINEAR)
+    self.result=texture;self.ready=true;self.captured=true;self.progress=1;self.flat=true
+end
 function M:LoadBaked()
     local meta=require('core.ResourceData').Read('Crater/Minimap.json')
     assert(meta.version==1 and meta.revision=='crater-static-v1' and meta.scene=='Scenes/Crater.xml'
         and meta.size==1024 and meta.half==320 and meta.image=='Crater/Minimap.bin','Stale minimap contract')
     for path,expected in pairs(meta.runtimeChecks)do
         local file=assert(cache:GetFile(path),'Missing minimap input '..path)
-        local matches=file.size==expected.bytes and file:GetChecksum()==expected.checksum
-        file:Dispose();assert(matches,'Stale minimap input '..path)
+        local size,checksum=file.size,file:GetChecksum();file:Dispose()
+        local matches=size==expected.bytes and checksum==expected.checksum
+        -- 同一份内容在不同环境里换行符不同（Windows 工作区 CRLF，Maker 仓库与 Web 包为 LF），
+        -- 烘焙时一并记录了另一种换行的大小与校验值
+        for _,variant in ipairs(expected.variants or {})do
+            if size==variant.bytes and checksum==variant.checksum then matches=true end
+        end
+        assert(matches,'Stale minimap input '..path)
     end
     local image=assert(cache:GetResource('Image',meta.image,false),'Missing baked minimap pixels')
     assert(not image.compressed and image.width==1024 and image.height==1024,'Invalid baked minimap pixels')
@@ -90,6 +114,8 @@ function M.New(scene,map)
     return self
 end
 function M:Capture()
+    -- 现场截图要把渲染目标同步读回 CPU，WebGPU 不支持
+    if not require('render.Readback').Sync() then Flat(self,'no synchronous readback on '..tostring(graphics.apiName));return end
     local scene=self.scene
     active=self;M.Initialize()
     local ok,err=pcall(function()
@@ -164,14 +190,17 @@ function M:Update()
         end
         self:Capture()
     end
+    if self.ready then return end
     if not self.captured then self.texture:GetRenderSurface():QueueUpdate();return end
     if GetTime().frameNumber<(self.captureFrame or 0)+3 then return end
     if not self.worker then
-        self.image=assert(self.texture:GetImage(),'Minimap readback unavailable')
+        local image=self.texture:GetImage()
         self.texture:GetRenderSurface():SetNumViewports(0);self.viewport=nil
         require('render.RenderTargetLifetime').Retire(self.texture);self.texture=nil
         self.node:Dispose();self.node=nil;self.camera=nil;self.scene=nil
         if active==self then active=nil end
+        if not image then Flat(self,'render target readback failed');return end
+        self.image=image
         self.worker=coroutine.create(function()self:Process()end)
     end
     local deadline=Time:GetSystemTime()+4

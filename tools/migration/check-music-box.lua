@@ -1,5 +1,8 @@
 local Hud=require 'ui.GarageHud';local Box=require 'ui.MusicBox';local UI=require 'urhox-libs/UI'
 local home,box,position,delayed,playerUpdate
+local readyFrame
+local readySteps={}
+local function AfterReady(offset,run) readySteps[offset]=run end
 local sandbox=false
 for _,a in ipairs(GetArguments()) do if a=='-music-sandbox' then sandbox=true end end
 local getenv,createFont=os.getenv,nvgCreateFont
@@ -31,10 +34,8 @@ V.atFrame(65,function()
     V.assert(UI.GetTopOverlay()==box.root,'Music owns overlay input')
     V.assert(box.root.props.onPointerDown(box.root,{x=0,y=0,button=MOUSEB_LEFT})==true,'Legacy WASM bubbled pointer without ID is supported')
     box.player:SetLibraryPlaylist(box.player.catalog.tracks);box.player:PlayTrack('hangar-01-workshop-floor')
-    V.assert(box.player:Track() and box.player:Track().id=='hangar-01-workshop-floor','Original MP3 starts')
-    V.assert(box.player.slots[box.player.current].sound.compressed,'MP3 remains compressed')
 end)
-V.atFrame(110,function()
+AfterReady(45,function()
     if sandbox then
         V.assert(os.getenv==nil,'Music UI renders with the sandbox getenv restriction')
         V.assert(nvgFindFont(UI.GetNVGContext(),'vox-body')>=0 and systemMusicFonts==0,'Music uses the original Industrial face, including Latin, without a separate system font')
@@ -48,7 +49,7 @@ V.atFrame(110,function()
     V.assert(math.abs(shield.w-viewportW)<=.5 and math.abs(shield.h-viewportH)<=.5,
         'Transparent input shield covers viewport within Yoga pixel rounding: '..cjson.encode(shield)..' viewport '..viewportW..'x'..viewportH)
 end)
-V.atFrame(115,function()
+AfterReady(50,function()
     if not sandbox then return end
     os.getenv=getenv
     local vg=nvgCreate(1);local previous=sourceBodyFonts
@@ -56,11 +57,12 @@ V.atFrame(115,function()
     os.getenv=nil;nvgDelete(vg)
     V.assert(sourceBodyFonts>previous and systemMusicFonts==0,'System font access does not replace the original music typography')
 end)
-V.atFrame(185,function()
+AfterReady(120,function()
     if box and playerUpdate then box.player.Update=playerUpdate end
     if sandbox then os.getenv=getenv;nvgCreateFont=createFont end
+    V.finish()
 end)
-V.atFrame(140,function()
+AfterReady(75,function()
     V.assert(math.abs(box.player:Position()-position)<.06,'Paused music retains actual position')
     box.player:Resume();V.assert(box.player:Seek(8),'Seek supported for compressed MP3')
     box.player:Previous();V.assert(box.player:Position()<.2,'Previous restarts current after 3 seconds')
@@ -77,7 +79,7 @@ V.atFrame(140,function()
     Click(box.buttons.mute);V.assert(box.player.volume==.5,'Mute restores last nonzero level')
     box.player:SetPlayMode('sequence');Click(box.buttons.mode);Shot('mode-menu')
 end)
-V.atFrame(160,function()
+AfterReady(95,function()
     Click(box.options[3]);V.assert(box.player.playMode=='repeat' and not box.modeMenu:IsVisible(),'Original single-track repeat option')
     local saved=box.player.store:Read('music',function(v) return v.mode=='repeat' and v.volume==.5 and v.favorites['hangar-01-workshop-floor']==true end)
     V.assert(saved~=nil,'Favorites mode and volume saved through recoverable storage')
@@ -91,14 +93,33 @@ V.atFrame(160,function()
     function backend:Exists() return false end
     function backend:DownloadResources(paths,done) self.requests[#self.requests+1]={paths=paths,done=done};return #self.requests end
     function backend:CancelDownloadGroup(id) self.cancelled[id]=true end
-    function backend:GetResource(kind,path) return cache:GetResource(kind,path) end
+    function backend:GetExistingResource(kind,path) return cache:GetExistingResource(kind,path) end
+    function backend:BackgroundLoadResource(kind,path,sendEvent) return cache:BackgroundLoadResource(kind,path,sendEvent) end
     function backend:ReleaseResource() end
     delayed=require('audio.MusicPlayer').New(nil,backend);delayed:SetLibraryMode(true);delayed:Update(0,'hangar',false)
     delayed:PlayTrack('hangar-01-workshop-floor');delayed:PlayTrack('hangar-02-circuit-ready')
     backend.requests[1].done(true,0)
     V.assert(backend.cancelled[1] and delayed.current==nil,'Rapid music change cancels and rejects old callback')
     backend.requests[2].done(true,0)
-    V.assert(delayed:Track().id=='hangar-02-circuit-ready','Only latest delayed request commits')
+    V.assert(delayed.current==nil,'Download callback does not create or start a music source')
+    delayed.testBackend=backend
+end)
+AfterReady(115,function()
+    V.assert(delayed:Track() and delayed:Track().id=='hangar-02-circuit-ready','Only latest delayed request commits after asynchronous preparation')
+    local backend=delayed.testBackend
     delayed:PlayTrack('hangar-03-service-interval');delayed:Dispose();backend.requests[3].done(true,0)
     V.assert(delayed.current==nil and delayed.disposed,'Disposed player ignores late download callback')
 end)
+for frame=66,1240 do V.atFrame(frame,function()
+    if delayed and not delayed.disposed then delayed:Update(1/60,'hangar',false) end
+    if not readyFrame and box and box.player:Track() and box.player:Track().id=='hangar-01-workshop-floor' and box.player:Position()>.1 then
+        readyFrame=frame
+        V.assert(box.player.slots[box.player.current].sound.compressed,'Original MP3 starts asynchronously and remains compressed')
+    end
+    if readyFrame then
+        local offset=frame-readyFrame
+        if offset==115 and delayed and not delayed:Track() then readyFrame=readyFrame+1;return end
+        local run=readySteps[offset];if run then run() end
+    end
+end) end
+V.atFrame(1245,function() V.assert(false,'Music asynchronous preparation or lifecycle did not finish before deadline');V.finish() end)

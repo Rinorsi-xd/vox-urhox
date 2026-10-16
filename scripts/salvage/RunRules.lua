@@ -50,10 +50,17 @@ function M:SearchStep(dt,state)
     if s.crack and s.crack<8 then
         local slow=math.abs(state.speed)<2
         if state.hold and slow then
-            if not s.loud then s.loud=true;self:Heat(20);self:Emit('noise',{at=o.g,r=520});self:Emit('hunt',{n=2,at=o.g}) end
+            if not s.loud then
+                s.loud=true;self:Heat(20);self:Emit('noise',{at=o.g,r=520})
+                self:Emit('vaultStart');self:Emit('hunt',{n=2,at=o.g})
+            end
             s.crack=s.crack+dt
+            if s.crack>=8 then
+                local best=0;for _,item in ipairs(s.items) do best=math.max(best,item.r) end
+                self:Emit('vaultOpened',{at=o.g,rarity=best})
+            end
         end
-        self.prompt={title='舰载保险库',sub=slow and '按住 E 破解 · 别松手' or '车太快了 · 先停下',progress=s.crack/8,blocked=not slow};return
+        self.prompt={title='舰载保险库',sub=slow and (state.hold and '破解中… 别松手' or '停稳了 · 按住 E 破解 8 秒') or '车太快了 · 先停下',progress=s.crack/8,blocked=not slow};return
     end
     local it=s.items[s.i]
     if it then
@@ -62,14 +69,22 @@ function M:SearchStep(dt,state)
         if s.wait>0 then s.wait=s.wait-dt else s.p=s.p+dt/it.t end
         if s.p>=1 then
             local k=Loot.Take(self.cargo,it.id,it.n);it.left=it.n-k;it.state=it.left>0 and 'full' or 'shown';s.value=s.value+Loot.Price(it.id)*it.n
-            self:Emit('reveal',{item=it,taken=k,at=o.g});s.i=s.i+1;s.p=0
+            self:Emit('reveal',{item=it,taken=k,at=o.g})
+            if k>0 then self:Emit('cargoPickup',{items={{it.id,k}}}) end
+            s.i=s.i+1;s.p=0
             if it.r==5 then self:Heat(40);self:Emit('noise',{at=o.g,r=900});self:Emit('hunt',{n=3,at=o.g}) end
         end
     elseif not s.done then s.done=true;s.doneAt=self.time;self.opened[o.id]=true;self.openedCount=self.openedCount+1;self:Emit('hide',{id=o.id}) end
     local full=false;for _,item in ipairs(s.items) do if item.state=='full' then full=item;break end end
     if full and state.swap then
+        local before=full.left
         local dropped=Loot.Swap(self.cargo,full)
-        if #dropped>0 then self:AddExtra({id='drop'..#self.objects,kind='cache',name='丢下的货',tier=0,g={state.pos[1],state.pos[2]-.8,state.pos[3]},loot=dropped}) end
+        local taken=before-full.left
+        if taken>0 then self:Emit('cargoPickup',{items={{full.id,taken}},swap=true}) end
+        if #dropped>0 then
+            self:Emit('cargoDropped',{items=dropped})
+            self:AddExtra({id='drop'..#self.objects,kind='cache',name='丢下的货',tier=0,g={state.pos[1],state.pos[2]-.8,state.pos[3]},loot=dropped})
+        end
     end
     s.foot=full and 'F · 丢掉最便宜的一格换入' or s.done and '搜完了' or '开远了会收起 · 没搜完的留在箱子里'
     if s.done and not full and self.time-s.doneAt>1.5 then self.search=nil end
@@ -109,8 +124,12 @@ function M:Step(dt,state)
         if why then self.prompt={title='撤离点 · '..inside.name,sub=why,blocked=true};self.ex=nil
         else
             if not self.ex or self.ex.e~=inside then
-                self.ex={e=inside,left=self.exLeft[inside.id] or inside.wait}
-                if inside.loud and not inside.called then inside.called=true;self:Heat(30);self:Emit('noise',{at=inside.g,r=600});self:Emit('hunt',{n=3,at=inside.g}) end
+                local wait=self.exLeft[inside.id] or inside.wait
+                self.ex={e=inside,left=wait,approachWait=wait}
+                self:Emit('extractApproach',{exit=inside,wait=wait})
+                if inside.loud and not inside.called then
+                    inside.called=true;self:Heat(30);self:Emit('noise',{at=inside.g,r=600});self:Emit('hunt',{n=3,at=inside.g});self:Emit('extractSignal')
+                end
             end
             self.ex.left=self.ex.left-dt;self.exLeft[inside.id]=self.ex.left
             if self.ex.left<=0 then self.finished=true;self:Emit('extracted',{exit=inside});return end
@@ -130,12 +149,20 @@ function M:Step(dt,state)
                 if state.hold then self:Heat(dt) end
                 self.prompt={title=self:Title(o),sub=state.hold and '拆卸中…' or ('按住 E · '..need..' 秒'),progress=self.act.t/need}
                 if self.act.t>=need then
-                    local got=0
-                    for _,it in ipairs(Loot.FromTable(Data.wrecks[o.model].loot,self.rand)) do
-                        local taken=Loot.Take(self.cargo,it.id,it.n);if taken>0 then got=got+1 end
+                    local got=0;local picked={};local left={}
+                    local rolled=Loot.FromTable(Data.wrecks[o.model].loot,self.rand)
+                    -- World wrecks fill cargo in drop-table order; only search panels sort by rarity.
+                    table.sort(rolled,function(a,b) return a.order<b.order end)
+                    for _,it in ipairs(rolled) do
+                        local taken=Loot.Take(self.cargo,it.id,it.n);if taken>0 then got=got+1;picked[#picked+1]={it.id,taken} end
+                        if taken<it.n then left[#left+1]={it.id,it.n-taken} end
                         self:Emit('reveal',{item=it,at=o.g,taken=taken,worldBatch=true})
                     end
-                    if got>0 then self:Emit('worldLoot',{at=o.g,color=o.model=='core' and 0xffb21e or 0xc9c1b2,n=got}) end
+                    self:Emit('wreckLoot',{title=self:Title(o),items=picked,left=left,empty=#rolled==0,core=o.model=='core'})
+                    if got>0 then
+                        self:Emit('cargoPickup',{items=picked,worldBatch=true})
+                        self:Emit('worldLoot',{at=o.g,color=o.model=='core' and 0xffb21e or 0xc9c1b2,n=got})
+                    end
                     self.opened[o.id]=true;self.openedCount=self.openedCount+1;self:Heat(o.model=='core' and 25 or 6)
                     if o.model=='core' then self:Emit('noise',{at=o.g,r=380});self:Emit('hunt',{n=2,at=o.g});self:Emit('core',{at=o.g}) end;self.act=nil
                 end

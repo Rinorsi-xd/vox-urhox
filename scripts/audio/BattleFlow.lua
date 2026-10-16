@@ -14,9 +14,55 @@ end
 function M:init()
     self.scene=Scene();self.root=self.scene:CreateChild('BattleFlowAudio');self.time=0;self.cursor=0;self.last={};self.slots={};self.ready=false;self.disposed=false
     self.gate=require('app.ResourceGate').New()
+    self.sounds={};self.preparation={};self.preparationIndex=1;self.decoding={};self.decodeCursor=1;self.failure=nil;self.downloadReady=false
 end
-function M:Prepare(queue)
-    self.gate:Start(M.Dependencies(queue),function(ok) if not self.disposed then self.ready=ok end end)
+function M:Prepare(queue,checkpoint)
+    self.gate:Cancel();self.ready=false;self.failure=nil;self.downloadReady=false
+    self.sounds={};self.preparation={};self.preparationIndex=1;self.decoding={};self.decodeCursor=1
+    local paths,seen={},{}
+    for _,path in ipairs(M.Dependencies(queue)) do if not seen[path] then seen[path]=true;paths[#paths+1]=path end end
+    table.sort(paths)
+    for i,path in ipairs(paths) do
+        local sound=cache:GetExistingResource('Sound',path)
+        if not sound or sound.length<=0 then
+            if checkpoint then sound=assert(cache:GetResource('Sound',path),'Cannot prepare battle sound: '..path)
+            else self.preparation[#self.preparation+1]=path end
+        end
+        if sound and sound.length>0 then self.sounds[path]=sound
+        elseif checkpoint then error('Invalid battle sound: '..path) end
+        if checkpoint then checkpoint(i/#paths,'battle-audio') end
+    end
+    if #self.preparation==0 then self.ready=true;return end
+    self.gate:Start(paths,function(ok,message)
+        if self.disposed then return end
+        -- Download completion may hold native locks; only signal the next Update.
+        self.downloadReady=ok==true;self.failure=not ok and tostring(message) or nil
+    end)
+end
+function M:PreparePending()
+    if self.ready or self.failure or not self.downloadReady then return end
+    local path=self.preparation[self.preparationIndex]
+    if path then
+        self.preparationIndex=self.preparationIndex+1
+        local sound=cache:GetExistingResource('Sound',path)
+        if sound and sound.length>0 then self.sounds[path]=sound
+        else
+            cache:BackgroundLoadResource('Sound',path,true)
+            self.decoding[#self.decoding+1]={path=path,at=self.time}
+        end
+    end
+    local pending=self.decoding
+    for _=1,math.min(4,#pending) do
+        if #pending==0 then break end
+        local index=self.decodeCursor;local item=pending[index]
+        local sound=cache:GetExistingResource('Sound',item.path)
+        if sound and sound.length>0 then
+            self.sounds[item.path]=sound;pending[index]=pending[#pending];table.remove(pending)
+        elseif self.time-item.at>20 then self.failure='Battle sound preparation timed out: '..item.path;return
+        else self.decodeCursor=index+1 end
+        if self.decodeCursor>#pending then self.decodeCursor=1 end
+    end
+    self.ready=self.preparationIndex>#self.preparation and #pending==0
 end
 function M:Source(name)
     local node=self.root:CreateChild(name);local source=node:CreateComponent('SoundSource');source:SetSoundType('VoxFeedback');return source
@@ -24,18 +70,19 @@ end
 function M:Play(id)
     if self.disposed or not self.ready or not input.focus or input.minimized then return false end
     local cue=Data.cues[id];if not cue or self.time-(self.last[id] or -999)<cue.gap then return false end
-    self.last[id]=self.time
     if cue.pool then cue=Data.cues[cue.pool[math.random(1,#cue.pool)]] end
+    local sound=self.sounds[cue.path];if not sound then return false end
+    self.last[id]=self.time
     self.cursor=self.cursor%10+1;local source=self.slots[self.cursor]
     if not source then source=self:Source('Feedback'..self.cursor);self.slots[self.cursor]=source end
-    source:StopImmediate();Levels.Play(source,cache:GetResource('Sound',cue.path),0,math.min(1,cue.gain));return true
+    source:StopImmediate();Levels.Play(source,sound,0,cue.gain,nil,nil,'feedback');Levels.FeedbackFor(sound.length);return true
 end
 function M:Queue(enabled)
     self.search=enabled
     if not enabled then if self.loop then self.loop:StopImmediate() end;return end
     if not self.ready or self.disposed or not input.focus or input.minimized then return end
     if not self.loop then self.loop=self:Source('Search') end
-    if not self.loop.playing then local cue=Data.cues.match_search;local sound=cache:GetResource('Sound',cue.path);sound.looped=true;Levels.Play(self.loop,sound,0,math.min(1,cue.gain)) end
+    if not self.loop.playing then local cue=Data.cues.match_search;local sound=self.sounds[cue.path];if sound then sound.looped=true;Levels.Play(self.loop,sound,0,cue.gain,nil,nil,'feedback') end end
 end
 function M:Found()
     self:Queue(false);self:Play('match_found_latch');self.voiceAt=self.time+.38
@@ -58,6 +105,7 @@ function M:Countdown(remaining,active)
 end
 function M:Update(dt)
     if self.disposed then return end;self.time=self.time+math.max(0,dt)
+    self:PreparePending()
     if self.search then self:Queue(true) end
     if not input.focus or input.minimized then
         if self.loop then self.loop:StopImmediate() end
@@ -69,11 +117,12 @@ function M:Update(dt)
         if self.ready then
             if not self.voice then self.voice=self:Source('FoundRadio') end
             local id=Data.foundVoice[math.random(1,#Data.foundVoice)]
-            Levels.Play(self.voice,cache:GetResource('Sound','Sounds/Match/'..id..'.wav'),0,.7,nil,'voice')
+            local sound=self.sounds['Sounds/Match/'..id..'.wav']
+            if sound then Levels.Play(self.voice,sound,0,.7,nil,'voice') end
         end
     end
 end
 function M:Dispose()
-    if self.disposed then return end;self.disposed=true;self.gate:Cancel();self.scene:Dispose();self.slots={}
+    if self.disposed then return end;self.disposed=true;self.gate:Cancel();self.scene:Dispose();self.slots={};self.sounds={};self.preparation={};self.decoding={}
 end
 return M

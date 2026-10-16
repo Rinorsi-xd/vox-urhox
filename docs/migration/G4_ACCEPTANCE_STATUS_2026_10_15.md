@@ -1,8 +1,20 @@
 # G4本路逐项证据与未关闭项
 
+10/16 **0bcd 后续批** S04/S05：修正 `Mission.AfterStep` 逆序删除导致同帧多杀日志落点、爆炸/逃跑光效/对白顺序偏离冻结源的问题，仅改正序 while，保留原清理及无额外每帧表。完整冻结 JS/生产 Lua AfterStep+Rules+Events **223 场景/2572 检查 PASS**；含七 mask、216 混合、重复调用/Dispose/world/HUD/live snapshot/实际 AddIntel 消费。实际旧 0bcd Mission 控制复现 192 差异，其中四个多杀 mask 全 FAIL。最终 Mission SHA `197b07ced3daa75b2586be71a77d1984c0a43502fa1f9c3bfc3116270617026e`，证据 `evidence/story-death-order-offline.json`，报告 `G4_STORY_DEATH_ORDER_2026_10_16.md`。**不属于 manifest-0bcd53d6.json**；无 GPU/build/提交/上传，下一包真实第一关日志拾取/第四关撤退及完整自然关卡仍 OPEN，不重开 G0。
+
+10/16 Boss追击寻路续批冻结：源`_waypoint`的1.5秒缓存、严格目标水平移动>25m重算、宽度4失败回退0、无普通AI随机代价、<20m逐点消费、剩余>1点且目标>60m才跟路点已对齐；超出leash直接回坑中心。实际完整冻结JS/生产Lua及真实Nav.Path **952/952 PASS**，12场景157帧；实际旧e266连续120物理步寻路120→2次，leash120→0。证据`evidence/story-boss-waypoint-offline.json`，StoryBoss合并SHA`09c20b06ccbcfae2f587899525687e672489261af58caf0ef647b54f3675250e`，kneel2178/盟友3079已按此SHA重验PASS。源码三种`laserHit/chaseUnder/pipe`提示虽残留触发，但新版台本lines已删除，实际源once全部false/0对白；不迁废案，探索性hint和Mission hook均已撤除。尚无新包自然第五关/GPU/物理/性能验收，不冒签。
+
+10/16共享反馈续批：敌车零件受击白闪/盾蓝闪已补，保留partId/shield、严格逐车>80ms、pop=false、深度测试、源0.34s重叠姿态快照；复用RestoreFlash，闲置池上限8，active/pool删件和换view/generation全部释放。连破副行按原Industrial红24k标签/白16k名字，数字Barlow映射已正确未改。完整冻结源HUD与实际Lua事件/消费者/生命周期/渲染参数 **850/850 PASS**（180场景），旧恢复10组PASS。报告`evidence/part-hit-flash-offline.json`含5Lua与shader SHA；详见G4_OPENING_PROGRESS最新记录。此增量不在e266，无GPU/build，shader实编译/画面/自然手感/真机性能仍OPEN。
+
+10/16续批：Boss漏接的实际`mechControl.kneel`已按原H5在`BeforeStep`补回：kneel/dying/dead/ending向1、其他阶段向0，源插值`min(1,dt*3)`，先于盟友和主车物理步进。实际完整冻结JS与生产Lua **2178/2178 PASS**（306场景、724帧），含6个实际旧HEAD失败复现；盟友回归 **3079/3079 PASS**。当前合并生产`StoryBoss.lua` SHA `2bfb3dc6f721bac2f7a6710a35921c299097db363388950fd8281cb9769222eb`，证据`evidence/story-boss-kneel-offline.json`；下方`f2a0319f`是上一增量历史身份。无build/browser/native/GPU操作。自然第五关断脚跪地/起身/死亡、Bullet支撑力、驾驶舱画面对齐和真机性能仍OPEN，不借旧Web包关闭，也不重开G0。
+
+10/16续批：第五关Boss盟友选择最近钻头、无目标阶段停车、严格15秒/十阶段复活及节点/顶棚等距规则已补；实际完整冻结JS与生产Lua **3079/3079 PASS**，270目标+114复活场景，含5个实际HEAD修改前FAIL复现与真实BeforeStep接线。仅`combat/StoryBoss.lua`生产增量，SHA `f2a0319fb996db330556146aa0d00d629ffd4d6de24f5aba1c1de140c8caac1a`；证据`evidence/story-boss-allies-offline.json`，详细边界见`G4_OPENING_PROGRESS.md`最新条目。尚未收入旧d966包，Boss自然完整流程/画面/物理/声音仍OPEN，不重启G0。
+
 更新：2026-10-15 17:25。恢复先读CURRENT_EXECUTION；不重开G0，不重新定义范围。
 
-冻结H5基线：`2026-10-14 / 2b169a9964645f5f346a7158bcb14447f040814a`，源快照`.tmp/outgame-source-2026-10-14T10-09-50-505Z`，源哈希账本`outgame-baseline.json`。目标分支`codex/h5-2026-10-14`，已有工作区未提交内容保留。总计划为FULL_PARITY_PLAN_2026_10_14.md的138主项；本文件只登记g4_opening负责的子项，不能替代root/g3的教程、五关、Boss、片尾、公共设置及全局UI验收。
+当前冻结H5基线：`2026-10-15 / b276064942ae09c0227ec28d4cfda1d5ff006455`，源快照`.tmp/outgame-source-2026-10-15T12-35-57-243Z`，源哈希账本`outgame-baseline.json`。目标分支`codex/h5-2026-10-15`，已有工作区未提交内容保留。下方10/14及旧包报告保留历史身份，不能套用成当前通过。总计划为FULL_PARITY_PLAN_2026_10_14.md的138主项；本文件只登记g4_opening负责的子项，不能替代root/g3的五关、Boss、片尾、公共设置及全局UI验收。
+
+当前冻结增量（HEAD9541dc59）：开篇AI的reset/flip/salvo实际Lua96/96 PASS；教程16步移动hint、4步原对白覆盖及PC/触屏选择/两完整路线/skip/resume/modal重播/replay完成toast实际Lua215/215 PASS；源实际_go/touchCopy VM导入检查PASS，18原录音数据保留。证据 `intro-driver-actions-offline.json`、`tutorial-presentation-offline.json`、`tutorial-presentation-import.json`。原版移动对白与其提示/编辑器存在自身矛盾，按源分别保留；覆盖的4句没有匹配录音时不伪称有配音。根进程统一打包后仍需真实Web画面/声音/交互，本批无GPU/浏览器/原生启动，不关闭S02或A04。详见G4_OPENING_PROGRESS最新条目。
 
 最近实际自然Web包：`manifest-6d18072e.json`，QA4287，生产指纹`7c5a7f028f4eb296c767a1c8bbaaefdb0aea5a20eed6d43b85832383f2acfb58`；所有带6d测量的结论只属于它。其后Equipment/Chip/Missile精确预热、covered背景停画、simulation.dt=.05为本批待统一的新代码，不能借6d结果签收。原生检查读当前工作区，结果按各报告目录保留；下一不可变包身份由root记录。无发布/提审/提交操作。
 

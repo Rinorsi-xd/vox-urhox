@@ -39,7 +39,8 @@ function M.Dependencies(bp,levelNo)
         if keys[key] then return end;keys[key]=true
         for _,p in ipairs(require('construction.Blueprint').New():Load(assert(Arena.prefabs[key])):List()) do parts[#parts+1]=p end
     end
-    for _,step in ipairs(assert(Data.levels[levelNo]).steps) do
+    local level=assert(Data.levels[levelNo])
+    for _,step in ipairs(level.steps) do
         for _,e in ipairs(step.enemies or {}) do Include(e.role or step.role or 'assault',e.tier) end
         for _,group in ipairs({step.guards or {},step.counter or {}}) do for _,e in ipairs(group) do Include(e.role or 'assault',e.tier) end end
         for _,beat in ipairs(step.beats or {}) do for _,e in ipairs(beat.spawn or {}) do Include(e.role or 'assault',e.tier) end end
@@ -47,7 +48,10 @@ function M.Dependencies(bp,levelNo)
     local out=require('parts.Dependencies').For(parts)
     for _,path in ipairs(require('render.MissionView').Dependencies()) do out[#out+1]=path end
     for _,path in ipairs(require('render.SalvageExplosion').Dependencies()) do out[#out+1]=path end
-    for _,path in ipairs(require('audio.StoryComms').Dependencies()) do out[#out+1]=path end
+    -- S1 uses runtime fallback quotes rather than authored level.quotes.
+    local voiceScope={level=level,quotes={}}
+    for _,grade in ipairs({'S','A','B'}) do voiceScope.quotes[grade]=M.Quote({level=level,rules={grade=grade}}) end
+    for _,path in ipairs(require('audio.StoryComms').Dependencies(voiceScope)) do out[#out+1]=path end
     for _,path in ipairs(require('audio.StoryRadio').Dependencies()) do out[#out+1]=path end
     if levelNo==5 then
         for _,path in ipairs(require('combat.StoryBoss').Dependencies(bp)) do out[#out+1]=path end
@@ -71,7 +75,9 @@ function M.New(session,bp,options)
             local hit=self.world:CastRay({x,hint+up,z},{0,-1,0},160,nil);return hit and hint+up-hit.dist or hint
         end)
     end end
-    self.rules=require('story.MissionRules').New(self.level,self.convoy)
+    self.rules=require('story.MissionRules').New(self.level,self.convoy,function() return Time:GetSystemTime()/1000 end)
+    self.objective=require('ui.MissionObjective').New(session.touch)
+    self.choiceView=require('ui.MissionChoiceState').New()
     if self.convoy then self.truckTarget={passive=true,radius=4,spec={bounds={min={0,0,0},max={0,0,0}}},Position=function() return self.convoy.pos end} end
     for _,u in ipairs(self.world.units) do u:Dispose() end;self.world.units={}
     self.tier=math.max(1,math.min(3,((bp:Stats().fitTier or {id=2}).id)-1))
@@ -88,6 +94,7 @@ function M.New(session,bp,options)
     for _,pos in ipairs(self.level.setup and self.level.setup.collectors or {}) do self.view:Collector(pos,true) end
     for _,site in ipairs(self.level.setup and self.level.setup.sites or {}) do self.view:AddSite(site.id,site.pos) end
     if self.convoy then self.view:Truck(self.convoy) end
+    self.wallTimers=require('story.MissionTimers').New(self)
     return self
 end
 function M:Environment(unit,overrideScale)
@@ -153,7 +160,7 @@ function M:BeforeStep(dt,command,aim)
             local cmd,target,firing,driverInfo={throttle=0,steer=0,handbrake=true},u:Position(),false,nil
             if u==self.player then cmd=command;target=aim;firing=command.firing==true
                 if self.boss and self.boss.cinematic then cmd={throttle=0,steer=0,handbrake=true};firing=false end
-            elseif self.player.alive then
+            elseif self.player.alive or entry.target=='truck' then
                 local victim=self.player
                 if entry.target=='truck' and self.convoy then victim=self.truckTarget end
                 cmd,target,firing,driverInfo=entry.driver:Step(dt,victim)
@@ -165,13 +172,18 @@ function M:BeforeStep(dt,command,aim)
                 else self.regen=0 end
             end
             if u.alive then
-                local v=u.vehicle;v:StepRotors(target,cmd.rotorStep,dt);require('drive.RotorMotion').Weapons(v.rotors,u.weapons)
-                v:Step(cmd,dt);local p,velocity=v.body.translation(),v.body.linvel()
-                local eye=u==self.player and self.session.camera:GetNode().worldPosition or nil
-                u.weapons:Step(dt,{firing=firing,salvo=driverInfo and driverInfo.salvo,aim=target,pos={p.x,p.y,p.z},quat=v.body.rotation(),vel={velocity.x,velocity.y,velocity.z},body=v.body,team=u.team,
-                    eye=eye and {-eye.x,eye.y,eye.z}},entry.env)
-                self.session.effects:Consume(u.weapons.fx,u~=self.player);self.session.weaponAudio:Consume(u.weapons.fx,u~=self.player)
-                if p.y< -40 then u.bodyHp=0;u.kill='掉出地图';u.dirty=true;u:Flush() end
+                local v=u.vehicle
+                if u~=self.player and not self.player.alive and entry.target~='truck' then
+                    v:Step(cmd,dt);v:StepRotors(nil,nil,dt)
+                else
+                    v:StepRotors(target,cmd.rotorStep,dt);require('drive.RotorMotion').Weapons(v.rotors,u.weapons)
+                    v:Step(cmd,dt);local p,velocity=v.body.translation(),v.body.linvel()
+                    local eye=u==self.player and self.session.camera:GetNode().worldPosition or nil
+                    u.weapons:Step(dt,{firing=firing,salvo=driverInfo and driverInfo.salvo,aim=target,pos={p.x,p.y,p.z},quat=v.body.rotation(),vel={velocity.x,velocity.y,velocity.z},body=v.body,team=u.team,
+                        eye=eye and {-eye.x,eye.y,eye.z}},entry.env)
+                    self.session.effects:Consume(u.weapons.fx,u~=self.player);self.session.weaponAudio:Consume(u.weapons.fx,u~=self.player)
+                    if p.y< -40 then u.bodyHp=0;u.kill='掉出地图';u.dirty=true;u:Flush() end
+                end
             end
         end
     end
@@ -187,15 +199,26 @@ function M:Doomed(entry)
 end
 function M:CarSize()
     local u=self.player;local p=u:Position();local key=u.bp:Size()
-    if self.sizeKey==key then return self.size end
-    if not self.session.view then return {w=2,below=1.5,above=1.5} end
-    local box=self.session.view.view:GetWorldBounds()
-    if not box:Defined() then return {w=2,below=1.5,above=1.5} end
-    local a,z=box.min,box.max;local low,high={a.x,a.y,a.z},{z.x,z.y,z.z}
-    self.sizeKey=key;self.size={w=math.max(high[1]-low[1],high[3]-low[3])/2,below=math.max(1.5,p[2]-low[2]),above=math.max(1.5,high[2]-p[2])};return self.size
+    local view=self.session.view and self.session.view.view;local root=view and view.root
+    if root and self.sizeKey==key and self.sizeVis==root and self.size then return self.size end
+    self.sizeKey=key;self.sizeVis=root
+    if root then
+        local box=view:GetWorldBounds()
+        if box:Defined() then
+            local a,z=box.min,box.max
+            self.size={w=math.max(z.x-a.x,z.z-a.z)/2,below=math.max(1.5,p[2]-a.y),above=math.max(1.5,z.y-p[2])};return self.size
+        end
+    end
+    -- Until rendered bounds exist, use the source blueprint-cell fallback in metres.
+    local bb=u.bp:Stats().bb;local valid=bb and bb.minX==bb.minX and bb.minX~=math.huge and bb.minX~=-math.huge
+    local cell=require('Config').CELL;local h=valid and (bb.maxY-bb.minY+1)*cell/2 or 1.5
+    self.sizeVis=nil
+    self.size={w=valid and math.max(bb.maxX-bb.minX,bb.maxZ-bb.minZ)*cell/2 or 2,below=h,above=h};return self.size
 end
 function M:AfterStep(dt)
-    for i=#self.entries,2,-1 do local entry=self.entries[i];local u=entry.unit
+    -- Preserve the source Map's spawn order, including simultaneous kills and flee dialogue.
+    local i=2
+    while i<=#self.entries do local entry=self.entries[i];local u=entry.unit
         local fleeing=entry.flee and u.alive and (entry.mustFlee or u:Integrity()<entry.flee)
         if not u.alive or fleeing then
             if fleeing then
@@ -213,7 +236,7 @@ function M:AfterStep(dt)
             u:Dispose();table.remove(self.entries,i)
             for j=#self.world.units,1,-1 do if self.world.units[j]==u then table.remove(self.world.units,j) end end
             if self.session.hud then for j=#self.session.hud.overlay.tags,1,-1 do if self.session.hud.overlay.tags[j].unit==u then table.remove(self.session.hud.overlay.tags,j) end end end
-        end
+        else i=i+1 end
     end
     local u=self.player
     local enemyPositions=self.enemyPositions;for i=#enemyPositions,1,-1 do enemyPositions[i]=nil end
@@ -230,7 +253,10 @@ end
 function M:Events()
     for _,e in ipairs(self.rules:Drain()) do
         if e.type=='begin' then self:Banner('剧情模式 · 任务 '..self.level.no,self.level.name,self.level.en..' · '..(self.level.place or '坠舰陨坑')..' · '..(self.level.tagline or 'CV-07 ARGUS'),'',4200)
-        elseif e.type=='objective' then self.voice:Say(e.step.start);self.view:Objective(e.step,self.rules:Target())
+        elseif e.type=='objective' then
+            if self.choiceView then self.choiceView:Cancel() end
+            if self.objective then self.objective:Objective(e.step,e.index,#self.level.steps) end
+            self.voice:Say(e.step.start);self.view:Objective(e.step,self.rules:Target())
             if e.step.kind=='boss' and not self.boss then self.boss=require('combat.StoryBoss').New(self,e.step);self.view:HideBeacon() end
         elseif e.type=='objectiveDone' then self.voice:Say(e.lines);if e.step.id=='exit' then self.view:AlarmOff() end
         elseif e.type=='intel' then self.radio:Play('pickup');self.view:TakeIntel(e.id);self.intelCard={item=e.item,untilAt=self.rules.time+8}
@@ -250,29 +276,36 @@ function M:Events()
         elseif e.type=='hideBeacon' then self.view:HideBeacon()
         elseif e.type=='siteCaptured' then self.view:SiteCaptured(e.id);local site=self.view.sites[e.id];if site then local p=site.flag.root.position;require('render.StoryStomp').Emit(self.session.effects,{-p.x,p.y,p.z},.6) end
         elseif e.type=='scrub' then self.radio:Play('pickup');self.view:Scrub(e.id)
-        elseif e.type=='radio' then self.radio:Play(e.cue)
-        elseif e.type=='choice' then self.radio:Play('open')
+        elseif e.type=='radio' then
+            if self.choiceView and e.choice then self.choiceView:Pick(e.choice,e.index) end
+            self.radio:Play(e.cue)
+        elseif e.type=='choice' then
+            if self.choiceView then self.choiceView:Open(e.choice or self.rules.choice) end
+            self.radio:Play('open')
         elseif e.type=='heal' then self.player:Heal(e.fraction)
         elseif e.type=='restore' then self.player:RestoreMissing(e.count);self.player:Flush()
         elseif e.type=='place' then if self.player.alive then self:Place(e.at) end
         elseif e.type=='banner' then self:Banner(e.kick or '',e.title,e.sub,e.kind,e.ms)
         elseif e.type=='truckHit' then self.view.truck.hitAt=self.view.time
-        elseif e.type=='fight' then self.radio:Play('alert');self:Spawn(e.step);self.voice:Say(e.step.alert,true);self.view:HideBeacon()
+        elseif e.type=='fight' then self.radio:Play('alert');self:Spawn({enemies=e.step.enemies,role=e.step.role,name=e.step.name,tag=e.step.id});self.voice:Say(e.step.alert,true);self.view:HideBeacon()
             self:Banner('遭遇敌人','海盗侦察队',#(e.step.enemies or {})..' 艘侦察艇 · 狐狐海盗团','enemy',2800)
         elseif e.type=='clear' then if e.timeout then self:ClearEnemies() end;self.view:AddIntel('log',e.pos)
         elseif e.type=='dead' then self.session.controls:Clear()
         elseif e.type=='respawn' then self.radio:Play('drop');self.player:Spawn();self:Place(e.at);self.regen=0;self.sizeKey=nil;self.voice:Say(self.level.respawn,true)
         elseif e.type=='complete' then self.radio:Play('done');self:ClearEnemies();self.view:Objective(nil,nil)
+            if self.choiceView then self.choiceView:Cancel() end
+            if self.objective then self.objective:Done() end
             self:Banner('任务 '..self.level.no..' · '..self.level.name,'任务完成','MISSION COMPLETE','ok',5200)
         elseif e.type=='result' then
-            self.radio:Play('done')
+            self.voice:PrepareResultQuote(self:Quote())
             self.session:Pause();local store=self.session.app.store
             local valid=function(d) return type(d)=='table' end;local progress=store:Read('story-progress',valid) or {};local old=progress[self.level.id]
-            local rank={S=3,A=2,B=1};self.newBest=not old or (rank[e.grade] or 0)>(rank[old.grade] or 0)
+            local rank={S=3,A=2,B=1};self.newBest=not old or e.time<(old.time or math.huge) or (rank[e.grade] or 0)>(rank[old.grade] or 0)
             progress[self.level.id]={grade=old and (rank[old.grade] or 0)>=(rank[e.grade] or 0) and old.grade or e.grade,time=math.min(old and old.time or math.huge,e.time),clears=(old and old.clears or 0)+1}
             self.saved,self.saveError=store:Write('story-progress',progress,valid)
         end
     end
+    if self.objective and self.player.alive and self.rules.retitle then self.objective:Retitle(self.rules.retitle) end
 end
 function M:StartEpilogue(root,onDone)
     if self.epilogue then return true end
@@ -280,9 +313,9 @@ function M:StartEpilogue(root,onDone)
     local store=self.session.app.store;local valid=function(d) return type(d)=='table' end
     local progress=store:Read('story-progress',valid) or {};local version=self.level.epilogue.version
     if (tonumber(progress.epilogue) or 0)>=version then return false end
+    progress.epilogue=version
+    self.epilogueSaved,self.epilogueSaveError=store:Write('story-progress',progress,valid)
     self.epilogue=require('ui.Epilogue').Attach(self.session.scene,root,function()
-        local saved=store:Read('story-progress',valid) or {};saved.epilogue=version
-        self.epilogueSaved,self.epilogueSaveError=store:Write('story-progress',saved,valid)
         self.epilogue=nil;if onDone then onDone() end
     end,self.boss and self.boss.shots)
     return true
@@ -292,7 +325,10 @@ function M:Update(dt)
     self.radio:Update(dt,self.session:HasFocus())
     if self.epilogue then self.epilogue:Update(dt,self.session:HasFocus());return end
     if not self.rules.finished then self.explosion:Update(dt,self.session.camera:GetNode(),self.player:Position()) end
-    self.voice:Update(dt,self.session:HasFocus());if self.boss and self.session:HasFocus() then self.boss:Update(dt) end
+    self.voice:Update(dt,self.session:HasFocus())
+    local title=self.rules.retitle
+    if self.boss and self.session:HasFocus() then self.boss:Update(dt) end
+    if self.objective and self.rules.retitle and self.rules.retitle~=title then self.objective:Retitle(self.rules.retitle) end
 end
 function M:Quote()
     return (self.level.quotes or {S='干得漂亮。公司说下次可以考虑给你报销油费。……只是考虑。',A='还行。车有点花，但人没事。',B='活着回来就好。零件损失我先帮你瞒着。'})[self.rules.grade] or ''
@@ -308,6 +344,9 @@ function M:Snapshot()
 end
 function M:Dispose()
     if self.disposed then return end;self.disposed=true
+    if self.wallTimers then self.wallTimers:Dispose();self.wallTimers=nil end
+    if self.objective then self.objective:Dispose();self.objective=nil end
+    if self.choiceView then self.choiceView:Dispose();self.choiceView=nil end
     if self.spawnSpecCache then self.spawnSpecCache:Dispose();self.spawnSpecCache=nil end
     if self.epilogue then self.epilogue:Dispose();self.epilogue=nil end
     if self.boss then self.boss:Dispose() end

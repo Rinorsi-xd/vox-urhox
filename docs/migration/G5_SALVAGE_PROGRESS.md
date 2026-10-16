@@ -2,6 +2,25 @@
 
 ## 当前接续位置
 
+- **10/16 源功能批已冻结、待统一包**：实际补齐清据点原光柱/绿提示、警觉提示原原因/存活数/颜色与调用时序、空投青柱/姓名卡/原feed、击毁与死亡、落地/保护结束提示；保险库破解/开门及空投接原3个WAV，按原强度/gap和AudioLevels路由，预取/静音/焦点/暂停/释放齐备。50源场景→实际Lua104检查、6负控PASS，547/675/29/92旧专项按最终SHA重跑PASS。无GPU/打包/上传；详见`G5_ENCOUNTER_FEEDBACK_2026_10_16.md`，不签最终画面/试听或自然完整搜撤。
+- **自然路线QA定位**：旧14f最后93条真实采样前约7秒确实近乎静止，原障碍/净空待查；后段旧best-ever距离检测又在正常行驶中反复倒退，属工具错误，已改持续实际位移检测。历史回放倒退22条→6条，原自然FAIL与成功撤离OPEN均保留。新工具语法/恢复控制通过，尚无新GPU路线，地图物理与生命/时钟/货物均未改。
+
+- **本批增量已收入046统一包**：`manifest-046debe2.json` /483Lua，源身份仍b276。无尽同包29项真实Web通过、错误0，但搜撤成功/900秒超时没有执行，不能用无尽结果代签；详见`G5_ENDLESS_PROGRESS.md`。先前“未入4227”只是历史身份，当前撤离接应/绿色feed/信号塔卡的自然Web验收仍OPEN。无提交上传。
+
+- **10/16 4227后功能增量：撤离接应/提示547项源对照PASS**。源b276 `salvageRun.update`重进撤离圈按`exLeft`剩余秒数接应，迁移此前动画固定原exit.wait；现Rules保存扣dt前的approachWait并发事件，实际Run/Cinematics接剩余时间，仍源3–6秒限幅。补原“撤离中”绿色feed和信号塔首次3秒NameCard，不重复追兵/警报；Feed颜色现贯穿到Hud。547检查中含70实际源更新帧/48接应机位及无尽28死亡等待入口；675保险库/92拾取/29结算均按最终SHA重跑PASS。细节与SHA `G5_EXTRACTION_2026_10_16.md`、证据`evidence/g5-extraction-offline.json`。本增量不属于4227；无GPU/构建/提交上传，自然成功搜撤/账号/手机仍OPEN。
+
+- **保险库最终冻结补正：675/675 PASS，取代下条616的入口边界**。legacy独立发现原实际入口用`Vehicle.speed`前向投影，横滑会误判停稳；b276 `update:972–973`实际用相邻XZ位移/max(.001,dt)。已在生产`Run.AfterStep`修正，首有效采样按源速度0、只Y移动忽略、暂停/换车/复位保留前位置，不更改2m/s阈值。新工具执行未改写冻结JS`update`与生产Lua`AfterStep`，实际位置输入15帧/59项核侧移/倒车/恰好2/首落地/0dt/亚ms/暂停恢复/重建/finished；加原616合计675PASS，物理为适配器，非真Bullet滑行。最终Run SHA `bc7e42f77ddf1adacb9620e183f07f69b8798e392b07c62eb5a971e778611082`，Rules SHA `8e2e2f4fbe310a00ba12b2d90f7d0bf7ebb813cddeb2394024ea1e9ca0aa6355`。92拾取/29结算已在此最终SHA再次实跑并刷新报告，交legacy独立复核/纳下一统一包；不属于e1fc、无GPU。
+
+- **接续生产 L02/L07：b276保险库破解反馈已冻结，616/616离线PASS**。`salvageRun.js:335–344`首次有效按住给3秒“舰载保险库 · 破解中”警报，保持进度后8秒完成，按箱内最高稀有度打光柱、闪屏alpha=.2/duration=.4、镜头trauma至少.3。原迁移只有heat/noise/hunt，现`RunRules`发`vaultStart/vaultOpened`，`Run.Events`接既有Cinematics/SalvageFx和TrialSession已消费的trauma。不改共享相机/物理；不猜测音效。新工具直接执行未改写冻结JS `_searchStep`及生产Lua两方法，14场景126帧核0–5最高稀有度/空箱、速度2边界、松手中断/重新打开、恰好8秒及完成后再进、已有.8震动保留、警报与追兵/开门顺序，616项PASS；既有92项拾取和29项结算复验PASS。证据 `evidence/salvage-vault-offline.json`，功能边界详见`G5_VAULT_2026_10_16.md`。当前生产不属于e1fc包，真实Web/原生最终画面/自然完整搜撤/音效/真机仍OPEN。无GPU、提交或上传。
+
+- **接续功能批：结算净货物一致性已冻结，29/29 离线 PASS**。源 b276 `salvageRun.js:523-537` 会先从 cargo 扣一件撤离通行货物，再以净 cargo 形成结果/入库；`shared/ui/salvageRunHud.js:411-418` 只展示结果物品。迁移 `Run:Finish` 原仅在临时副本扣票，局内 `rules.cargo` 留着票，`SalvageRunHud.Result` 又取 10Hz 的 `run.hudCargo`，导致结算画出已付票或漏掉刷新间隔内的新货。现 Finish 同步已结束货舱为保留的净结果 cargo，失败清空货舱（仍先记录原损失），结果清单/空状态/滚动高度直接取 result.cargo；存档失败保留同一净结果，重复保存/返回不再扣票。新工具 `tools/migration/check-g5-result.py` 执行实际 Run.Finish/Commit、Lobby.CommitRun、StashRules.Valid、Result UI 树和按钮，**29/29 PASS**，源两文件 SHA 核 b276；覆盖一票清空、多票只扣一、陈旧99件HUD、死亡/放弃零入库、失败存档整对象回滚与按钮多次重试幂等。证据 `evidence/g5-result-offline.json`。UI/存储是替身，不代签账号、Web/native画面或真机；本批没有GPU运行、提交或上传。该新增生产不属于旧8d1859cd/2c911f96包。
+
+- **10/15 23:22 同包 native 冷启动未完成，GPU 已释放**：已实际运行冻结 `manifest-2c911f96` / `.tmp/outgame-cached-1792077192303`，本批七个生产输入 SHA 与快照全等；真实引擎日志确认该 manifest。首次机库渲染持续卡 frame752 编译 Surface pixel variants，多条单变体约 23–26 秒。240 秒引擎截止因帧阻塞未退出，255 秒外层 deadline 杀本次进程，进程复查为零；未执行 G5 fixture 断言、无 PNG 或 validation.json，不能签功能或画面对照 PASS。保留 `evidence/g5-increment-manifest-2c911f96-2026-10-15T15-18-14-265Z/{identity,timeout}.json` 与 stdout/stderr；启动 stderr 两条为 `Cube/Day/DaySpecularHDR.dds` 缺资源、`themis_x64.dll` 不能加载。未改生产、未延长截止或重跑，已把 GPU 交回页面验收。92 项离线证据与本次冷启动 FAIL 分开。
+
+- **10/15 b276 拾取反馈生产已冻结，待 root 同包验证**：对照 `salvageRun.js:263-270,386-452`，补 `RunRules` 的实际入仓批次事件与换货丢弃事件，`Run.Events` 按实际成功入仓质量给既有 `session.stompV` 一次下沉（`min(1.6,.25+kg/40)`）。换货图标立即从中央飞入、显示准确丢弃清单；残骸一批最多六种货按 260+110i ms 依次飞入，不重复当成搜箱揭示。保持真实 `Loot.Swap` 交易与玩家 Y-0.8m 原地可再搜货箱。`check-g5-edit-touch.py` 现 **92/92 PASS**，新增 22 项执行真实 Loot/RunRules/Run/SalvageLootMotion 与实际 Outgame/RunData 数据，含满400废金属→丢20换2合金→重新搜回20、无可换货不假反馈、单批质量上限与缺省 spring 保护。证据 `evidence/g5-edit-touch-offline.json`；仅 Lua 离线检查，UI/native替身，不代签最终渲染、移动端真机或自然撤离。未开启运行实例、未提交或上传。
+
+- **10/15 功能接续**：冻结 b276 的 `three/src/salvage/salvageRun.js:1042-1043` 明确提供 `touchPrompt`（过滤 blocked）和 `touchSwap`（搜索中存在 full 项）。迁移 `TouchDriveControls` 已消费 `touchSwap`，但生产 Run 从未赋值，导致手机满仓没有换货键。现 `Run:TouchContext()` 在实际 AfterStep 更新两字段，行动结束清空，保留真实 F 换货规则。`check-g5-edit-touch.py` **70/70 PASS** 中含 8 个搜索/阻挡/结束组合及完成后旧情境键清理，源 SHA 核 b276；共享触控层 prompt 消费由 root 接线。只验证生产 Lua 与控制替身，未启动 native/Web/GPU，真实手机满仓换货待同包复验。未改货舱容量/价格/库存/地图/敌人。
+
 - **17:27 已冻结**：`Run.Dependencies` 最终窄优化后 **198/198功能PASS，Lua/资源0**，证据 `evidence/salvage-resources-2026-10-15T09-26-06-579Z/`。8140原行按解析器实际读取的`type/rot`合并58项，已有`FromBlueprint`产生同一213种敌池资产；实际进场1470行完整，48车逐一对旧完整蓝图集合相等且实际Bullet/PartRig消费/释放通过。单独Run依赖26ms、真实入口callback239ms；前一raw未先去重版同callback3396ms，仅同机原生测量，不能代签Web/真机。71条100ms尖峰、最大567.584ms令整体仍FAIL（含旧路径对比与实际建车），不把功能PASS写成性能PASS。最终`Run.lua` SHA256 `08789c85453f6a7c8760033174825f6ca69584891d77ce374fce4bc35c277d33`，已交root统一包，不再启动长自然路线。
 - **17:16 最新状态**：本路真实入口资源与全部48原敌车的创建/消费/释放 **149/149功能PASS，Lua/资源0**；34个100ms尖峰使整体FAIL。旧11e3自然搜撤仍因`kite/hover3`模型漏下载FAIL，root已补实际入口`salvage.Run`资源挂钩；自然成功撤离/900秒/真实账号/手机性能仍OPEN。当前只待g4独占PCM结束，运行新的raw依赖集合等价+真实callback计时短检，然后进入root第四统一包自然搜撤，不重跑G0。
 

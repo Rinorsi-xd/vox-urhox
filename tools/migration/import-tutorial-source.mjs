@@ -26,4 +26,5 @@ for(const step of TUTORIAL)for(const line of step.lines){
 const data={voices,source:{branch:baseline.branch,commit:baseline.commit,scriptSha256:createHash('sha256').update(fs.readFileSync(file)).digest('hex')},
  steps:TUTORIAL.map(s=>({...s,until:s.until?s.id:undefined,begin:s.begin?'partCount':undefined,hide:s.hide?'drive':undefined})),flows:FLOWS};
 fs.writeFileSync(path.join(root,'assets/UI/Tutorial.json'),JSON.stringify(data));
+execFileSync(process.execPath,['--experimental-vm-modules',path.join(root,'tools/migration/import-tutorial-presentation.mjs')],{windowsHide:true,stdio:'inherit'});
 console.log(JSON.stringify({steps:data.steps.length,voices:Object.keys(voices).length,flows:Object.keys(FLOWS),source:data.source}));

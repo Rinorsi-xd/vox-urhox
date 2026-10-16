@@ -5,7 +5,7 @@ local Coord=require 'core.Coord'
 local M={};M.__index=M
 function M.New(scene)
     local self=setmetatable({},M);self.root=scene:CreateChild('SniperAimLines')
-    self.mesh=self.root:CreateComponent('CustomGeometry');self.mesh.dynamic=true;self.mesh.castShadows=false
+    self.mesh=self.root:CreateComponent('CustomGeometry');self.mesh.dynamic=true;self.mesh.castShadows=false;self.mesh.enabled=false
     self.material=Material:new();assert(self.material:SetSurfaceShader('Shaders/BLGL/AimLine.shader'));self.mesh.material=self.material;self.material.renderOrder=147
     self.glow=Batch.New(self.root,'Glow',256,'Shaders/BLGL/Combat/');return self
 end
@@ -28,17 +28,26 @@ function M:Draw(pos,dir,hit,len,enemy,k,wind,camera,time)
         local size=math.max(.06,V.Length(V.Sub(hit.point,camera))*.0012*2.5)*(1+wind)*2
         self.glow:Disc(hit.point,size,style.color,style.opacity,self.right,self.up)
     end
-    self.glow:Disc(pos,style.glowSize,style.color,style.glowOpacity,self.right,self.up)
+    self.glow:Disc(pos,style.glowSize,style.color,style.glowOpacity,self.right,self.up,nil,2)
 end
 function M:Update(units,me,cast,camera,time)
     local node=camera:GetNode();local p=node.worldPosition;local pos={-p.x,p.y,p.z}
     local function Source(v) return {-v.x,v.y,v.z} end
     self.right=Source(node.worldRotation*Vector3.RIGHT);self.up=Source(node.worldRotation*Vector3.UP);self.forward=Source(node.worldRotation*Vector3.FORWARD)
-    self.fov=camera.fov*math.pi/180;self.near=camera.nearClip;self.height=math.max(1,graphics:GetHeight())
+    -- H5 LineMaterial.resolution uses CSS pixels, including on high-DPI phones.
+    self.fov=camera.fov*math.pi/180;self.near=camera.nearClip;self.height=math.max(1,graphics:GetHeight()/graphics:GetDPR())
     self.count=0;self.mesh:BeginGeometry(0,TRIANGLE_LIST);self.glow:Begin(pos,time)
     local warnings=Rules.Scan(units,me,cast,pos,time,function(...) self:Draw(...) end)
     self.mesh.enabled=self.count>0;if self.count>0 then self.mesh:Commit() end;self.glow:Finish();return warnings
 end
 function M:Hide() self.mesh.enabled=false;self.glow.mesh.enabled=false end
+function M:Warmup(camera,time)
+    self:Update({},nil,nil,camera,time)
+    local p=camera:GetNode().worldPosition;local eye={-p.x,p.y,p.z}
+    local start=V.Add(V.Add(eye,V.Scale(self.forward,8)),V.Scale(self.right,-2))
+    local hit={point=V.Add(start,V.Scale(self.right,4))}
+    self:Draw(start,self.right,hit,4,true,1,1,eye,time)
+    self.mesh.enabled=true;self.mesh:Commit();self.glow:Finish()
+end
 function M:Dispose() self.glow:Dispose();self.root:Dispose();self.material:Dispose() end
 return M

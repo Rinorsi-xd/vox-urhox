@@ -2,7 +2,6 @@ local Data=require 'combat.ArenaData'
 local BP=require 'construction.Blueprint'
 local Unit=require 'combat.CarUnit'
 local Driver=require 'combat.EnemyDriver'
-local V=require 'core.Math3'
 local M={};M.__index=M
 function M.Dependencies(bp,roster,mode)
     local tier=(bp:Stats().fitTier or {id=5}).id;local parts={}
@@ -22,7 +21,7 @@ function M.Dependencies(bp,roster,mode)
     for _,team in ipairs({'blue','red'}) do for _,member in ipairs(roster[team]) do paths[#paths+1]='UI/Avatars/'..member.avatar..'.jpg' end end
     if fallback then for i=2,11 do paths[#paths+1]=string.format('UI/Avatars/a%02d.jpg',i) end end
     for i=1,13 do paths[#paths+1]=string.format('Sounds/Match/m%02d.wav',i) end
-    for _,face in ipairs({'nono_smile','nono_deadpan','nono_talk'}) do paths[#paths+1]='UI/Faces/'..face..'.png' end
+    for _,face in ipairs({'smile','deadpan','talk'}) do paths[#paths+1]=require('ui.CommsPortrait').Path('nono',face) end
     return paths
 end
 function M.New(session,bp,checkpoint)
@@ -30,7 +29,8 @@ function M.New(session,bp,checkpoint)
     self.mode=session.map.battleMode or 'elimination'
     self.baseDamage=self.world.RecordDamage;self.baseKill=self.world.RecordKill
     session.battle=self;session.combat=self
-    self.sounds=require('audio.BattleFlow').New();self.sounds:Prepare(false)
+    self.sounds=require('audio.BattleFlow').New()
+    self.sounds:Prepare(false,function() if checkpoint then checkpoint(0) end end)
     self.objectives=require('combat.BattleObjectives').New(self,self.mode);self.rules=self.objectives:Rules()
     self.voice=require('audio.MatchVoice').New(self)
     self.tier=(bp:Stats().fitTier or {id=5}).id;self.banner=nil;self.stats={};self.lastHit={};self.clock=0
@@ -113,12 +113,8 @@ function M:SpawnAt(team,slot)
     end
     return {pos={x,y,z},yaw=team=='blue' and 0 or math.pi}
 end
-function M:Pick(unit)
-    local p=unit:Position();local best=false;local score=math.huge
-    for _,other in ipairs(self.entries) do local enemy=other.unit
-        if enemy.alive and enemy.team~=unit.team and not self.objectives:Ignore(enemy) then local distance=V.Length(V.Sub(enemy:Position(),p));if distance<score then best=enemy;score=distance end end
-    end
-    return best
+function M:Pick(entry)
+    return require('combat.MatchTarget').Pick(self,entry)
 end
 function M:BeforeStep(dt,command,aim)
     local live=self.rules.state=='live'
@@ -135,7 +131,10 @@ function M:BeforeStep(dt,command,aim)
                 u.repairing=false
                 u:RegenerateStructure(dt)
                 if u==self.player then cmd=command;firing=command.firing==true
-                else cmd,target,firing,driverInfo=entry.driver:Step(dt,self.objectives:Goal(entry,self:Pick(u)),self.rules.sudden or self.mode=='elimination' and self.rules.t>40) end
+                else
+                    local goal,charge=self.objectives:Goal(entry,self:Pick(entry))
+                    cmd,target,firing,driverInfo=entry.driver:Step(dt,goal,charge)
+                end
                 self.objectives:UnitTick(entry,dt)
             end
             u:Flush()
@@ -168,6 +167,7 @@ function M:AfterStep(dt)
         self.voice:Event(event)
         self.objectives:Event(event)
         if event.type=='roundPrep' and event.round>1 or event.type=='halfPrep' and event.half>1 then
+            self.spectate=0
             self.world.debris:Clear()
             self.lastHit={}
             for i,e in ipairs(self.entries) do

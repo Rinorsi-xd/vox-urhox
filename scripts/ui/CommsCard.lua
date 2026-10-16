@@ -2,7 +2,8 @@
 local D=require 'ui.SourceDraw'
 local F=require 'ui.CommsFrame'
 local Paragraph=require 'ui.SourceParagraph'
-local Paint=require 'ui.WorkshopPaint'
+local Images=require 'urhox-libs/UI/Core/ImageCache'
+local PortraitLayout=require 'ui.CommsPortraitLayout'
 local M={}
 local styles={
     nono={name='诺诺',role='战术领航员',tab='INCOMING',channel='CH-07 · 加密频道',foot='CH-07 · 64 KBPS · ENC',
@@ -45,14 +46,22 @@ local function Background(vg,w,h,portrait,style)
     if not handle then handle=nvgCreateImage(vg,'UI/Comms/dots.png',NVG_IMAGE_REPEATX|NVG_IMAGE_REPEATY);assert(handle>0,'Comms dot texture unavailable');contexts[vg]=handle end
     F.Shape(vg,w,h,portrait);nvgFillPaint(vg,nvgImagePatternTinted(vg,0,0,5,5,0,handle,portrait and nvgRGBA(style.color[1],style.color[2],style.color[3],31) or nvgRGBA(255,255,255,13)));nvgFill(vg)
 end
-local function Truck(vg,time,color)
-    nvgSave(vg);nvgTranslate(vg,22,40-4*(.5-.5*math.cos(time*math.pi*2/1.6)));nvgScale(vg,1.65,1.65)
+local function Truck(vg,time,color,height)
+    local x,y,scale=PortraitLayout.Emblem(height)
+    nvgSave(vg);nvgTranslate(vg,x,y-4*(.5-.5*math.cos(time*math.pi*2/1.6)));nvgScale(vg,scale,scale)
     for _,points in ipairs({{4,18,36,18,36,42,4,42},{36,26,50,26,60,36,60,42,36,42}}) do
         D.Path(vg,points);nvgFillColor(vg,nvgRGBA(color[1],color[2],color[3],41));nvgFill(vg);nvgStrokeColor(vg,D.Color(color));nvgStrokeWidth(vg,2.5);nvgStroke(vg)
     end
     for _,cx in ipairs({14,48}) do nvgBeginPath(vg);nvgCircle(vg,cx,46,5);nvgStrokeWidth(vg,3);nvgStroke(vg) end
     for _,l in ipairs({{12,28,18,28},{22,28,28,28},{12,34,28,34}}) do D.Line(vg,l[1],l[2],l[3],l[4],color,3) end
     nvgRestore(vg)
+end
+local function PortraitImage(vg,path,rect,top)
+    local handle=Images.Get(path);if not handle or handle<=0 then return end
+    local width,height=Images.GetSize(path);if width<=0 or height<=0 then return end
+    local image=PortraitLayout.Contain(rect,width,height,top)
+    nvgBeginPath(vg);nvgRect(vg,image.x,image.y,image.w,image.h)
+    nvgFillPaint(vg,nvgImagePattern(vg,image.x,image.y,image.w,image.h,0,handle,1));nvgFill(vg)
 end
 -- Invert the source cubic-bezier(.16,1,.3,1) without a per-frame allocation.
 local function Reveal(age)
@@ -74,16 +83,16 @@ function M.Draw(vg,card,x,y,width,height,scale,time,portraitHeight)
         Background(vg,pw,ph,portrait,style)
         if portrait then
             nvgSave(vg);nvgIntersectScissor(vg,0,0,150,ph)
-            if who=='yun' then Truck(vg,time,style.color)
+            if who=='yun' then Truck(vg,time,style.color,ph)
             else
                 local face=card.face or (who=='huhu' and 'huhu_talk' or who=='boss' and 'chairman' or 'nono_talk')
-                local r=who=='huhu' and {x=-3,y=-16,w=156,h=195} or who=='boss' and {x=-4,y=2,w=158,h=196} or {x=-70,y=-2,w=330,h=410}
+                local r=PortraitLayout.Rect(who)
                 if who=='nono' or who=='huhu' then
                     if not portraits[who] then portraits[who]=require('ui.CommsPortrait').New(who) end
                     local talking=not card.finishedTyping and card.age<card.typing+(card.lead or 0) or card.speakEnd and card.age<card.speakEnd
                     if portraits[who]:Prepare(time,face,talking) then portraits[who]:Draw(vg,r)
-                    else Paint.Image(vg,'UI/Faces/'..face..'.png',r,1,1,nil,nil,.5) end
-                else Paint.Image(vg,card.portraitPath or ('UI/Faces/'..face..'.png'),r,1,0,nil,nil,.5) end
+                    else PortraitImage(vg,require('ui.CommsPortrait').Path(who,face),r,false) end
+                else PortraitImage(vg,card.portraitPath or 'Story/Boss/chairman_cut.png',r,true) end
             end
             local offset=who=='huhu' and math.floor(time/.25)*2%6 or who=='boss' and math.floor(time/.5)*2%6 or 0
             for yy=3,ph,3 do D.Rect(vg,0,yy+offset,150,1,who=='boss' and {0,0,0,82} or {style.color[1],style.color[2],style.color[3],18}) end
@@ -123,6 +132,16 @@ function M.Tick()
     for _,portrait in pairs(portraits) do portrait:Queue() end
 end
 function M.GetPortrait(who) return portraits[who] end
+function M.AdoptPortrait(portrait,context)
+    if not portrait or portrait.disposed or portrait.who~='nono' or not context or Images.GetContext()~=context then return false end
+    if portraits.nono==portrait then return true end
+    if not portrait.ready or not portrait.images[context] or #portrait.textures~=2 or #portrait.materials~=2
+        or not portrait.faces.talk or not portrait.faces.smile or not portrait.faces.deadpan then return false end
+    portrait:ResetPresentation()
+    local previous=portraits.nono;portraits.nono=portrait
+    if previous then previous:Dispose() end
+    return true
+end
 function M.Dispose()
     for _,portrait in pairs(portraits) do portrait:Dispose() end;portraits={}
     for vg,image in pairs(contexts) do nvgDeleteImage(vg,image) end

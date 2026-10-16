@@ -27,6 +27,7 @@ const evidence=path.join(root,'docs/migration/evidence');fs.mkdirSync(evidence,{
   });
   fs.writeFileSync(path.join(root,'assets/UI/Workshop.json'),JSON.stringify(metadata.workshop));
   fs.writeFileSync(path.join(root,'assets/UI/Outgame.json'),JSON.stringify(metadata.pages));
+  require('node:child_process').execFileSync(process.execPath,[path.join(__dirname,'workshop-source-items.mjs'),'--write'],{stdio:'inherit'});
   await page.screenshot({path:path.join(evidence,'source-home-'+sourceTag+'.png')});
   console.log(await page.locator('body').innerText().then(x=>x.slice(0,400)));
   const tab=page.locator('.home-tabs button').filter({hasText:'创意工坊'});if(await tab.count())await tab.click();

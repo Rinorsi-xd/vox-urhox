@@ -1,0 +1,77 @@
+{
+  "baseline": "b276064942ae09c0227ec28d4cfda1d5ff006455",
+  "cues": {
+    "press": {
+      "path": "Sounds/UI/press_a.wav",
+      "gain": 0.1,
+      "gap": 0.085,
+      "source": "shared/assets/audio/ui-click-r2/press_a.wav",
+      "sha256": "4c222a3077d706e5047cf44ab19e7cdfcd9809446e5a1478a8193659b685923f",
+      "bytes": 5804
+    },
+    "open": {
+      "path": "Sounds/UI/open_a.wav",
+      "gain": 0.32,
+      "gap": 0.12,
+      "source": "shared/assets/audio/workshop-01/open_a.wav",
+      "sha256": "51f54dc067d0ada5094a8981ad661d764accd46256c7d37d5cf7891af8c59062",
+      "bytes": 36524
+    },
+    "place": {
+      "path": "Sounds/UI/place_b.wav",
+      "gain": 0.2,
+      "gap": 0.065,
+      "source": "shared/assets/audio/build-soft-r2/place_b.wav",
+      "sha256": "e2796c464e1c480beac9dbec494d72cb495d07267fd42650e928b1f6ad65d5cc",
+      "bytes": 8204
+    },
+    "remove": {
+      "path": "Sounds/UI/remove_b.wav",
+      "gain": 0.16,
+      "gap": 0.065,
+      "source": "shared/assets/audio/build-soft-r2/remove_b.wav",
+      "sha256": "e2f239aec81e77fad99294bc3ea21d3a86a9f996a23debca7e0f6ad10d2f0a2f",
+      "bytes": 7244
+    },
+    "paint": {
+      "path": "Sounds/UI/paint_a.wav",
+      "gain": 0.28,
+      "gap": 0.06,
+      "source": "shared/assets/audio/workshop-01/paint_a.wav",
+      "sha256": "019e8d44f00d72e2dcf3577272b3a9fb14f2c583c01d095bda1b972d580e73ea",
+      "bytes": 16364
+    },
+    "whoosh": {
+      "path": "Sounds/UI/whoosh_b.wav",
+      "gain": 0.24,
+      "gap": 0.12,
+      "source": "shared/assets/audio/hangar-02/whoosh_b.wav",
+      "sha256": "7b4d0138807fda2c728600822b80813ad555ba94291e551ea3229dec0b95904c",
+      "bytes": 51586
+    },
+    "confirm": {
+      "path": "Sounds/UI/confirm_b.wav",
+      "gain": 0.24,
+      "gap": 0.1,
+      "source": "shared/assets/audio/hangar-02/confirm_b.wav",
+      "sha256": "53d9117da6dae085e0df2f228ae02ba4a2f264ad9fe1b11d0aedc7188668e30a",
+      "bytes": 52466
+    },
+    "error": {
+      "path": "Sounds/UI/error_a.wav",
+      "gain": 0.25,
+      "gap": 0.15,
+      "source": "shared/assets/audio/hangar-02/error_a.wav",
+      "sha256": "2439690f721da08063c12bc93f35d6d2a3915a78406fbd8a09dd01f6242895aa",
+      "bytes": 45946
+    },
+    "stamp": {
+      "path": "Sounds/UI/stamp_a.wav",
+      "gain": 0.44,
+      "gap": 0.15,
+      "source": "shared/assets/audio/hangar-02/stamp_a.wav",
+      "sha256": "bf30c5a4130956cd7f15fc94bb3b7a8755d1630468732c856442dd8466f00de3",
+      "bytes": 24520
+    }
+  }
+}

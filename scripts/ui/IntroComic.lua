@@ -1,19 +1,14 @@
 -- Source actVirtues: panels persist, each entry/layer keeps its own clock.
 local D=require 'ui.SourceDraw'
+local Opacity=require 'ui.IntroOpacity'
+local nvgGlobalAlpha=Opacity.Set
 local Images=require 'urhox-libs/UI/Core/ImageCache'
 local M={}
+local Motion=require 'ui.IntroComicMotion'
 local function Dots(page,vg,path,points,x,y,size)
  page.comicPatterns=page.comicPatterns or {};local handle=page.comicPatterns[path]
  if not handle then handle=nvgCreateImage(vg,path,NVG_IMAGE_REPEATX|NVG_IMAGE_REPEATY);assert(handle>0,'Original comic CSS tile unavailable: '..path);page.comicPatterns[path]=handle;page.comicContext=vg end
  D.Path(vg,points);nvgFillPaint(vg,nvgImagePattern(vg,x,y,size,size,0,handle,1));nvgFill(vg)
-end
-local function Ease(p)
- if p<=0 then return 0 elseif p>=1 then return 1 end
- local low,high=0,1
- for _=1,18 do local t=(low+high)/2;local q=1-t;local x=3*q*q*t*.2+3*q*t*t*.3+t*t*t
-  if x<p then low=t else high=t end
- end
- local t=(low+high)/2;local q=1-t;return 3*q*q*t*.9+3*q*t*t*1.05+t*t*t
 end
 local definitions={
  prosper={name='city',rect={.025,.035,.95,.47},poly={0,0,1,0,1,.86,0,1},from={0,-.55},move={x=-.7,s1=1.12,s2=1.03}},
@@ -38,41 +33,66 @@ end
 local function Image(vg,path,rect,points,age,move,contain)
  local handle=Images.Get(path);if not handle or handle<=0 then return end
  local iw,ih=Images.GetSize(path);if iw<=0 or ih<=0 then return end
- local k=1-(1-math.min(1,age/4))^2;local scale=(move.s1 or 1)+((move.s2 or move.s1 or 1)-(move.s1 or 1))*k
- local bob=math.sin(age*(move.w or 1.6));local angle=bob*(move.r or 0)*math.pi/180
- local fit=(contain and math.min or math.max)(rect.w/iw,rect.h/ih);local dw,dh=iw*fit*scale,ih*fit*scale
- local cx=rect.x+rect.w/2+(move.x or 0)*age*.01*rect.w
- local cy=rect.y+rect.h/2+((move.y or 0)*age+bob*(move.bob or 0))*.01*rect.h
- if contain then cy=rect.y+rect.h-dh/2+((move.y or 0)*age+bob*(move.bob or 0))*.01*rect.h end
- local ox=cx-math.cos(angle)*dw/2+math.sin(angle)*dh/2;local oy=cy-math.sin(angle)*dw/2-math.cos(angle)*dh/2
- D.Path(vg,points);nvgFillPaint(vg,nvgImagePattern(vg,ox,oy,dw,dh,angle,handle,1));nvgFill(vg)
+ local r=Motion.Layer(rect,age,move,iw,ih,contain)
+ D.Path(vg,points);nvgFillPaint(vg,nvgImagePattern(vg,r.x,r.y,r.w,r.h,r.angle,handle,1));nvgFill(vg)
 end
+local function Fine(page,vg,w,h,u)
+ local size=1.35*u;local px,py=size*.8,size*.35
+ local x,width=w*.06,w*.91
+ page.comicFine=page.comicFine or require('ui.SourceParagraph').New(size,size*1.3)
+ local p=page.comicFine;p.font='vox-title';p.size=size;p.lineHeight=size*1.3;p.spacing=size*.04
+ local text='*年假须在战区内休完 · 每年 0.5 天 · 不可累计 · 最终解释权归公司所有'
+ local layout=p:Measure(vg,text,width-px*2,{255,255,255,255})
+ local height=layout.height+py*2;local y=h*.97-height
+ D.Rect(vg,x,y,width,height,{10,10,12,199})
+ p:Draw(vg,text,x+px,y+py,width-px*2,{255,255,255,255})
+end
+function M.BeginPanels(page,vg,w,h,u)
+ local x,y=Motion.Shake(page,page.owner,u)
+ nvgSave(vg);nvgTranslate(vg,x,y)
+end
+function M.EndPanels(vg) nvgRestore(vg) end
 function M.Panel(vg,page,state,w,h,u)
  local d=state.definition;local box=d.rect;local x,y,pw,ph=box[1]*w,box[2]*h,box[3]*w,box[4]*h
- local entry=Ease(math.min(1,state.age/.3))
- nvgSave(vg);nvgTranslate(vg,x+pw/2+d.from[1]*w*(1-entry),y+ph/2+d.from[2]*h*(1-entry));nvgRotate(vg,-4*math.pi/180*(1-entry));nvgTranslate(vg,-pw/2,-ph/2);nvgGlobalAlpha(vg,math.min(1,state.age/.3))
+ local entry=Motion.Ease(state.age/.3,.2,.9,.3,1.05)
+ nvgSave(vg);nvgTranslate(vg,x+pw/2+d.from[1]*w*(1-entry),y+ph/2+d.from[2]*h*(1-entry));nvgRotate(vg,-4*math.pi/180*(1-entry));nvgTranslate(vg,-pw/2,-ph/2);nvgGlobalAlpha(vg,math.min(1,entry))
  for _,layer in ipairs({{pad=.8*u,x=1.5*u,y=1.5*u,color={0,0,0,184}},{pad=.8*u,x=0,y=0,color={11,11,13,255}},{pad=.5*u,x=0,y=0,color={255,255,255,255}}}) do
   nvgSave(vg);nvgTranslate(vg,layer.x,layer.y);D.Path(vg,Points(d.poly,pw,ph,layer.pad));nvgFillColor(vg,D.Color(layer.color));nvgFill(vg);nvgRestore(vg)
  end
  local points=Points(d.poly,pw,ph);D.Path(vg,points);nvgFillColor(vg,nvgRGBA(17,17,17,255));nvgFill(vg)
- Image(vg,page.owner.data.images[d.name],{x=-pw*.06,y=-ph*.06,w=pw*1.12,h=ph*1.12},points,state.age,d.move)
+ local rect={x=-pw*.06,y=-ph*.06,w=pw*1.12,h=ph*1.12}
+ local captured=false;local host=page.owner.host
+ if state.id=='leave' and host and host.DrawCapture then
+  local r=Motion.Layer(rect,state.age,d.move,rect.w,rect.h).box;r.points=points
+  captured=host.DrawCapture(vg,'leave',r)
+ end
+ if not captured then Image(vg,page.owner.data.images[d.name],rect,points,state.age,d.move) end
  if state.id=='prosper' and not (page.owner.shot=='no' and page.owner.age>=.5) then
-  Image(vg,page.owner.data.images.dove,{x=pw*.74,y=ph*.12,w=pw*.17,h=ph*.62},points,state.age,{x=1.4,y=-.6,bob=5,r=3,w=1.9},true)
+  local images=page.owner.data.images
+  local path=page.owner.shot=='no' and page.owner.age>=.4 and images.dove_red or images.dove
+  Image(vg,path,{x=pw*.74,y=ph*.12,w=pw*.17,h=ph*.62},points,state.age,{x=1.4,y=-.6,bob=5,r=3,w=1.9},true)
  elseif state.id=='leave' then
   Image(vg,page.owner.data.images.family,{x=pw*.12,y=ph*.26,w=pw*.82,h=ph*.79},points,state.age,{x=.6,s1=1.08,s2=1,bob=.8,w=2.4},true)
  end
  if state.id=='prosper' or state.id=='order' then Dots(page,vg,'UI/IntroComicInkDots.png',points,0,0,6) end
+ if state.id=='leave' then Fine(page,vg,pw,ph,u) end
  nvgRestore(vg)
+end
+function M.DoveBounds(I,w,h)
+ local state=M.State(I).prosper
+ if not state then return {x=w*.75,y=h*.1,w=200,h=260} end
+ local rect=state.definition.rect;local pw,ph=rect[3]*w,rect[4]*h
+ local box=Motion.Bounds({x=pw*.74,y=ph*.12,w=pw*.17,h=ph*.62},state.age,{x=1.4,y=-.6,bob=5,r=3,w=1.9})
+ box.x=box.x+rect[1]*w;box.y=box.y+rect[2]*h
+ return box
 end
 function M.Draw(page,vg,w,h,u)
  local I=page.owner;local states=M.State(I);page.comicStates=states
+ Opacity.Push(vg,Motion.PaperOpacity(I))
  D.Path(vg,{0,0,w,0,w,h,0,h});D.Gradient(vg,0,0,w,h,{246,236,210,255},{234,216,174,255})
  Dots(page,vg,'UI/IntroComicPaperDots.png',{0,0,w,0,w,h,0,h},0,0,1.2*u)
+ Opacity.Pop(vg)
  for _,id in ipairs({'prosper','order','leave'}) do if states[id] then M.Panel(vg,page,states[id],w,h,u) end end
- if states.leave then
-  local x,y=w*.5473,h*.912;local width=w*.414;D.Rect(vg,x,y,width,3.9*u,{10,10,12,199})
-  D.Text(vg,'*年假须在战区内休完 · 每年 0.5 天 · 不可累计 · 最终解释权归公司所有',x+.8*u,y+.6*u,1.35*u,{255,255,255,255},'vox-title',nil,.054*u)
- end
 end
 local function Random(seed) local nextSeed=(seed*1664525+1013904223)&0xffffffff;return nextSeed,nextSeed/4294967296 end
 function M.Confetti(page,vg,w,h,u)
@@ -95,6 +115,6 @@ function M.Confetti(page,vg,w,h,u)
 end
 function M.Dispose(page)
  if page.comicPatterns and page.comicContext then for _,handle in pairs(page.comicPatterns) do nvgDeleteImage(page.comicContext,handle) end end
- page.comicPatterns=nil;page.comicContext=nil
+ page.comicPatterns=nil;page.comicContext=nil;page.comicShakes=nil;page.comicBurst=nil;page.comicFine=nil
 end
 return M

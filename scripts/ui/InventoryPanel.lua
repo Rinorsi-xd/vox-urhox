@@ -9,6 +9,7 @@ local Art=require 'ui.InventoryChrome'
 local M={};M.__index=M
 function M.Open(session,restore)
     if session.inventoryPanel then return session.inventoryPanel end
+    if not restore then require('audio.UiSound').Play('open') end
     session.buildCamera:Release()
     local self=setmetatable({session=session,model=session.inventory,hoverType=false,shown=false,closed=false,trimTime=0,motionClock=0,listEpoch=0},M)
     session.inventoryPanel=self;session.controls:Cancel();session.editor.preview=nil;session.ghost:Refresh(session.editor,false)
@@ -80,13 +81,13 @@ function M.Open(session,restore)
     function self.empty:Render(vg) D.Begin(vg);local r=self:GetAbsoluteLayout();D.Text(vg,'没有找到零件',r.x+r.w/2,r.y,18,D.muted,nil,NVG_ALIGN_CENTER) end
     self.center:AddChild(self.empty)
     self.detail=require('ui.InventoryDetail'){width=self.narrow and 201 or 272,height=580,compact=self.narrow,viewportHeight=sh,viewportWidth=sw};self.detail.inventory=self.model
-    self.detailScroll=UI.ScrollView{width=self.narrow and 220 or 310,height=self.centerHeight,scrollX=false,scrollY=true,bounces=false,flexShrink=0,
-        paddingLeft=self.narrow and 12 or 24,paddingRight=self.narrow and 6 or 3,paddingTop=self.narrow and 8 or 18,borderLeftWidth=1,borderColor={54,86,117,255},children={self.detail}}
+    self.detailScroll=require('ui.InventoryDetailScroll'){width=self.narrow and 220 or 310,height=self.centerHeight,scrollX=false,scrollY=true,bounces=false,flexShrink=0,
+        paddingLeft=self.narrow and 13 or 25,paddingRight=self.narrow and 6 or 3,paddingTop=self.narrow and 8 or 18,paddingBottom=self.narrow and 12 or 16,borderLeftWidth=1,borderColor={54,86,117,255},children={self.detail}}
     self.center:AddChild(self.detailScroll)
-    self.footer=Art.Footer();self.body:AddChild(self.footer)
+    self.footer=Art.Footer(self.narrow);self.body:AddChild(self.footer)
     self.hotbar=require('ui.BuildHotbar').Create(session,false,function(id) self:Detail(id) end)
     self.footer:SetHeight(footerHeight)
-    self.footer:AddChild(UI.ScrollView{position='absolute',left=math.max(0,(width-self.hotbar.root.props.width)/2),top=self.narrow and 5 or 17,width=math.min(width,self.hotbar.root.props.width),height=self.narrow and 64 or 79,scrollX=true,scrollY=false,showScrollbar=false,bounces=false,paddingTop=5,children={self.hotbar.root}})
+    self.footer:AddChild(UI.ScrollView{position='absolute',left=self.narrow and 0 or math.max(0,(width-self.hotbar.root.props.width)/2),top=self.narrow and 5 or 17,width=self.narrow and width or math.min(width,self.hotbar.root.props.width),height=self.narrow and 64 or 79,scrollX=true,scrollY=false,showScrollbar=false,bounces=false,paddingLeft=self.narrow and 4 or 0,paddingTop=5,children={self.hotbar.root}})
     self:Fill();self:Detail(restore and restore.shown or self.model:Current());self.restoreScroll=restore;self.pendingAnchor=restore and restore.anchor
     modal:Open();session:Refresh()
     self.backdrop=require('render.SceneBackdrop').New()
@@ -216,7 +217,8 @@ function M:Update(dt)
     end
     if self.restoreScroll and self.modal.modalLayout_ then
         local state=self.restoreScroll;self.restoreScroll=nil
-        self.detailScroll:SetScrollDirect(0,math.min(state.detailY or 0,math.max(0,self.detail.props.height+18-self.centerHeight)))
+        local extent=self.detail.props.height+self.detailScroll.props.paddingTop+self.detailScroll.props.paddingBottom
+        self.detailScroll:SetScrollDirect(0,math.min(state.detailY or 0,math.max(0,extent-self.centerHeight)))
     end
     if self.pendingAnchor and self.modal.modalLayout_ then
         local anchor=self.pendingAnchor;self.pendingAnchor=nil

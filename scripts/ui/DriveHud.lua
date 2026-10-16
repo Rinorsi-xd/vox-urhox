@@ -18,7 +18,11 @@ function M.Create(session)
     local top=12
     if session.vehicle.legMode and session.map.id=='trial' then
         for _,item in ipairs({{'hill','练习：山坡','节足山坡',102},{'wall','练习：抓墙 / 跳跃','节足抓墙',151}}) do
-            state.buttons[item[1]]=Add('exit',{text=item[2],course=true,right=12,top=top,width=item[4],height=36,onClick=function() session:GoTo(item[3]) end});top=top+44
+            state.buttons[item[1]]=Add('exit',{text=item[2],course=true,right=12,top=top,width=item[4],height=36,onClick=function()
+                if session.disposed or not session:GoTo(item[3]) then return end
+                session.app.toasts:Push(item[3]..'：W 前进 / 贴墙自动抓附，空格蹬开，长按收腿','info',6000)
+                session:Resume()
+            end});top=top+44
         end
     end
     state.buttons['return']=Add('exit',{right=12,top=top,width=103.03125,height=36,onClick=function() session.wantsReturn=true end})

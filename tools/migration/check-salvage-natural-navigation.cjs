@@ -1,0 +1,35 @@
+const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict'),crypto=require('node:crypto');
+const {RoadFollower,segment,assertNetResult,assertSavedInventory,assertCountdown}=require('./salvage-natural-navigation.cjs');
+const {NaturalProgress}=require('./salvage-natural-progress.cjs');
+const root=path.resolve(__dirname,'../..'),checks=[];
+function check(name,fn){fn();checks.push(name);}
+const points=[{id:'a',g:[0,0,0],width:10},{id:'b',g:[20,0,0],width:10},{id:'c',g:[20,0,20],width:10}];
+check('Skipped sampling accepts passed intermediate node within original road width',()=>{const f=new RoadFollower(points);f.update([0,0,0]);assert.equal(f.update([20,0,6]).point.id,'c');assert.equal(f.passed[1].reason,'segment');});
+check('Starting already along first road avoids pointless turnaround',()=>{const f=new RoadFollower(points);assert.equal(f.update([8,0,1]).point.id,'b');});
+check('Parallel distant road cannot skip a turn',()=>{const f=new RoadFollower(points);f.update([0,0,0]);assert.equal(f.update([28,0,9]).point.id,'b');});
+check('Approach from before corner cannot cut to next road',()=>{const f=new RoadFollower(points);f.update([0,0,0]);assert.equal(f.update([14,0,9]).point.id,'b');});
+check('Final node requires actual arrival, never unbounded projection',()=>{const f=new RoadFollower(points);f.update([0,0,0]);f.update([20,0,6]);assert.equal(f.update([20,0,28]).done,false);assert.equal(f.update([20,0,19]).done,true);});
+check('Lookahead remains a short bounded portion of actual next segment',()=>{const f=new RoadFollower(points);f.update([0,0,0]);const step=f.update([16.8,0,0],12);assert.ok(step.target[2]>0&&step.target[2]<1);assert.equal(step.target[0],20);});
+check('Degenerate original edge remains finite',()=>assert.deepEqual(segment([1,0,0],[0,0,0],[0,0,0]),{t:0,cross:1,length:0}));
+const sourceReport='docs/migration/evidence/salvage-natural-manifest-14f59378-2026-10-15T20-28-45-360Z/salvage-natural-web.json';
+const bytes=fs.readFileSync(path.join(root,sourceReport)),old=JSON.parse(bytes),samples=[];
+for(let i=old.samples.length-1;i>=0;i--){samples.unshift(old.samples[i]);if(i===0||old.samples[i].at<old.samples[i-1].at)break;}
+check('Actual old 93-sample moving tail remains unfinished and never fake-passes failed R13:32',()=>{const route=old.roadRoute.points,index=route.findIndex(p=>p.id==='R13:32'),f=new RoadFollower(route.slice(index-1,index+2)),recovery=new NaturalProgress();f.index=1;let reverses=0;for(const s of samples){const next=f.update(s.pos,s.speed);assert.equal(next.done,false);assert.equal(next.point.id,'R13:32');if(recovery.update(s.pos,s.at)){reverses++;assert.ok(s.at<10000);}}assert.ok(reverses>0);});
+const items=require('../../assets/UI/Outgame.json').items,gross={scrap:4,cell:1},exit={needs:'cell'},good={ok:true,cargo:{scrap:4},value:28};
+check('Actual salvage 60 percent floored valuation and one ticket',()=>assert.deepEqual(assertNetResult(good,gross,exit,items),{cargo:{scrap:4},value:28}));
+check('Token-only extraction legitimately yields empty net cargo',()=>assert.deepEqual(assertNetResult({ok:true,cargo:{},value:0},{cell:1},exit,items),{cargo:{},value:0}));
+for(const [name,bad] of [['gross displayed',{...good,cargo:gross}],['wrong value',{...good,value:48}],['missing item',{...good,cargo:{}}],['failed extraction',{...good,ok:false}]])check('Reject '+name,()=>assert.throws(()=>assertNetResult(bad,gross,exit,items)));
+check('Reject nonexistent extraction ticket',()=>assert.throws(()=>assertNetResult(good,{scrap:4},exit,items)));
+const inventory={items:{scrap:1003},stats:{raids:1,extracted:1},credits:8000,lastRun:'run',lastStartedRun:'run'};
+inventory.saved={data:structuredClone(inventory),generation:3};
+check('Actual saved data matches all committed fields',()=>assert.equal(assertSavedInventory(inventory),3));
+for(const field of ['items','stats','credits','lastRun','lastStartedRun'])check('Reject stale store readback '+field,()=>{const bad=structuredClone(inventory);bad.saved.data[field]=null;assert.throws(()=>assertSavedInventory(bad));});
+check('Reject absent readback rather than silently claiming persistence',()=>assert.throws(()=>assertSavedInventory({...inventory,saved:undefined})));
+const countdownExit={id:'E3',wait:10};
+check('Observed original countdown decreases across sampled frames',()=>assert.equal(assertCountdown([{id:'E3',left:9.8},{id:'E3',left:1.2}],countdownExit,true).status,'OBSERVED'));
+check('Old probe absent countdown stays explicitly OPEN',()=>assert.equal(assertCountdown([],countdownExit,false).status,'OPEN'));
+for(const [name,samples] of [['absent',[]],['restart',[{id:'E3',left:3},{id:'E3',left:9}]],['extended wait',[{id:'E3',left:20},{id:'E3',left:19}]],['frozen clock',[{id:'E3',left:9},{id:'E3',left:9}]]])check('Strict countdown rejects '+name,()=>assert.throws(()=>assertCountdown(samples,countdownExit,true)));
+const toolSha256=Object.fromEntries(['check-salvage-natural-web.cjs','salvage-natural-navigation.cjs','check-salvage-natural-navigation.cjs'].map(name=>[name,crypto.createHash('sha256').update(fs.readFileSync(path.join(__dirname,name))).digest('hex')]));
+const report={result:'PASS',checks,toolSha256,sourceReport,sourceReportSha256:crypto.createHash('sha256').update(bytes).digest('hex'),realSamples:samples.length,boundary:'CPU geometry, actual failed route replay and settlement/readback negative controls only. Does not prove terrain clearance, actual input movement, successful natural extraction, browser refresh, cloud/account persistence or performance.'};
+fs.writeFileSync(path.join(root,'docs/migration/evidence/salvage-natural-navigation-offline.json'),JSON.stringify(report,null,2)+'\n');
+console.log(JSON.stringify(report));

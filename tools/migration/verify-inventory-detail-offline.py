@@ -45,6 +45,9 @@ TEXT_COMMANDS={}
 package.preload['ui.SourceDraw']=function() return {
     Begin=function() end,Icon=function() end,Rect=function() end,
     Width=function(_,text,size) return utf8.len(tostring(text))*size end,
+    Advance=function(_,text,size) return utf8.len(tostring(text))*size end,
+    HasBodyAdvances=function() return true end,
+    FontMetrics=function(_,size) return size,2 end,
     Text=function(_,text,_,_,size,_,font) TEXT_COMMANDS[#TEXT_COMMANDS+1]={text=tostring(text),size=size,font=font} end,
 } end
 package.preload['ui.VoxTheme']=function() return {Thumbnail=function() return '' end} end
@@ -68,7 +71,7 @@ assert(count==3,'three primary numeric values')
 RENDER_CHECKS=count+1
 ''')
 checks += lua.globals().RENDER_CHECKS
-paths = ['scripts/ui/InventoryDetail.lua', 'scripts/ui/InventoryDetailRows.lua']
+paths = ['scripts/ui/InventoryDetail.lua', 'scripts/ui/InventoryDetailRows.lua', 'scripts/ui/InventoryDetailLayout.lua']
 report = {'result':'PASSED','assertions':checks,'parts':len(golden['cases']),
           'baseline':golden['baseline'],'lua':lua.eval('_VERSION'),
           'production':{p:hashlib.sha256((ROOT/p).read_bytes()).hexdigest() for p in paths},

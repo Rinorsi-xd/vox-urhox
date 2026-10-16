@@ -9,7 +9,7 @@ function M.Dependencies()
 end
 function M.New(scene) local self=setmetatable({},M);self:init(scene);return self end
 function M:init(scene)
-    self.root=scene:CreateChild('DrivingAudio');self.sounds={};self.loops={};self.voices={};self.last={};self.counts={}
+    self.root=scene:CreateChild('DrivingAudio');self.sounds={};self.loops={};self.loopSources={};self.loopTails={};self.voices={};self.last={};self.counts={}
     self.localMix=Mix.New();self.remoteMix=Mix.New();self.best=Mix.New();self.events=require('audio.DrivingEvents').New()
     self.time=0;self.cursor=0;self.volume=.65;self.duck=1;self.active=false;self.disposed=false;self.stepPitch=1;self.silent=true
     self.listener={0,0,0};self.right={1,0,0}
@@ -23,7 +23,9 @@ end
 function M:Audible() return not self.disposed and self.active and self.volume>0 and self.focus() end
 function M:Stop()
     if self.silent then return end;self.silent=true
-    for _,loop in pairs(self.loops) do loop.source:StopImmediate();Levels.SetGain(loop.source,0);loop.gain=0 end
+    for _,slot in ipairs(self.loopSources) do slot.source:StopImmediate();Levels.SetGain(slot.source,0) end
+    for _,loop in pairs(self.loops) do loop.gain=0;loop.released=true end
+    self.loopTails={}
     for _,voice in ipairs(self.voices) do voice.source:StopImmediate();Levels.SetGain(voice.source,0) end
     self.events:Clear()
 end
@@ -37,21 +39,52 @@ function M:Spatial(vehicle)
     return distance>=240 and 0 or 1/(1+(distance/18)^2),distance>0 and V.Clamp((dx*self.right[1]+dy*self.right[2]+dz*self.right[3])/distance,-.85,.85) or 0
 end
 function M:Loop(key,id,amount,pitch,pan,dt)
-    local cue=Data.cues[id];local loop=self.loops[key]
-    local live=amount>.005
-    if not loop and not live then return end
-    if not loop then loop={source=self:Source(key),gain=0,pitch=pitch,pan=pan};self.loops[key]=loop end
-    local target=live and cue.gain*math.min(1,amount)*self.volume*self.duck or 0
-    local alpha=1-math.exp(-math.max(0,dt)/(live and cue.attack or cue.release))
+    local cue=Data.cues[id];amount=self:Audible() and amount or 0
+    if amount<=.005 then self:ReleaseLoop(key);return false end
+    local loop=self.loops[key]
+    if not loop or loop.released or not loop.source.playing then
+        local slot=nil ---@type table|nil
+        for _,candidate in ipairs(self.loopSources) do if not candidate.source.playing and candidate.key==key then slot=candidate;break end end
+        if not slot then for _,candidate in ipairs(self.loopSources) do if not candidate.source.playing then slot=candidate;break end end end
+        if not slot then
+            if #self.loopSources>=20 then return false end
+            slot={source=self:Source(key)};self.loopSources[#self.loopSources+1]=slot
+        end
+        local previous=slot.key and self.loops[slot.key]
+        if slot.key~=key and previous and previous.source==slot.source then self.loops[slot.key]=nil end
+        slot.key=key;slot.id=id
+        loop={source=slot.source,id=id,gain=0,pitch=1,pan=0,release=cue.release};self.loops[key]=loop
+    end
+    self.silent=false
+    local step=math.max(0,dt);local target=cue.gain*math.min(1,amount)*self.volume
+    local alpha=1-math.exp(-step/cue.attack)
     loop.gain=loop.gain+(target-loop.gain)*alpha
-    loop.pitch=loop.pitch+(V.Clamp(pitch,.65,1.5)-loop.pitch)*(1-math.exp(-math.max(0,dt)/.12))
-    loop.pan=loop.pan+(pan-loop.pan)*(1-math.exp(-math.max(0,dt)/.08))
+    loop.pitchTarget=V.Clamp(pitch,.65,1.5);loop.panTarget=pan
+    loop.pitch=loop.pitch+(loop.pitchTarget-loop.pitch)*(1-math.exp(-step/.12))
+    loop.pan=loop.pan+(loop.panTarget-loop.pan)*(1-math.exp(-step/.08))
     local sound=self.sounds[id]
-    if live and not loop.source.playing then
-        Levels.Play(loop.source,sound,sound:GetFrequency()*loop.pitch,loop.gain,loop.pan);self.counts[id]=(self.counts[id] or 0)+1
+    if not loop.source.playing then
+        Levels.Play(loop.source,sound,sound:GetFrequency()*loop.pitch,loop.gain,loop.pan,nil,'driving');self.counts[id]=(self.counts[id] or 0)+1
     end
     Levels.SetGain(loop.source,loop.gain);loop.source.frequency=sound:GetFrequency()*loop.pitch;loop.source.panning=loop.pan
-    if not live and loop.gain<.0001 then loop.source:StopImmediate();loop.gain=0 end
+    return true
+end
+function M:ReleaseLoop(key)
+    local loop=self.loops[key]
+    if not loop or loop.released then return end
+    -- Releasing removes the active key; a restart must not reclaim its tail.
+    loop.released=true;loop.releaseAge=0;self.loopTails[#self.loopTails+1]=loop
+end
+function M:UpdateLoopTails(dt)
+    local step=math.max(0,dt)
+    for i=#self.loopTails,1,-1 do local loop=self.loopTails[i]
+        loop.releaseAge=loop.releaseAge+step
+        loop.gain=loop.gain*math.exp(-step/loop.release)
+        loop.pitch=loop.pitch+(loop.pitchTarget-loop.pitch)*(1-math.exp(-step/.12))
+        loop.pan=loop.pan+(loop.panTarget-loop.pan)*(1-math.exp(-step/.08))
+        Levels.SetGain(loop.source,loop.gain);loop.source.frequency=self.sounds[loop.id]:GetFrequency()*loop.pitch;loop.source.panning=loop.pan
+        if loop.releaseAge>=loop.release*5 then loop.source:StopImmediate();Levels.SetGain(loop.source,0);loop.gain=0;table.remove(self.loopTails,i) end
+    end
 end
 function M:Play(id,amount,pan)
     local cue=Data.cues[id]
@@ -69,7 +102,7 @@ function M:Play(id,amount,pan)
         self.stepPitch=pitch
     end
     voice.source:StopImmediate();voice.order=self.cursor
-    local sound=self.sounds[id];Levels.Play(voice.source,sound,sound:GetFrequency()*pitch,math.min(1,cue.gain*amount*self.volume*self.duck),pan or 0)
+    local sound=self.sounds[id];Levels.Play(voice.source,sound,sound:GetFrequency()*pitch,cue.gain*math.max(0,math.min(1,amount))*self.volume,pan or 0,nil,'driving')
     self.counts[id]=(self.counts[id] or 0)+1;return true
 end
 function M:Observe(vehicle,dt,remote)
@@ -78,7 +111,7 @@ function M:Observe(vehicle,dt,remote)
     self.eventGain=gain;self.eventPan=pan;self.events:Observe(vehicle,dt,self.emit)
 end
 function M:Update(dt,vehicle,command,camera,entries,speaking)
-    if self.disposed then return end;self.time=self.time+math.max(0,dt);self.duck=speaking and .3 or 1
+    if self.disposed then return end;self.time=self.time+math.max(0,dt)
     local p=camera.worldPosition;local right=camera.worldRotation*Vector3.RIGHT
     self.listener[1]=-p.x;self.listener[2]=p.y;self.listener[3]=p.z
     self.right[1]=-right.x;self.right[2]=right.y;self.right[3]=right.z
@@ -102,6 +135,7 @@ function M:Update(dt,vehicle,command,camera,entries,speaking)
         self:Loop(mix.id,mix.id,mix.amount,mix.pitch,0,dt)
         local best=self.best[i];self:Loop('remote:'..mix.id,mix.id,best.amount,best.pitch,best.pan,dt)
     end
+    self:UpdateLoopTails(dt)
 end
 function M:Snapshot()
     local out={active=self:Audible(),loops={},counts=self.counts,voices=#self.voices}
@@ -109,6 +143,6 @@ function M:Snapshot()
     return out
 end
 function M:Dispose()
-    if self.disposed then return end;self:Stop();self.disposed=true;self.root:Dispose();self.sounds={};self.loops={};self.voices={}
+    if self.disposed then return end;self:Stop();self.disposed=true;self.root:Dispose();self.sounds={};self.loops={};self.loopSources={};self.loopTails={};self.voices={}
 end
 return M

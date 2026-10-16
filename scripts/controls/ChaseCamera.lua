@@ -19,4 +19,9 @@ function M.Apply(camera,target,dt,pose,yaw,pitch)
     end
     node.rotation=Quaternion(yaw,Vector3.UP)*Quaternion(pitch,Vector3.RIGHT)
 end
+function M.Watch(camera,pose)
+    local node=camera:GetNode()
+    node.worldPosition=Coord.Vec(table.unpack(pose.eye))
+    node:LookAt(Coord.Vec(table.unpack(pose.target)),Vector3.UP)
+end
 return M

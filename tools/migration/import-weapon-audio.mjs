@@ -18,7 +18,7 @@ for(const [table,base,jitter] of [[WEAPON_CUES,WEAPON_BASE,true],[HEAVY_CUES,HEA
   if(data.toString('ascii',0,4)!=='RIFF'||data.toString('ascii',8,12)!=='WAVE')throw Error('Not WAV: '+original);
   fs.writeFileSync(path.join(root,'assets',relative),data);
   cues[id]={path:relative,gain:cue.gain*10**((MIX_TRIM[id]||0)/20),gap:cue.gap/1000,loop:cue.loop||false,jitter,
-   attack:cue.attack||.08,release:cue.release||.1,source:path.relative(source,original).replaceAll('\\','/'),sha256:sha(data),bytes:data.length};
+   attack:cue.attack||.08,release:cue.release||.025,source:path.relative(source,original).replaceAll('\\','/'),sha256:sha(data),bytes:data.length};
  }
 }
 fs.writeFileSync(path.join(root,'assets/Combat/WeaponSounds.json'),JSON.stringify({baseline:baseline.commit,cues}));

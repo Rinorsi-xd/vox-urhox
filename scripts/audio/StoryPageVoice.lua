@@ -2,7 +2,7 @@
 local Levels=require 'audio.AudioLevels'
 local M={};M.__index=M
 function M.New()
-    local self=setmetatable({loaded={},gates={},slots={},time=0,active=0,log={}},M)
+    local self=setmetatable({loaded={},gates={},downloaded={},decoding={},decodeCursor=1,slots={},time=0,active=0,log={}},M)
     self.scene=Scene();local root=self.scene:CreateChild('StoryPageVoice')
     for i=1,2 do local source=root:CreateComponent('SoundSource');source:SetSoundType('VoxStoryVoice');self.slots[i]={source=source} end
     return self
@@ -10,11 +10,15 @@ end
 function M:Load(id)
     if self.loaded[id]~=nil then return end
     local path='Story/Page/'..id..'.mp3'
+    local existing=cache:GetExistingResource('Sound',path)
+    if existing and existing.length>0 then self.loaded[id]=existing;return end
     self.loaded[id]=false
     local function Ready(sound) if not self.disposed and sound and sound.length>0 then self.loaded[id]=sound end end
     if cache.GetResourceAsync then cache:GetResourceAsync('Sound',path,Ready)
     else local gate=require('app.ResourceGate').New();self.gates[#self.gates+1]=gate
-        gate:Start({path},function(ok) if ok and not self.disposed then Ready(cache:GetResource('Sound',path)) end end)
+        gate:Start({path},function(ok)
+            if ok and not self.disposed then self.downloaded[#self.downloaded+1]={id=id,path=path} end
+        end)
     end
 end
 function M:Fade()
@@ -37,6 +41,26 @@ function M:StartLine(card,id)
 end
 function M:Update(dt,focus)
     if self.disposed then return end
+    -- Completion can run in the download stack. Prepare on the page clock.
+    local item=table.remove(self.downloaded,1)
+    if item then
+        local sound=cache:GetExistingResource('Sound',item.path)
+        if sound and sound.length>0 then self.loaded[item.id]=sound
+        else
+            cache:BackgroundLoadResource('Sound',item.path,true)
+            self.decoding[#self.decoding+1]=item
+        end
+    end
+    local queue=self.decoding
+    for _=1,math.min(4,#queue) do
+        if #queue==0 then break end
+        local index=self.decodeCursor;local pending=queue[index]
+        local sound=cache:GetExistingResource('Sound',pending.path)
+        if sound and sound.length>0 then
+            self.loaded[pending.id]=sound;queue[index]=queue[#queue];table.remove(queue)
+        else self.decodeCursor=index+1 end
+        if self.decodeCursor>#queue then self.decodeCursor=1 end
+    end
     for _,slot in ipairs(self.slots) do if slot.fade then
         slot.fade=math.max(0,slot.fade-dt);Levels.SetGain(slot.source,slot.gain*slot.fade/.35)
         if slot.fade==0 then slot.source:StopImmediate();slot.fade=nil end
@@ -71,6 +95,6 @@ function M:Dispose()
     if self.disposed then return end;self:Fade();self.disposed=true
     for _,gate in ipairs(self.gates) do gate:Cancel() end
     for _,slot in ipairs(self.slots) do slot.source:StopImmediate() end
-    self.scene:Dispose();self.loaded={}
+    self.scene:Dispose();self.loaded={};self.downloaded={};self.decoding={}
 end
 return M

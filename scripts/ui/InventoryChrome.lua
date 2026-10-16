@@ -1,7 +1,7 @@
 -- Frozen new-ui-inventory.css, including final new-ui-controls.css overrides.
 local UI=require 'urhox-libs/UI'
 local Panel=require 'urhox-libs/UI/Widgets/Panel'
-local BaseButton=require 'urhox-libs/UI/Widgets/Button'
+local BaseButton=require 'ui.ActionButton'
 local D=require 'ui.SourceDraw'
 local Relief=require 'ui.SourceRelief'
 local Theme=require 'ui.VoxTheme'
@@ -155,17 +155,17 @@ function M.MaterialHeader(compact)
         if r.w>470 then D.Text(vg,'G  换材质',r.x+r.w,r.y+9,10,D.muted,'vox-body',NVG_ALIGN_RIGHT) end
     end;return p
 end
-function M.Footer()
+function M.Footer(compact)
     local p=Panel{position='absolute',left=0,bottom=0,width='100%',height=135,pointerEvents='box-none'}
     function p:Render(vg)
         D.Begin(vg);local r=self:GetAbsoluteLayout();D.Rect(vg,r.x,r.y,r.w,1,{54,86,117,255})
     end
-    local line=Panel{position='absolute',left='50%',marginLeft=-121.15625,bottom=3,width=242.3125,height=28,zIndex=3,pointerEvents='box-none'}
+    local line=Panel{position='absolute',left=compact and 0 or '50%',marginLeft=compact and 0 or -121.15625,bottom=3,width=compact and '100%' or 242.3125,height=compact and 32 or 28,zIndex=3,pointerEvents='box-none'}
     function line:Render(vg)
         D.Begin(vg);local r=self:GetAbsoluteLayout()
-        D.Text(vg,'选择零件放入快捷栏 · 拖动分配位置',r.x+r.w-84,r.y+8,10,D.muted,'vox-body',NVG_ALIGN_RIGHT)
+        D.Text(vg,'选择零件放入快捷栏 · 拖动分配位置',compact and r.x or r.x+r.w-84,r.y+8,10,D.muted,'vox-body',compact and NVG_ALIGN_LEFT or NVG_ALIGN_RIGHT)
     end
-    line:AddChild(M.Button{kind='instructions',text='操作说明',width=58,height=28,position='absolute',right=0,top=0,onClick=function(b)
+    line:AddChild(M.Button{kind='instructions',text='操作说明',width=58,height=compact and 32 or 28,position='absolute',right=0,top=0,onClick=function(b)
         b.props.selected=not b.props.selected;p.tip:SetVisible(b.props.selected)
     end})
     local tips={

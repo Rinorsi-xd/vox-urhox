@@ -1,0 +1,4192 @@
+{
+  "baseline": "b276064942ae09c0227ec28d4cfda1d5ff006455",
+  "source": "shared/audio/radio.js",
+  "sourceSha256": "2fb1173f9cf5ab0fba41090d3d7848cc7b05ef16d42e4ed6059e91115e6b7f69",
+  "sampleRate": 48000,
+  "format": "mono PCM16",
+  "bakedMaster": 1,
+  "runtimeGain": 0.27999999999999997,
+  "seed": 354839,
+  "lines": {
+    "a01": {
+      "duration": 5.018375,
+      "total": 5.538374999999999,
+      "speaking": 5.518375,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/a01-voice.wav",
+          "sha256": "2aede6eade41e24eba1b163505eb34cc91bbad3d5c15e73f77552e2f7eca44aa",
+          "bytes": 497168,
+          "seconds": 5.178375,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/a01-hiss.wav",
+          "sha256": "a05506629646936222abc8e0beeacf37439e5d788cdd57ff1719eed6198282b9",
+          "bytes": 516368,
+          "seconds": 5.378375,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/a01-tail.wav",
+          "sha256": "db53a12ba299c16aeefd26e340a7743a50c6a8e68abcf59df352efa60e4dc108",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 5.278375
+        }
+      }
+    },
+    "a02": {
+      "duration": 5.419375,
+      "total": 5.939374999999999,
+      "speaking": 5.919375,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/a02-voice.wav",
+          "sha256": "eac7e5416f149704e54c8516c84a681f713739be248f11a2f5ff8d97dfe389f7",
+          "bytes": 535664,
+          "seconds": 5.579375,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/a02-hiss.wav",
+          "sha256": "2fb491703fe876cf753480eeaa1ccb1c29ef9402eada2ffeabf9fb50ad42c273",
+          "bytes": 554864,
+          "seconds": 5.779375,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/a02-tail.wav",
+          "sha256": "5b5af21f8c223c3d395dfb331f4c0efac517403b9ef8ef473ad458d8584e2ae0",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 5.679374999999999
+        }
+      }
+    },
+    "a03": {
+      "duration": 4.3351875,
+      "total": 4.8551874999999995,
+      "speaking": 4.8351875,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/a03-voice.wav",
+          "sha256": "2486adf4b962a0e3f4edcdc583abd7787a94b3855425d223c64017349bf0d630",
+          "bytes": 431582,
+          "seconds": 4.4951875,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/a03-hiss.wav",
+          "sha256": "a75b0b647b6bd4824ba3596eedbc6e72d457ffaa7675b28230939f09066903b4",
+          "bytes": 450782,
+          "seconds": 4.6951875,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/a03-tail.wav",
+          "sha256": "54c2cd3599ea3e7963e5814f37e54407b7fe8a47c38e8911ed8356f2bed6ffea",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 4.5951875
+        }
+      }
+    },
+    "a04": {
+      "duration": 4.51575,
+      "total": 5.035749999999999,
+      "speaking": 5.01575,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/a04-voice.wav",
+          "sha256": "3a0fe75103541d1815f5733105d2deaa3f65a023ca9aae521e243ec5f6d74ede",
+          "bytes": 448916,
+          "seconds": 4.67575,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/a04-hiss.wav",
+          "sha256": "d3981c47138867a2522c98b0a54f2804bb90ef4b6681c5979f4f3f546d85e00b",
+          "bytes": 468116,
+          "seconds": 4.87575,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/a04-tail.wav",
+          "sha256": "b5010b72315ad05814fc88c7fd5791fb75f77c81419ec47e0a8dd864410e0331",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 4.7757499999999995
+        }
+      }
+    },
+    "b01": {
+      "duration": 3.14725,
+      "total": 3.66725,
+      "speaking": 3.64725,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/b01-voice.wav",
+          "sha256": "e2c1e63fabc354331fdc3358791549d6bf02a902cc66ba658a9e8535162be766",
+          "bytes": 317542,
+          "seconds": 3.3072708333333334,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/b01-hiss.wav",
+          "sha256": "df986ef114fbbe1087d0bd4e13c017436366cff2c4e9af9ab205f532d07226ff",
+          "bytes": 336740,
+          "seconds": 3.50725,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/b01-tail.wav",
+          "sha256": "355905ebb832b9c431b3e3af488c9b77a4aa04038fb21191047fa602631fd394",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 3.4072500000000003
+        }
+      }
+    },
+    "b01c": {
+      "duration": 3.886,
+      "total": 4.406,
+      "speaking": 4.386,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/b01c-voice.wav",
+          "sha256": "ba79132d37e1e31d7efa60cd99d83e8e18ac2caf48602f34745bf9201cd5c6c1",
+          "bytes": 388460,
+          "seconds": 4.046,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/b01c-hiss.wav",
+          "sha256": "61fb715509b880a1ec87ef81b399397c7d74be3c82fda2c0c919900c84c3c93e",
+          "bytes": 407660,
+          "seconds": 4.246,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/b01c-tail.wav",
+          "sha256": "92e5bca2d7d4af7ce8c853f575201770b5d98a10af63add508f296d03e4a0842",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 4.146
+        }
+      }
+    },
+    "b01b": {
+      "duration": 2.6163125,
+      "total": 3.1363125,
+      "speaking": 3.1163125,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/b01b-voice.wav",
+          "sha256": "56d786fcf59c82b086e3a80ecb06361b3a506aa76f75ba4c3d568a2d629d59c8",
+          "bytes": 266570,
+          "seconds": 2.7763125,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/b01b-hiss.wav",
+          "sha256": "8ebb11a2f964e4afd3645ec8b0836a118b600d4331854ac26279c597f7c1d861",
+          "bytes": 285770,
+          "seconds": 2.9763125,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/b01b-tail.wav",
+          "sha256": "d41be2aa36b4b3c196d56d532f771d659fae7b19cb24a2eac95d21d5be76720e",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.8763125
+        }
+      }
+    },
+    "b02": {
+      "duration": 4.08825,
+      "total": 4.60825,
+      "speaking": 4.58825,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/b02-voice.wav",
+          "sha256": "eb67c3d425179791e56dfc81bf881792cd60ac156a8de8a71cf1b160c0b932ba",
+          "bytes": 407878,
+          "seconds": 4.248270833333334,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/b02-hiss.wav",
+          "sha256": "4bb5c847ba913721f9241502beaa6c9de6140828da80d57ca0c1b1a7bbdd01a8",
+          "bytes": 427078,
+          "seconds": 4.448270833333333,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/b02-tail.wav",
+          "sha256": "c33bb16409a49ce9b9473b06760424bd16e650a702e8371abf8cca0334c4174a",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 4.34825
+        }
+      }
+    },
+    "b02b": {
+      "duration": 2.034,
+      "total": 2.5539999999999994,
+      "speaking": 2.534,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/b02b-voice.wav",
+          "sha256": "e69c70fcf3a8cb33be91bc082022001f9dee133fb00721ffcb5ec0383319aeec",
+          "bytes": 210668,
+          "seconds": 2.194,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/b02b-hiss.wav",
+          "sha256": "37d01519376d7d9b1d1ba139e2e69fa9fa60584476bb23f39b83fe05109adc9a",
+          "bytes": 229868,
+          "seconds": 2.394,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/b02b-tail.wav",
+          "sha256": "343a2663f21c9f666c32da2a1f49727edb26c110e486b9064e3a816eb85e699f",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.2939999999999996
+        }
+      }
+    },
+    "b03": {
+      "duration": 2.8365625,
+      "total": 3.3565625,
+      "speaking": 3.3365625,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/b03-voice.wav",
+          "sha256": "ed8fa93ac460c0cc55184753744973034d594fc9074fffeb6b423ef7d0b66cc9",
+          "bytes": 287714,
+          "seconds": 2.9965625,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/b03-hiss.wav",
+          "sha256": "ed3f74a2509106caae3cb2b6d4b97a3ffa7ebbd97a89dc4ebd2b6be2b33037bc",
+          "bytes": 306914,
+          "seconds": 3.1965625,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/b03-tail.wav",
+          "sha256": "c8455c585af2bc785a925b9c944d5150e5cee16e62afbcfcccdb71427cb88d0c",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 3.0965625
+        }
+      }
+    },
+    "b03b": {
+      "duration": 2.693875,
+      "total": 3.213875,
+      "speaking": 3.193875,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/b03b-voice.wav",
+          "sha256": "3968d0a4b65385c6477bd3421ad4de21ee03ae2c3784f623b4b915a0f26b9108",
+          "bytes": 274016,
+          "seconds": 2.853875,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/b03b-hiss.wav",
+          "sha256": "04a32eeb0185bf87704b42e6fe8159996109b5c0463dd08c102ac370a23c72b3",
+          "bytes": 293216,
+          "seconds": 3.053875,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/b03b-tail.wav",
+          "sha256": "390deddb1e311246d14cd2092a7e4913f1e3df163c5fb9f60cbd93f430bff68e",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.953875
+        }
+      }
+    },
+    "b03c": {
+      "duration": 2.6795,
+      "total": 3.1994999999999996,
+      "speaking": 3.1795,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/b03c-voice.wav",
+          "sha256": "2d80db5fc3d75d684208874a462b2635bb50ec97170920600de48c98780d8939",
+          "bytes": 272636,
+          "seconds": 2.8395,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/b03c-hiss.wav",
+          "sha256": "b2cc7e3c13433e5f44b80eaa69a73aadb8e8dce45f2f3b12a13c88289916f8bf",
+          "bytes": 291836,
+          "seconds": 3.0395,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/b03c-tail.wav",
+          "sha256": "8ac37f0b2f1f12b8300edc69a4a60996df644f0bd5a854ab23ba2d3cad13ca79",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.9395
+        }
+      }
+    },
+    "b04": {
+      "duration": 1.8708125,
+      "total": 2.3908125,
+      "speaking": 2.3708125,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/b04-voice.wav",
+          "sha256": "5095c9c833b0ca41583ec6d0c55e9720662564e1948567e375ca57cbff61effa",
+          "bytes": 195004,
+          "seconds": 2.0308333333333333,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/b04-hiss.wav",
+          "sha256": "d016c54131c1b3c67daa92456f4f2de46759a1eaea95b6b25e34023669807025",
+          "bytes": 214202,
+          "seconds": 2.2308125,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/b04-tail.wav",
+          "sha256": "740a8775350ec6ee36b096bc01ace59c8a59df27d68ff367661a6e1a2be10bfa",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.1308125
+        }
+      }
+    },
+    "b04b": {
+      "duration": 1.855375,
+      "total": 2.375375,
+      "speaking": 2.355375,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/b04b-voice.wav",
+          "sha256": "90e7e4ff630cc1d320179e0097b7b3bcc5ed883b7faba2891f65f15db8cf6faf",
+          "bytes": 193522,
+          "seconds": 2.0153958333333333,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/b04b-hiss.wav",
+          "sha256": "ae8e04eb1613a5ec4fcebbccd5d7f6bd632dea41df80b543d1a9c12f9306212a",
+          "bytes": 212720,
+          "seconds": 2.215375,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/b04b-tail.wav",
+          "sha256": "82f72e9aeed2c45cafaf202bb458f814dc1e6c986fe9b5f8a19ee8c3becd6e67",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.1153750000000002
+        }
+      }
+    },
+    "b04c": {
+      "duration": 2.9014375,
+      "total": 3.4214374999999997,
+      "speaking": 3.4014375,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/b04c-voice.wav",
+          "sha256": "c4071f436e991927dc1fe08142b14478ddabcaf3639407e2ae315190da110caa",
+          "bytes": 293942,
+          "seconds": 3.0614375,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/b04c-hiss.wav",
+          "sha256": "25146be443db6f04dff5e87ebeb1f31266678c2845114e0fd52c9e8b18a1d368",
+          "bytes": 313142,
+          "seconds": 3.2614375,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/b04c-tail.wav",
+          "sha256": "b390686157b72853a20b004ebe4b835a9dcd5c008ad19772e18d95763db0aef1",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 3.1614375
+        }
+      }
+    },
+    "b05": {
+      "duration": 2.9535625,
+      "total": 3.4735625,
+      "speaking": 3.4535625,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/b05-voice.wav",
+          "sha256": "a1bb970827992b3ddc771b5383a416f01fbac72605267d0625026978e4e588e3",
+          "bytes": 298946,
+          "seconds": 3.1135625,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/b05-hiss.wav",
+          "sha256": "f9d2f5331cfd6731b5c1cefa5d4a91df985cbfa56abb9c3e9f3ffa58228c4b7e",
+          "bytes": 318146,
+          "seconds": 3.3135625,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/b05-tail.wav",
+          "sha256": "6c6263c4b0a663a7358509f328425066d3157fbd5783a1dd5250c1a34553b0b9",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 3.2135625
+        }
+      }
+    },
+    "b05b": {
+      "duration": 2.7319375,
+      "total": 3.2519374999999995,
+      "speaking": 3.2319375,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/b05b-voice.wav",
+          "sha256": "9b6b80eb41bc907a984e75d18c5c824c1992f3b6fcad23161aa16e484264542b",
+          "bytes": 277670,
+          "seconds": 2.8919375,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/b05b-hiss.wav",
+          "sha256": "9a2e375f5e3219ff2b3d392c285c71e141ca027bef7c18abf7a6517ba91a46fc",
+          "bytes": 296870,
+          "seconds": 3.0919375,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/b05b-tail.wav",
+          "sha256": "8687fa750962ff831a00e23486c337234486b2094183182430d44e114fedd3f3",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.9919374999999997
+        }
+      }
+    },
+    "b05c": {
+      "duration": 3.03725,
+      "total": 3.55725,
+      "speaking": 3.53725,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/b05c-voice.wav",
+          "sha256": "068a65ef5050615d0ff90365c5f6cb9b47b7f85372a9830b56d409b763009657",
+          "bytes": 306980,
+          "seconds": 3.19725,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/b05c-hiss.wav",
+          "sha256": "ccd27e08cf36d645c947b70c71c1bdc60ded8070632e304bf936e6f6316c48b0",
+          "bytes": 326180,
+          "seconds": 3.39725,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/b05c-tail.wav",
+          "sha256": "a2264dad77f95a83014836b2646f75cb1c289b9190e604c982b0849ab472a4a7",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 3.29725
+        }
+      }
+    },
+    "b06": {
+      "duration": 2.3419375,
+      "total": 2.8619375,
+      "speaking": 2.8419375,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/b06-voice.wav",
+          "sha256": "3541d43d63b06bfa2d4ffd9a4e5f06059687251237f42d45e28be14dadeda48c",
+          "bytes": 240230,
+          "seconds": 2.5019375,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/b06-hiss.wav",
+          "sha256": "71426094e5a81a6b5c244e1cf0bc4d880109e7a0ea047d9a8b83713df92fadc7",
+          "bytes": 259430,
+          "seconds": 2.7019375,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/b06-tail.wav",
+          "sha256": "201ab8b2b1f5e56c1a7c7493cec25d4549623047e581b0f566ad0540b64d3198",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.6019375
+        }
+      }
+    },
+    "b06b": {
+      "duration": 2.1819375,
+      "total": 2.7019374999999997,
+      "speaking": 2.6819375,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/b06b-voice.wav",
+          "sha256": "58642fa6a3b8a36ec5e690495c38d4be896d071b4aa03c5daecfe5d5ad98b92d",
+          "bytes": 224870,
+          "seconds": 2.3419375,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/b06b-hiss.wav",
+          "sha256": "53b5a725c3c1d33b0a1d76f75b4208f200d48943488075ac7e2c5adb2841a4d8",
+          "bytes": 244070,
+          "seconds": 2.5419375,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/b06b-tail.wav",
+          "sha256": "2863401b8224245a83f6f7e4bbdc92725df315d90d005d7362033db9b0a9fa10",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.4419375
+        }
+      }
+    },
+    "b07": {
+      "duration": 4.013875,
+      "total": 4.533874999999999,
+      "speaking": 4.513875,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/b07-voice.wav",
+          "sha256": "219f0bed1e997ba59531052d3464b9f0fffd4f01926773f520daf40769e4ef3c",
+          "bytes": 400736,
+          "seconds": 4.173875,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/b07-hiss.wav",
+          "sha256": "6b3b3b8f23261353240c1717dae826de8c08643852feeeace864e6db5b768dc9",
+          "bytes": 419936,
+          "seconds": 4.373875,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/b07-tail.wav",
+          "sha256": "177555408db0d34e4a51766787d63bba7490eb8a66b704b30afc6a942a896241",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 4.273874999999999
+        }
+      }
+    },
+    "b07b": {
+      "duration": 3.912625,
+      "total": 4.432625,
+      "speaking": 4.412625,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/b07b-voice.wav",
+          "sha256": "ccbddfa295b24bb4d29163b01148d4340c1ef4903e2dde1df117b15f406c5a6b",
+          "bytes": 391016,
+          "seconds": 4.072625,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/b07b-hiss.wav",
+          "sha256": "5ca1de7be20fc5be0a484c98e0a077f778180de562a4983f2cd2dd42b8916fd1",
+          "bytes": 410216,
+          "seconds": 4.272625,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/b07b-tail.wav",
+          "sha256": "e21a80a0bb17e2d710bd8abaf2f90692aad922c37cc2161c78bf5a92eb6fd799",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 4.172625
+        }
+      }
+    },
+    "b08": {
+      "duration": 1.556875,
+      "total": 2.0768750000000002,
+      "speaking": 2.056875,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/b08-voice.wav",
+          "sha256": "a9bb92ff2a080cd694a9f01958764a9ff60bd3d21d4c9f35f34ded7323355b27",
+          "bytes": 164864,
+          "seconds": 1.716875,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/b08-hiss.wav",
+          "sha256": "e5a99b116687c36cc9e5c434367d98cbdd9c3929bf80e091e24282fd9a8ac653",
+          "bytes": 184066,
+          "seconds": 1.9168958333333332,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/b08-tail.wav",
+          "sha256": "f19643d2d4a9053a7697f2b3e0d5b067495d3ca89a1e8bfafe2e3667ed924971",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 1.816875
+        }
+      }
+    },
+    "b08b": {
+      "duration": 1.746,
+      "total": 2.266,
+      "speaking": 2.246,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/b08b-voice.wav",
+          "sha256": "a09cf5bb6cd103d17f9d2af3390703a37de22b1d3465ca00c1baf044e10c8e9c",
+          "bytes": 183022,
+          "seconds": 1.9060208333333333,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/b08b-hiss.wav",
+          "sha256": "4f52678f771d8bd16253a669cec3cb0842a7d55557694cb4d7b63793cd0db306",
+          "bytes": 202220,
+          "seconds": 2.106,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/b08b-tail.wav",
+          "sha256": "f74af35e5b07cd82932b33054ea8fd7f33e87b0f599e20485d6fd6f8bb09305e",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.0060000000000002
+        }
+      }
+    },
+    "b09": {
+      "duration": 2.0798125,
+      "total": 2.5998124999999996,
+      "speaking": 2.5798125,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/b09-voice.wav",
+          "sha256": "62e15f711d4455b40358d95b31d8ffdd8f2a8841a85fb8d2f953a75d881b4252",
+          "bytes": 215066,
+          "seconds": 2.2398125,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/b09-hiss.wav",
+          "sha256": "4e406fc8abd5b9e1ab8dc4f48e69650d1f3cb5c4801992e0a0f65b1a2208eb3b",
+          "bytes": 234266,
+          "seconds": 2.4398125,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/b09-tail.wav",
+          "sha256": "8d09f3daa37d833eb871cce1fd6c5553d12e81cc120f4bf3685b7041c9e15f37",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.3398125
+        }
+      }
+    },
+    "b09b": {
+      "duration": 1.9456875,
+      "total": 2.4656874999999996,
+      "speaking": 2.4456875,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/b09b-voice.wav",
+          "sha256": "cc4855345a8deab4c4c09934f819cc9a52712fc5ca4f6800615c4a0bb44cda05",
+          "bytes": 202190,
+          "seconds": 2.1056875,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/b09b-hiss.wav",
+          "sha256": "f7c15393af26d2413ea56fc8d3aa39a3f9da3bc605a14c282f56f154ef4ededb",
+          "bytes": 221390,
+          "seconds": 2.3056875,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/b09b-tail.wav",
+          "sha256": "9a6f51baa504eecaf3de997083cdf71158e0ca1794819030e53c0c43c1483554",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.2056875
+        }
+      }
+    },
+    "b10": {
+      "duration": 3.3574375,
+      "total": 3.8774375,
+      "speaking": 3.8574375,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/b10-voice.wav",
+          "sha256": "7b4ed93873acae7c923c8fe1edad2c34a0bb5cdd7a19d90087b507166d58b2e6",
+          "bytes": 337720,
+          "seconds": 3.5174583333333334,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/b10-hiss.wav",
+          "sha256": "95b0f481d87ef2b4fed0a2967ba76aaaaca5905144ca1a58c107e40e57592d87",
+          "bytes": 356918,
+          "seconds": 3.7174375,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/b10-tail.wav",
+          "sha256": "c4cc3941fd4dbd0de4275a8e528d3f3d74a8285fd3613388797c85938ada2b3b",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 3.6174375000000003
+        }
+      }
+    },
+    "b10b": {
+      "duration": 1.99425,
+      "total": 2.5142499999999997,
+      "speaking": 2.49425,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/b10b-voice.wav",
+          "sha256": "9819553d296f9b323581c44caf7f38e5e79c98e8da652eb166320572f799c838",
+          "bytes": 206852,
+          "seconds": 2.15425,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/b10b-hiss.wav",
+          "sha256": "2b5d4734823e9ffed319e7853ea2f0def334d56c7ef99470cbf2f0bac31102bd",
+          "bytes": 226052,
+          "seconds": 2.35425,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/b10b-tail.wav",
+          "sha256": "5a82d2dbedfcc4d9fe245b3ec7e84acdd990ebdc6b2ba0527d94d506350c55c9",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.25425
+        }
+      }
+    },
+    "c01": {
+      "duration": 2.41725,
+      "total": 2.9372499999999997,
+      "speaking": 2.91725,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/c01-voice.wav",
+          "sha256": "230bff5ad2753600cb837a6cc339823786742922ce1169b05d195b337c9e3408",
+          "bytes": 247460,
+          "seconds": 2.57725,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/c01-hiss.wav",
+          "sha256": "26b5d3b374b3ec55cccfbf8552d5a95f25a67e63382dd235ec85b0c2a39f8fb8",
+          "bytes": 266660,
+          "seconds": 2.77725,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/c01-tail.wav",
+          "sha256": "826e56e11bb86574ffada3410458962a8b9aba8fa724f66e4ed6c9f6c9697f28",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.67725
+        }
+      }
+    },
+    "c01c": {
+      "duration": 2.1485625,
+      "total": 2.6685625,
+      "speaking": 2.6485625,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/c01c-voice.wav",
+          "sha256": "33f584f27f71f44b46653b032a329a095c053fe7fbf0bf0032fc5662af459dd7",
+          "bytes": 221668,
+          "seconds": 2.3085833333333334,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/c01c-hiss.wav",
+          "sha256": "215a56007088cbd5eafefe97dc8fc40f1e3c3bc3df8f4409d0b2d0b00493427f",
+          "bytes": 240866,
+          "seconds": 2.5085625,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/c01c-tail.wav",
+          "sha256": "11f8f9679b32b5a3ae5a3aa99f5deabb9a422367fe94094317d0af26e84ab2a0",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.4085625000000004
+        }
+      }
+    },
+    "c02": {
+      "duration": 2.0861875,
+      "total": 2.6061875,
+      "speaking": 2.5861875,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/c02-voice.wav",
+          "sha256": "238feab8061ed1c8cf258dc366d9e0ace868239c7219de846b84002e28f537d6",
+          "bytes": 215680,
+          "seconds": 2.246208333333333,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/c02-hiss.wav",
+          "sha256": "0dc7949831bb6a82e43ff9ccfb64f6c1b9b0167c2f71281d87e7bcc42ef27abf",
+          "bytes": 234878,
+          "seconds": 2.4461875,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/c02-tail.wav",
+          "sha256": "7dd839db65fae2d0d1c7c6ea1fc6729ac335836987b16f760ab9b6350bc83b57",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.3461875
+        }
+      }
+    },
+    "c01b": {
+      "duration": 3.5763125,
+      "total": 4.0963125,
+      "speaking": 4.0763125,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/c01b-voice.wav",
+          "sha256": "e4c30c674f6eb3ffed982a253203b074455dcfd20fa952eab82ad4d9c9c92fab",
+          "bytes": 358730,
+          "seconds": 3.7363125,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/c01b-hiss.wav",
+          "sha256": "616b27841a9f10aab877dd05ebcf63631f6383a1c136bea98e063a93f8bb5a2d",
+          "bytes": 377930,
+          "seconds": 3.9363125,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/c01b-tail.wav",
+          "sha256": "9754ac98db88ef8f983b56b5e680ddea77c0f68ee28d3e8164802eb9b8b785ba",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 3.8363125
+        }
+      }
+    },
+    "c03a": {
+      "duration": 1.8093125,
+      "total": 2.3293125000000003,
+      "speaking": 2.3093125,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/c03a-voice.wav",
+          "sha256": "722206236f8462e977a46765eaf1f34ffae3fe021ccf096bdab4eaa85256cc1a",
+          "bytes": 189100,
+          "seconds": 1.9693333333333334,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/c03a-hiss.wav",
+          "sha256": "8918c1bb56129b4ed6e7edb309b29ab3a1ef66519989d2055239aedd50bcb269",
+          "bytes": 208300,
+          "seconds": 2.1693333333333333,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/c03a-tail.wav",
+          "sha256": "0d944e4956d10a2a355b2db2049ad6ce45fefef034d11dd1dc56926dee283c13",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.0693125
+        }
+      }
+    },
+    "c03b": {
+      "duration": 1.83875,
+      "total": 2.3587499999999997,
+      "speaking": 2.33875,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/c03b-voice.wav",
+          "sha256": "88e4dc75e67acc8aedd90a49d921dc0456f76967c0bc3f6274a4230fa9efd0e9",
+          "bytes": 191924,
+          "seconds": 1.99875,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/c03b-hiss.wav",
+          "sha256": "8cf721097be64e21a2270e3d00bcb80d3930d760d0304d809cc0157abc1b4d51",
+          "bytes": 211124,
+          "seconds": 2.19875,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/c03b-tail.wav",
+          "sha256": "c359a10a87efbf75e32958e2946eea21810bdfec918f7d17fb0a1d17bd92fdf1",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.09875
+        }
+      }
+    },
+    "c03c": {
+      "duration": 1.711625,
+      "total": 2.231625,
+      "speaking": 2.2116249999999997,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/c03c-voice.wav",
+          "sha256": "e3897dcade8453f0045d8d3eaa605b1628b23b7f7e512a876299a5d31083d2f2",
+          "bytes": 179720,
+          "seconds": 1.871625,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/c03c-hiss.wav",
+          "sha256": "d5dc6c95e13ef8f216c1d5f58ac4a738ada529c4592d095fd04a5fbb64c12faf",
+          "bytes": 198920,
+          "seconds": 2.071625,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/c03c-tail.wav",
+          "sha256": "67cb1ddf9644de3b5f3e0ea97d42fbe8fde62ce0c7f7999ad82f0aa292e2c737",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 1.971625
+        }
+      }
+    },
+    "c03d": {
+      "duration": 2.742,
+      "total": 3.2619999999999996,
+      "speaking": 3.242,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/c03d-voice.wav",
+          "sha256": "e8c8921184b1c9420f176acd274d15fd2672f1777d694c85ad6f438bfe5da57b",
+          "bytes": 278636,
+          "seconds": 2.902,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/c03d-hiss.wav",
+          "sha256": "dacc17c70099b35bc75a7d8fde2f5b2a814afe0cf575233527efbb196ae6ae74",
+          "bytes": 297836,
+          "seconds": 3.102,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/c03d-tail.wav",
+          "sha256": "c97160c867630012f55b1bf6e9c1dd01883941866e7ba31df43fb858b17b486f",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 3.002
+        }
+      }
+    },
+    "c03e": {
+      "duration": 1.007125,
+      "total": 1.527125,
+      "speaking": 1.507125,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/c03e-voice.wav",
+          "sha256": "b149091298853272572d1cf9c3c2b6dbfa026101c1490974d3a83b57b85156d7",
+          "bytes": 112088,
+          "seconds": 1.167125,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/c03e-hiss.wav",
+          "sha256": "5f06db4cd9dc5abb66557d6a993e2163bc403dcf0d23417f6ff33feb383ebcbb",
+          "bytes": 131290,
+          "seconds": 1.3671458333333333,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/c03e-tail.wav",
+          "sha256": "56dd9d8478b4c4cfba3043e0c3888c183251c1b5da21ff7299492a4aa4f309b0",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 1.267125
+        }
+      }
+    },
+    "c03f": {
+      "duration": 1.5918125,
+      "total": 2.1118125,
+      "speaking": 2.0918125,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/c03f-voice.wav",
+          "sha256": "7e62b1ce029bb6017f70e5153293d271363ff28ca56de11d8bc99979891b8c2c",
+          "bytes": 168218,
+          "seconds": 1.7518125,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/c03f-hiss.wav",
+          "sha256": "081b852d72b98e7e8a9b1ef5845a99d500da213c5186a7a0199c3b3cdf26ac47",
+          "bytes": 187418,
+          "seconds": 1.9518125,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/c03f-tail.wav",
+          "sha256": "d7f09ae343b10edc0b2d30f8762cfd0421f1f9c6734d119938ee212dc5ffc455",
+          "bytes": 36526,
+          "seconds": 0.3800208333333333,
+          "at": 1.8518125
+        }
+      }
+    },
+    "c04": {
+      "duration": 2.4093125,
+      "total": 2.9293125,
+      "speaking": 2.9093125,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/c04-voice.wav",
+          "sha256": "b58f448857e7f99cc37b1ca401627521f2bcfbe284b41f5f630f14ba4e39215a",
+          "bytes": 246700,
+          "seconds": 2.5693333333333332,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/c04-hiss.wav",
+          "sha256": "5c2816c69fe34f3e2adb9dcf8bb6b32d20bd542d8878b248ab375f3504ac7865",
+          "bytes": 265898,
+          "seconds": 2.7693125,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/c04-tail.wav",
+          "sha256": "a8a8ad51f2c811d6b9e687d85e4c11fdebffdd9044aa9df67beef80a1cb2c837",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.6693125
+        }
+      }
+    },
+    "c04b": {
+      "duration": 2.7478125,
+      "total": 3.2678125,
+      "speaking": 3.2478125,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/c04b-voice.wav",
+          "sha256": "c5f0cf8d43e9e66cb6b4da4a326a1e945d62d7b0c0b95def8110fda61e1551e1",
+          "bytes": 279194,
+          "seconds": 2.9078125,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/c04b-hiss.wav",
+          "sha256": "7e25439a35db0e5842fd361231201bee09b8a26b9ad0de707d5ce9b03320fd09",
+          "bytes": 298394,
+          "seconds": 3.1078125,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/c04b-tail.wav",
+          "sha256": "a9011b2d6258ca4e695f40cb92f54d3b7c5c0c08dbcef3e90ab807b79c0b1ea5",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 3.0078125
+        }
+      }
+    },
+    "c05b": {
+      "duration": 3.1481875,
+      "total": 3.6681875,
+      "speaking": 3.6481875,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/c05b-voice.wav",
+          "sha256": "575c85ecdf2e2363b811750e04c044a166a9ef83ef7564c59eb86f16f2885847",
+          "bytes": 317632,
+          "seconds": 3.3082083333333334,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/c05b-hiss.wav",
+          "sha256": "de1b226901d1edbfe885b0aaba7b00bb2635c9b62efcb632bf580dff4be8bad8",
+          "bytes": 336830,
+          "seconds": 3.5081875,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/c05b-tail.wav",
+          "sha256": "8a49aca06bd3f7604d363c460c014e0a9e06485e8416a1cbb9aef7b1ad1995de",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 3.4081875000000004
+        }
+      }
+    },
+    "c05": {
+      "duration": 3.72575,
+      "total": 4.24575,
+      "speaking": 4.22575,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/c05-voice.wav",
+          "sha256": "82aa39b0a776df7d4de673e346191983e59ca3dc18da8565e6e25cc8eda1b68f",
+          "bytes": 373078,
+          "seconds": 3.8857708333333334,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/c05-hiss.wav",
+          "sha256": "1180974c299ce0f42f57f77be03bfcc4572bc03f6a72e0b53f00ce174d28f01e",
+          "bytes": 392278,
+          "seconds": 4.085770833333333,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/c05-tail.wav",
+          "sha256": "2223ae9756995045bed8cc72940e1bebaaeea86ad4412f0c7edd332e31a3453a",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 3.9857500000000003
+        }
+      }
+    },
+    "c05c": {
+      "duration": 2.827375,
+      "total": 3.3473749999999995,
+      "speaking": 3.327375,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/c05c-voice.wav",
+          "sha256": "46c0499d1dc82550a7a325166e20480870f69ecdff7ee42017f1ebc643dee08e",
+          "bytes": 286832,
+          "seconds": 2.987375,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/c05c-hiss.wav",
+          "sha256": "e3ec386ce57e710af3de3f492f96ffdee0dbe2357c4fa58ab43512be0d3e8761",
+          "bytes": 306032,
+          "seconds": 3.187375,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/c05c-tail.wav",
+          "sha256": "fe3cde4132e0cf5d7baaf41c74adb9668c651387b1b504ed1a049032a2473ce5",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 3.0873749999999998
+        }
+      }
+    },
+    "c06": {
+      "duration": 2.0208125,
+      "total": 2.5408124999999995,
+      "speaking": 2.5208125,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/c06-voice.wav",
+          "sha256": "3222333d6a01d0106c308e431611c5addea534031214d7f7f664ceb55ddf7b98",
+          "bytes": 209402,
+          "seconds": 2.1808125,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/c06-hiss.wav",
+          "sha256": "ad92b5edc62347b93fb076124ee2ea79d38cc9b4d2646f4505908f6ef1cc9656",
+          "bytes": 228602,
+          "seconds": 2.3808125,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/c06-tail.wav",
+          "sha256": "2cc4d888daeb84ebfca400c68f028c72e3aef6756e9de990cf430c1525006768",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.2808124999999997
+        }
+      }
+    },
+    "c06b": {
+      "duration": 1.647625,
+      "total": 2.167625,
+      "speaking": 2.1476249999999997,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/c06b-voice.wav",
+          "sha256": "70b49e518bf07a90a0d674155091eb1cf15e13729f4ac8315911235ef11dd4c7",
+          "bytes": 173576,
+          "seconds": 1.807625,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/c06b-hiss.wav",
+          "sha256": "60b48b4a0e04c2777abffdcb6e29a4e3fac2082fa94e7129398752a067c89f81",
+          "bytes": 192776,
+          "seconds": 2.007625,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/c06b-tail.wav",
+          "sha256": "359613e0e3a3f34cd92ac80d48aaf27051a38d47a9dd14c683a0fcb12b55afae",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 1.907625
+        }
+      }
+    },
+    "c06c": {
+      "duration": 2.22225,
+      "total": 2.7422499999999994,
+      "speaking": 2.72225,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/c06c-voice.wav",
+          "sha256": "4b1a627fbfbd9e063a0fd1e918bc669572cfeb47bb9f195aa1be254e01e64a35",
+          "bytes": 228740,
+          "seconds": 2.38225,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/c06c-hiss.wav",
+          "sha256": "ddaa0c089d2895f7a24588fe2f61dfaf75751a78eb7e5ed35d2f40b2029a807f",
+          "bytes": 247940,
+          "seconds": 2.58225,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/c06c-tail.wav",
+          "sha256": "44042ff9ff318f67c713f33d396590e9a3b36bcc8f6393961331f2bdc0e5e593",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.4822499999999996
+        }
+      }
+    },
+    "c07": {
+      "duration": 2.94925,
+      "total": 3.4692499999999997,
+      "speaking": 3.44925,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/c07-voice.wav",
+          "sha256": "23b3333827d143d5de6379b0e8205f68545c2771a396ed28252d6bb4db8bad94",
+          "bytes": 298532,
+          "seconds": 3.10925,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/c07-hiss.wav",
+          "sha256": "e7183ceb929b788f456f3c6947a5391fd82cb0c0523086043ffb79610ce4c59b",
+          "bytes": 317732,
+          "seconds": 3.30925,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/c07-tail.wav",
+          "sha256": "8fcace78338cbbc9175afacf2db7fc7d9c03b519182ff5b0564a042b709888fd",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 3.20925
+        }
+      }
+    },
+    "c07b": {
+      "duration": 2.2236875,
+      "total": 2.7436875,
+      "speaking": 2.7236875,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/c07b-voice.wav",
+          "sha256": "f2ed328ded5908d4dad34f32d1d822b2b0945bd5fb64a6c424cc15aed5a5968c",
+          "bytes": 228880,
+          "seconds": 2.3837083333333333,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/c07b-hiss.wav",
+          "sha256": "4bc2ac9d44bcb8cbc1f6608adf57c1f50417314feff29480bc04d7dcaf4308af",
+          "bytes": 248078,
+          "seconds": 2.5836875,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/c07b-tail.wav",
+          "sha256": "6fb6b376ff4d2babe929cef0cc5354212eb610a00f026bf0ba87ca81cee0799f",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.4836875000000003
+        }
+      }
+    },
+    "c07c": {
+      "duration": 1.8326875,
+      "total": 2.3526875,
+      "speaking": 2.3326875,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/c07c-voice.wav",
+          "sha256": "f4e746efc06d1b6da149852ffe0bf1f981c703149ed255cec99333bf239afce3",
+          "bytes": 191344,
+          "seconds": 1.9927083333333333,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/c07c-hiss.wav",
+          "sha256": "c7e42a4d24f77dbcdf9ce86ddbfe24f3d860ca2ca9e87f86af7485924ac6895a",
+          "bytes": 210542,
+          "seconds": 2.1926875,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/c07c-tail.wav",
+          "sha256": "4d52ac4dff2c9652666640d469f5e228955205956d89b878a2ca48d8c7d4da65",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.0926875000000003
+        }
+      }
+    },
+    "c08": {
+      "duration": 3.25075,
+      "total": 3.7707499999999996,
+      "speaking": 3.75075,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/c08-voice.wav",
+          "sha256": "f2bdf8306c442be5b87854e24d53129a55762080a23d2351001d1ccf1313bf96",
+          "bytes": 327476,
+          "seconds": 3.41075,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/c08-hiss.wav",
+          "sha256": "e779f04ee45a65d17972d0bc7141663dc1fa865962d764cb3eec02a81f1e929e",
+          "bytes": 346676,
+          "seconds": 3.61075,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/c08-tail.wav",
+          "sha256": "9fdf004abc3c4ad7d498b242061cbfca88776e9e2afa9b6dfa64eb2823389fbb",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 3.51075
+        }
+      }
+    },
+    "c08b": {
+      "duration": 3.2494375,
+      "total": 3.7694374999999996,
+      "speaking": 3.7494375,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/c08b-voice.wav",
+          "sha256": "9bed33701d72fa6c4064b4bf6a4a8a7b93a85ead39e0d26a3adf679c72bc003f",
+          "bytes": 327350,
+          "seconds": 3.4094375,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/c08b-hiss.wav",
+          "sha256": "1944798e3c75baf60a1de4f01143fe73611c15bba7beae54d7c5b796debec4c6",
+          "bytes": 346550,
+          "seconds": 3.6094375,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/c08b-tail.wav",
+          "sha256": "e22dd4c7064bd862781aecad943030a61b0c9757096bac3127614ea7d6a42102",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 3.5094374999999998
+        }
+      }
+    },
+    "c09c": {
+      "duration": 3.04075,
+      "total": 3.5607499999999996,
+      "speaking": 3.54075,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/c09c-voice.wav",
+          "sha256": "2dfe1a14e1f9945cdab117524ae6bf48021ebdfb2f65b131fc01a1b05f5583a6",
+          "bytes": 307316,
+          "seconds": 3.20075,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/c09c-hiss.wav",
+          "sha256": "516f36f70c6cb2d3b72dfd7e7e8781584b7c1d02b1fc07cd69da154d903d921c",
+          "bytes": 326516,
+          "seconds": 3.40075,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/c09c-tail.wav",
+          "sha256": "6eff5a4d6aef8ff4b8d8c92c27bf3c4a6bb09fc675d5ab2e95e947d5fc2e4d27",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 3.30075
+        }
+      }
+    },
+    "c10": {
+      "duration": 4.4625,
+      "total": 4.9825,
+      "speaking": 4.9625,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/c10-voice.wav",
+          "sha256": "153ee11d7a40864789ce438d02861f7713d8e885142ac19fc7dd65a67ebbec56",
+          "bytes": 443804,
+          "seconds": 4.6225,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/c10-hiss.wav",
+          "sha256": "49f98a69de9fae78514c07c1bed9a5a681f3b9101990da1814b893c735b50c8d",
+          "bytes": 463004,
+          "seconds": 4.8225,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/c10-tail.wav",
+          "sha256": "f29b3fd7cf2e1305638e0c43dd6f0e351001097b68d2858632bbecccd256ba00",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 4.7225
+        }
+      }
+    },
+    "c10b": {
+      "duration": 2.692375,
+      "total": 3.2123749999999998,
+      "speaking": 3.192375,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/c10b-voice.wav",
+          "sha256": "c19755868524c4a33e0e4112fae0beb513d354a071db0717ad1e531c0909334c",
+          "bytes": 273872,
+          "seconds": 2.852375,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/c10b-hiss.wav",
+          "sha256": "903e1e85cc5010e4ca15da748e02a69fe67934644d21aa735836ba1a75f8ff6c",
+          "bytes": 293072,
+          "seconds": 3.052375,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/c10b-tail.wav",
+          "sha256": "5e942a8596e00c25a7175226f4bfe352faaf4862426ab367df0d48a4c7d5ca85",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.952375
+        }
+      }
+    },
+    "c11": {
+      "duration": 3.4275625,
+      "total": 3.9475625,
+      "speaking": 3.9275625,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/c11-voice.wav",
+          "sha256": "81a6b24e23d68131f8b590e4f26bf7e575a47f5922947cf67fc3ede89d76aa9f",
+          "bytes": 344452,
+          "seconds": 3.5875833333333333,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/c11-hiss.wav",
+          "sha256": "833a33ce134cce8aaa55e59a023a9fcde170cf2b8edcb3131e656cd987335628",
+          "bytes": 363650,
+          "seconds": 3.7875625,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/c11-tail.wav",
+          "sha256": "98fef83fdec4ab76f284c0fbdd6b15ab3ba947309e2a6b3df65190c0d5a7b01c",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 3.6875625000000003
+        }
+      }
+    },
+    "c11b": {
+      "duration": 2.2759375,
+      "total": 2.7959375,
+      "speaking": 2.7759375,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/c11b-voice.wav",
+          "sha256": "098251012ac247970cb2486c357351b2d3cbbd20f6875c830984a083215d2775",
+          "bytes": 233896,
+          "seconds": 2.4359583333333332,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/c11b-hiss.wav",
+          "sha256": "d8703e0862262b526f88236cf3ad0910fe582facef792bde741d66df1f45c648",
+          "bytes": 253094,
+          "seconds": 2.6359375,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/c11b-tail.wav",
+          "sha256": "1b9dfa3c3c78b5bd6f82d0953d33a54970b37fd970f1d16887e295d67969d03a",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.5359375
+        }
+      }
+    },
+    "d01A": {
+      "duration": 2.1870625,
+      "total": 2.7070625,
+      "speaking": 2.6870625,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/d01A-voice.wav",
+          "sha256": "7805f640f72146ffa0b4c40fdea2f9662f2c566f6f42eb11507bac551ea3917a",
+          "bytes": 225364,
+          "seconds": 2.3470833333333334,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/d01A-hiss.wav",
+          "sha256": "fae739003321c89c827014aadcb44cc029f0d2fda4ada211205d2783bdd75300",
+          "bytes": 244562,
+          "seconds": 2.5470625,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/d01A-tail.wav",
+          "sha256": "9be87c035d7df4a16ddbf5f9e7c2c4c1fe0a07bbdba36372fc19a9241676dbae",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.4470625000000004
+        }
+      }
+    },
+    "d02A": {
+      "duration": 2.0673125,
+      "total": 2.5873124999999995,
+      "speaking": 2.5673125,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/d02A-voice.wav",
+          "sha256": "1d5d48dc1f8679507387277f939094dba2e57bdc67911567dffbe263b630636a",
+          "bytes": 213866,
+          "seconds": 2.2273125,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/d02A-hiss.wav",
+          "sha256": "b64ff73fa7503771c4d76e69bf368b8a490c3d9eee660461d3266e8cb7438545",
+          "bytes": 233066,
+          "seconds": 2.4273125,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/d02A-tail.wav",
+          "sha256": "9fd3d53c7818ab89d0a36a9d9f5b11f1f86316bf2986cb68b68f07b2f6e81a74",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.3273124999999997
+        }
+      }
+    },
+    "d03A": {
+      "duration": 1.662,
+      "total": 2.182,
+      "speaking": 2.162,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/d03A-voice.wav",
+          "sha256": "9dedd747a735ddc159bf28149096647705b61e7b1cceb9e6975c944964b35eeb",
+          "bytes": 174956,
+          "seconds": 1.822,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/d03A-hiss.wav",
+          "sha256": "3c21b148091fd8e7484e5fe940caf5385be83240a603ba3dead7d1b304a6ec26",
+          "bytes": 194156,
+          "seconds": 2.022,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/d03A-tail.wav",
+          "sha256": "bfaacbb8c0c0c0d46012b3713f10d085cc8afa9198c02a7d3aa2d13670e42ac9",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 1.922
+        }
+      }
+    },
+    "d03A2": {
+      "duration": 1.58575,
+      "total": 2.10575,
+      "speaking": 2.08575,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/d03A2-voice.wav",
+          "sha256": "346dec12bbe3a8675497b52c3da065598f97858409a2e339abc433f85012450c",
+          "bytes": 167636,
+          "seconds": 1.74575,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/d03A2-hiss.wav",
+          "sha256": "64cfa54ebdb80a4f99b76fb3f3d04e41418c2287344c2072dd2ee59aa51bf26c",
+          "bytes": 186836,
+          "seconds": 1.94575,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/d03A2-tail.wav",
+          "sha256": "32ea86cb79a9ea832cefb534d14c1f3e264a70ccc42943227d42bb2ddd909a12",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 1.84575
+        }
+      }
+    },
+    "d04A": {
+      "duration": 2.1654375,
+      "total": 2.6854375,
+      "speaking": 2.6654375,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/d04A-voice.wav",
+          "sha256": "27788e32da12e60b8cf6e6bb8ae50b4b7d0ffc9356247186ffb999bdcb03831f",
+          "bytes": 223288,
+          "seconds": 2.325458333333333,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/d04A-hiss.wav",
+          "sha256": "ee3e71bbf50743a02d2b73997526adf916a93513d354c2c17241ce58d38e01b0",
+          "bytes": 242486,
+          "seconds": 2.5254375,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/d04A-tail.wav",
+          "sha256": "b78978f43fc7c7e7a7ac11256545fdfe8d1efbd4cb49ebcda25253e4714db380",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.4254375
+        }
+      }
+    },
+    "d04A2": {
+      "duration": 2.18775,
+      "total": 2.70775,
+      "speaking": 2.68775,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/d04A2-voice.wav",
+          "sha256": "af3ce9b8501cd1052dffd3f79c3d4939aaf6dad2e849bf34c56313991115dea7",
+          "bytes": 225430,
+          "seconds": 2.347770833333333,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/d04A2-hiss.wav",
+          "sha256": "78a42371473fc3b8f308a21f26f9ad82f17639052a72de0c16355607d1240297",
+          "bytes": 244628,
+          "seconds": 2.54775,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/d04A2-tail.wav",
+          "sha256": "670f1606a657239b5d12e1a17a6a8c4242c02eecfbef6bb828dfc91905541f17",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.44775
+        }
+      }
+    },
+    "d01B": {
+      "duration": 2.1899375,
+      "total": 2.7099374999999997,
+      "speaking": 2.6899375,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/d01B-voice.wav",
+          "sha256": "a8d7ab61225bc765f237469d67a0bf1f37c7ceaabd4047216478e9747d2d4951",
+          "bytes": 225638,
+          "seconds": 2.3499375,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/d01B-hiss.wav",
+          "sha256": "6c6983a7356d2fcf5e40e242aebfa9fc972f27e07f40157b3c618f78754e3de1",
+          "bytes": 244838,
+          "seconds": 2.5499375,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/d01B-tail.wav",
+          "sha256": "864f0cc9cee39acab2a75cd237bf458b576cfea1c396e003bca6d235d3a777d2",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.4499375
+        }
+      }
+    },
+    "d02B": {
+      "duration": 1.9595625,
+      "total": 2.4795625,
+      "speaking": 2.4595625,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/d02B-voice.wav",
+          "sha256": "fd3da1fd0242414c6d2cad3f579323756add6dafcfffabc045dcb245499b234d",
+          "bytes": 203524,
+          "seconds": 2.1195833333333334,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/d02B-hiss.wav",
+          "sha256": "6d0ddf2aa63e011a79276227da67bfc13d10054a632097ea727bc3a0b7df1a82",
+          "bytes": 222722,
+          "seconds": 2.3195625,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/d02B-tail.wav",
+          "sha256": "f462224be9ed4c5c1159f03f20196c5be0c48d42b348c40f7e0357d4e3cee816",
+          "bytes": 36526,
+          "seconds": 0.3800208333333333,
+          "at": 2.2195625000000003
+        }
+      }
+    },
+    "d03B": {
+      "duration": 2.052625,
+      "total": 2.5726249999999995,
+      "speaking": 2.552625,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/d03B-voice.wav",
+          "sha256": "e9516f3f0792e390d7b47040da8bd8bc2dc58ecdf8c3081c2703ea09f84923bb",
+          "bytes": 212456,
+          "seconds": 2.212625,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/d03B-hiss.wav",
+          "sha256": "501b5cf7790db853fa29b6645d54b1f1b46b12c0415618ee11323ac418332da5",
+          "bytes": 231656,
+          "seconds": 2.412625,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/d03B-tail.wav",
+          "sha256": "caaf12875d2ebb823e0e4739ea764145ffa24d6a87422a346a0116520a7c324a",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.3126249999999997
+        }
+      }
+    },
+    "d03B2": {
+      "duration": 1.6904375,
+      "total": 2.2104375000000003,
+      "speaking": 2.1904375,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/d03B2-voice.wav",
+          "sha256": "853629a8386a16406a7b9635faecdaa7a4718219dab12cbff128d12a38993d32",
+          "bytes": 177688,
+          "seconds": 1.8504583333333333,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/d03B2-hiss.wav",
+          "sha256": "de05983aa4c1ced15af4db56e03e28695d770f6a036520136b6c09dbb2f45b96",
+          "bytes": 196888,
+          "seconds": 2.0504583333333333,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/d03B2-tail.wav",
+          "sha256": "13eaa3cc696e14357884f0ac31cab3c837a673bff585c958f92547f75a12b9d4",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 1.9504375
+        }
+      }
+    },
+    "d04B": {
+      "duration": 2.0666875,
+      "total": 2.5866875,
+      "speaking": 2.5666875,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/d04B-voice.wav",
+          "sha256": "2804e4404b50f3667b9995c89d9141e9d7a8198a7e61ef247fbe87da8ef98b7f",
+          "bytes": 213808,
+          "seconds": 2.2267083333333333,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/d04B-hiss.wav",
+          "sha256": "0ecdfc3ab8a7ece7cbae413fb2606ca50fac55bfd6e967654330e0d0012fb9b8",
+          "bytes": 233006,
+          "seconds": 2.4266875,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/d04B-tail.wav",
+          "sha256": "5d96fd9a46bc310424ec6efc72c70b5cf6c057188b9657150d0294cb1691982b",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.3266875000000002
+        }
+      }
+    },
+    "d04B2": {
+      "duration": 1.9845625,
+      "total": 2.5045624999999996,
+      "speaking": 2.4845625,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/d04B2-voice.wav",
+          "sha256": "4f6b6318e6a95fb4eca4fb6d58ff473fd4fe935e7ce80889534aa03ce2dea25b",
+          "bytes": 205922,
+          "seconds": 2.1445625,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/d04B2-hiss.wav",
+          "sha256": "784c4f40d9fbbe80b984766e0332084af3cbf61c74ce19d27cb402748ff47b50",
+          "bytes": 225122,
+          "seconds": 2.3445625,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/d04B2-tail.wav",
+          "sha256": "5daeede9f5ffd4f7307e89aba19f78f14ab2abbdc2b74fc581c85ff6e90e44ef",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.2445625
+        }
+      }
+    },
+    "d01C": {
+      "duration": 2.2585,
+      "total": 2.7785,
+      "speaking": 2.7585,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/d01C-voice.wav",
+          "sha256": "6588ac685088e6d2d01c3f6ca7eb6849c8f75a46765bfce1569c0a92ec9480ed",
+          "bytes": 232222,
+          "seconds": 2.4185208333333335,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/d01C-hiss.wav",
+          "sha256": "175f3bea1809b316be1fcf9f0f180e6f818aee0130ce1bc59848e141396d51ce",
+          "bytes": 251420,
+          "seconds": 2.6185,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/d01C-tail.wav",
+          "sha256": "867f256ef55a115fe2218ddfc27c015436347ea634816e4b7084997d2f417246",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.5185000000000004
+        }
+      }
+    },
+    "d02C": {
+      "duration": 2.2901875,
+      "total": 2.8101874999999996,
+      "speaking": 2.7901875,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/d02C-voice.wav",
+          "sha256": "7294a0cc8c09f20d1604804ee70d03bc80019f3ceedd8879273518ff41448ddc",
+          "bytes": 235262,
+          "seconds": 2.4501875,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/d02C-hiss.wav",
+          "sha256": "dec9014c9b06ebb4c95751d7dafb74bf99e4312fa52bad64309303c17db715ba",
+          "bytes": 254462,
+          "seconds": 2.6501875,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/d02C-tail.wav",
+          "sha256": "c321b3827a7f9501d7340b5b1212c9e707058fe03362ba40754a65d4007a9074",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.5501875
+        }
+      }
+    },
+    "d03C": {
+      "duration": 1.9990625,
+      "total": 2.5190624999999995,
+      "speaking": 2.4990625,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/d03C-voice.wav",
+          "sha256": "14c0beab97861d8c6f11d421e6d4d18c4ef00ca77bd4b2f8b79ece52447c211c",
+          "bytes": 207314,
+          "seconds": 2.1590625,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/d03C-hiss.wav",
+          "sha256": "fc26f719d0cbfa9ac49091f39561fa5720ed63d211544d2d0ae53c2d96e37724",
+          "bytes": 226514,
+          "seconds": 2.3590625,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/d03C-tail.wav",
+          "sha256": "1ef96e4642817939f21eaa286ab5ccbf712d117185c43f54d9a646032e31901d",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.2590624999999998
+        }
+      }
+    },
+    "d03C2": {
+      "duration": 1.778625,
+      "total": 2.2986249999999995,
+      "speaking": 2.278625,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/d03C2-voice.wav",
+          "sha256": "46a18b197a8b9a0a872c1dcce02b59316a2feb0508afb80ae941dfede290f04e",
+          "bytes": 186152,
+          "seconds": 1.938625,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/d03C2-hiss.wav",
+          "sha256": "c7161d311e130e47cf62e6cdac699024fac51a833b94b456ab56053691c0bc52",
+          "bytes": 205352,
+          "seconds": 2.138625,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/d03C2-tail.wav",
+          "sha256": "558a1d83838a64682fb23c319aa1ef8a2037b2d243666555c50ada218c944294",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.0386249999999997
+        }
+      }
+    },
+    "d04C": {
+      "duration": 2.6165,
+      "total": 3.1365,
+      "speaking": 3.1165,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/d04C-voice.wav",
+          "sha256": "f7069c82a4d856f0266f4ccfbb0179c39a9ddc7d7340726d4693b9e36bad78c3",
+          "bytes": 266588,
+          "seconds": 2.7765,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/d04C-hiss.wav",
+          "sha256": "97b10083b61afd045826a487f9322e553f5025f8a56c9b385616665c2a9d9ec0",
+          "bytes": 285788,
+          "seconds": 2.9765,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/d04C-tail.wav",
+          "sha256": "c20fe4f2a6b3a5e12e2f23e461c687ae387541bcc15e8a5d8365a84f1a81f294",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.8765
+        }
+      }
+    },
+    "d04C2": {
+      "duration": 2.45275,
+      "total": 2.9727499999999996,
+      "speaking": 2.95275,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/d04C2-voice.wav",
+          "sha256": "54abddb612b478eb0447b9342d7b2e70ed78f14a2c6a41424377ea05ff1f8097",
+          "bytes": 250868,
+          "seconds": 2.61275,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/d04C2-hiss.wav",
+          "sha256": "db2eb3259125bf8ebe0958859a8c18add20cefa99fb59fafa85a3ed1c396f68a",
+          "bytes": 270068,
+          "seconds": 2.81275,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/d04C2-tail.wav",
+          "sha256": "da10bd756426e8686d90b1b5bfc42b85f61af8b66c2305a96064837333f2345b",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.7127499999999998
+        }
+      }
+    },
+    "d05": {
+      "duration": 3.6109375,
+      "total": 4.1309375,
+      "speaking": 4.1109375,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/d05-voice.wav",
+          "sha256": "4a88052ef0face611ddf94f0dbd2d9c27e4f866e41a91617d6f558eb1dbe9f7a",
+          "bytes": 362054,
+          "seconds": 3.7709375,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/d05-hiss.wav",
+          "sha256": "69acfc0b8ce2c747b929b7c54ca756089ee61aada12e1de06c4d6173162fa8ce",
+          "bytes": 381254,
+          "seconds": 3.9709375,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/d05-tail.wav",
+          "sha256": "45358e398ac9a5f4222e52a8b1f6a972636295d62dc61670a0aab9070517b092",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 3.8709375
+        }
+      }
+    },
+    "d05b": {
+      "duration": 3.10475,
+      "total": 3.6247499999999997,
+      "speaking": 3.60475,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/d05b-voice.wav",
+          "sha256": "873fb2c8b7c9e9e79a87c5267bade0945aa192221ea90bacdab429edba4c0a8e",
+          "bytes": 313460,
+          "seconds": 3.26475,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/d05b-hiss.wav",
+          "sha256": "a6df9ffa9946f8e579165cab165ed14f5156d56e79eb25b3ffc1ea1fa6e91927",
+          "bytes": 332660,
+          "seconds": 3.46475,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/d05b-tail.wav",
+          "sha256": "58f2ce2a047c93e9a24e46eee74d7b97f03b15e00fde2418a9e3b95a8e69fb60",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 3.36475
+        }
+      }
+    },
+    "d06": {
+      "duration": 2.366875,
+      "total": 2.886875,
+      "speaking": 2.866875,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/d06-voice.wav",
+          "sha256": "ccadc0e66bfa65e956b2211ae2248ba8912465c38c23535bd71b49acbfbe78ae",
+          "bytes": 242624,
+          "seconds": 2.526875,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/d06-hiss.wav",
+          "sha256": "f477bd6987ea5dc0a49c3be94de4c597b595a5673d0a8a6a3a0fddc914104f1c",
+          "bytes": 261824,
+          "seconds": 2.726875,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/d06-tail.wav",
+          "sha256": "c30edc4844b521bc15583b2205b58750b6faace5130fb7bdd9eb7294c30c498d",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.626875
+        }
+      }
+    },
+    "d06b": {
+      "duration": 3.270875,
+      "total": 3.7908749999999998,
+      "speaking": 3.770875,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/d06b-voice.wav",
+          "sha256": "e7fcadbebad0241ea705e42de1e77a167e8eaf2e71b645449656c70b3325cb6d",
+          "bytes": 329408,
+          "seconds": 3.430875,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/d06b-hiss.wav",
+          "sha256": "9285c8e44cd2f0708dcdb7518600a45d777af0bb56f13c130f91ef8b938c7a99",
+          "bytes": 348608,
+          "seconds": 3.630875,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/d06b-tail.wav",
+          "sha256": "8a2dc7334f7ee8634d3c002ef80ad3de9691f0709b0271c6dec97817e96da548",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 3.530875
+        }
+      }
+    },
+    "d07": {
+      "duration": 3.9750625,
+      "total": 4.4950624999999995,
+      "speaking": 4.4750625,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/d07-voice.wav",
+          "sha256": "8dd0183aeb78926f18ff541dffec3d8203728e826c9fe35ef61336db619e5f78",
+          "bytes": 397010,
+          "seconds": 4.1350625,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/d07-hiss.wav",
+          "sha256": "f0a5e5a34a23e5cac90e5f4a86415033c1ca58ce076ed5c5726fbc30ed327e8c",
+          "bytes": 416210,
+          "seconds": 4.3350625,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/d07-tail.wav",
+          "sha256": "4476963a4a0d1ee02ecdef4fc3a507a53929dc0ad47163302377c0499db16135",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 4.2350625
+        }
+      }
+    },
+    "d07b": {
+      "duration": 2.2336875,
+      "total": 2.7536875,
+      "speaking": 2.7336875,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/d07b-voice.wav",
+          "sha256": "e96ebbb4e8c4393a6949796db20a507ddc8c96863f315f9e81c8a9fd9847e097",
+          "bytes": 229840,
+          "seconds": 2.3937083333333335,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/d07b-hiss.wav",
+          "sha256": "cc4f37a1d88bd3453cd68b267a7c44c34d8f92e101b3792113013a7ff8d8088a",
+          "bytes": 249038,
+          "seconds": 2.5936875,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/d07b-tail.wav",
+          "sha256": "f06101ea2189b3e1a14e336e47f3b0059fea3a940036904caa8e255aa43b8ceb",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.4936875
+        }
+      }
+    },
+    "d08b": {
+      "duration": 1.59625,
+      "total": 2.11625,
+      "speaking": 2.09625,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/d08b-voice.wav",
+          "sha256": "3783a44edcf802db7703a68949c2988d359bcc002aea9046d11c9d92ef25db17",
+          "bytes": 168644,
+          "seconds": 1.75625,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/d08b-hiss.wav",
+          "sha256": "dd968b20844fa54006765d798668fcbc33995cdfc15ee8da2df516b6c7439d71",
+          "bytes": 187844,
+          "seconds": 1.95625,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/d08b-tail.wav",
+          "sha256": "aaecedebfb30565c18f80e6d23aa9b21f0b6e3d92fde4e210b1caeb862116bc3",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 1.85625
+        }
+      }
+    },
+    "d08": {
+      "duration": 3.8035,
+      "total": 4.3235,
+      "speaking": 4.3035,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/d08-voice.wav",
+          "sha256": "e8cec121badfe903d204a9403ef7c03f23c1459a7abbb85a2daff684f166d6d1",
+          "bytes": 380542,
+          "seconds": 3.9635208333333334,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/d08-hiss.wav",
+          "sha256": "98f464ac55678c6c4cadd2e0577e542e89b3b08d029c95b51ceac00a298a561c",
+          "bytes": 399742,
+          "seconds": 4.163520833333333,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/d08-tail.wav",
+          "sha256": "733a20057a87fec445a97af58b7f6ddc57d9da2b3f30c657c159ca4261652a29",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 4.0635
+        }
+      }
+    },
+    "d09": {
+      "duration": 3.051,
+      "total": 3.5709999999999997,
+      "speaking": 3.551,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/d09-voice.wav",
+          "sha256": "4b9b2b1f3a4a34d12381b5f55543f3111ea769ab97f18c783329f306379603f0",
+          "bytes": 308300,
+          "seconds": 3.211,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/d09-hiss.wav",
+          "sha256": "315f03682bec255b94caaeddc4f1fad41b342aca40e3f2d3c28af06f30686aa8",
+          "bytes": 327500,
+          "seconds": 3.411,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/d09-tail.wav",
+          "sha256": "fc9905f9a57c06924421c6e3d8251c919bad6225b3f211bfed6e258e55ac4404",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 3.311
+        }
+      }
+    },
+    "d09b": {
+      "duration": 3.5674375,
+      "total": 4.0874375,
+      "speaking": 4.0674375000000005,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/d09b-voice.wav",
+          "sha256": "2943f07d5a5209ec8b7e5369fead4164dba25ded37f8c4c983efbf231e39ff57",
+          "bytes": 357880,
+          "seconds": 3.7274583333333333,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/d09b-hiss.wav",
+          "sha256": "be324dd5b3c9132e9f68f53d9ca8760ed0581b074419ebffb50d675c66b43e93",
+          "bytes": 377078,
+          "seconds": 3.9274375,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/d09b-tail.wav",
+          "sha256": "6ada70f052689e50d245993dff2b72e9593a61ae3ad1df57bbe58457ae43f998",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 3.8274375000000003
+        }
+      }
+    },
+    "d10": {
+      "duration": 2.5973125,
+      "total": 3.1173124999999997,
+      "speaking": 3.0973125,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/d10-voice.wav",
+          "sha256": "3873fcf196f2d40363865b3b246274e8c4c9911b0739e5237c950584cc8bd10c",
+          "bytes": 264746,
+          "seconds": 2.7573125,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/d10-hiss.wav",
+          "sha256": "405f308a3080dad500755c8e8922f1d1eca11840d613cc72ecc68346ca02f76e",
+          "bytes": 283946,
+          "seconds": 2.9573125,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/d10-tail.wav",
+          "sha256": "1ad522795945e82b8c8385d3dca35a8b4ae48b09af84c3bbebc6c0a6a8b7bd84",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.8573125
+        }
+      }
+    },
+    "d10b": {
+      "duration": 2.260125,
+      "total": 2.780125,
+      "speaking": 2.760125,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/d10b-voice.wav",
+          "sha256": "28169010d42601cc8a30aeeb677bdb12af554b1b5b9ba4000c5776ac78ba651d",
+          "bytes": 232378,
+          "seconds": 2.420145833333333,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/d10b-hiss.wav",
+          "sha256": "9fd25d53db73969e2ebc31a585df5aa39bb3309da9dbffc99269d2d688060897",
+          "bytes": 251576,
+          "seconds": 2.620125,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/d10b-tail.wav",
+          "sha256": "3a3de8a71a60392a486bc1dce5e259d219e91daaf90f75368f3e6aa61dceadf3",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.520125
+        }
+      }
+    },
+    "d11": {
+      "duration": 3.0645,
+      "total": 3.5844999999999994,
+      "speaking": 3.5645,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/d11-voice.wav",
+          "sha256": "f92605b9d2d336d2c3a4a860281622797f0abb71ffec9d2d4796ef46fd6081a1",
+          "bytes": 309596,
+          "seconds": 3.2245,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/d11-hiss.wav",
+          "sha256": "f0398f0d09c411498722e96c7b0b985d16542caa940102c974d92d9665d32e5c",
+          "bytes": 328796,
+          "seconds": 3.4245,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/d11-tail.wav",
+          "sha256": "e3ec31909a76d5b43cfc272a1d30ba14e7acd27a4a0e0e8195dd0e68aa027953",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 3.3244999999999996
+        }
+      }
+    },
+    "d11b": {
+      "duration": 1.9780625,
+      "total": 2.4980624999999996,
+      "speaking": 2.4780625,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/d11b-voice.wav",
+          "sha256": "83b8e6ccabe4e977de13ee0c8d4a137ffa806d4257af5b807e625c6b9a2b39fe",
+          "bytes": 205298,
+          "seconds": 2.1380625,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/d11b-hiss.wav",
+          "sha256": "5b825f895118207a0d1dfcc6bfd292c7ebf4365070383da19ff0a3a2f0cb0219",
+          "bytes": 224498,
+          "seconds": 2.3380625,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/d11b-tail.wav",
+          "sha256": "3f950afa4624eb4053f6d1e138ee6bc8380dfa2b16aa1032f5cc7418262966eb",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.2380625
+        }
+      }
+    },
+    "e01": {
+      "duration": 2.946,
+      "total": 3.466,
+      "speaking": 3.446,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/e01-voice.wav",
+          "sha256": "09fbd5d8803bbf215c05943b5c437bf62521ea819dda4cfc2a31389e8378e0ab",
+          "bytes": 298222,
+          "seconds": 3.1060208333333335,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/e01-hiss.wav",
+          "sha256": "c74d2cbd08a2138ac5735ec0e54e22f71db85604eb34b4c3ab8dd490a053b486",
+          "bytes": 317420,
+          "seconds": 3.306,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/e01-tail.wav",
+          "sha256": "9c337d3ddaf8f49a36e0d3f6a295c3683fb4e5abaa04bd0d3dc924f721d11743",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 3.2060000000000004
+        }
+      }
+    },
+    "e01b": {
+      "duration": 1.6126875,
+      "total": 2.1326875000000003,
+      "speaking": 2.1126875,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/e01b-voice.wav",
+          "sha256": "6ea8f1d602a7b67739a94f96a54bc9be91a25652936a5d8b4572db5fe1aaafe5",
+          "bytes": 170224,
+          "seconds": 1.7727083333333333,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/e01b-hiss.wav",
+          "sha256": "3a8ed42c3366eef0f71c019b389d826a0e02f526b3bfd8700e88f1aeed71daf1",
+          "bytes": 189424,
+          "seconds": 1.9727083333333333,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/e01b-tail.wav",
+          "sha256": "8184d59f53bb0ea3282a43a6ce868865697c647c90b291bfd280dd67d4231230",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 1.8726875
+        }
+      }
+    },
+    "e02": {
+      "duration": 2.0779375,
+      "total": 2.5979374999999996,
+      "speaking": 2.5779375,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/e02-voice.wav",
+          "sha256": "8fe59bec6c3cfca839a3b84d7d3383f9fe9c55f49c26ee30844f0f99782a3765",
+          "bytes": 214886,
+          "seconds": 2.2379375,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/e02-hiss.wav",
+          "sha256": "4093ec845963886eba19935bbf6cf3d42972bbf0fce6a8661b644d5a2ce9f483",
+          "bytes": 234086,
+          "seconds": 2.4379375,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/e02-tail.wav",
+          "sha256": "2d8ec1301fdc3738a70007b1744de10d2cf54391aa5c3f649d74460c9736f129",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.3379375
+        }
+      }
+    },
+    "e02b": {
+      "duration": 2.3395,
+      "total": 2.8594999999999997,
+      "speaking": 2.8395,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/e02b-voice.wav",
+          "sha256": "f565a010ac3e649866ae8ff4eb028de509c89d964d9f4c52bf338ae1c3e15a40",
+          "bytes": 239996,
+          "seconds": 2.4995,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/e02b-hiss.wav",
+          "sha256": "2fe451200e3cb7682294a0929e0e7b6b8b3848f979248aec2fc1ae46e5b0cef9",
+          "bytes": 259196,
+          "seconds": 2.6995,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/e02b-tail.wav",
+          "sha256": "ed65ef3c6f10a577198612df3829aabbee26c4eb2d24656d5ab9d65057ae8416",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.5995
+        }
+      }
+    },
+    "e03": {
+      "duration": 3.423125,
+      "total": 3.943125,
+      "speaking": 3.923125,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/e03-voice.wav",
+          "sha256": "e98bd7c053b4dc71053e8477715af29a71b8ccdba78da06a24f0bd98b458351c",
+          "bytes": 344026,
+          "seconds": 3.5831458333333335,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/e03-hiss.wav",
+          "sha256": "df2ec3239a3eb0491ae771db7be8002bb6dd35380800246cc0acb66fedc41190",
+          "bytes": 363224,
+          "seconds": 3.783125,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/e03-tail.wav",
+          "sha256": "3aa524937f1036194d0851cc2c97818520b7ddc9cf7fb62dc0f64daf3c886f1f",
+          "bytes": 36526,
+          "seconds": 0.3800208333333333,
+          "at": 3.6831250000000004
+        }
+      }
+    },
+    "e03b": {
+      "duration": 2.6406875,
+      "total": 3.1606875,
+      "speaking": 3.1406875,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/e03b-voice.wav",
+          "sha256": "257cb1d38d51cd073236aed96b6232410ac88bdf1f1cb448a389725a90040dfd",
+          "bytes": 268910,
+          "seconds": 2.8006875,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/e03b-hiss.wav",
+          "sha256": "ceee4f159fc95b5d7ed726fa6f62deb7da9f1e13a4fb002652d28de26b231e9d",
+          "bytes": 288110,
+          "seconds": 3.0006875,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/e03b-tail.wav",
+          "sha256": "b137b47aaae0d046b5d75d29635648e74952aafdfeb744d63cdf25d68b43ed28",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.9006875
+        }
+      }
+    },
+    "e03c": {
+      "duration": 2.6310625,
+      "total": 3.1510625,
+      "speaking": 3.1310625,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/e03c-voice.wav",
+          "sha256": "08fee35db0ffc6872248713d18bedae3552963da2f709277671c95fbe71bdce4",
+          "bytes": 267988,
+          "seconds": 2.7910833333333334,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/e03c-hiss.wav",
+          "sha256": "a18bd8801f481457a885ed08d6901a5c70cdd82dd520c302ef2e8a5b22136687",
+          "bytes": 287186,
+          "seconds": 2.9910625,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/e03c-tail.wav",
+          "sha256": "4333f0c85677bed0f2d8b97cbcefad176b44ae52ece785b59b4c574bd2d8c658",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.8910625000000003
+        }
+      }
+    },
+    "e04": {
+      "duration": 2.9056875,
+      "total": 3.4256874999999996,
+      "speaking": 3.4056875,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/e04-voice.wav",
+          "sha256": "33511cced25599f8e71caf6f95071e764e2c81542775b9e8e34e69600520cefe",
+          "bytes": 294350,
+          "seconds": 3.0656875,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/e04-hiss.wav",
+          "sha256": "3016105f9d2ce6c77ed66c1f2d01425122de1485812213569241bfbafdc5bcaa",
+          "bytes": 313550,
+          "seconds": 3.2656875,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/e04-tail.wav",
+          "sha256": "7e14db19864355859d13bda9b667ea9be28b983852def66c4b6d4a26f2b6b80c",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 3.1656874999999998
+        }
+      }
+    },
+    "e04b": {
+      "duration": 2.0379375,
+      "total": 2.5579374999999995,
+      "speaking": 2.5379375,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/e04b-voice.wav",
+          "sha256": "70e385750546f10c210ae5c0bb24dbfdde1896068a44b415a543f5490a26c1cf",
+          "bytes": 211046,
+          "seconds": 2.1979375,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/e04b-hiss.wav",
+          "sha256": "41ff2c6e5b9ecf6490ba0a61491bf60078ba2a5d646864f39e9cf4a0ec61aaab",
+          "bytes": 230246,
+          "seconds": 2.3979375,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/e04b-tail.wav",
+          "sha256": "a2ceea852be24d4c7cd44c1060fb4ce5fe8cc17eb7c1ccf1ad7dff482a938208",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.2979374999999997
+        }
+      }
+    },
+    "e05": {
+      "duration": 3.03625,
+      "total": 3.5562499999999995,
+      "speaking": 3.53625,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/e05-voice.wav",
+          "sha256": "eedaecc8029d2ca1c7d06bdf4e3f316ac606b33592b634e51c147df1be65edff",
+          "bytes": 306884,
+          "seconds": 3.19625,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/e05-hiss.wav",
+          "sha256": "f8b8cecf57db79a91bc1ce870acf5f934bf76a26c6e1f10f4fd18a50b3c93120",
+          "bytes": 326084,
+          "seconds": 3.39625,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/e05-tail.wav",
+          "sha256": "cb90a07e344ee02a0400abe0095cacbeaf99a98b9ba90c4549a5296b6ff9d38f",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 3.2962499999999997
+        }
+      }
+    },
+    "e10": {
+      "duration": 2.814125,
+      "total": 3.3341250000000002,
+      "speaking": 3.314125,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/e10-voice.wav",
+          "sha256": "005006447c51679d512223d8b4b4cf7ebe39020981a55956201bda8509014e81",
+          "bytes": 285562,
+          "seconds": 2.9741458333333335,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/e10-hiss.wav",
+          "sha256": "0cfa02fd9ab6417508f3b0d6b78eb060b97079526577c1f429def51fe3b9aca2",
+          "bytes": 304760,
+          "seconds": 3.174125,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/e10-tail.wav",
+          "sha256": "a22406c8a27385a0b4a72aa409ac76eca15b72ac6717a08ac187fffed22fe3af",
+          "bytes": 36526,
+          "seconds": 0.3800208333333333,
+          "at": 3.0741250000000004
+        }
+      }
+    },
+    "e06": {
+      "duration": 3.1725625,
+      "total": 3.6925625,
+      "speaking": 3.6725625,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/e06-voice.wav",
+          "sha256": "1a1789f514bec89669e2fbc5b3c7f7fe6585e472567e2f71a7e65b4ffe28520e",
+          "bytes": 319972,
+          "seconds": 3.3325833333333335,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/e06-hiss.wav",
+          "sha256": "1590f7535ec81f227b083709941697a5cd8e2b4317d8ba281ca62d27cd182eec",
+          "bytes": 339170,
+          "seconds": 3.5325625,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/e06-tail.wav",
+          "sha256": "471a09047801e22b1bde4819ab2daf4438a0d89dfa9f502ad4d9b15e6629a933",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 3.4325625000000004
+        }
+      }
+    },
+    "e06b": {
+      "duration": 2.1618125,
+      "total": 2.6818124999999995,
+      "speaking": 2.6618125,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/e06b-voice.wav",
+          "sha256": "732ecb18dadcab84f9e43c608c9dff510095a1f1ab244dbaeb00dfd6fb922066",
+          "bytes": 222938,
+          "seconds": 2.3218125,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/e06b-hiss.wav",
+          "sha256": "322172e8dd50679ef0f4de8407eb99e42d010479988550adcab64aaad93d861f",
+          "bytes": 242138,
+          "seconds": 2.5218125,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/e06b-tail.wav",
+          "sha256": "4d33beefdc8bae48d45889935aaf715a91bc60170a5daf6c70f28505e2fa1465",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.4218124999999997
+        }
+      }
+    },
+    "e07": {
+      "duration": 2.8619375,
+      "total": 3.3819374999999994,
+      "speaking": 3.3619375,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/e07-voice.wav",
+          "sha256": "2b60afab93d2e44fa40d27edd97441cd68029424396e05a2a394f1a0094d72bf",
+          "bytes": 290150,
+          "seconds": 3.0219375,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/e07-hiss.wav",
+          "sha256": "110b4eca42a96461f1088efaab7bcb10840933dd55742d3117b549781d809680",
+          "bytes": 309350,
+          "seconds": 3.2219375,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/e07-tail.wav",
+          "sha256": "41c61613e688fd50d63a8a9f589ebd257328ae3006985726f6f5ec321ad9ac73",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 3.1219374999999996
+        }
+      }
+    },
+    "e07b": {
+      "duration": 2.122875,
+      "total": 2.642875,
+      "speaking": 2.622875,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/e07b-voice.wav",
+          "sha256": "f4db4dd6eb4014815db8f149d6b9349a618468870188170ad6dc5ec5a722392f",
+          "bytes": 219202,
+          "seconds": 2.2828958333333333,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/e07b-hiss.wav",
+          "sha256": "631446c7c312e20a38fd2dd5ac432dd86c0aa58c0c264f74d60b5e536c6e2935",
+          "bytes": 238400,
+          "seconds": 2.482875,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/e07b-tail.wav",
+          "sha256": "72230111d673616618b0718c3ed6d18a0a2a7b95b968e0938c335244be39afbb",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.3828750000000003
+        }
+      }
+    },
+    "e08": {
+      "duration": 2.527,
+      "total": 3.0469999999999997,
+      "speaking": 3.027,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/e08-voice.wav",
+          "sha256": "0359a403264755eb0f77d69891b3a430570447fc2d4a495df28293454c0d9c82",
+          "bytes": 257996,
+          "seconds": 2.687,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/e08-hiss.wav",
+          "sha256": "20a6d85c2915f6f09a92de043dd31e9b10d2be024f2ee58cdec2c432711c447b",
+          "bytes": 277196,
+          "seconds": 2.887,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/e08-tail.wav",
+          "sha256": "2065876b27b226649ffdcf977c514c94c5efcbdb713b4d9350907710e51dfabb",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.787
+        }
+      }
+    },
+    "e08b": {
+      "duration": 2.0115,
+      "total": 2.5314999999999994,
+      "speaking": 2.5115,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/e08b-voice.wav",
+          "sha256": "64dd7456732d614bdf99ece049fd7a68333ecb6f0c0468fd383ebed0c4842854",
+          "bytes": 208508,
+          "seconds": 2.1715,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/e08b-hiss.wav",
+          "sha256": "fd905df793bbc358816a9f7c2f93ac725e99e1babaea5a91ff8ebdfdb3678c5b",
+          "bytes": 227708,
+          "seconds": 2.3715,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/e08b-tail.wav",
+          "sha256": "c612d51d0d52024722903bd4f6fe8cef304172ac8753fed5c83006a837f8c324",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.2714999999999996
+        }
+      }
+    },
+    "e09": {
+      "duration": 3.998,
+      "total": 4.518,
+      "speaking": 4.498,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/e09-voice.wav",
+          "sha256": "29d9ab5bb7975d9c8f8b5d211a76c642f87aa27501d1ad18aadbb28be3757de3",
+          "bytes": 399212,
+          "seconds": 4.158,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/e09-hiss.wav",
+          "sha256": "c56af4680964fdc0750804d93aed75a40799f4f717227e97d92e67c0d73538cb",
+          "bytes": 418412,
+          "seconds": 4.358,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/e09-tail.wav",
+          "sha256": "84762c350ee2bfbc734d6f2f52bb89d96f290bf45fb71fa148b90ca918bc5895",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 4.258
+        }
+      }
+    },
+    "e09b": {
+      "duration": 2.0098125,
+      "total": 2.5298124999999994,
+      "speaking": 2.5098125,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/e09b-voice.wav",
+          "sha256": "3ae8324f77fa5e91981f5f10e208bb5b9621e2ea063b80f03150466f6797402e",
+          "bytes": 208346,
+          "seconds": 2.1698125,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/e09b-hiss.wav",
+          "sha256": "48774801d9b9a0580c8a2259e5d11e7c88f72e3110d6396b3eceddd723e235fa",
+          "bytes": 227546,
+          "seconds": 2.3698125,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/e09b-tail.wav",
+          "sha256": "06f01c94f25e1bb5fdd5dd2139e38798f99211c36ec322b31022cab2fe0d8a5d",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.2698124999999996
+        }
+      }
+    },
+    "e11": {
+      "duration": 3.53075,
+      "total": 4.05075,
+      "speaking": 4.030749999999999,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/e11-voice.wav",
+          "sha256": "4b40d477b55de737d839ef024e53edc24be1dfbfba2cddd427d926ae5be0575f",
+          "bytes": 354356,
+          "seconds": 3.69075,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/e11-hiss.wav",
+          "sha256": "c5f5d3d5103767ca1103096aa4f6b391338ea2d719d98ed6cb9e6f7b6e263bae",
+          "bytes": 373556,
+          "seconds": 3.89075,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/e11-tail.wav",
+          "sha256": "e86e72d3ed4c2d53bd2ed58c4cff9a0211afe5fad1c5f2c8f249e5c6e512bd27",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 3.79075
+        }
+      }
+    },
+    "e11b": {
+      "duration": 1.9593125,
+      "total": 2.4793125,
+      "speaking": 2.4593125000000002,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/e11b-voice.wav",
+          "sha256": "d1338cd928630f1705c9e50a07dda24a2fc863cf188d2056688a046e8d4872b3",
+          "bytes": 203500,
+          "seconds": 2.1193333333333335,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/e11b-hiss.wav",
+          "sha256": "86daa8ed4b8eaf3db236c0d9e1878df9e01a1c6f0a83c6ae3465b9d94b5d24ee",
+          "bytes": 222700,
+          "seconds": 2.3193333333333332,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/e11b-tail.wav",
+          "sha256": "c90a0d8b1107f239413a987241fb49d9ff5c4423d6c1a9cc294788b5c09ddefc",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.2193125
+        }
+      }
+    },
+    "f01": {
+      "duration": 4.4811875,
+      "total": 5.0011874999999995,
+      "speaking": 4.9811875,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/f01-voice.wav",
+          "sha256": "35f7400965757cfe91f25172540a7b2ec650ec407e9b5b4df50fc693ccb092d4",
+          "bytes": 445598,
+          "seconds": 4.6411875,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/f01-hiss.wav",
+          "sha256": "841d6534ab7e2044feb724a048f508ce84d5d329e318e5c7f27ddf4cb05b66fd",
+          "bytes": 464798,
+          "seconds": 4.8411875,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/f01-tail.wav",
+          "sha256": "12f5dc9db446bd48416aed6bc97c849d14901e97611806b8d8ad27507cd67b2b",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 4.7411875
+        }
+      }
+    },
+    "f01b": {
+      "duration": 2.38675,
+      "total": 2.9067499999999997,
+      "speaking": 2.88675,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/f01b-voice.wav",
+          "sha256": "8a983822c445c2ee2ae4088b19a0476a050c00b817ab4d13d7758d9b8f5f8755",
+          "bytes": 244532,
+          "seconds": 2.54675,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/f01b-hiss.wav",
+          "sha256": "6de4e6cdbf07c06a659b333f9018d10d5c06a6bc00c6d7ea1eafaa94faa7d58d",
+          "bytes": 263732,
+          "seconds": 2.74675,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/f01b-tail.wav",
+          "sha256": "27f0c1ce5deaab2e32c95580d9bc222d40fae3a57275152fc6f530351f9c99cb",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.64675
+        }
+      }
+    },
+    "f02": {
+      "duration": 5.478875,
+      "total": 5.998875,
+      "speaking": 5.978875,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/f02-voice.wav",
+          "sha256": "85be80482de56443b9ea95dda3b476c043903d63a6431e2ff9e6f3432da536cf",
+          "bytes": 541376,
+          "seconds": 5.638875,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/f02-hiss.wav",
+          "sha256": "10e2f58281db8ce648e69e4d84b144b703323de497d343765e2a1c0b2cb39bf5",
+          "bytes": 560576,
+          "seconds": 5.838875,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/f02-tail.wav",
+          "sha256": "bf838b8eb04ac31de671da4bd892c49242c1acabf567c0fcf1062886f0b17181",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 5.738875
+        }
+      }
+    },
+    "f02b": {
+      "duration": 2.996875,
+      "total": 3.5168749999999998,
+      "speaking": 3.496875,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/f02b-voice.wav",
+          "sha256": "dba5bd7efe24f16dc39bca2b1aedbcde8d870ac146e883dc876ca319cc1bcbbb",
+          "bytes": 303104,
+          "seconds": 3.156875,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/f02b-hiss.wav",
+          "sha256": "e931554bdde4a468d68ec70eb2166bd9ee3afdf44fcec94b98483c14f9f66f71",
+          "bytes": 322304,
+          "seconds": 3.356875,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/f02b-tail.wav",
+          "sha256": "950b76fdafe712ef843824ea5449ed8270b43c0fd27e269abdb8cbe0f3e91834",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 3.256875
+        }
+      }
+    },
+    "f03": {
+      "duration": 4.421375,
+      "total": 4.941375,
+      "speaking": 4.921375,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/f03-voice.wav",
+          "sha256": "1e74a417f0a8cb593e7ddd6cb9323be578523ce3fe4ab2473536de14a5f8b10c",
+          "bytes": 439856,
+          "seconds": 4.581375,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/f03-hiss.wav",
+          "sha256": "0b203feba540f3b59375c74e939f87d64a825ebd27ff91ed235307f27d1dbe18",
+          "bytes": 459056,
+          "seconds": 4.781375,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/f03-tail.wav",
+          "sha256": "f363057e5b47c6dd334df570cf30d07b7cdcc739d72e26461bab9556cfe76064",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 4.681375
+        }
+      }
+    },
+    "f03b": {
+      "duration": 2.4161875,
+      "total": 2.9361875,
+      "speaking": 2.9161875,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/f03b-voice.wav",
+          "sha256": "e6f74830b574671f9254addd68cd4681cd83b38f17e44518496309f841ee7939",
+          "bytes": 247360,
+          "seconds": 2.576208333333333,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/f03b-hiss.wav",
+          "sha256": "8f3c470e17dd88552f13706fa981f62eca3c8f92f09710bb0cb08604e32dcc31",
+          "bytes": 266558,
+          "seconds": 2.7761875,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/f03b-tail.wav",
+          "sha256": "f69c7d90c0fe8ab20671da14eacc6c91c9f0e867b3702d17272ec160c586fbb0",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 2.6761875
+        }
+      }
+    },
+    "f03c": {
+      "duration": 3.341625,
+      "total": 3.861625,
+      "speaking": 3.841625,
+      "stems": {
+        "voice": {
+          "path": "Sounds/BattleRadioDSP/f03c-voice.wav",
+          "sha256": "ed70a3de193366b5dc4c4dea0d6b38f31e0c75d1cd5ea7541bd36a33052d70e3",
+          "bytes": 336202,
+          "seconds": 3.5016458333333333,
+          "at": 0.26
+        },
+        "hiss": {
+          "path": "Sounds/BattleRadioDSP/f03c-hiss.wav",
+          "sha256": "2849fcfdcf42fc2be6a3aad5586bd1e31bb73ae4f1c7464bb37edbdf041af0c1",
+          "bytes": 355400,
+          "seconds": 3.701625,
+          "at": 0.06
+        },
+        "lead": {
+          "path": "Sounds/BattleRadioDSP/lead.wav",
+          "sha256": "c360daa79309c81333c1954ab48e2251be46bd1f3603aae598e30a05a90d83f5",
+          "bytes": 19244,
+          "seconds": 0.2,
+          "at": 0.02
+        },
+        "tail": {
+          "path": "Sounds/BattleRadioDSP/f03c-tail.wav",
+          "sha256": "71c091607237a413086c7d823a438a363a86f38adab3124981906352fcc21c97",
+          "bytes": 36524,
+          "seconds": 0.38,
+          "at": 3.6016250000000003
+        }
+      }
+    }
+  },
+  "inputs": {
+    "shared/assets/match/vo/bc/a01.wav": "a3b051ad2e4d567c86815231a55b595e511c6e33ad1cc2c6441a495f2fd06b53",
+    "shared/assets/match/vo/bc/a02.wav": "9d5a74eecd78d3148389967e936aeba76c91c379fb6f67abcf0705e765883dac",
+    "shared/assets/match/vo/bc/a03.wav": "8c991c48f3024d5307e7b9a379e90b306f738b7437fc87d411341138c0a49801",
+    "shared/assets/match/vo/bc/a04.wav": "b3d879872d37d956288c60381a7d000fff57dc711dff12400058db6e8e64d781",
+    "shared/assets/match/vo/bc/b01.wav": "1e893624f6e0075699350b69fc09db2c70c4d3bcdbb97aba7518a86944a19a0c",
+    "shared/assets/match/vo/bc/b01c.wav": "5c17172e04cf1fc28a360cd45151785665dd54a0da2175b1133e4baf0953d21e",
+    "shared/assets/match/vo/bc/b01b.wav": "aaf5c714c8171623c1e37b5002863a227f494a1c87b97d8312f6c8fb2b0e6311",
+    "shared/assets/match/vo/bc/b02.wav": "57b257d64da962948ab84466fca83467d699a99ff424b36cc5b324ec9bb9c989",
+    "shared/assets/match/vo/bc/b02b.wav": "2bf461362ae44ec62fd7d15d1419d87fd5d8231c30f153658a47004cd1ef052a",
+    "shared/assets/match/vo/bc/b03.wav": "416bc3892a7f5ff0878d9e49013b222022d97bfc9d76b66431e781f4aab1faf1",
+    "shared/assets/match/vo/bc/b03b.wav": "45af29f0d272eb3b7b74ca08797cb9b6459e603e66d0be2cf8478521d5412a4a",
+    "shared/assets/match/vo/bc/b03c.wav": "0a8e1eeee047bc9df6b149eebf49703291c03f305faeaa5ca26f1dc3d03832f4",
+    "shared/assets/match/vo/bc/b04.wav": "e08765fe79a6107b5b61cef58692c95fef67f5584fe97ef2e03652f9dde1a6eb",
+    "shared/assets/match/vo/bc/b04b.wav": "e971cdea56efea87397265377c17ccd0377655b353bb05106582856d0b0c83ef",
+    "shared/assets/match/vo/bc/b04c.wav": "0d90feb68f3553dff79716f952665e629434782b8b13b1b6cb15ebdd79c7d2d2",
+    "shared/assets/match/vo/bc/b05.wav": "554ee4ab05da97c04193da56dafc76cdf9a776c50fcb24860b3154ecfe955a0f",
+    "shared/assets/match/vo/bc/b05b.wav": "b23c06c1de4046a2d432b7eefa46c77aeabcc132b111f514a05aeb705d731c56",
+    "shared/assets/match/vo/bc/b05c.wav": "2489c755ee31dccd793dd17b3c3d8932810173341081a93275748f7396ce4631",
+    "shared/assets/match/vo/bc/b06.wav": "2ec6d03ca436edf22d9ecd7f46d9e2a3eb7615bf00d297a20b81378c9e5cd395",
+    "shared/assets/match/vo/bc/b06b.wav": "c9093e407f8a104290a41dbe26add28e8f774e0debfd4510a080b7733e81dc3a",
+    "shared/assets/match/vo/bc/b07.wav": "1c8c0bfcb09c4d8c1a1510d081bace7a8cca986c6f3cf9315c3be7bba8fdb2c0",
+    "shared/assets/match/vo/bc/b07b.wav": "2d44eba4794c712536aedd0ecfc52b0dc130f2e133da09201d283952307ed55d",
+    "shared/assets/match/vo/bc/b08.wav": "f33f59db57ab6273eebc76d7a6623b8d2a64e2837c4f98f24ecc91d07def7b63",
+    "shared/assets/match/vo/bc/b08b.wav": "fcc176daab02e36ce65c0ad2705a309c211a6a32f627eb5af622fd657ad0ad99",
+    "shared/assets/match/vo/bc/b09.wav": "6fa16a2456bd8908c99ac73407c45fc9bbc92ceadeb75207e139bb5b16b1987c",
+    "shared/assets/match/vo/bc/b09b.wav": "4988e93547e9e97b53ceb2c4ebf9a33228a87bbd9bf951a861347820bc7853d9",
+    "shared/assets/match/vo/bc/b10.wav": "8afee8af5d61acba421ce571c7c0c0f9ee0b64e092e8f5bde30964068b81f058",
+    "shared/assets/match/vo/bc/b10b.wav": "c2e16d613047d5c90b6df8ed2c1aa44a99a470197f08b6d3d5bd9b997a587585",
+    "shared/assets/match/vo/bc/c01.wav": "b8f2159d5120d03db9a788e75244d929a6e49a805d6cc5be9a74adbd99c38073",
+    "shared/assets/match/vo/bc/c01c.wav": "f41ab9567213d1afa33ea0bd180638ec3f24d9d62b416f090149795873404b7c",
+    "shared/assets/match/vo/bc/c02.wav": "84b1f31aa41f4dd40ac070b64bd1d1a0dc4aab4c56510377d32737c7f533ee44",
+    "shared/assets/match/vo/bc/c01b.wav": "bdfe9388b2ecbdc03bc2dcbb997fa825576d4a16340edee4c5fb990d7828466e",
+    "shared/assets/match/vo/bc/c03a.wav": "7b7b7ea2157293d5e0bae325ca883fb807cd9cb57569e7261ba7a3ead543e071",
+    "shared/assets/match/vo/bc/c03b.wav": "96ec4eafa0f413eea8d051aaeb8a43b3fa4c8e1cfb590561e2bc0e4e654d6d11",
+    "shared/assets/match/vo/bc/c03c.wav": "dccc84b3ba1b2a855dee86edcc6bf2ab414d55a4eaddd6b3705340c4e8bbb9cf",
+    "shared/assets/match/vo/bc/c03d.wav": "f8d311b9174efdcfe8d13f08c1c63ec2f07c7c0e54c46c5a0e090bfd7e878b22",
+    "shared/assets/match/vo/bc/c03e.wav": "4771235acdb169a2d98b656d7c3957ade87fee4033333af37c27f7d2f207148b",
+    "shared/assets/match/vo/bc/c03f.wav": "abd55d0f155ea35d62d337c7c5f340b57b3a0cb809b0093cc168158cff0b6557",
+    "shared/assets/match/vo/bc/c04.wav": "ac82b2a43789b785ca2ea297bd307a44d252be85ac42219f0458f53c4726ac6e",
+    "shared/assets/match/vo/bc/c04b.wav": "2a66a9678a246ce184ef3c48e82e84c1c1507425cf464d4f2cca49327ed60269",
+    "shared/assets/match/vo/bc/c05b.wav": "a4b025b761902a7e0915a872863830684b6b8048e6dbcda0adea2a8e6e6f6ae3",
+    "shared/assets/match/vo/bc/c05.wav": "5c77759dca570da5162fcb81a7b1fdc8ac5f53668b369e3d7f177cb799d65cf7",
+    "shared/assets/match/vo/bc/c05c.wav": "0c1d6b80a15b8e79d14d758189860030ff903af5ccda9993219c610deb5ea796",
+    "shared/assets/match/vo/bc/c06.wav": "2e0c90176185b23c579e91e062cc83dede8333419b2c556059ad5e44e153b1e9",
+    "shared/assets/match/vo/bc/c06b.wav": "78f711e86a6095b1f8fe750ca23ecff6359341c9df58bf351c3cd42edfad12c9",
+    "shared/assets/match/vo/bc/c06c.wav": "6c4fd1d3259d1fa2a98cd2ba449a9a8c4fdf0e6dde774024b658eaf56ff9bae8",
+    "shared/assets/match/vo/bc/c07.wav": "f410ca1e900256f99e36b8dc09c6cd0add58196f0b3ece19df0f5484a8f7dc95",
+    "shared/assets/match/vo/bc/c07b.wav": "ac08f677067a79379456652cb68654189497620203e5bf2548331c055caa9dbd",
+    "shared/assets/match/vo/bc/c07c.wav": "4fe594725e257cf7bcac86be848e22bbfc8b73f42a8a48957e10e0a4587655eb",
+    "shared/assets/match/vo/bc/c08.wav": "5dd8757d55b6751d3b709d0ba7880d5e46c32c2b6dd2073aac859651597a9780",
+    "shared/assets/match/vo/bc/c08b.wav": "d8e26ecde2dded843ff045c2352c3405bdb61ccc9203fcc01b3e786122531bd1",
+    "shared/assets/match/vo/bc/c09c.wav": "c688608ac7a154c86c49e560e7ec7b6821f31da79dff3c1776ea877595dd9fcc",
+    "shared/assets/match/vo/bc/c10.wav": "a26b3298f4b9a65003483e1e566907a61239767079b30c142f620e141e615fc5",
+    "shared/assets/match/vo/bc/c10b.wav": "494fb152c4fba3030571f2691658141e7bd7e81b1b1ea9e439ac8cdafd5cace7",
+    "shared/assets/match/vo/bc/c11.wav": "590937382fc0a4cbcaca877f3e862e19ff9611459c8c1a3e4161a09929356aba",
+    "shared/assets/match/vo/bc/c11b.wav": "0fe464b9dc14c3c398d30fb110f767946221ad2ff1c4b6843913a4f4be9e07ff",
+    "shared/assets/match/vo/bc/d01A.wav": "1e68f0ef4401b18686e96dfcc9b9ac9974ab93b5371becf1fc27b85ca8af0f9a",
+    "shared/assets/match/vo/bc/d02A.wav": "9c17e1650f48755f236ffa055c4f10f6b67de15c47dcfbbb53be4923a93a35e6",
+    "shared/assets/match/vo/bc/d03A.wav": "f204302f1136168a35f06597b996ebf5b68d82267aec6ef82ff1f0e85bf437fd",
+    "shared/assets/match/vo/bc/d03A2.wav": "4fb967b85da8c32143ea31642ea88a9f9d1193edd623f900b0a48b33052cea03",
+    "shared/assets/match/vo/bc/d04A.wav": "7c871cf4a3d68b9212b05dd7306f12bdb83db1e64b6114b9af355b79e468974f",
+    "shared/assets/match/vo/bc/d04A2.wav": "7bf588cf62e999e1562a6a29e1d799b5e7be52086429221668b8d38d07338169",
+    "shared/assets/match/vo/bc/d01B.wav": "81c998b1725dfb76ed562d160ab5be5154f93543fd1b7f228eb09bb190442c8f",
+    "shared/assets/match/vo/bc/d02B.wav": "018c0fcdc82b9f06a3915eb9d08c59e5ba8aa935895b7018b81dd96637122bb7",
+    "shared/assets/match/vo/bc/d03B.wav": "4ba7cbad06be2530340d8e0f6fce1a2b7dfa8e089fe5bc17319fd6a3058c8a94",
+    "shared/assets/match/vo/bc/d03B2.wav": "84c1f46a11b401a4069a866e986211932e438996c9e198ded0abb90dce03564e",
+    "shared/assets/match/vo/bc/d04B.wav": "34b046aaa136c2af8559e3f0adae94291277193290c99bef796ba6e75af0b57e",
+    "shared/assets/match/vo/bc/d04B2.wav": "ca378cd8de62d14cbc3c5b0a85fadb0d2b05167c9c58c3bf24921629620415e4",
+    "shared/assets/match/vo/bc/d01C.wav": "1e455a83b024904e737704f45150fdc6b742717787ad4186be0d75c4c725b98b",
+    "shared/assets/match/vo/bc/d02C.wav": "cba002056855d2e822c6fdfe177a4631c51455ad7c6faaf0c571a8a8f8b0997d",
+    "shared/assets/match/vo/bc/d03C.wav": "1324141e4b9aaf9415719c8859b191a34d478b364f93130295440ffce9e39400",
+    "shared/assets/match/vo/bc/d03C2.wav": "e0c1601e8dff143907b5c3b7c70e1353db660c4301c7eef827c6a57187c04cb7",
+    "shared/assets/match/vo/bc/d04C.wav": "af36fd15f5fe5a45b2c9a475b83afe2dc0ca310d50a933c609b92eeaa0191910",
+    "shared/assets/match/vo/bc/d04C2.wav": "dc85e5df53473ee0841159204cf94408c78acdd6f62b8f02dba511849e9c1be1",
+    "shared/assets/match/vo/bc/d05.wav": "2c94731cbb1e29016e45cda312c94ba4a8dfa447a960b68b293a68c29572dcb8",
+    "shared/assets/match/vo/bc/d05b.wav": "e98df5ac3af318a8589fa538ea4d0519a0c1f0d97bb65bb8dcf40343b635436e",
+    "shared/assets/match/vo/bc/d06.wav": "ef91be861a45269b77334016ddf5fa81599c53c2e178596eb1ab888853a91d13",
+    "shared/assets/match/vo/bc/d06b.wav": "9d67d55ed0ce54331e8b39989d10b2641e99d319b024a24a4857e3babedd0407",
+    "shared/assets/match/vo/bc/d07.wav": "5931657e6ef32ee867064c82e7e47343d218dc9d43a4b0a3d3f9da9df27e0623",
+    "shared/assets/match/vo/bc/d07b.wav": "e75292ce8d39822d690801c59af27a7a23bcafe83867e4617b8779e9dc70c8eb",
+    "shared/assets/match/vo/bc/d08b.wav": "a91c1bcdb317455cccfa5daa43f4a0909e77ae9b1590456284f60937608867cb",
+    "shared/assets/match/vo/bc/d08.wav": "210c3c44acc79041a9264f0f4654baa96f98fb5762ba2d51c136e99aeccce809",
+    "shared/assets/match/vo/bc/d09.wav": "373db51fd5aef17152b46aa3725e98df9413aebf6b357946e6b3d27b7126c03c",
+    "shared/assets/match/vo/bc/d09b.wav": "605a6f9326f47a0950dced1c10fbee8a46076f20fed748c2ef7ebf909d596a71",
+    "shared/assets/match/vo/bc/d10.wav": "a0510573fbb270cd153542c72c9b3587d0c2bee87c683f2a5432e7d9611a8eb9",
+    "shared/assets/match/vo/bc/d10b.wav": "51fa130914d639da5e207f2b0fa4737c127649fa85ca2ece00c4371e073beccc",
+    "shared/assets/match/vo/bc/d11.wav": "8a90deac1e2728782e913fba839da07b2cb50dbb4453b5f36818ce50a7816f60",
+    "shared/assets/match/vo/bc/d11b.wav": "eb89162f6232aef32ec78b5037f2ece077aaad9d2f269e88e9702e280d965612",
+    "shared/assets/match/vo/bc/e01.wav": "4e93c6c894cbb007853e398cbdd44be509ed3ea5523a80bf1e73c1fffe4c0293",
+    "shared/assets/match/vo/bc/e01b.wav": "eb8726a387f9a67641516f9e1157e6ab72e2b1710ac47153fd3ea5578512b70c",
+    "shared/assets/match/vo/bc/e02.wav": "48cee127c7a17eebb1f0929cd469e5b49fced28d850aeeb435d1b3c08042a796",
+    "shared/assets/match/vo/bc/e02b.wav": "91c14e4833281ec4be007677eec44b5b3bf1e217b1682b65c545dc0f3f673fd3",
+    "shared/assets/match/vo/bc/e03.wav": "00834176d0cbe0e5a05e40e23ec5a0fdc0133072fd9e001019ca24a0b984b2d4",
+    "shared/assets/match/vo/bc/e03b.wav": "b33ca451c7a51c57842fe7350931d60c7403cf30b0793c2932a6de20caa1d6e6",
+    "shared/assets/match/vo/bc/e03c.wav": "41a0929e630b86dc1c226576f64f7ae9f276abf2cc5372df7d26e87f411a7c1e",
+    "shared/assets/match/vo/bc/e04.wav": "0a79e8792c5fddd880616329d47e2bedaca99a65068db48f01c1ca95ee270dd1",
+    "shared/assets/match/vo/bc/e04b.wav": "c77cee7102b6768de4ec06f27790fb3e495891a352cb316c5b92d0aa221d0479",
+    "shared/assets/match/vo/bc/e05.wav": "a55cd8d86830784f6382efa580e8fa1367b224ca0439ce3da349ae95cc687ffa",
+    "shared/assets/match/vo/bc/e10.wav": "f970d7fadba674f034b4f8f9683ba6a698839575d25a1036b2e08c508cf080a1",
+    "shared/assets/match/vo/bc/e06.wav": "4626e915864d53b58d23773e7805121b44709df93a51178b6552e713ad355699",
+    "shared/assets/match/vo/bc/e06b.wav": "c1e6ee9e207f25d5cd44bd69e88733b90d6f04aef5f334634c05bde599198d0f",
+    "shared/assets/match/vo/bc/e07.wav": "c06f951d7241c220843125da1561c2621dbb98bebbfc57fd626bf203e8fb6917",
+    "shared/assets/match/vo/bc/e07b.wav": "72a8b6cafa442aaf66f6c9aabfec5ca3fca101f5711badf53c4a63b3910aca6a",
+    "shared/assets/match/vo/bc/e08.wav": "78cac374eecac02e6238df8639754e64023f1704598dccc060964689876f90b6",
+    "shared/assets/match/vo/bc/e08b.wav": "c844e68ccad7c71f01469e04a62751f972ef60e6c2acaaa61d5590e1e050f58b",
+    "shared/assets/match/vo/bc/e09.wav": "e742622a932a660b1bf79282e0929c9b0e72adcb5b8c2bd6d80fd54ced991c1a",
+    "shared/assets/match/vo/bc/e09b.wav": "0659d0bfa7b123d3830c770408cf1fd8b88cb393b23f186cf16d863cec3a7166",
+    "shared/assets/match/vo/bc/e11.wav": "12a3c047209c18e7b82f19374abd5fa0c3f1e37ea4432a694981243f27f01d0d",
+    "shared/assets/match/vo/bc/e11b.wav": "69ac3aa6455a1d0c8316bc5c3ada1301f7447cfd8158ab11d736c25de6db61c3",
+    "shared/assets/match/vo/bc/f01.wav": "42f35b22c38ac017bddedf37f5bf440161d8a0135765ccc420e2677b3af8c7c3",
+    "shared/assets/match/vo/bc/f01b.wav": "b5e8dfae76104ef3a56fda0cd857a17ea09b327a478742cf83f392c1dc882d35",
+    "shared/assets/match/vo/bc/f02.wav": "d38f9e6c97439673cf8b4f9073ba6326c17bea21a783228ac42a3bd99617a6be",
+    "shared/assets/match/vo/bc/f02b.wav": "b4835da5a52e73a45152a92e8e2a18d120a49673ed087042e38da80826d4a0d7",
+    "shared/assets/match/vo/bc/f03.wav": "e9d3b53da3a4b4755d5d31e051d31173b7afbcb6611ab65e323897a284ff8b4f",
+    "shared/assets/match/vo/bc/f03b.wav": "0ab5a1ee83ad56151acb4f6eaa374d3cc81535049f07d8368c575043333d83eb",
+    "shared/assets/match/vo/bc/f03c.wav": "9b15a2fde01a9efdc0fd9514bc9bc320dd243bc5c08e77de2d9aba6a74d6c4ca",
+    "shared/assets/match/vo/sfx_radio_hiss.mp3": "2ef1b500257627e9f6b7d179dd352caabb41fdfd89e28982116852f7230899a2"
+  },
+  "boundary": "Actual frozen Radio constructor/say/DSP executed. Seeded noise and initial LFO phase are deterministic variants. User settings and route gain are not baked. Runtime frame scheduling is not sample accurate."
+}

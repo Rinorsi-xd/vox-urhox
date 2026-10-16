@@ -1,6 +1,7 @@
 -- Loading-only draws use the live effect owner without simulation events or RNG.
 -- Call Presented only after a rendered frame; Dispose before disposing the scene.
 local M={};M.__index=M
+local WarmupSignature=require('render.WarmupSignature')
 local kinds={'StaticModel','StaticModelGroup','AnimatedModel','CustomGeometry','BillboardSet','Terrain','Skybox'}
 local function Source(p) return {-p.x,p.y,p.z} end
 local function NodeState(node)
@@ -20,7 +21,7 @@ local function Signature(drawable,kind)
 end
 function M.New(session,options)
     local self=setmetatable({session=session,effects=session.effects,all={},batchStates={},chipStates={},missileStates={},
-        groups={},proxies={},frames=0,index=0,disposed=false,completed=false},M)
+        groups={},proxies={},exposed={},effectItems={},frames=0,index=0,disposed=false,completed=false},M)
     local ok,err=pcall(self.init,self,options or {})
     if not ok then self:Dispose();error(err) end
     return self
@@ -34,6 +35,10 @@ function M:init(options)
     for _,slot in ipairs(fx.chips.slots) do assert(not slot.active,'CombatWarmup cannot replace live chips') end
     assert(not fx.missiles.view or fx.missiles.view.count==0,'CombatWarmup cannot replace live missiles')
     self.camera=self.session.camera:GetCamera();self.batchSize=math.max(4,math.floor(options.batchSize or 8))
+    if self.session.aimLines then
+        local lines=self.session.aimLines
+        self.aimMasks={{drawable=lines.mesh,mask=lines.mesh.viewMask},{drawable=lines.glow.mesh,mask=lines.glow.mesh.viewMask}}
+    end
     self.lightState={node=NodeState(fx.light.node),range=fx.light.light.range,brightness=fx.light.light.brightness,enabled=fx.light.light.enabled}
     fx:Reserve({arc=true,chips=options.chips or 32,missiles=options.missiles or 4})
     for _,batch in pairs(fx.batches) do
@@ -53,7 +58,8 @@ function M:init(options)
     for _,kind in ipairs(kinds) do for _,d in ipairs(self.session.scene:GetComponents(kind,true)) do
         if not seen[d] then
         seen[d]=true
-        self.all[#self.all+1]={drawable=d,mask=d.viewMask}
+        local item={drawable=d,mask=d.viewMask};self.all[#self.all+1]=item
+        if owned[d] then self.effectItems[#self.effectItems+1]=item end
         if d.viewMask~=0 and d.enabledEffective and not owned[d] and kind~='Skybox'
             and frustum:IsInsideFast(d.worldBoundingBox)~=OUTSIDE then
             local key=Signature(d,kind);local group=keyed[key]
@@ -63,13 +69,35 @@ function M:init(options)
         end
     end end
     table.sort(self.groups,function(a,b)return a.key<b.key end)
+    self.originalGroups=#self.groups
+    if options.groupEquivalent~=false then self.groups,self.signatureStats=WarmupSignature.Compact(self.groups) end
     self.owned=owned
+    self.flashWarmup=require('render.FlashWarmup').New(self.session)
     self:Effects(4);self.phase='effects-instanced'
-    print('[CombatWarmup] begin groups='..#self.groups..' chips='..#fx.chips.slots..' missiles='..#fx.missiles.view.slots)
+    local stats=self.signatureStats or {eligible=0,rejected=0,errors=0}
+    print('[CombatWarmup] begin groups='..#self.groups..' originalGroups='..self.originalGroups..' chips='..#fx.chips.slots..' missiles='..#fx.missiles.view.slots
+        ..' signatureEligible='..stats.eligible..' signatureRejected='..stats.rejected..' signatureErrors='..stats.errors
+        ..' firstReject='..tostring(stats.firstReject)..' firstError='..tostring(stats.firstError))
 end
 function M:Hide()
-    for _,item in ipairs(self.all) do item.drawable.viewMask=0 end
+    if not self.hidden then
+        for _,item in ipairs(self.all) do item.drawable.viewMask=0 end
+        self.hidden=true
+    else
+        for i,item in ipairs(self.exposed) do item.drawable.viewMask=0;self.exposed[i]=nil end
+    end
+    if self.session.aimLines then self.session.aimLines:Hide() end
     for _,proxy in ipairs(self.proxies) do proxy.node.enabled=false end
+    if self.flashWarmup then self.flashWarmup:Show(0) end
+end
+function M:Expose(item)
+    item.drawable.viewMask=item.mask
+    if item.mask~=0 then self.exposed[#self.exposed+1]=item end
+end
+function M:Flashes(copies)
+    self:Hide();self.effects.light.light.enabled=false
+    self.flashWarmup:Show(copies)
+    self.phase=copies>1 and 'flash-instanced' or 'flash-single'
 end
 function M:Effects(copies,pointLight)
     self:Hide()
@@ -95,7 +123,11 @@ function M:Effects(copies,pointLight)
     end
     view:Finish()
     if pointLight then self:EnableLight() else fx.light.light.enabled=false end
-    for _,item in ipairs(self.all) do if self.owned[item.drawable] then item.drawable.viewMask=item.mask end end
+    for _,item in ipairs(self.effectItems) do self:Expose(item) end
+    if self.aimMasks then
+        self.session.aimLines:Warmup(self.camera,fx.time)
+        for _,item in ipairs(self.aimMasks) do self:Expose(item) end
+    end
 end
 function M:EnableLight()
     local fx=self.effects;local light=fx.light.light
@@ -104,13 +136,15 @@ function M:EnableLight()
 end
 function M:LightBatch()
     self:Hide();self:EnableLight()
-    local count=0
+    local count=0;local used={}
     while self.index<#self.groups do
         local group=self.groups[self.index+1]
         local copies=self.singleWorld and math.min(1,#group.items) or #group.items
         if count>0 and count+copies>self.batchSize then break end
+        if self.singleWorld and not WarmupSignature.CanAppend(group,used,count) then break end
         self.index=self.index+1
-        for i=1,copies do local item=group.items[i];item.drawable.viewMask=item.mask;count=count+1 end
+        WarmupSignature.Mark(group,used)
+        for i=1,copies do self:Expose(group.items[i]);count=count+1 end
     end
     self.phase=self.singleWorld and 'point-light-single' or 'point-light-instanced';return count
 end
@@ -122,13 +156,15 @@ function M:VolumeBatch()
     -- An eye-centred, far-clip-sized light bypasses the native stencil volume.
     self.effects.light.node.position=center;light.range=4;light.brightness=140;light.enabled=true
     if not self.proxyRoot then self.proxyRoot=self.session.scene:CreateChild('CombatWarmupProbes') end
-    local count=0
+    local count=0;local used={}
     while self.index<#self.groups do
         local group=self.groups[self.index+1]
         local copies=group.kind=='StaticModel' and (self.singleVolume and 1 or 4) or 0
         if count>0 and count+copies>self.batchSize then break end
+        if copies>0 and self.singleVolume and not WarmupSignature.CanAppend(group,used,count) then break end
         self.index=self.index+1
         if copies>0 then
+            WarmupSignature.Mark(group,used)
             local source=group.items[1].drawable;local model=source.model
             local box=model.boundingBox;local size=box.size
             local scale=.6/math.max(.001,size.x,size.y,size.z)
@@ -165,6 +201,11 @@ function M:Advance()
     elseif self.phase=='effects-single' then self:Effects(4,true);self.phase='effects-point-instanced'
     elseif self.phase=='effects-point-instanced' then self:Effects(1,true);self.phase='effects-point-single'
     elseif self.phase=='effects-point-single' then
+        if self.flashWarmup then self:Flashes(4)
+        elseif #self.groups==0 then self.completed=true;self:Dispose();return true
+        else self:LightBatch() end
+    elseif self.phase=='flash-instanced' then self:Flashes(1)
+    elseif self.phase=='flash-single' then
         if #self.groups==0 then self.completed=true;self:Dispose();return true end
         self:LightBatch()
     elseif self.phase=='point-volume-instanced' or self.phase=='point-volume-single' then
@@ -178,6 +219,8 @@ function M:Advance()
 end
 function M:Dispose()
     if self.disposed then return end;self.disposed=true
+    if self.session.aimLines then self.session.aimLines:Hide() end
+    if self.flashWarmup then self.flashWarmup:Dispose();self.flashWarmup=nil end
     if self.proxyRoot then self.proxyRoot:Dispose();self.proxyRoot=nil end
     for _,item in ipairs(self.all) do item.drawable.viewMask=item.mask end
     for _,state in ipairs(self.batchStates) do

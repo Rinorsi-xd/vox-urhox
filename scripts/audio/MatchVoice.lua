@@ -1,40 +1,46 @@
 -- Source matchVoice event queue: bounded, expiring and no consecutive repeats.
 local Data=require('core.ResourceData').Read('Combat/Radio.json')
 local Levels=require 'audio.AudioLevels'
+local Radio=require 'audio.MatchRadioDSP'
 local M={};M.__index=M
 function M.New(battle)
     local self=setmetatable({},M);self:init(battle);return self
 end
 function M:init(battle)
-    self.battle=battle;self.time=0;self.busyUntil=0;self.queue={};self.cool={};self.last={};self.marks={};self.contested={};self.streak=0;self.firstBlood=false;self.cart={since=0,still=0}
-    self.root=battle.session.scene:CreateChild('BattleRadio');self.source=self.root:CreateComponent('SoundSource');self.source:SetSoundType('VoxMatchVoice')
-    self.gate=require('app.ResourceGate').New();self.ready=false;self.disposed=false;self.card=nil
-    local paths={};for _,line in pairs(Data.lines) do paths[#paths+1]=line.path end
-    self.gate:Start(paths,function(ok)
-        if self.disposed then return end;self.ready=ok
-        if ok then for _,q in ipairs(self.queue) do q.untilAt=self.time+q.ttl end end
-    end)
+    self.battle=battle;self.time=0;self.busyUntil=0;self.speakingUntil=0;self.queue={};self.cool={};self.last={};self.marks={};self.contested={};self.streak=0;self.firstBlood=false;self.cart={since=0,still=0}
+    self.root=battle.session.scene:CreateChild('BattleRadio');self.radio=Radio.New(self.root)
+    self.ready=false;self.disposed=false;self.card=nil
 end
 function M:Reset()
-    self.queue={};self.cool={};self.marks={};self.contested={};self.streak=0;self.firstBlood=false;self.cart={since=0,still=0};self.card=nil;self.busyUntil=0;self.source:StopImmediate()
+    Levels.SetSpeaking(self,false);self.speakingUntil=0
+    self.queue={};self.cool={};self.marks={};self.contested={};self.streak=0;self.firstBlood=false;self.cart={since=0,still=0};self.card=nil;self.busyUntil=0;self.radio:Halt()
 end
 function M:Say(key)
     local sp=Data.calls[key];if self.disposed or not sp or (self.cool[key] or 0)>self.time then return false end
     if sp.cool then self.cool[key]=self.time+sp.cool end
-    if sp.interrupt then self.queue={};self.source:StopImmediate();self.busyUntil=0;self.card=nil end
+    if sp.interrupt then self.queue={};self.radio:Stop();self.radio:CancelPending();self.busyUntil=0;self.card=nil;Levels.SetSpeaking(self,false);self.speakingUntil=0 end
     self.queue[#self.queue+1]={key=key,ids=sp.ids,pri=sp.pri,ttl=sp.ttl,untilAt=self.time+sp.ttl,at=self.time}
     table.sort(self.queue,function(a,b) return a.pri>b.pri or a.pri==b.pri and a.at<b.at end)
     while #self.queue>5 do table.remove(self.queue) end
     return true
 end
 function M:Next()
-    if not self.ready then return end
-    for i=#self.queue,1,-1 do if self.queue[i].untilAt<self.time then table.remove(self.queue,i) end end
-    local q=table.remove(self.queue,1);if not q then return end
+    if self.ready then for i=#self.queue,1,-1 do if self.queue[i].untilAt<self.time then table.remove(self.queue,i) end end end
+    local q=self.queue[1];if not q then self.radio:CancelPending();return end
     local pool={};for _,id in ipairs(q.ids) do if #q.ids==1 or id~=self.last[q.key] then pool[#pool+1]=id end end
-    local id=pool[math.random(1,#pool)];local line=Data.lines[id];local sound=cache:GetResource('Sound',line.path)
-    self.last[q.key]=id;self.source:StopImmediate();Levels.Play(self.source,sound,0,.7)
-    self.busyUntil=self.time+sound.length+.35;self.card={id=id,key=q.key,text=line.text,at=self.time,untilAt=self.time+sound.length+.5}
+    q.id=q.id or pool[math.random(1,#pool)];local id=q.id;local line=Data.lines[id]
+    local prepared,failed=self.radio:Prepare(id)
+    if not prepared and not failed then return end
+    if not self.ready then
+        self.ready=true;for _,waiting in ipairs(self.queue) do waiting.untilAt=self.time+waiting.ttl;waiting.at=self.time end
+    end
+    if failed then table.remove(self.queue,1);self.radio:CancelPending();return end
+    table.remove(self.queue,1);self.last[q.key]=id;local total,speaking=self.radio:Play(id,self.time)
+    self.speakingUntil=speaking>0 and self.time+speaking or 0;Levels.SetSpeaking(self,speaking>0)
+    self.busyUntil=self.time+total+.35;self.card={id=id,key=q.key,text=line.text,at=self.time,lead=.26,untilAt=self.time+total+.5}
+end
+function M:Fade(seconds)
+    self.radio:Fade(seconds);self.radio:CancelPending();Levels.SetSpeaking(self,false);self.speakingUntil=0;self.queue={};self.card=nil;self.busyUntil=0
 end
 function M:Event(e)
     local key;local blue=e.team=='blue';local id=e.id
@@ -78,7 +84,9 @@ function M:Once(key,condition)
 end
 function M:Update(dt)
     if self.disposed then return end;self.time=self.time+math.max(0,dt)
-    if not input.focus or input.minimized then self.source:StopImmediate();self.card=nil;return end
+    if self.speakingUntil>0 and self.time>=self.speakingUntil then Levels.SetSpeaking(self,false);self.speakingUntil=0 end
+    if not input.focus or input.minimized then self.radio:Halt();self.card=nil;Levels.SetSpeaking(self,false);self.speakingUntil=0;return end
+    self.radio:Update(self.time)
     local b=self.battle;local r=b.rules
     if r.state=='live' and not (b.session.intro and not b.session.intro.done) then
         local left=r:TimeLeft();self:Once('min1',left<=60 and left>55);self:Once('sec30',left<=30 and left>25)
@@ -102,6 +110,7 @@ function M:Update(dt)
     if self.time>=self.busyUntil then self:Next() end
 end
 function M:Dispose()
-    if self.disposed then return end;self.disposed=true;self.gate:Cancel();self.source:StopImmediate();self.root:Dispose();self.queue={};self.card=nil
+    Levels.SetSpeaking(self,false);self.speakingUntil=0
+    if self.disposed then return end;self.disposed=true;self.radio:Dispose();self.root:Dispose();self.queue={};self.card=nil
 end
 return M

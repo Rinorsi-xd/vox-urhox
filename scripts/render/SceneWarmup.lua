@@ -3,7 +3,7 @@
 local M={};M.__index=M
 local kinds={'StaticModel','StaticModelGroup','AnimatedModel','CustomGeometry','BillboardSet','Terrain','Skybox'}
 function M.New(scene,batchSize,camera,accept)
-    local self=setmetatable({items={},next=1,batches=0,batchSize=batchSize or 8,skipped=0},M)
+    local self=setmetatable({items={},next=1,batches=0,batchSize=batchSize or 8,skipped=0,disabled=0},M)
     local seen={}
     local frustum=camera and camera.frustum
     for _,kind in ipairs(kinds) do
@@ -12,7 +12,9 @@ function M.New(scene,batchSize,camera,accept)
                 seen[drawable]=true
                 -- Off-screen batches never submit geometry to the renderer.
                 -- They only delay reveal; the full restored frame still warms shadows.
-                if frustum and kind~='Skybox' and frustum:IsInsideFast(drawable.worldBoundingBox)==OUTSIDE then
+                if drawable.enabledEffective==false then
+                    self.disabled=self.disabled+1
+                elseif frustum and kind~='Skybox' and frustum:IsInsideFast(drawable.worldBoundingBox)==OUTSIDE then
                     self.skipped=self.skipped+1
                 elseif not accept or accept(drawable,kind) then self.items[#self.items+1]={drawable=drawable,mask=drawable.viewMask} end
             end

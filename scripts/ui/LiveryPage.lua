@@ -70,7 +70,7 @@ function M.Layout(s)
 end
 function M.Create(owner)
     local s={owner=owner,app=owner.app,active=true,group='角色',groups={},barButtons={},revision=-1,propHeight=133.96875,thumbnails=require('ui.LiveryThumbnails').New(),gate=require('app.ResourceGate').New()}
-    s.session=require('construction.LiverySession').New(s.app);s.controls=require('controls.LiveryControls').New(s.session);owner.livery=s
+    s.session=require('construction.LiverySession').New(s.app,require('audio.UiSound').Play);s.controls=require('controls.LiveryControls').New(s.session);owner.livery=s
     s.root=UI.Panel{position='absolute',width='100%',height='100%',pointerEvents='box-none'};s.root.session=s.session
     s.surface=Widgets.Surface{position='absolute',width='100%',height='100%'};s.surface.owner=s;s.root:AddChild(s.surface)
     s.lib=Visual.Panel{position='absolute',side='left'};s.lib.owner=s;s.root:AddChild(s.lib)

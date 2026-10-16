@@ -2,7 +2,7 @@
 -- cancellation, leaving the field, focus loss and scene switches release holds.
 local M={};M.__index=M
 function M.New(session) return setmetatable({session=session,pointer=nil,inside=false,dirty=true},M) end
-function M:Cancel() self.pointer=nil;self.inside=false;self.dirty=true;self.selectionBox=nil;self.dragSelection=nil;self.touchPrimary=false;self.touchTarget=false end
+function M:Cancel() self.pointer=nil;self.inside=false;self.dirty=true;self.selectionBox=nil;self.dragSelection=nil;self.touchPrimary=false;self.touchErase=nil;self.touchTarget=false end
 function M:Position(e)
     if self.session.dialog or self.session.inventoryPanel then self:Cancel();return end
     self.x,self.y=e.x,e.y;self.inside=true;self.dirty=true
@@ -135,6 +135,45 @@ function M:TouchPrimary(on,cancelled)
     if self.session.dialog or self.session.inventoryPanel then return end
     self.touchTarget=false;self.touchPrimary=true;self:TouchEdit(0,true)
 end
+function M:TouchErase(on,cancelled)
+    local session=self.session;local e=session.editor
+    if not on then
+        local held=self.touchErase;self.touchErase=nil
+        -- Source orbit right-click deletes the press target only on release.
+        if held and held.hit and held.mode=='orbit' and not cancelled and not session.disposed and not session.dialog and not session.inventoryPanel and e.tool~='paint' then
+            if session.selecting then e:SweepSelect(false,held.hit) else e:Remove(held.hit) end
+            session:Refresh()
+        end
+        return
+    end
+    if session.disposed or session.dialog or session.inventoryPanel or self.touchErase then return end
+    local UI=require 'urhox-libs/UI';local w,h=UI.GetViewportSize()
+    self.touchTarget=false;self.x,self.y=w/2,h/2;self.inside=true;session:Trace(self.x,self.y)
+    local hit=e.hit and {partId=e.hit.partId,cell=e.hit.cell,place=e.hit.place,normal=e.hit.normal} or nil
+    local held={mode=session.buildCamera.mode,hit=hit,elapsed=0,nextRepeat=session.selecting and .03 or .3}
+    self.touchErase=held
+    -- First-person erase instead starts immediately, then follows 300/100 ms.
+    if held.mode=='fp' then
+        if e.stretch then e:Remove();held.single=true
+        elseif session.selecting then e:SweepSelect(false)
+        elseif e.tool~='paint' then e:Remove() else held.single=true end
+        session:Refresh()
+    end
+end
+function M:TouchEraseStep(dt)
+    local held=self.touchErase;if not held then return end
+    local session=self.session;local e=session.editor
+    if session.disposed or session.dialog or session.inventoryPanel then self:Cancel();return end
+    local UI=require 'urhox-libs/UI';local w,h=UI.GetViewportSize()
+    self.x,self.y=w/2,h/2;self.inside=true;session:Trace(self.x,self.y)
+    held.elapsed=held.elapsed+dt
+    if held.mode~='fp' or held.single or e.pasting then return end
+    if held.elapsed>=held.nextRepeat then
+        held.nextRepeat=held.elapsed+(session.selecting and .03 or .1)
+        if session.selecting then e:SweepSelect(false) elseif e.tool~='paint' then e:Remove() end
+        session:Refresh()
+    end
+end
 function M:TouchEdit(dt,initial)
     local UI=require 'urhox-libs/UI';local w,h=UI.GetViewportSize();local e=self.session.editor
     self.x,self.y=w/2,h/2;self.inside=true;self.session:Trace(self.x,self.y)
@@ -163,6 +202,7 @@ function M:Update(dt)
     if not input.focus or input.minimized then self:Cancel();return end
     if self.session.buildCamera.touch then
         local layer=self.session.hud.touchControls
+        if self.touchErase then self:TouchEraseStep(dt);return end
         if self.touchPrimary or not layer or not layer.prefs or layer.prefs.build=='aim' then self:TouchEdit(dt,false) end
         return
     end

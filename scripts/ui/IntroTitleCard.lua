@@ -1,5 +1,7 @@
 -- Frozen introFx.titleCard / intro.css: layered slabs and per-letter keyframes.
 local D=require 'ui.SourceDraw'
+local Opacity=require 'ui.IntroOpacity'
+local nvgGlobalAlpha=Opacity.Set
 local G=require 'ui.IntroGlyphs'
 local M={}
 local black={11,11,13,255};local white={255,255,255,255}
@@ -46,9 +48,17 @@ function M.Plan(id,text)
  if id=='master' and text=='英雄' then return plans.hero elseif id=='master' and text=='成为——' then return plans.becoming end
  return plans[id]
 end
-function M.Draw(vg,w,h,u,time,plan)
+function M.Exit(age)
+ local progress=Ease(age/.15,.42,0,1,1)
+ return 1-progress,1+.08*progress
+end
+function M.Draw(vg,w,h,u,time,plan,exitAge)
  local size=plan.size*u;local spacing=size*.02;local textWidth=G.Width(plan.text,size,spacing)
  local bw,bh=textWidth+10*u,size*1.05+5.6*u;local cx,cy=w*(plan.x or .5),h*(plan.y or .44)
+ if exitAge then
+  local alpha,scale=M.Exit(exitAge);if alpha<=0 then return end
+  Opacity.Push(vg,alpha);nvgTranslate(vg,cx,cy);nvgScale(vg,scale,scale);nvgTranslate(vg,-cx,-cy)
+ end
  nvgSave(vg);nvgTranslate(vg,cx-bw/2,cy-bh/2)
  local polygon=Outline(bw,bh,u)
  if not plan.stripes then
@@ -115,14 +125,15 @@ function M.Draw(vg,w,h,u,time,plan)
   local count=utf8.len(plan.text);local t=Ease((time-.14-count*.06)/.26,.2,.9,.3,1)
   nvgSave(vg);nvgGlobalAlpha(vg,math.min(1,math.max(0,t)));nvgTranslate(vg,4*u-(1-t)*6*u,bh+2.2*u)
   nvgSkewX(vg,-12*math.pi/180)
-  local fs=2.2*u;local iw=plan.idx and D.Width(vg,plan.idx,fs,'vox-tabular',fs*.05)+fs*1.2 or 0
-  local tw=plan.tag and D.Width(vg,plan.tag,fs,'vox-tabular',fs*.24)+fs*2 or 0;local th=fs*1.9
+  local fs=2.2*u;local iw=plan.idx and D.Width(vg,plan.idx,fs,'vox-display',fs*.05)+fs*1.2 or 0
+  local tw=plan.tag and D.Width(vg,plan.tag,fs,'vox-display',fs*.24)+fs*2 or 0;local th=fs*1.9
   nvgTranslate(vg,-th*.5*math.tan(12*math.pi/180),0)
   D.Rect(vg,.6*u,-th+.6*u,iw+tw,th,{0,0,0,128});D.Rect(vg,0,-th,iw,th,white);D.Rect(vg,iw,-th,tw,th,black)
-  if plan.idx then D.Text(vg,plan.idx,fs*.6,-th+fs*.45,fs,black,'vox-tabular',nil,fs*.05) end
-  if plan.tag then D.Text(vg,plan.tag,iw+fs,-th+fs*.45,fs,white,'vox-tabular',nil,fs*.24) end
+  if plan.idx then D.Text(vg,plan.idx,fs*.6,-th+fs*.45,fs,black,'vox-display',nil,fs*.05) end
+  if plan.tag then D.Text(vg,plan.tag,iw+fs,-th+fs*.45,fs,white,'vox-display',nil,fs*.24) end
   nvgRestore(vg)
  end
  nvgRestore(vg)
+ if exitAge then Opacity.Pop(vg) end
 end
 return M

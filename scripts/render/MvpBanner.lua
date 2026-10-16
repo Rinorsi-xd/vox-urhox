@@ -1,4 +1,6 @@
 -- Fixed source canvas, rendered once per award; screen DPR does not resize it.
+---@class MvpBanner
+---@field chars string[]
 local M={};M.__index=M
 function M.New(name,material)
     local self=setmetatable({material=material},M)
@@ -17,8 +19,6 @@ function M.New(name,material)
         nvgBeginPath(self.vg);nvgRect(self.vg,0,0,640,1120);nvgFillColor(self.vg,nvgRGBA(0,0,0,0));nvgFill(self.vg);nvgRestore(self.vg)
         self:Draw(self.vg);nvgEndFrame(self.vg)
         material:SetSurfaceTexture('albedo_map',self.texture)
-        -- Match the engine's NanoVG RT orientation, as in HangarPanels.
-        material:SetShaderParameter('canvas_flip_v',Variant(require('urhox-libs.Platform.PlatformUtils').IsWebPlatform() and 1.0 or 0.0))
         self.bound=true;self.renders=self.renders+1
     end)
     return self

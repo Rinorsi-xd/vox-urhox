@@ -17,10 +17,10 @@ function M.New(scene,deferred)
     return self
 end
 function M:GroundAt(x,z) return self.visualGround:Sample(x,z) end
-function M:Dispose()
+function M:Dispose(checkpoint)
     if self.disposed then return end
     if self.visualGround then self.visualGround:Dispose();self.visualGround=nil end
-    Base.Dispose(self)
+    Base.Dispose(self,checkpoint)
     self.layout=nil
 end
 return M

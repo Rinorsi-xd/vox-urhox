@@ -8,7 +8,6 @@ uniform mat4 refl_matrix;
 uniform float refl_strength=0.28;
 uniform float refl_blur=4.0;
 uniform float refl_distort=0.003;
-uniform float refl_flip_y=0.0;
 uniform vec2 uEnvMin=vec2(-15.25,-20.25);
 uniform vec2 uEnvMax=vec2(15.25,20.25);
 uniform float uGrid=0.18;
@@ -30,9 +29,6 @@ void fragment() {
     if (refl_strength > 0.0) {
         vec4 clip = refl_matrix * vec4(VERTEX,1.0);
         vec2 suv = clip.xy / clip.w * vec2(0.5,-0.5) + vec2(0.5);
-        if (refl_flip_y > 0.5) {
-            suv.y = 1.0 - suv.y;
-        }
         float lod = rgh * refl_blur;
         float ang = refl_hash(floor(vec2(-VERTEX.x,VERTEX.z)*40.0))*6.2831;
         vec2 jit = vec2(cos(ang),sin(ang))*refl_distort*rgh;

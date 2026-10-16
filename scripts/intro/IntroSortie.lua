@@ -23,7 +23,10 @@ function M:Update(dt)
   local p=status.pos or self.origin;local dist=math.sqrt((p[1]-self.origin[1])^2+(p[3]-self.origin[3])^2)
   if dist>18 or self.elapsed>=9 then self:Complete(2) elseif self.elapsed>=4 then self.tip='按住键盘上的 W · 车就会往前开' end
  elseif self.step==2 then
-  if status.enemyHit or self.elapsed>=15 then self.mine=status.enemyHit==true;self:Complete(3)
+  if status.enemyHit or self.elapsed>=15 then
+   self.mine=status.enemyHit==true;self.killAt=I.time
+   if I.host.SortieHit then I.host.SortieHit(self.mine,I) end
+   I.audio:Sfx('slam',{vol=.9});self:Complete(3)
   elseif self.elapsed>=6 then self.tip='把准星对准红色「打它！」· 按住 左键' end
  elseif self.step==3 then
   self.left=math.max(0,10-self.elapsed);self.tip='暴走战车群盯上你了 · 撑住！援军到达还有 '..math.ceil(self.left)..' 秒'

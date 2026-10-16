@@ -1,5 +1,5 @@
 local D=require 'ui.SourceDraw';local MD=require 'ui.MusicDraw'
-local Button=require('urhox-libs/UI/Widgets/Button'):Extend('VoxMusicButton')
+local Button=require('ui.ActionButton'):Extend('VoxMusicButton')
 function Button:Render(vg)
     local w,h,s=MD.Local(vg,self);local p=self.props;local hover=self.state.hovered
     if p.disabled then nvgGlobalAlpha(vg,(s.alpha or 1)*.3) end

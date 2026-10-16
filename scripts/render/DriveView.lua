@@ -78,7 +78,7 @@ function M:Update(alpha,dt,context)
     self.mechs:Update(alpha,dt or 0)
     self.time=self.time+(dt or 0)
     for _,wing in ipairs(self.wings) do
-        local n=wing.spec.n[2];local lifting=n>0 and 1 or n<0 and -1 or 0
+        local n=wing.spec.n[2];local lifting=wing.spec.kind=='wing' and (n<0 and -1 or 1) or 0
         require('render.WingRig').Update(wing.vis,{st=self.vehicle.wingState,partId=wing.spec.partId,lifting=lifting},self.time,dt or 0)
     end
     self.equipment:Update(dt or 0,context)

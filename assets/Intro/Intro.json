@@ -69,6 +69,9 @@
     "vo_v12": 7.7,
     "vo_v13": 3.57
   },
+  "audioDsp": {
+    "tv_cut:1800": "sfx_tv_cut_lowpass1800"
+  },
   "audio": {
     "bgm_anthem_a": "Intro/Audio/bgm_anthem_a.mp3",
     "bgm_jazz_a": "Intro/Audio/bgm_jazz_a.mp3",
@@ -92,6 +95,7 @@
     "sfx_spotlight": "Intro/Audio/sfx_spotlight.mp3",
     "sfx_stamp": "Intro/Audio/sfx_stamp.mp3",
     "sfx_tv_cut": "Intro/Audio/sfx_tv_cut.mp3",
+    "sfx_tv_cut_lowpass1800": "Intro/Audio/sfx_tv_cut_lowpass1800.wav",
     "sfx_whoosh": "Intro/Audio/sfx_whoosh.mp3",
     "vo_n01": "Intro/Audio/vo_n01.wav",
     "vo_n02a": "Intro/Audio/vo_n02a.wav",
@@ -131,6 +135,7 @@
     "order": "Intro/Images/order.png",
     "family": "Intro/Images/family.png",
     "dove": "Intro/Images/dove.png",
+    "dove_red": "Intro/Images/dove_red.png",
     "workshop": "Intro/Images/workshop.png",
     "machinist_idle": "Intro/Images/machinist_idle.png",
     "machinist_hero": "Intro/Images/machinist_hero.png",

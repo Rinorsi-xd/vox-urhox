@@ -201,12 +201,14 @@ function M:Reset()
     for k in pairs(self.stats) do self.stats[k]=0 end
     self.metrics:Reset();self.fx={}
 end
-function M:Dispose()
+function M:Dispose(checkpoint)
     if self.disposed then return end;self.disposed=true
     if self.drillSweep then self.drillSweep:Dispose();self.drillSweep=nil end
-    for _,unit in ipairs(self.units) do unit:Dispose() end
+    for _,unit in ipairs(self.units) do unit:Dispose();if checkpoint then checkpoint() end end
     self.units={};self.debris:Clear();self.fx={};self.viewEvents={};self.debris.events={}
-    self.root:Dispose();self.space:Dispose();self.cones={};self.targets={}
+    self.space:Dispose()
+    require('app.OpeningRetirement').Nodes(self.root,checkpoint)
+    self.root:Dispose();self.cones={};self.targets={}
     self.root=nil;self.scene=nil;self.env=nil;self.metrics=nil;self.feedbackPlayer=nil;self.attacker=nil
     self.debris.space=nil;self.space=nil;self.layout=nil
 end

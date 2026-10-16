@@ -10,7 +10,7 @@ V.atFrame(43,function()
     local data=require('core.ResourceData').Read('Story/Boss/Epilogue.json').data
     local photo=nil ---@type table|nil
     for _,entry in ipairs(data.scenes) do if entry.panel and entry.panel.shot then photo=entry.panel;break end end
-    ep.panels={{panel=assert(photo),at=0}};ep.rules.current={kind='panel'};ep.rules.time=3
+    ep.panels=ep.motion:Add({panel=assert(photo),at=0},true);ep.rules.current={kind='panel'};ep.rules.time=3
     ep.qaData=data;ep.qaScene=scene
 end)
 V.atFrame(46,function()
@@ -19,7 +19,8 @@ V.atFrame(46,function()
         local w,h=nvgImageSize(vg,handle);V.assert(handle>0 and w==texture.width and h==texture.height,'actual Boss screenshot Texture2D has a valid NanoVG video bridge');count=count+1
     end end
     V.assert(count==1,'original battle report panel renders exactly one owned capture bridge')
-    local data=ep.qaData;ep.panels={{panel=data.scenes[3].panel,at=0},{panel=data.scenes[4].panel,at=0}}
+    local data=ep.qaData;ep.motion:Dispose();ep.panels=ep.motion:Add({panel=data.scenes[3].panel,at=0},true)
+    ep.panels=ep.motion:Add({panel=data.scenes[4].panel,at=0},false)
     ep.rules.index=17;ep.rules.current=ep.rules.steps[17];ep.rules.age=.5;ep.rules.time=50
     V.assert(ep.rules.current.kind=='stamp','original version six stamp step selected only for render fixture')
 end)

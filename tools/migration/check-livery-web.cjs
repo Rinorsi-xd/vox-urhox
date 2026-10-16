@@ -1,5 +1,8 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const {chromium}=require('C:/Users/XD/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
+if(process.argv.includes('--gestures')){
+ require('./check-livery-gestures-web.cjs');
+}else{
 const root=path.resolve(__dirname,'../..'),out=path.join(root,'docs/migration/evidence');
 const prepared=JSON.parse(fs.readFileSync(path.join(root,'.tmp/outgame-prepare-cached.json')));
 const source=JSON.parse(fs.readFileSync(path.join(out,'source-livery.json')));
@@ -53,3 +56,4 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   console.log(test.name+': '+checks.length+' checks; '+errors.length+' errors');if(errors.length)failed=true;await page.close();
  }}finally{await browser.close();}if(failed)process.exitCode=1;
 })().catch(e=>{console.error(e);process.exitCode=1;});
+}

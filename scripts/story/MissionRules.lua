@@ -2,11 +2,12 @@
 local M={};M.__index=M
 local function Copy(p) return {p[1],p[2],p[3]} end
 local function Flat(a,b) return math.sqrt((a[1]-b[1])^2+(a[3]-b[3])^2) end
-function M.New(level,convoy)
-    return setmetatable({level=level,convoy=convoy,time=0,index=0,begun=false,finished=false,events={},phase='boot',install=0,
+function M.New(level,convoy,clock)
+    return setmetatable({level=level,convoy=convoy,clock=clock,time=0,index=0,begun=false,finished=false,events={},phase='boot',install=0,
         stats={intel=0,collectors=0,kills=0,deaths=0,fails=0,checkpoints=0,kneels=0,missileHits=0},checkpoint=level.spawn,flags={},beatsFired={},stepT=0,progress=0},M)
 end
 function M:Emit(kind,props) props=props or {};props.type=kind;self.events[#self.events+1]=props end
+function M:Now() return self.clock and self.clock() or self.time end
 function M:Drain() local events=self.events;self.events={};return events end
 function M:StepSpec() return self.level.steps[self.index] end
 function M:Begin() if self.begun then return end;self.begun=true;self.time=0;self:Emit('begin') end
@@ -56,32 +57,45 @@ function M:Done(world,lines)
     self:Go(self.index+1)
 end
 function M:Killed(pos) self.stats.kills=self.stats.kills+1;self.lastKill=Copy(pos) end
-function M:Ask(spec) self.choice=spec;self.choiceUntil=self.time+(spec.timeout or 14);self:Emit('choice') end
+function M:Ask(spec) self.choice=spec;self.choiceUntil=self:Now()+(spec.timeout or 14);self:Emit('choice',{choice=spec}) end
 function M:Choose(index)
     local choice=self.choice;local option=choice and choice.options[index];if not option then return false end
-    self.flags[choice.id or 'ask']=index-1;self.choice=nil;self:Emit('radio',{cue='pickup'});self:Emit('say',{lines=option.reply,urgent=true});return true
+    self.flags[choice.id or 'ask']=index-1;self.choice=nil;self:Emit('radio',{cue='pickup',choice=choice,index=index});self:Emit('say',{lines=option.reply,urgent=true});return true
+end
+function M:UpdateChoices()
+    local now=self:Now()
+    if self.pendingAsk and now>=self.pendingAsk.at then self:Ask(self.pendingAsk.spec);self.pendingAsk=nil end
+    if self.choice and now>=self.choiceUntil then self:Choose((self.choice.default or 0)+1) end
+end
+function M:UpdateTimers()
+    self:UpdateChoices()
+    if not self.failAt or self:Now()-self.failAt<3 then return end
+    self.failAt=nil;self:Emit('clearEnemies')
+    local step=self:StepSpec()
+    if step.kind=='escort' then self.convoy:Retry(self)
+    elseif step.kind=='hold' then self.hold:Retry(self)
+    else self:Go(self.index) end
 end
 function M:Beats(dt,world)
     self.stepT=self.stepT+dt;local step=self:StepSpec()
     if step.ask and not self.asked and not world.talking and self.stepT>.5 then self.asked=true;self:Ask(step.ask) end
-    if self.pendingAsk and self.time>=self.pendingAsk.at then self:Ask(self.pendingAsk.spec);self.pendingAsk=nil end
-    if self.choice and self.time>=self.choiceUntil then self:Choose((self.choice.default or 0)+1) end
+    self:UpdateChoices()
     for k,beat in ipairs(step.beats or {}) do
         local ready=beat.t and self.stepT>=beat.t or not beat.t and self.progress>=(beat.p or 0)
         local condition=not beat.when or beat.when=='noEnemies' and world.enemies==0 or beat.when=='shieldDamaged' and self.hold and self.hold.energy<.97
         if ready and not self.beatsFired[k] and condition then
             self.beatsFired[k]=true
             if beat.say then self:Emit('say',{lines=beat.say,urgent=beat.urgent}) end
-            if beat.spawn then self:Emit('spawn',{enemies=beat.spawn,tag=beat.tag});if beat.alert~=false then self:Emit('radio',{cue='alert'}) end end
             if beat.banner then self:Emit('banner',{kick=beat.banner[1],title=beat.banner[2],sub=beat.banner[3],kind=beat.banner[4],ms=beat.banner[5]}) end
-            if beat.ask then self.pendingAsk={spec=beat.ask,at=self.time+.3} end
+            if beat.spawn then self:Emit('spawn',{enemies=beat.spawn,tag=beat.tag or 'wave'});if beat.alert~=false then self:Emit('radio',{cue='alert'}) end end
+            if beat.ask then self.pendingAsk={spec=beat.ask,at=self:Now()+.3} end
             if beat.run=='dropCoupon' then self.dropPos={0,6.2,-214};self:Emit('dropIntel',{id='coupon',pos=self.dropPos}) end
         end
     end
 end
 function M:Fail(title,lines)
-    if self.failAt then return end;self.failAt=self.time;self.stats.fails=self.stats.fails+1
-    self:Emit('say',{lines=lines,urgent=true});self:Emit('banner',{kick='任务受挫',title=title,sub='3 秒后从存档点重来',kind='enemy',ms=3000})
+    if self.failAt then return end;self.failAt=self:Now();self.stats.fails=self.stats.fails+1
+    self:Emit('banner',{kick='任务受挫',title=title,sub='3 秒后从存档点重来',kind='enemy',ms=3000});self:Emit('say',{lines=lines,urgent=true})
     self:Emit('radio',{cue='alert'})
 end
 function M:Step(dt,world)
@@ -89,14 +103,10 @@ function M:Step(dt,world)
     self.time=self.time+dt
     self.playerPos=world.pos;self.enemyPositions=world.enemyPositions;self.bossTarget=world.bossTarget
     if self.index==0 then if self.time>=1.4 then self:Go(1) end;return end
+    self:UpdateTimers()
     local step=self:StepSpec()
-    if self.failAt and self.time-self.failAt>=3 then
-        self.failAt=nil;self:Emit('clearEnemies')
-        if step.kind=='escort' then self.convoy:Retry(self)
-        elseif step.kind=='hold' then self.hold:Retry(self)
-        else self:Go(self.index) end
-    end
     if not world.alive then
+        self:UpdateChoices()
         self.install=math.max(0,self.install-dt*.8)
         if not self.deadAt then self.deadAt=self.time;self.stats.deaths=self.stats.deaths+1;self:Emit('dead') end
         self.respawnLeft=math.max(0,3-(self.time-self.deadAt))

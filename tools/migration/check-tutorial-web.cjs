@@ -3,6 +3,7 @@ const {chromium}=require('C:/Users/XD/.cache/codex-runtimes/codex-primary-runtim
 const root=path.resolve(__dirname,'../..'),out=path.join(root,'docs/migration/evidence');
 const base='http://127.0.0.1:'+Number(process.env.VOX_QA_PORT||4290);
 const tag=process.env.VOX_TUTORIAL_TAG||new Date().toISOString().replace(/[:.]/g,'-');
+const audioOnly=process.env.VOX_QA_AUDIO_ONLY==='1';
 const cases=[{name:'pc',width:1920,height:1080},{name:'phone-landscape',width:840,height:378,dpr:3,touch:true},{name:'tablet',width:1024,height:768,dpr:2,touch:true}];
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 (async()=>{
@@ -31,13 +32,25 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   async function next(id){for(let i=0;i<6&&state.tutorial.id===id;i++){await button('next');await sleep(180);await dump();}await wait(s=>s.tutorial.id!==id,id+' advances',10000);}
   try{
    await page.goto(base+'/outgame.html?-game_url='+base+'/game-dist/&-log=info&cached=1');await wait(s=>s.tab==='hangar'&&!s.loadingFlow?.active&&!s.loading?.busy,'actionable hall');
+   if(audioOnly)await wait(s=>s.audioSettings?.uiSound?.ready>=2,'UI cues decoded');
+   const pressBefore=state.audioSettings?.uiSound?.counts?.press||0;
    await page.keyboard.press('F12');await wait(s=>s.tutorial?.visible&&s.tutorial.id==='hello','welcome');
    await wait(s=>s.tutorial.voicePlayed>0&&s.tutorial.voicePlaying,'original welcome voice');check(state.tutorial.voiceId,'welcome resolves original voice');await shot('hello');
    await next('hello');await shot('car');check(state.tutorial.target.w>0,'vehicle info target uses live layout');await next('car');await next('bays');
+   if(audioOnly)check((state.audioSettings.uiSound.counts.press||0)>pressBefore,'actual tutorial primary buttons play approved press');
    await wait(s=>s.tutorial.id==='choose','route');await shot('choose');await button('build');await wait(s=>s.build&&s.tutorial.id==='bag','real build-first');
    check(state.tutorial.path==='build','actual editor selects source build route');await shot('bag');
+   const confirmBeforeBag=state.audioSettings?.uiSound?.counts?.confirm||0;
    if(test.touch){await target('背包');await widget('背包');}else await page.keyboard.press('b');
-   await wait(s=>s.inventory&&s.tutorial.id==='pick','actual bag');await shot('pick');await widget('关闭');
+   await wait(s=>s.inventory&&s.tutorial.id==='pick','actual bag');await shot('pick');
+   if(audioOnly){
+    check((state.audioSettings.uiSound.counts.confirm||0)>confirmBeforeBag,'real bag completion plays approved confirm');
+    check(state.audioSettings.uiSound.voices===10,'original ten-voice UI pool');
+    report.uiSound=structuredClone(state.audioSettings.uiSound);
+    report.scope='Actual public tutorial buttons/build route/B inventory input and playback counters. Stops after bag completion; no edit/save/full-tutorial or audible-quality acceptance.';
+    check(report.errors.length===0,'no unexpected runtime errors');report.result='PASS';
+   }else{
+   await widget('关闭');
    await wait(s=>!s.inventory&&s.tutorial.id==='place','assembly');await shot('place');
    if(test.touch)await target();
    const before=state.parts;
@@ -68,6 +81,7 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
    else{const help=state.widgets.find(w=>w.kind==='icon'&&w.icon==='help');assert.ok(help,'editor replay help');const [x,y,w,h]=help.rect;await rect({x,y,w,h});}
    await wait(s=>s.tutorial.replay&&s.tutorial.id==='bag','replay source build lesson');await shot('replay');await button('skip');await wait(s=>!s.tutorial.running,'close replay');
    check(JSON.stringify(state.tutorial.record)===record,'replay keeps completed or skipped main record');check(report.errors.length===0,'no unexpected runtime errors');report.result='PASS';
+   }
   }catch(e){report.result='FAIL';report.failure=e.stack;report.lastState=state;await page.screenshot({path:path.join(out,prefix+'-failure.png')}).catch(()=>{});throw e;}
   finally{
    report.functionalityBeforeShutdown=report.result;const before=report.errors.length;await page.close();await sleep(250);

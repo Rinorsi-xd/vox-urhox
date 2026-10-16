@@ -1,7 +1,7 @@
 -- Frozen intro.css hudfx and the projection platform around the real portrait.
 local D=require 'ui.SourceDraw'
 local M={}
-function M.Backdrop(vg,w,h,u,t)
+function M.Backdrop(vg,w,h,u,t,contract)
  local horizon=h*.64;local step=7*u;local move=t%5/5*step
  for i=-25,25 do
   local a=i*step;D.Line(vg,w/2+a,horizon,w/2+a*5,h,{110,214,255,11},1)
@@ -16,9 +16,9 @@ function M.Backdrop(vg,w,h,u,t)
  end
  local ink={214,240,255,115};local sz=1.05*u
  D.Rect(vg,w*.014+1.2*u,h*.09+u,.7*u,.7*u,{110,214,255,179})
- D.Text(vg,'SS-07 · FIELD TERMINAL',w*.014+2.7*u,h*.09+u,sz,ink,'vox-display',nil,sz*.32)
+  if not contract then D.Text(vg,'SS-07 · FIELD TERMINAL',w*.014+2.7*u,h*.09+u,sz,ink,'vox-display',nil,sz*.32) end
  D.Text(vg,'SECURE LINK · AES-7',w*.986-1.2*u,h*.09+u,sz,ink,'vox-display',NVG_ALIGN_RIGHT,sz*.32)
- D.Text(vg,'HANGAR 07 · 坠舰陨坑',w*.014+1.2*u,h*.976-2.05*u,sz,ink,'vox-display',nil,sz*.32)
+  if not contract then D.Text(vg,'HANGAR 07 · 坠舰陨坑',w*.014+1.2*u,h*.976-2.05*u,sz,ink,'vox-display',nil,sz*.32) end
  local scan=-20*u+t%9/9*140*u;local half=8*u
  for _,part in ipairs({{scan,0,5},{scan+half,5,0}}) do D.Path(vg,{0,part[1],w,part[1],w,part[1]+half,0,part[1]+half});nvgFillPaint(vg,nvgLinearGradient(vg,0,part[1],0,part[1]+half,nvgRGBA(110,214,255,part[2]),nvgRGBA(110,214,255,part[3])));nvgFill(vg) end
 end

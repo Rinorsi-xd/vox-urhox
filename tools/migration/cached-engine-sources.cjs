@@ -8,6 +8,25 @@ const snapshots={
  'urhox-libs':{client:'64f47a38',version:'1.0.47',manifest:'f8f20f88c846514e5c6f2de375db65afd9e0b2762fe1361d709ed7aabe58e265'},
  'official-res':{client:'153a2b71',version:'1.32.37',manifest:'d495b3d2d65fff47510b1cec9666952151af3c08680b1795b648e34d48ce8817'},
 };
+const packages={
+ 'engine-res':{key:'aa574cccd1a0ac0d12735920844fdd36af5a1eb49d048299236a7d4c7ab7f7dd',sha256:'001ec003f62e723c077840e21e91ad74e6d447309b64afbda41c5822b77cb69e'},
+ 'urhox-libs':{key:'6edc4ffbde96f007942097c49aa06b566964d649771a14d73883fd6f7d337dee',sha256:'943343dc7fd2c8452a5f8ba70af764bc681401c0c4c88ae0c06af6e7c8ba118a'},
+};
+const packageBodies=new Map();
+function pinnedPackage(parsed){
+ const match=parsed.pathname.match(/^\/src\/(engine-res|urhox-libs)\/(?:([^/]+)\/)?assets@windows\.7z$/);
+ if(!match)return null;
+ const source=match[1],snapshot=snapshots[source],version=match[2]||parsed.searchParams.get('v');
+ if(version!==snapshot.version || (parsed.searchParams.has('v')&&parsed.searchParams.get('v')!==snapshot.version))return null;
+ if(!packageBodies.has(source)){
+  const spec=packages[source],file=path.join(directory,spec.key);
+  if(!fs.existsSync(file))return null;
+  const body=fs.readFileSync(file);
+  if(crypto.createHash('sha256').update(body).digest('hex')!==spec.sha256)throw Error('Pinned source package changed: '+source);
+  packageBodies.set(source,{body,headers:{'content-type':'application/x-7z-compressed'}});
+ }
+ return packageBodies.get(source);
+}
 let bundled,packed;
 function bundledAsset(parsed){
  if(!/\/assets\/[^/]+$/.test(parsed.pathname))return null;
@@ -37,6 +56,9 @@ function bundledAsset(parsed){
 function read(url){
  const parsed=new URL(url);if(parsed.hostname!=='tapcode-sce.spark.xd.com')return null;
  const source=parsed.pathname.split('/')[2],snapshot=snapshots[source];if(!snapshot)return null;
+ // The Windows WASM runtime probes versioned and ?v= package candidates.
+ // Only these audited snapshots have cached platform archives.
+ if(/\/assets(?:@[^/]+)?\.7z$/.test(parsed.pathname))return pinnedPackage(parsed);
  let key;
  // The Web runtime asks engine-res for the wasm channel name directly. The
  // offline fixture only stores the pinned manifest by digest, so route this

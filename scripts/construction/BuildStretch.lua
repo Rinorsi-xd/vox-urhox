@@ -156,6 +156,7 @@ function M.Commit(editor)
     local selection=s.phase=='selection';local ok=editor.history:Commit(ops,not selection and editor.joinNew and require('construction.BuildGroups').JoinAdded or nil)
     if selection and ok then for _,op in ipairs(ops) do editor.selection[op.data.id]=true end;editor:SelectionChanged() end
     M.Cancel(editor);if selection then editor.tool='build';editor.stretchSelected=true end
+    if ok then editor:Cue('place') end
     return ok
 end
 function M.Click(editor)

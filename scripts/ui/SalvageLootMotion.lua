@@ -5,7 +5,12 @@ local M={}
 function M.Event(run,event)
     local now=run.rules.time
     if event.type=='suspense' then run.lootPulse={at=now,rarity=event.rarity,suspense=true}
-    elseif event.type=='reveal' then
+    elseif event.type=='cargoPickup' and (event.swap or event.worldBatch) then
+        run.lootFlights=run.lootFlights or {}
+        for i=1,math.min(6,#event.items) do
+            run.lootFlights[#run.lootFlights+1]={id=event.items[i][1],at=now+(event.worldBatch and .26+(i-1)*.11 or 0)}
+        end
+    elseif event.type=='reveal' and not event.worldBatch then
         local item=event.item
         if item.r>=4 then run.lootPulse={at=now,rarity=item.r,id=item.id} end
         if (event.taken or item.n)>0 then

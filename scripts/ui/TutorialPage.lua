@@ -15,6 +15,11 @@ end
 function Page:GetAbsoluteLayout() local w,h=UI.GetViewportSize();return {x=0,y=0,w=w,h=h} end
 function Page:GetAbsoluteLayoutForHitTest() return self:GetAbsoluteLayout() end
 function Page:HitTest(x,y) return self.owner.visible and Inside(self.cardRect,x,y) end
+function Page:UiSoundButtonAt(x,y)
+    if not self.owner.visible then return false end
+    for _,button in ipairs(self.buttons) do if Inside(button,x,y) then return true end end
+    return false
+end
 function Page:OnPointerDown(e) self.pointers[e.pointerId]=e.pointerType;return true end
 function Page:OnPointerUp(e) self.pointers[e.pointerId]=nil;return true end
 function Page:OnPointerCancel(e) self.pointers[e.pointerId]=nil;return true end
@@ -90,13 +95,10 @@ function Page:Render(vg)
     local t=self.owner;if not t.visible then return end
     D.Begin(vg);local w,h=UI.GetViewportSize();local s=t.rules:StepSpec()
     local touch=require('controls.TouchMode').Enabled();local k=touch and math.max(.65,math.min(1,h/760)) or math.min(1,w/740)
-    local cw=660*k;local hint=s.hint and s.hint:gsub('<[^>]+>','') or ''
-    local line=s.lines[t.line]
+    local cw=660*k;local hint=(t:Hint() or ''):gsub('<[^>]+>','')
+    local lines=t:Lines();local line=lines[t.line]
     local card=t.voice and t.voice.card or {who=line[1],text=line[2],face=line[3],age=t.lineAge or 0,typing=t.typing or utf8.len(line[2])*.032}
     local commHeight=Comms.Height(vg,card,660,180)*k
-    if touch then
-        hint=({bag='长按快捷栏打开零件库',pick='点选零件，选好后点「关闭」',place='滑动画面转向，选底部「放置」后点车身装一块；选「删除」拆除',save='点上方「保存」，把战车存进车位'})[s.id] or hint
-    end
     self.hint.size=14*k;self.hint.lineHeight='normal'
     local hintHeight=hint~='' and self.hint:Measure(vg,hint,cw-190*k).height+14*k or 0
     local number=string.format('%02d',t.rules.index)
@@ -171,7 +173,7 @@ function Page:Render(vg)
     end
     local actionY=by+actionRow*44*k
     if s.next=='button' then
-        Button(vg,'next',touch and '下一步' or '下一步 Space',x+cw-134*k,actionY,134*k,n==count and t.line==#s.lines,self.buttons,k)
+        Button(vg,'next',touch and '下一步' or '下一步 Space',x+cw-134*k,actionY,134*k,n==count and t.line==#lines,self.buttons,k)
         Button(vg,'skip',skip,x+cw-144*k-sw,actionY,sw,false,self.buttons,k)
     else Button(vg,'skip',skip,x+cw-sw,actionY,sw,false,self.buttons,k) end
 end

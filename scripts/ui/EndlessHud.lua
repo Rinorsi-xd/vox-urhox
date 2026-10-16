@@ -27,8 +27,7 @@ function Panel:Render(vg)
         D.Rect(vg,cx-210,cy,420,6,{255,255,255,31});D.Rect(vg,cx-210,cy,420*math.max(0,r.shield.hp/r.shield.max),6,{46,168,255,255})
     end
     local banner=e.banner and e.banner.text or ''
-    if r.respawnAt then banner='战车被摧毁 · '..math.ceil(math.max(0,r.respawnAt-r.time))..' 秒后复原' end
-    if banner~='' then Text(vg,banner,box.x+w*.5,box.y+h*.2,28,white,'vox-title',NVG_ALIGN_CENTER) end
+    if banner~='' then D.Text(vg,banner,box.x+w*.5,box.y+h*.2,28,white,'vox-title',NVG_ALIGN_CENTER,0,false,nil,{{y=2,blur=12,color={0,0,0,255}}}) end
     if not s.touch then Text(vg,'W/S 油门 · A/D 转向 · 鼠标瞄准 / 左键开火 · 数字键换武器 · R 翻正 · G 波间改装 · Enter 下一波 · V 维修补给',box.x+w*.5,box.y+h-22,12,{242,246,248,160},'vox-title',NVG_ALIGN_CENTER) end
 end
 local function Summary(s,root)
@@ -57,6 +56,7 @@ function M.Attach(session,root)
     local state={root=hud,age=0,key=false,rest=nil,summary=nil}
     function state.Update(dt)
         state.age=state.age+(dt or 0);local e=session.endless;local r=e.run
+        require('ui.EndlessBanner').Update(e,r)
         hud:SetVisible(r.state~='editing');exit:SetVisible(r.state~='editing' and r.state~='over')
         if r.state=='over' and not state.summary then state.summary=Summary(session,root) end
         local key=r.state..':'..r.wave..':'..#r.supplies

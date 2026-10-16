@@ -1,5 +1,5 @@
 -- Frozen workshop.css card geometry and pointer transitions.
-local Button=require 'urhox-libs/UI/Widgets/Button'
+local Button=require 'ui.ActionButton'
 local D=require 'ui.SourceDraw'
 local Paint=require 'ui.WorkshopPaint'
 local Motion=require 'ui.SourceButtonMotion'
@@ -63,6 +63,7 @@ function Card:Render(vg)
         end
         nvgRestore(vg);D.Text(vg,'主打推荐',fx+12,y+19,13,{26,18,5,255},nil,nil,3)
     end
+    require('ui.WorkshopShopPaint').Card(vg,self.shop,x,y,w,self.mini,self.hero)
     local tx=x+(self.hero and 30 or 16)
     local size=self.hero and (self.heroTitleSize or 46) or self.mini and 17 or 21;local titleHeight=size*1.2
     local barHeight=self.hero and 62 or self.mini and 0 or 50*m.reveal.value

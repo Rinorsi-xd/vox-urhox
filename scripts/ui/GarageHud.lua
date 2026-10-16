@@ -2,10 +2,13 @@
 local UI=require 'urhox-libs/UI'
 local Theme=require 'ui.VoxTheme'
 local Button=require 'ui.SourceButton'
+local ActionButton=require 'ui.ActionButton'
 local Layout=require 'ui.GarageLayout'
 local Dialogs=require 'ui.GarageDialogs'
 local Config=require 'Config'
-local M={};local state=false
+local M={}
+---@type table|false
+local state=false
 local function Clear(container)
     local old={table.unpack(container.children)};container:ClearChildren();for _,c in ipairs(old) do c:Destroy() end
 end
@@ -30,8 +33,8 @@ function M.IsBlocked() return state and (state.dialog~=nil or state.newOpen or s
 function M.SetMode(text) if state then state.message:SetText(text or '') end end
 function M.GetState() return state end
 function M.Refresh() if state then state.revision=-1 end end
-function M.Create(app)
-    M.Dispose();require('controls.TouchMode').Apply('home');local w,h=UI.GetViewportSize()
+local function Build(app)
+    require('controls.TouchMode').Apply('home');local w,h=UI.GetViewportSize()
     local s={app=app,revision=-1,tab=app.homeTab or 'hangar',buttons={},cards={},width=w,height=h,pointers={}}
     if app.homeWorkshopState then
         s.workshop={elapsed=0}
@@ -56,7 +59,7 @@ function M.Create(app)
         local b=s.Track(Button(p));parent:AddChild(b);if id then s.buttons[id]=b end;return b
     end
     s.SetNew=function(open) s.newOpen=open;s.menu:SetOpen(open);s.scrim:SetVisible(open) end
-    s.SetTab=function(tab)
+    s.SetTab=function(tab,options)
         app.vehicleGate:Cancel()
         if app.vehicleSwitch then app.vehicleSwitch:CancelDownload() end
         if s.tab=='livery' and tab~='livery' then require('ui.LiveryPage').Leave(s) end
@@ -66,6 +69,7 @@ function M.Create(app)
         s.SetNew(false);s.tab=tab;app.homeTab=tab;s.revision=-1
         if app.gallery then app:ToggleGallery() end
         app:HomeView(tab)
+        if not (options and options.quiet) then require('audio.UiSound').Play('whoosh') end
         Layout.Apply(s,s.width,s.height,s.safe)
     end
     s.Run=function(fn,onSuccess,data)
@@ -96,10 +100,13 @@ function M.Create(app)
         s.SetNew(false)
         if app.lobby=='salvage' and id~='empty' then return require('ui.SalvageBuy').Car(s,id) end
         s.Run(function(discard) return app.bays:CreateVehicle(id,nil,discard) end,function()
-            s.SetTab('hangar');if id=='empty' then app:EnterBuild() end
+            if app.lobby=='salvage' then
+                require('ui.SalvagePage').Tab(s,'garage');s.SetTab('salvage',{quiet=true})
+            else s.SetTab('hangar',{quiet=true});if id=='empty' then app:EnterBuild() end end
         end,require('construction.Prefab').Create(require('construction.Blueprint').New(),id):ToTable())
     end
     s.root=UI.Panel{width='100%',height='100%',pointerEvents='box-none'}
+    s.root.actionButtonKeys=function() return s.tab=='hangar' and not s.dialog and not s.musicBox end
     local chrome=require('ui.HomeChrome'){position='absolute',width='100%',height='100%',pointerEvents='none'};chrome.owner=s;s.root:AddChild(chrome)
     s.nav=UI.Panel{position='absolute',pointerEvents='box-none'};s.root:AddChild(s.nav)
     for _,tab in ipairs({{'hangar','机库'},{'livery','涂装'},{'workshop','创意工坊'},{'shop','商店'}}) do AddButton(s.nav,tab[1],tab[2],tab[1],'tab',function() s.SetTab(tab[1]) end) end
@@ -140,6 +147,15 @@ function M.Create(app)
     s.scrim=UI.Panel{position='absolute',width='100%',height='100%',visible=false,onPointerDown=function() s.SetNew(false) end};s.root:AddChild(s.scrim)
     s.menu=require('ui.HomeNewMenu').Create(s);s.root:AddChild(s.menu)
     Layout.Apply(s,w,h,UI.GetSafeAreaInsets());UI.SetRoot(s.root,true)
+end
+function M.Create(app)
+    M.Dispose()
+    local ok,err=xpcall(Build,debug.traceback,app)
+    if ok then return end
+    -- Build 一开始就发布 state（页面模块建控件时要读它）。中途失败时不能留下半成品：
+    -- 否则 SetMode / Update 每帧访问还没建的控件，一个初始化错误会变成上百条连锁报错。
+    pcall(M.Dispose);state=false
+    error(err,0)
 end
 local function Rebuild(s)
     -- Decal edits dirty the blueprint each pointer move; hidden home cards can
@@ -192,6 +208,9 @@ function M.Update(dt)
     if s.musicBox then require('ui.MusicBox').Update(s,dt);return end
     if not input.focus or input.minimized then s.CancelInput();return end
     local focus=UI.GetFocus();local typing=focus and focus.OnTextInput~=nil
+    -- A button may change tabs or focus in its native key callback this frame.
+    if ActionButton.KeyConsumed(KEY_RETURN) or ActionButton.KeyConsumed(KEY_KP_ENTER) or ActionButton.KeyConsumed(KEY_SPACE)
+        or ActionButton.HasKeyboardFocus(focus) and (input:GetKeyPress(KEY_RETURN) or input:GetKeyPress(KEY_KP_ENTER) or input:GetKeyPress(KEY_SPACE)) then return end
     if s.dialog then if input:GetKeyPress(KEY_ESCAPE) then Dialogs.Close(s) end
     elseif not typing and s.tab=='story' then require('ui.StoryPage').Key(s)
     elseif not typing and s.tab=='livery' and s.livery.controls:Key() then
@@ -201,7 +220,7 @@ function M.Update(dt)
     elseif not typing then
         if input:GetKeyPress(KEY_ESCAPE) then if s.newOpen then s.SetNew(false) elseif s.tab~='hangar' then s.SetTab('hangar') else require('ui.PauseMenu').Open(s) end
         elseif input:GetKeyPress(KEY_F) then s.SetTab('battle')
-        elseif input:GetKeyPress(KEY_RETURN) then if s.tab=='battle' then require('ui.HomeBattle').Start(s) else s.app:EnterBuild() end
+        elseif input:GetKeyPress(KEY_RETURN) or input:GetKeyPress(KEY_KP_ENTER) then if s.tab=='battle' then require('ui.HomeBattle').Start(s) else s.app:EnterBuild() end
         elseif input:GetKeyPress(KEY_H) or input:GetKeyPress(KEY_F1) then Dialogs.Help(s) end
     end
 end

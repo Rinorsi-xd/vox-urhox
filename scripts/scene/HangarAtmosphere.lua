@@ -16,7 +16,6 @@ function M.Update(h,camNode,cam,t)
         h.reflCam.aspectRatio=h.reflAspect
         -- Keep the projection paired with the captured frame at limited refresh rates.
         h.padMat:SetShaderParameter('refl_matrix',Variant(h.reflCam:GetProjection()*h.reflCam:GetView()))
-        h.padMat:SetShaderParameter('refl_flip_y',Variant(graphics.apiName:find('OpenGL') and 1.0 or 0.0))
         h.reflTex.renderSurface:QueueUpdate()
         h.reflFilter:Queue()
         h.nextReflection=h.time+1/Quality.current.reflectionHz

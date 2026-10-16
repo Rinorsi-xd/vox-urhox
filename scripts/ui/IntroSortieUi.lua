@@ -1,5 +1,6 @@
 -- Frozen intro.css / introSortie.js composition; actual shared drive reticle.
 local D=require 'ui.SourceDraw'
+local nvgGlobalAlpha=require('ui.IntroOpacity').Set
 local Coord=require 'core.Coord'
 local Fx=require 'ui.IntroSortieFx'
 local M={};M.__index=M
@@ -21,10 +22,16 @@ M.Tokens=Tokens
 function M.New(session)
  local reticle=require('ui.MechReticle'){pointerEvents='none'};reticle.session=session
  reticle.GetAbsoluteLayout=function()return {x=0,y=0,w=reticle.width or 1920,h=reticle.height or 1080}end
- return setmetatable({session=session,reticle=reticle},M)
+ local root=require('urhox-libs/UI').Panel{width='100%',height='100%',pointerEvents='none'}
+ local overlay=require('ui.DriveOverlay').New(session,root,reticle)
+ overlay.layer.GetAbsoluteLayout=reticle.GetAbsoluteLayout
+ session.openingOverlay=overlay
+ return setmetatable({session=session,reticle=reticle,root=root,overlay=overlay},M)
 end
 function M:Update(dt)
+ self.reticle.hit=math.max(0,(self.reticle.hit or 0)-dt)
  if self.session.combat.player.alive then require('ui.ReticleState').Update(self.reticle,dt) end
+ self.overlay:Update(dt);self.reticle.aimState=self.overlay.aimState
 end
 function M:Warm(vg,w,h)
  D.HudFont(vg);local layout=require('ui.ReticleState').Layout(w,h)
@@ -42,7 +49,10 @@ end
 function M:Draw(vg,I,w,h,u)
  local s=I.sortie;if not s then return end
  if I.capturePending then return end
- if s.controlling and s.step<5 then self.reticle.width=w;self.reticle.height=h;self.reticle:Render(vg) end
+ self.reticle.width=w;self.reticle.height=h
+ self.overlay.layer:Render(vg)
+ if s.controlling and s.step<5 then self.reticle:Render(vg) end
+ if s.killAt then require('ui.IntroSortieKill').Draw(vg,w,h,u,I.time-s.killAt,s.mine) end
  if not s.controlling and s.step<5 then
   local bw,bh=52*u,8.5*u;local x,y=(w-bw)/2,h*.46-bh/2
   D.Rect(vg,x,y,bw,bh,{8,15,28,209});D.Rect(vg,x,y,bw,1,{122,216,255,128})
@@ -88,7 +98,10 @@ function M:Draw(vg,I,w,h,u)
  end
  nvgRestore(vg)
 end
-function M:Dispose() self.reticle:Destroy() end
+function M:Dispose()
+ if self.session.openingOverlay==self.overlay then self.session.openingOverlay=nil end
+ self.root:Destroy();self.reticle:Destroy()
+end
 function M.Stamp(vg,w,h,u,s)
  if not s.stamped then return end
  local typography=require 'ui.IntroTypography';typography.Begin(vg)

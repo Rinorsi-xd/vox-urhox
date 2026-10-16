@@ -130,7 +130,8 @@ function M.SetTrack(vis,distance)
         pad.node.position=Vector3(-x,0,z)
         pad.node.rotation=Quaternion(Vector3(-nz,0,-nx),Vector3(-nx,0,nz),Vector3(0,1,0))
     end
-    for _,w in ipairs(r.wheels) do w.node.rotation=Quaternion(-distance/w.r*180/math.pi,Vector3.UP) end
+    -- Belt offset opposes travel; the X mirror also reverses the source Y rotation.
+    for _,w in ipairs(r.wheels) do w.node.rotation=Quaternion(distance/w.r*180/math.pi,Vector3.UP) end
 end
 -- Arguments are simulation state, never keyboard inputs or elapsed demo time.
 function M.SetWheel(vis,up,suspension,steer,roll)

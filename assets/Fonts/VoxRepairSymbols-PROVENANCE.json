@@ -1,0 +1,26 @@
+{
+  "upstreamFamily": "Noto Sans Symbols 2",
+  "repository": "https://github.com/google/fonts",
+  "commit": "8b0a1d0f5983c89bc2b93f1b5fb55f9e252744b5",
+  "sourceURL": "https://raw.githubusercontent.com/google/fonts/8b0a1d0f5983c89bc2b93f1b5fb55f9e252744b5/ofl/notosanssymbols2/NotoSansSymbols2-Regular.ttf",
+  "licenseURL": "https://raw.githubusercontent.com/google/fonts/8b0a1d0f5983c89bc2b93f1b5fb55f9e252744b5/ofl/notosanssymbols2/OFL.txt",
+  "license": "SIL Open Font License 1.1",
+  "sourceSHA256": "7d5fb73b7ca67a6798101741f5d280a3d016a56a197afcd4199dbb57b4b82a21",
+  "licenseSHA256": "b118dd41337806a5d4797052c77caf3bd096aed783e5eb21b4d11154351e1ac0",
+  "output": "Fonts/VoxRepairSymbols-Regular.ttf",
+  "outputSHA256": "b1642e28784a4ad313e8d850c0574007c74b1ce7ab247a500bb0836ae9447bae",
+  "outputBytes": 5284,
+  "metrics": {
+    "units": 1000,
+    "advance": 836,
+    "ascent": 1069,
+    "descent": -630,
+    "glyphs": 2,
+    "codepoints": [
+      "U+271A"
+    ]
+  },
+  "outlineUnchanged": true,
+  "conversion": "fontTools Unicode subset U+271A only; renamed family; original Noto outline and metrics retained.",
+  "scope": "Only endless repair icon. Windows native uses installed Segoe UI Symbol without bundling Microsoft data. Web/mobile Noto is a substitute, not pixel parity with Windows H5."
+}

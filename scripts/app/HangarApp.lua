@@ -10,6 +10,7 @@ local Hud=require "ui.GarageHud"
 local Loader=require "app.SceneLoader"
 local HotReload=require "app.HotReload"
 local Quality=require "render.Quality"
+local CollectionCycle=require "core.CollectionCycle"
 local SCENE="Scenes/OrbitalHangar.xml"
 local VIEWS={
     hall={target={0,5,-8},dist=32,yaw=180,pitch=12,fov=65},
@@ -49,6 +50,7 @@ function App:init()
     self.build=nil ---@type table|nil
     self.isValidation=false
     self.loader=Loader.New()
+    self.mapTransition=require('app.WebMapTransition').New(function() self:ReleaseMapHangar() end,function() return self:ReleaseSettledAssets() end)
     self.vehicleGate=require('app.ResourceGate').New()
     self.motionModule=nil ---@type table|nil
     self.hotReload=HotReload.New(function() self:Reload() end,function(module)
@@ -70,6 +72,7 @@ function App:init()
     self.store=require('storage.BlueprintStore').New(self.isValidation and 'vox-validation' or nil)
     require('audio.AudioLevels').Init(self.store)
     self.music=require('audio.MusicPlayer').New(self.store)
+    self.ambience=require('audio.GameAmbience').New()
     self.graphicsSettings=require('render.GraphicsSettings').New(self)
     self.previews=require('render.HangarPreview').New(self)
     self.store.captureContext=function()
@@ -87,7 +90,7 @@ function App:init()
     self.editor=require('construction.BuildEditor').New(self.blueprint,function(ops)
         if self.car then self.car:ApplyEdits(ops,self.blueprint) end
         if self.bays then self.bays:Changed() else self.store:Queue(self.blueprint) end
-    end)
+    end,require('audio.UiSound').Play)
     self.bays=require('construction.Garage').New(self.blueprint,self.store,function(data) return self:LoadBlueprint(data) end,not self.isValidation and not self.explicitBlueprint)
 end
 function App:EnterBuild()
@@ -179,8 +182,14 @@ function App:Start(existingScene)
     local fonts=require('ui.SourceFonts').Resolve()
     UI.Init({theme="default-dark",scale=require('controls.TouchMode').Scale('home'),
         fonts={{family="sans",weights={normal=fonts.body,bold=fonts.bold}}}})
+    require('audio.UiSound').Start()
     self.loadingFlow=require('app.LoadingFlow').New(self)
-    self.loader.canStart=function() return self.loadingFlow:CanStartLoad() end
+    self.loader.canStart=function()
+        local ready,message=self.mapTransition:CanStart(self.loadingFlow:CanStartLoad(),self.loadingFlow.pageFrames,
+            cache:GetNumBackgroundLoadResources()==0)
+        if message then self.loader:Fail(message) end
+        return ready
+    end
     self.toasts=require('ui.SourceToasts').New()
     self.toasts:Attach()
     self.tutorial=require('story.Tutorial').New(self)
@@ -204,6 +213,7 @@ function App:Reload()
         return
     end
     if self.loader.state=="loading" then self.reloadQueued=true;return end
+    self.mapTransition:PrepareRecovery()
     if self.vehicleSwitch and self.vehicleSwitch:Finish()==false then return end
     self.vehicleGate:Cancel()
     if self.trial or not self.scene then
@@ -212,11 +222,15 @@ function App:Reload()
             loadingSub='战车、车库与改装'},function() self.loader:Cancel() end)
     end
     print("[HangarApp] Loading authored scene "..SCENE)
-    self.loader:Load(SCENE,function(scene) self:Install(scene);if self.loadingFlow.active then self.loadingFlow:Finish() end end,function(message)
+    self.loader:Load(SCENE,function(scene)
+        self:Install(scene)
+        if self.loadingFlow.active then self.loadingFlow:Finish() end
+        self.mapTransition:Restored()
+    end,function(message)
         if self.loadingFlow.active then self.loadingFlow:Fail(message) end
         print("[HangarApp] Load failed; keeping previous scene: "..message)
         if self.scene then Hud.SetMode("场景更新失败，保留当前画面 · F5 重试")
-        else self.loadingLabel:SetText("机库加载失败 · 按 F5 重试") end
+        elseif not self.loadingFlow.active then self.loadingLabel:SetText("机库加载失败 · 按 F5 重试") end
     end,{resources=require('scene.HangarResources').For(self.blueprint:List())})
 end
 function App:EnterBattle(mode)
@@ -274,14 +288,22 @@ function App:EnterTrial(mapId,battleMode,roster,reuseLoading)
     end
     if not reuseLoading then self.loadingFlow:Open(map,function() self:CancelMapLoad(true) end) end
     self.pendingMap=map
+    local transition=self.mapTransition:Begin(require('urhox-libs.Platform.PlatformUtils').IsWebPlatform()
+        and map.prepareWorld~=nil and self.scene~=nil and self.hangar~=nil)
     local preparedWorld=nil ---@type table|nil
     local preparedSession=nil ---@type table|nil
     local function ClearLoading()
-        self.pendingMap=nil
+        if self.mapTransition:IsCurrent(transition) then self.pendingMap=nil end
     end
-    local options={webWarmup=map.webWarmup,cancel=ClearLoading,
+    local options={webWarmup=map.webWarmup,cancel=function() ClearLoading();self.mapTransition:Cancel(transition) end,
         cleanup=function()
-            if preparedSession then preparedSession:Dispose();preparedSession=nil end
+            if transition.released and self.mapTransition:IsLatest(transition) then self:DetachSceneRender() end
+            if preparedSession then
+                if transition.released and self.trial==preparedSession then
+                    self.trial=nil;self.scene=nil;self.mode='hangar';_G.VOX_TRIAL=nil
+                end
+                preparedSession:Dispose();preparedSession=nil
+            end
             if preparedWorld then preparedWorld:Dispose();preparedWorld=nil end
         end}
     options.resources=function()
@@ -327,6 +349,7 @@ function App:EnterTrial(mapId,battleMode,roster,reuseLoading)
             function(candidate) preparedSession=candidate end)
     end
     self.loader:Load(map.scene,function(scene)
+        assert(self.mapTransition:IsCurrent(transition),'Obsolete map transition')
         local candidate=assert(preparedSession,'Trial preparation did not complete')
         self.graphicsSettings:Apply(scene)
         local activated,activationError=pcall(candidate.Activate,candidate,function() self:Reload() end)
@@ -342,18 +365,22 @@ function App:EnterTrial(mapId,battleMode,roster,reuseLoading)
         if self.warehouse then self.warehouse:Dispose();self.warehouse=nil end
         if self.hangar then self.hangar:Dispose();self.hangar=nil end
         self.camera=nil;self.galleryOn=false;self.scene=scene;self.trial=candidate;self.mode="trial"
-        preparedSession=nil
         _G.VOX_HANGAR=nil;_G.VOX_TRIAL={session=candidate,app=self}
         if previous then previous:Dispose() end
         self:DeferAssetRelease(function() cache:ReleaseAllResources(false) end)
         ClearLoading()
         self.loadingFlow:Finish()
+        assert(self.mapTransition:Commit(transition),'Map transition lost ownership')
+        preparedSession=nil
         print("[HangarApp] Trial ready; hangar scene released, unused resource cleanup queued")
     end,function(message)
+        if not self.mapTransition:IsLatest(transition) or transition.state=='committed' then return end
         ClearLoading()
         self.loadingFlow:Fail(message)
         self:DeferAssetRelease(function() cache:ReleaseAllResources(false) end)
-        Hud.SetMode(map.name..'加载失败，保留机库');print('[HangarApp] '..message)
+        if transition.released then self.toasts:Push(map.name..'加载失败，正在返回机库','bad')
+        else Hud.SetMode(map.name..'加载失败，保留机库') end
+        print('[HangarApp] '..message)
     end,options)
     return true
 end
@@ -437,7 +464,7 @@ function App:Install(scene)
     end
     if self.buildWanted and self.ownsScene then
         -- Install runs while the loader still reports loading, so bind directly.
-        if not oldScene then
+        if not oldScene and not self.mapTransition:IsRestoring() then
             local minY=math.huge
             for _,p in ipairs(self.blueprint:List()) do for _,c in ipairs(p._cells) do minY=math.min(minY,c[2]) end end
             if minY<4 then self.editor:Lift(4-minY) end
@@ -478,36 +505,97 @@ function App:ToggleGallery(page)
         Hud.SetMode("零件目录 "..self.gallery.page.."/"..self.gallery.pages.." · PageUp / PageDown 翻页 · G 关闭")
     end
 end
-function App:DeferAssetRelease(release)
+function App:RetireOpening(work,done)
+    self.openingRetirements=self.openingRetirements or {}
+    self.openingRetirements[#self.openingRetirements+1]=require('app.OpeningRetirement').New(work,done)
+end
+function App:AdvanceOpeningRetirements(flush)
+    local jobs=self.openingRetirements
+    if not jobs then return end
+    while jobs[1] do
+        if not require('app.OpeningRetirement').Step(jobs[1],flush) then return end
+        table.remove(jobs,1)
+        if not flush then break end
+    end
+    if #jobs==0 then self.openingRetirements=nil end
+end
+function App:DeferAssetRelease(release,incremental)
     local pending=self.pendingAssetRelease
     if pending then
         self.pendingAssetRelease=function() pending();release() end
     else self.pendingAssetRelease=release end
+    self.assetReleaseIncremental=incremental==true and (not pending or self.assetReleaseIncremental==true)
+    self.assetReleaseEpoch=CollectionCycle.Fence()
+    if not self.assetReleaseIncremental then CollectionCycle.Restore() end
     self.assetReleaseFrames=3
+end
+function App:DetachSceneRender()
+    local settings=self.graphicsSettings
+    settings:SetSceneVisible(false);settings.suspendedViewport=nil
+    require('render.WindowViewports').Set(0,nil)
+    settings:ParkPost()
+    if settings.retainedPost then settings:ReleasePost(settings.retainedPost.scene) end
+    if settings.tonemap then settings.tonemap:Dispose();settings.tonemap=nil end
+end
+function App:ReleaseMapHangar()
+    local previous=self.scene
+    assert(previous and self.hangar and not self.trial,'No live hangar to retire')
+    self:DetachSceneRender()
+    if self.tutorial then self.tutorial:DetachVoice() end
+    local home=Hud.GetState()
+    if home and home.livery then require('ui.LiveryPage').Leave(home) end
+    Hud.Dispose()
+    -- UI.Render requires a root even for independent global loading overlays.
+    UI.SetRoot(UI.Panel{width='100%',height='100%',pointerEvents='none'})
+    if self.build then self.build:Dispose();self.build=nil end
+    self.previews:Dispose()
+    for _,key in ipairs({'gallery','vehicleSwitch','car','warehouse','hangar'}) do
+        if self[key] then self[key]:Dispose();self[key]=nil end
+    end
+    self.camera=nil;self.galleryOn=false;self.scene=nil;_G.VOX_HANGAR=nil
+    previous:Dispose()
+    self:DeferAssetRelease(function() cache:ReleaseAllResources(false) end)
+end
+function App:ReleaseSettledAssets()
+    local incremental=self.assetReleaseIncremental
+    local pending=self.pendingAssetRelease
+    if incremental then
+        if CollectionCycle.Epoch()<=self.assetReleaseEpoch then CollectionCycle.Step(128) end
+        if CollectionCycle.Epoch()<=self.assetReleaseEpoch then return false end
+    elseif not CollectionCycle.Collect() then return false end
+    -- A finalizer may queue newer owners in either collection mode.
+    if self.pendingAssetRelease~=pending then return false end
+    local release=self.pendingAssetRelease;self.pendingAssetRelease=nil
+    self.assetReleaseIncremental=nil;self.assetReleaseEpoch=nil
+    if not incremental then require('render.RenderTargetLifetime').Flush() end
+    -- Active Zones retain their applied SH/IBL. Drop reusable source HDRs only
+    -- after scene disposal and the renderer retirement fence.
+    environmentBakeCache:ClearCache()
+    if release then release() end
+    return true
 end
 function App:Update(dt)
     require('audio.StoryComms').Tick(dt)
     if self.loadingFlow and not self.stopped then self.loadingFlow:Advance(dt) end
     if self.stopped then return end
+    require('audio.IntroAudioTail').Update(dt,input.focus and not input.minimized)
+    self:AdvanceOpeningRetirements(false)
     require('storage.BlueprintStore').UpdateAll(dt)
     require('app.ResourceGate').UpdatePending(dt)
+    require('audio.UiSound').Update()
     if input:GetMouseButtonPress(MOUSEB_LEFT) or input:GetKeyPress(KEY_RETURN) or input:GetKeyPress(KEY_SPACE) then self.music:Unlock() end
-    self.music:Update(dt,self.mode=='trial' and 'training' or self.lobby=='salvage' and 'salvage' or 'hangar',not input.focus or input.minimized or self.opening and self.opening.active)
+    local musicState=require('audio.GameMusicState').FromApp(self,Hud.GetState())
+    require('audio.AudioLevels').MixContext(dt,musicState.introActive or musicState.briefing)
+    self.music:Update(dt,musicState.scene,not input.focus or input.minimized,musicState)
+    self.ambience:Update(dt,require('audio.GameAmbience').FromApp(self,Hud.GetState()),input.focus and not input.minimized)
     require('render.RenderTargetLifetime').Update()
-    if self.pendingAssetRelease and self.loader.state~='loading' and cache:GetNumBackgroundLoadResources()==0 then
+    if self.pendingAssetRelease and not self.openingRetirements and self.loader.state~='loading' and cache:GetNumBackgroundLoadResources()==0 then
         self.assetReleaseFrames=self.assetReleaseFrames-1
         if self.assetReleaseFrames<=0 then
-            local release=self.pendingAssetRelease;self.pendingAssetRelease=nil
-            collectgarbage('collect');require('render.RenderTargetLifetime').Flush()
-            -- This Runtime's environment baker keeps source HDRs alive even
-            -- after their Scene/Zone is gone. Active Zones retain their applied
-            -- SH/IBL; clear only the reusable bake cache at this settled scene
-            -- boundary, then let the ordinary non-forced cache sweep release
-            -- the old map. The next visit may bake again in the background.
-            environmentBakeCache:ClearCache()
-            release()
+            self:ReleaseSettledAssets()
         end
     end
+    if self.loader.state~='loading' and self.mapTransition:BeginRecovery() then self:Reload() end
     if self.loadingFlow and self.loadingFlow.active and input.focus and input:GetKeyPress(KEY_ESCAPE) then
         self.loadingFlow:Back();return
     end
@@ -547,6 +635,10 @@ function App:Update(dt)
     if input:GetKeyPress(KEY_F5) then self:Reload() end
     if not self.scene then return end
     if self.endlessAgain and self.mode=='hangar' then self.endlessAgain=false;self:SelectEndless();return end
+    if self.restartBattle and self.mode=='hangar' then
+        if self:EnterBattle(self.restartBattle) then self.restartBattle=nil end
+        return
+    end
     if self.endlessSelect then return end
     if self.mode=='hangar' and self.restartStory then local id=self.restartStory;self.restartStory=false;self:EnterTrial(type(id)=='string' and id or 'story1');return end
     if self.trial then self.trial:Update(dt);return end
@@ -611,8 +703,9 @@ function App:Update(dt)
 end
 function App:PostUpdate(dt)
     if self.opening and self.opening.active and not self.stopped then self.opening:Camera() end
-    -- Pause the covered old trial; keep the installed candidate's warm-up live.
-    if self.trial and not self.stopped and not (self.loadingFlow and self.loadingFlow.active and not self.loadingFlow.finished) then self.trial:PostUpdate(dt) end
+    -- CombatWarmup owns camera-facing geometry until its next rendered frame.
+    local flow=self.loadingFlow
+    if self.trial and not self.stopped and not (flow and flow.active and (not flow.finished or flow.combatWarmup)) then self.trial:PostUpdate(dt) end
     if not self.stopped then self.graphicsSettings:PostUpdate() end
 end
 function App:CancelMapLoad(fromFlow)
@@ -625,13 +718,19 @@ end
 function App:Stop()
     if self.stopped then return end
     self.stopped=true
+    require('audio.IntroAudioTail').CancelAll()
+    require('audio.UiSound').Dispose()
+    self.mapTransition:Stop()
     if self.opening then self.opening:Dispose();self.opening=nil end
+    self:AdvanceOpeningRetirements(true)
     if self.endlessSelect then self.endlessSelect.Close();self.endlessSelect=nil end
     self.vehicleGate:Cancel()
     if self.loadingFlow then self.loadingFlow:Dispose();self.loadingFlow=nil end
     if self.tutorial then self.tutorial:Dispose();self.tutorial=nil end
     if self.warehouse then self.warehouse:Dispose();self.warehouse=nil end
     self.pendingAssetRelease=nil
+    self.assetReleaseIncremental=nil;self.assetReleaseEpoch=nil
+    CollectionCycle.Restore()
     print("[HangarApp] Stop ownsScene="..tostring(self.ownsScene))
     self.loader:Cancel()
     if self.vehicleSwitch then self.vehicleSwitch:Dispose();self.vehicleSwitch=nil end
@@ -639,6 +738,7 @@ function App:Stop()
     self.toasts:Dispose()
     Hud.Dispose()
     self.music:Dispose()
+    self.ambience:Dispose()
     if self.build then self.build:Dispose();self.build=nil end
     self.previews:Dispose()
     self.store:Flush()

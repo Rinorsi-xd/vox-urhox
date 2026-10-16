@@ -1,6 +1,23 @@
 -- Device policy is shared by the home, builder and driving UI.
 local Platform=require 'urhox-libs.Platform.PlatformUtils'
 local M={}
+function M.Compact()
+    if M.compactOverride~=nil then return M.compactOverride end
+    if M.compact~=nil then return M.compact end
+    local forced,touch=nil,false
+    for _,arg in ipairs(GetArguments()) do
+        if arg=='-compact=0' then forced=false elseif arg=='-compact=1' then forced=true end
+        if arg=='-touch' then touch=true end
+    end
+    local native=GetNativePlatform and GetNativePlatform() or GetPlatform()
+    touch=touch or native=='Android' or native=='iOS' or native=='HarmonyOS' or input.touchEmulation
+    local dpr=math.max(1,graphics:GetDPR())
+    -- Lua exposes native platform, not browser screen/pointer media queries.
+    -- Freeze the initial CSS viewport/device decision as homeScale.js does.
+    M.compact=forced
+    if forced==nil then M.compact=touch and math.min(graphics:GetWidth(),graphics:GetHeight())/dpr<=600 end
+    return M.compact
+end
 function M.Enabled()
     if M.override~=nil then return M.override end
     for _,arg in ipairs(GetArguments()) do if arg=='-touch' then return true end end
@@ -17,9 +34,10 @@ function M.Enabled()
 end
 function M.Scale(surface)
     local UI=require 'urhox-libs/UI'
-    -- Frozen H5 uiScale.js uses the same 1920x1080 canvas for outgame and
-    -- editor surfaces. A 20:9 screen expands its logical width to 2400.
-    if surface=='home' or surface=='build' then return UI.Scale.DESIGN_RESOLUTION(1920,1080) end
+    if surface=='home' or surface=='build' then
+        local height=M.Compact() and 600 or 1080
+        return UI.Scale.DESIGN_RESOLUTION(height*16/9,height)
+    end
     if not M.Enabled() then return UI.Scale.DPR end
     return UI.Scale.DESIGN_RESOLUTION(960,540)
 end

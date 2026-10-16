@@ -59,7 +59,7 @@ function M:Ring(o,at,r,k)
 end
 function M:Glows(o,right,up)
     if not o.root.enabled then return end
-    for _,g in ipairs(o.glows) do local p=g.node.worldPosition;self.glow:Disc({-p.x,p.y,p.z},g.data.size*o.root.worldScale.x,RGB(g.data.color),1,right,up) end
+    for _,g in ipairs(o.glows) do local p=g.node.worldPosition;self.glow:Disc({-p.x,p.y,p.z},g.data.size*g.node.worldScale.x,RGB(g.data.color),1,right,up) end
 end
 function M:Update(dt)
     local b=self.boss;local r=b.rules;local c=r.config;local camera=b.session.camera:GetCamera();local p=camera.node.worldPosition
@@ -106,9 +106,19 @@ function M:Update(dt)
         if plane.pos then o.root.position=Vec(plane.pos);o.root.rotation=Quaternion(-math.atan(b.raid.dir[1],b.raid.dir[3])*180/math.pi,Vector3.UP);self:Glows(o,right,up) end
     end end
     local pod=b.flow.pod;Visibility.Set(self.pod.root,pod~=nil and not b.flow.truck)
-    if self.pod.root.enabled then local t=pod.t;self.pod.root.position=Vec({pod.from[1]+math.sin(t*2.1)*4+t*3,pod.from[2]+t*9-t*t*.25,pod.from[3]+t*t*3.2});self.pod.root.rotation=Quaternion(-math.atan(3+8.4*math.cos(t*2.1),t*6.4)*180/math.pi,Vector3.UP);self:Glows(self.pod,right,up) end
-    if b.flow.truck then local t=b.flow.truck.t;local to=V.Add(b.unit:Position(),{12,0,-12});local from=b.at.enter;local k=math.min(1,t/6);local pos=V.Mix(from,to,k);pos[2]=b:Ground(pos[1],pos[3])
-        local convoy=self.convoy or {hp=1,pos=pos,yaw=0,v=0};self.convoy=convoy;convoy.pos=pos;convoy.yaw=math.atan(to[1]-from[1],to[3]-from[3]);convoy.v=k<1 and V.Length(V.Sub(to,from))/6 or 0
+    if self.pod.root.enabled then
+        local t=pod.t;local spawned=self.podFlight~=pod and t==0;self.podFlight=pod
+        self.pod.root.position=Vec({pod.from[1]+math.sin(t*2.1)*4+t*3,pod.from[2]+t*9-t*t*.25,pod.from[3]+t*t*3.2})
+        if spawned then self.pod.root.rotation=Quaternion.IDENTITY
+        else
+            -- Preserve Three.js XYZ Euler order through the logical X mirror.
+            self.pod.root.rotation=Quaternion(math.deg(math.sin(t*5)*.4),Vector3.RIGHT)*Quaternion(-math.deg(math.pi+math.sin(t*1.7)*.5),Vector3.UP)*Quaternion(-math.deg(math.sin(t*3.3)*.5),Vector3.FORWARD)
+        end
+        for _,g in ipairs(self.pod.glows) do Scale(g.node,spawned and 1 or (3+math.random()*2.5)/g.data.size) end
+        self:Glows(self.pod,right,up)
+    else self.podFlight=nil end
+    if b.flow.truck then local pos,yaw,speed=b:RecoveryPose()
+        local convoy=self.convoy or {hp=1,pos=pos,yaw=yaw,v=speed};self.convoy=convoy;convoy.pos=pos;convoy.yaw=yaw;convoy.v=speed
         if not self.truck.truck then self.truck:Truck(convoy) end;self.truck:Update(dt,b.mission.rules,camera)
     end
     self.glow:Finish();self.ribbon:Finish()

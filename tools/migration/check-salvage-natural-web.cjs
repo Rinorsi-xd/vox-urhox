@@ -4,6 +4,8 @@ const port=Number(process.env.VOX_QA_PORT||4271),base='http://127.0.0.1:'+port;
 const gp=require('../../assets/Salvage/Gameplay.json'),delay=ms=>new Promise(r=>setTimeout(r,ms));
 const flat=(a,b)=>Math.hypot(a[0]-b[0],a[2]-b[2]);
 const wrap=a=>Math.atan2(Math.sin(a),Math.cos(a));
+const {NaturalProgress}=require('./salvage-natural-progress.cjs');
+const {RoadFollower,assertNetResult,assertSavedInventory,assertCountdown}=require('./salvage-natural-navigation.cjs');
 function sourceRoadRoute(from,to,options={}){
  const nodes=gp.nav.nodes,ids=Object.keys(nodes),adj=new Map(ids.map(id=>[id,[]]));
  for(const [a,b,width] of gp.nav.edges){if(!nodes[a]||!nodes[b])continue;const rise=Math.abs(nodes[a][1]-nodes[b][1]),run=flat(nodes[a],nodes[b]);if(options.maxSlope&&Math.atan2(rise,run)>options.maxSlope*Math.PI/180)continue;const center=nodes[a].map((v,i)=>(v+nodes[b][i])/2),threat=options.avoidThreats&&gp.encounters.some(e=>flat(center,[-e.x,e.y,e.z])<(e.aggroR||140));const cost=Math.hypot(...nodes[a].map((v,i)=>v-nodes[b][i]))+(threat?160:0);adj.get(a).push([b,cost,width]);adj.get(b).push([a,cost,width]);}
@@ -42,25 +44,30 @@ async function run(){
  const profileExistedBefore=Boolean(profile&&fs.existsSync(profile));
  const browser=profile?await chromium.launchPersistentContext(profile,{...browserOptions,viewport:{width:1600,height:900}}):await chromium.launch(browserOptions);
  const page=profile?await browser.newPage():await browser.newPage({viewport:{width:1600,height:900}}),prefix='salvage-natural-web';
- await page.bringToFront();
- const report={identity,checks:[],errors:[],probeErrors:[],samples:[],boundary:'Only F8 reads QA state. Route uses held W/A/D/Space and E, no teleport, cargo, death or clock fixture. Parallel functional run, not isolated performance measurement.',startedAt:new Date().toISOString()};
+ let state,seq=0,inventoryBefore,mouseX=800;const held=new Set();
+ const aimDriven=()=>Object.keys(inventoryBefore?.installed||{}).some(id=>/^part:(mech|leg|hover)\d/.test(id));
+ const report={identity,result:'RUNNING',shutdown:'PENDING',checks:[],errors:[],probeErrors:[],samples:[],boundary:'Only F8 reads QA state. Route uses held W/A/D/Space and E, no teleport, cargo, death or clock fixture. Parallel functional run, not isolated performance measurement.',startedAt:new Date().toISOString()};
+ report.economyBoundary='UI/SalvageRules.json in the frozen package sets testFill:999; existing stock and purchase flow are functional evidence, not real-account economy or earned-stock evidence.';
  report.browser={persistent:Boolean(profile),profile:profile||null,profileExistedBefore,network:{requests:0,responses:0,diskCacheResponses:0,cacheResponses:0,serviceWorkerResponses:0,encodedBytes:0}};
+ function persist(){report.lastState=state;fs.writeFileSync(path.join(out,prefix+'.json'),JSON.stringify(report,null,2));}
+ persist();await page.bringToFront();
  const network=await page.context().newCDPSession(page),cached=new Set();await network.send('Network.enable');
  network.on('Network.requestWillBeSent',()=>report.browser.network.requests++);
  network.on('Network.requestServedFromCache',e=>{cached.add(e.requestId);report.browser.network.cacheResponses=cached.size;});
  network.on('Network.responseReceived',e=>{const n=report.browser.network;n.responses++;if(e.response.fromDiskCache){n.diskCacheResponses++;cached.add(e.requestId);n.cacheResponses=cached.size;}if(e.response.fromServiceWorker)n.serviceWorkerResponses++;});
  network.on('Network.loadingFinished',e=>report.browser.network.encodedBytes+=e.encodedDataLength);
- let state,seq=0,inventoryBefore,mouseX=800;const held=new Set();fs.writeFileSync(path.join(out,prefix+'.log'),'');
- page.on('console',m=>{const t=m.text();fs.appendFileSync(path.join(out,prefix+'.log'),t+'\n');const at=t.indexOf('OUTGAME_STATE ');if(at>=0){try{state=JSON.parse(t.slice(at+14));if(state.loading)report.latestLoading=structuredClone(state.loading);seq++;}catch(e){report.probeErrors.push({message:e.message,length:t.length});}}if(/ERROR:|Execute Lua|stack traceback|Aborted\(|Shader compilation failed/.test(t))report.errors.push(t);});
- page.on('pageerror',e=>report.errors.push(e.stack||e.message));
+ fs.writeFileSync(path.join(out,prefix+'.log'),'');
+ page.on('console',m=>{const t=m.text();fs.appendFileSync(path.join(out,prefix+'.log'),t+'\n');const at=t.indexOf('OUTGAME_STATE ');if(at>=0){try{state=JSON.parse(t.slice(at+14));if(state.loading)report.latestLoading=structuredClone(state.loading);seq++;}catch(e){report.probeErrors.push({message:e.message,length:t.length});persist();}}if(/ERROR:|Execute Lua|stack traceback|Aborted\(|Shader compilation failed/.test(t)){report.errors.push(t);persist();}});
+ page.on('pageerror',e=>{report.errors.push(e.stack||e.message);persist();});
+ page.on('crash',()=>{report.errors.push('Browser page crashed');persist();});
  async function wait(fn,label,limit=240000){const start=Date.now();let probe=0;while(!state||!fn(state)){if(report.errors.length)throw Error(report.errors.join('\n'));if(state?.loadingFlow?.failed)throw Error('Actual loading failure: '+state.loadingFlow.error);if(Date.now()-start>limit)throw Error('Timeout '+label);if(Date.now()-probe>800){probe=Date.now();await page.keyboard.press('F8');}await delay(100);}return state;}
  async function dump(){const before=seq;await page.keyboard.press('F8');await wait(()=>seq>before,'fresh state',15000);return state;}
  const widgets=()=>Array.isArray(state?.widgets)?state.widgets:[];
  const position=()=>state.vehicle.center||state.vehicle.position;
  async function click(text,match){let b;const begun=Date.now();while(!b){await dump();b=widgets().filter(w=>!w.disabled&&(!w.entrance||w.entrance.opacity>.9)&&(match?match(w):w.text===text)).at(-1);if(!b){assert.ok(Date.now()-begun<20000,'Actual visible button '+text);await delay(160);}}const r=b.rect,c=await page.locator('canvas').boundingBox();await page.mouse.click(c.x+(r[0]+r[2]/2)*c.width/state.width,c.y+(r[1]+r[3]/2)*c.height/state.height);await delay(500);}
  async function keys(next=[]){for(const k of held)if(!next.includes(k)){await page.keyboard.up(k);held.delete(k);}for(const k of next)if(!held.has(k)){await page.keyboard.down(k);held.add(k);}}
- const check=(ok,label)=>{assert.ok(ok,label);report.checks.push(label);};
- async function shot(name){await page.screenshot({path:path.join(out,prefix+'-'+name+'.png')});}
+ const check=(ok,label)=>{assert.ok(ok,label);report.checks.push(label);persist();};
+ async function shot(name){persist();await page.screenshot({path:path.join(out,prefix+'-'+name+'.png'),timeout:15000});}
  function settlementInventory(){
   assert.ok(inventoryBefore&&state.salvageInventory,'Actual read-only before/after inventory is available');
   const before=inventoryBefore,after=state.salvageInventory,result=state.salvageRun.result;
@@ -70,20 +77,58 @@ async function run(){
   check(after.stats.raids===before.stats.raids&&after.stats[result.ok?'extracted':'lost']===(before.stats[result.ok?'extracted':'lost']||0)+1,'Natural settlement counts outcome once without double counting raid start');
   check(after.lastRun===after.lastStartedRun,'Natural settlement saves the actual started run transaction');report.inventoryAfter=structuredClone(after);
  }
- async function drive(target,seconds=150,passing=false){const started=Date.now();let best=Infinity,stuckAt=Date.now(),reverseUntil=0;
-  while(Date.now()-started<seconds*1000){await dump();checkAlive();const p=position(),d=flat(p,target),speed=Math.abs(state.vehicle.speed||0);
+ async function drive(target,seconds=150,passing=false){const started=Date.now(),progress=new NaturalProgress();
+  while(Date.now()-started<seconds*1000){await dump();if(passing?.extract&&state.salvageRun.cine.name==='extract')return;checkAlive();const p=position(),d=flat(p,target),speed=Math.abs(state.vehicle.speed||0);
    if(passing&&d<(passing.radius||Math.min(6,passing.width*.2)))return;
-   const mech=process.env.VOX_NATURAL_STRONG==='1';
+   const mech=aimDriven();
    if(d<11&&speed<1){await keys(mech?[]:['Space']);await delay(400);await keys();await dump();checkAlive();if(flat(position(),target)<13)return;}
-   if(d<best-1){best=d;stuckAt=Date.now();}if(Date.now()-stuckAt>7000&&Date.now()>reverseUntil){reverseUntil=Date.now()+1600;stuckAt=Date.now();}
+   const reversing=progress.update(p,Date.now());
    const angle=wrap(Math.atan2(target[0]-p[0],target[2]-p[2])-state.vehicle.yaw);
-   const throttle=Date.now()<reverseUntil?'s':'w';const steeringAngle=throttle==='s'?-angle:angle;
+   const throttle=reversing?'s':'w';const steeringAngle=throttle==='s'?-angle:angle;
    const turn=Math.abs(steeringAngle)>.12?(steeringAngle>0?'a':'d'):null;
    if(mech){const wanted=-Math.atan2(target[0]-p[0],target[2]-p[2]),error=wrap(wanted-state.camera.yaw*Math.PI/180),dx=Math.max(-300,Math.min(300,error/.0024));mouseX+=dx;await page.mouse.move(mouseX,450);}
    const targetSpeed=passing?Math.max(2,Math.min(10,passing.width*.4)*(1-.7*Math.min(1,Math.abs(angle)/1.2))):Math.max(2,Math.min(16,Math.sqrt(d)*2));
    const braking=throttle==='w'&&((!passing&&d<11)||speed>targetSpeed);
    await keys(braking?(mech?[]:['Space']):[throttle,...(!mech&&turn?[turn]:[])]);report.samples.push({at:Date.now()-started,pos:p,yaw:state.vehicle.yaw,speed,distance:d,angle,keys:[...held],hp:state.reticle.hp,enemies:state.salvageRun.enemies});await delay(d<35?160:350);
   }throw Error('Natural route did not reach '+JSON.stringify(target));
+ }
+ async function roadDrive(route,label){
+  const follower=new RoadFollower(route.points),progress=new NaturalProgress(),started=Date.now();
+  // This is a tool watchdog. The production 900-second raid limit is untouched.
+  const budget=Math.min(720,Math.max(120,route.distance/4+60))*1000;
+  let previous,previousAt,index=-1;
+  while(Date.now()-started<budget){
+   await dump();checkAlive();const now=Date.now(),p=position();
+   const observed=previous?flat(p,previous)/Math.max(.001,(now-previousAt)/1000):0;
+   const speed=Math.max(Math.abs(state.vehicle.speed||0),observed),step=follower.update(p,speed);
+   previous=[...p];previousAt=now;
+   report[label+'Passed']=follower.passed;
+   if(step.done){await keys();persist();return;}
+   report[label+'At']=step.point.id;
+   if(index!==step.index){index=step.index;persist();}
+   const target=step.target,angle=wrap(Math.atan2(target[0]-p[0],target[2]-p[2])-state.vehicle.yaw),mech=aimDriven();
+   const reversing=progress.update(p,now),throttle=reversing?'s':'w',steer=throttle==='s'?-angle:angle;
+   if(mech){const wanted=-Math.atan2(target[0]-p[0],target[2]-p[2]),error=wrap(wanted-state.camera.yaw*Math.PI/180);mouseX+=Math.max(-300,Math.min(300,error/.0024));await page.mouse.move(mouseX,450);}
+   const targetSpeed=Math.max(2,Math.min(13,(step.point.width||16)*.6)*(1-.65*Math.min(1,Math.abs(angle)/1.2)));
+   const braking=!reversing&&speed>targetSpeed;
+   await keys(braking?(mech?[]:['Space']):[throttle,...(!mech&&Math.abs(steer)>.12?[steer>0?'a':'d']:[])]);
+   report.samples.push({stage:label,node:step.point.id,at:now-started,gameTime:state.salvageRun.time,pos:p,yaw:state.vehicle.yaw,speed,observedSpeed:observed,distance:step.distance,angle,keys:[...held],hp:state.reticle.hp,enemies:state.salvageRun.enemies});
+   await delay(160);
+  }
+  throw Error('Natural continuous road watchdog '+label+' at '+report[label+'At']);
+ }
+ async function extractHold(exit){
+  const started=Date.now();report.extractionHold=[];
+  while(Date.now()-started<60000){
+   await dump();checkAlive();
+   report.cargoBeforeExtraction=structuredClone(state.salvageRun.cargo);
+   if(state.salvageRun.cine.name==='extract')return;
+   const distance=flat(position(),exit.g),ex=state.salvageRun.extraction;
+   report.extractionHold.push({wallMs:Date.now()-started,gameTime:state.salvageRun.time,distance,id:ex?.id,left:ex?.left,prompt:state.salvageRun.prompt,cine:state.salvageRun.cine.name});
+   if(distance>exit.radius*.6){await drive(exit.g,30,{width:exit.radius*2,radius:exit.radius*.5,extract:true});}
+   await keys(aimDriven()?[]:['Space']);await delay(160);
+  }
+  throw Error('Natural extraction did not complete its original countdown');
  }
  function checkAlive(){if(state.salvageRun?.result)throw Error('Natural route ended '+JSON.stringify(state.salvageRun.result));if(!state.vehicle||!state.vehicle.position)throw Error('Natural vehicle destroyed during route; await actual death settlement');if(report.errors.length)throw Error(report.errors.join('\n'));}
  try{
@@ -100,7 +145,7 @@ async function run(){
    if(!widgets().some(w=>w.text===originalVehicle)){await click('查看全部');await wait(s=>s.workshop?.view==='browse','actual full source workshop',20000);const sourceVehicle=require('../../assets/UI/Workshop.json').prefabs.find(v=>v.name===originalVehicle);const groupLabels={mech:'机甲',wheel:'轮式',track:'履带',plane:'飞机',pirate:'海盗',blank:'底盘'};if(groupLabels[sourceVehicle.group]){await click(groupLabels[sourceVehicle.group]);await wait(s=>s.workshop.group===sourceVehicle.group,'actual original vehicle group',20000);}}
    await wait(()=>widgets().some(w=>w.text===originalVehicle),'existing official vehicle card',20000);
    await click(originalVehicle);await wait(s=>s.workshop?.view==='detail'&&!s.vehicleLoading?.busy,'actual official vehicle detail');await delay(900);
-   await click('放进新车位');await wait(s=>s.dialog&&widgets().some(w=>w.text==='购买整车'),'actual vehicle purchase');
+   await click('购买整车');await wait(s=>s.dialog&&widgets().some(w=>w.text==='购买整车'),'actual vehicle purchase');
    await click('use original stock',w=>w.text.startsWith('用仓库里的零件拼'));
    await wait(s=>!s.dialog&&!s.vehicleLoading?.busy&&s.garage.used===used+1&&widgets().some(w=>w.text==='拆掉这辆车'),'actual purchased vehicle garage');
    check(state.blueprint===originalVehicle&&state.parts>starterParts,'Original vehicle bought and selected through actual workshop/garage UI');await shot('selected-original-vehicle');
@@ -118,8 +163,8 @@ async function run(){
   const crate=plan?plan.crate:crates[0];assert.ok(crate);report.target={id:crate.id,g:crate.g};
   if(plan){
    report.sourcePlan={crate:crate.id,exit:plan.exit.id,roadDistance:plan.road.distance,steepFallback:Boolean(plan.road.steepFallback),approach:plan.approach,exposed:plan.exposed,boundary:'Offline original-road search prefers edges at most 35 degrees; actual terrain clearance, enemy damage and extraction remain runtime checks.'};
-   report.approachRoute=plan.approachRoad||{boundary:'Original roads are disconnected or exceed the short approach detour limit; actual off-road approach remains unverified.'};const begun=Date.now();
-   for(const point of plan.approachRoad?.points||[]){report.approachAt=point.id;assert.ok(Date.now()-begun<360000,'Natural original-road approach deadline');await drive(point.g,35,point);}
+   report.approachRoute=plan.approachRoad||{boundary:'Original roads are disconnected or exceed the short approach detour limit; actual off-road approach remains unverified.'};
+   if(plan.approachRoad)await roadDrive(plan.approachRoad,'approach');
   }
   await drive(crate.g);await shot('near-crate');
   check(flat(position(),start)>30,'Held keyboard commands move actual player through map');
@@ -138,21 +183,35 @@ async function run(){
    const p=position(),exits=state.salvageRun.extracts.filter(e=>!e.openAt||e.openAt<=state.salvageRun.time).filter(e=>!e.needs||state.salvageRun.cargo[e.needs]>0).sort((a,b)=>flat(a.g,p)-flat(b.g,p));
    assert.ok(exits.length,'Open exit');const exit=plan?exits.find(e=>e.id===plan.exit.id):exits[0];assert.ok(exit,'Planned source extraction remains actually open');report.exit=exit.id;
    if(process.env.VOX_NATURAL_ROADS==='1'){
-    try{report.roadRoute=sourceRoadRoute(p,exit.g,{maxSlope:35,avoidThreats:true});}catch{report.roadRoute=sourceRoadRoute(p,exit.g);report.roadRoute.steepFallback=true;}const begun=Date.now();
-    for(const point of report.roadRoute.points){report.roadAt=point.id;assert.ok(Date.now()-begun<360000,'Natural original-road route deadline');await drive(point.g,35,point);}
+    try{report.roadRoute=sourceRoadRoute(p,exit.g,{maxSlope:35,avoidThreats:true});}catch{report.roadRoute=sourceRoadRoute(p,exit.g);report.roadRoute.steepFallback=true;}
+    await roadDrive(report.roadRoute,'road');
    }
-   await drive(exit.g,240);await keys(process.env.VOX_NATURAL_STRONG==='1'?[]:['Space']);
-   await wait(s=>s.salvageRun.cine.name==='extract','natural extraction hold',60000);await keys();await shot('extract');
-   await wait(s=>s.salvageRun.result,'natural extraction result',45000);check(state.salvageRun.result.ok&&state.salvageRun.committed,'Natural extraction commits cargo');settlementInventory();
+   report.cargoBeforeExtraction=structuredClone(state.salvageRun.cargo);
+   await drive(exit.g,240,{width:exit.radius*2,radius:exit.radius*.5,extract:true});await keys(aimDriven()?[]:['Space']);
+   await extractHold(exit);await keys();await shot('extract');
+   report.countdown=assertCountdown(report.extractionHold,exit,process.env.VOX_NATURAL_STRICT==='1');
+   if(report.countdown.samples)check(true,'Observed original extraction countdown decreases without reset');
+   await wait(s=>s.salvageRun.result,'natural extraction result',45000);check(state.salvageRun.result.ok&&state.salvageRun.committed,'Natural extraction commits cargo');
+   report.expectedNet=assertNetResult(state.salvageRun.result,report.cargoBeforeExtraction,exit,require('../../assets/UI/Outgame.json').items);
+   check(true,'Natural success result independently matches gross cargo, one exit ticket and exact net value');settlementInventory();
   }else{
    await keys();await page.keyboard.press('t');await wait(s=>s.salvageRun?.result,'actual abandonment',20000);
    check(!state.salvageRun.result.ok&&state.salvageRun.result.keepCar&&state.salvageRun.committed,'Actual early return records cargo loss and keeps original car');
   }
   await shot('result');await click('回大厅');await wait(s=>s.mode==='hangar'&&!s.loadingFlow?.active&&!s.mouse.overlay,'actual result return and overlay release');await shot('returned');
-  check(state.lobby==='salvage'&&!state.mouse.overlay,'Natural route releases result overlay and restores original salvage lobby');check(report.errors.length===0,'No runtime errors on natural route');report.result='PASS';
+  check(state.lobby==='salvage'&&!state.mouse.overlay,'Natural route releases result overlay and restores original salvage lobby');check(report.errors.length===0,'No runtime errors on natural route');
   if(report.inventoryAfter){assert.deepEqual(state.salvageInventory.items,report.inventoryAfter.items);check(state.salvageInventory.lastRun===report.inventoryAfter.lastRun,'Actual return keeps committed inventory without another settlement');}
+  if(process.env.VOX_NATURAL_EXTRACT==='1'){
+   await dump();
+   if(state.salvageInventory?.saved||process.env.VOX_NATURAL_STRICT==='1'){
+    report.savedGeneration=assertSavedInventory(state.salvageInventory);report.readback={status:'PASS',generation:report.savedGeneration};
+    check(true,'Returned lobby actual validated store readback equals committed cargo, statistics and transaction');
+   }else report.readback={status:'OPEN',reason:'Old package probe exposes live inventory only; actual saved store readback is unavailable.'};
+   report.persistenceBoundary='Same WASM session actual local file readback only; browser refresh, cloud recovery and real-account economy remain unverified.';
+  }
+  report.result='PASS';
  }catch(e){
-  report.result='FAIL';report.failure=e.stack;report.lastState=state;await shot('failure').catch(()=>{});
+  report.result='FAIL';report.failure=e.stack;persist();await shot('failure').catch(()=>{});
   if(!report.errors.length&&state.salvageRun&&state.reticle.hp<.15){
    await keys();
    try{
@@ -161,10 +220,16 @@ async function run(){
     check(!state.salvageRun.result.ok&&!state.salvageRun.result.keepCar&&state.salvageRun.committed,'Actual enemy damage death cinematic commits original cargo/car loss');settlementInventory();
     await click('回大厅');await wait(s=>s.mode==='hangar'&&!s.loadingFlow?.active&&!s.mouse.overlay,'natural death actual lobby return');
     await shot('natural-death-returned');check(state.lobby==='salvage','Actual natural death returns to original salvage lobby');
-   }catch(deathError){report.deathFailure=deathError.stack;}
+   }catch(deathError){report.deathFailure=deathError.stack;persist();}
   }
  }
- finally{await keys().catch(()=>{});report.finishedAt=new Date().toISOString();fs.writeFileSync(path.join(out,prefix+'.json'),JSON.stringify(report,null,2));await page.close();await browser.close();}
+ finally{
+  report.finishedAt=new Date().toISOString();persist();
+  await keys().catch(()=>{});persist();
+  try{try{await page.close();}finally{await browser.close();}report.shutdown='CLOSED';}
+  catch(error){report.shutdown='FAILED';report.shutdownError=error.stack;throw error;}
+  finally{persist();}
+ }
  console.log(JSON.stringify({result:report.result,checks:report.checks.length,errors:report.errors.length,target:report.target}));if(report.result!=='PASS')throw Error(report.failure);
 }
 module.exports={sourceRoadRoute,sourceRaidRoute};

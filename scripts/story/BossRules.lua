@@ -20,8 +20,8 @@ function M:Kneel()
     if self.state=='kneel' or self.hp<=0 then return end
     local interrupted=self.state=='ult';self.kneels=self.kneels+1;self.kneelDealt=0;self:Go('kneel')
     self:Emit('energyFull');self:Emit('kneel',{interrupted=interrupted,kneels=self.kneels,left=4-self:Broken()})
+    if self:Broken()==4 and not self.exposedSaid then self.exposedSaid=true;self:Emit('exposed') end
     if self.kneels==1 then self:Say('firstKneel',true) else self:Emit('kneelLine',{phase=self.phase}) end
-    if self:Broken()==4 then self:Say('exposed',true) end
 end
 function M:Phase(phase)
     if self.phase>=phase then return end;self.phase=phase
@@ -52,7 +52,7 @@ function M:Hit(point,damage,pierce,cockpit)
         local room=math.max(0,c.kneelCap*self.hpMax-self.kneelDealt)
         local amount=math.min(room,damage*(V.Length(V.Sub(point,cockpit))<6 and c.cockpit or c.weak))
         if amount>0 then self:Emit('damage',{amount=amount,point=point});self.kneelDealt=self.kneelDealt+amount;self:Hurt(amount) end
-        if room-amount<=0 and self.state=='kneel' and self.hp>0 then self:Emit('riseForced');self:Go('rise') end
+        if room-amount<=0 and self.state=='kneel' and self.hp>0 then self.riseWarned=false;self:Emit('riseForced');self:Go('rise') end
         return amount
     end
     local share=c.chip[self:Broken()+1];local armor=type(pierce)=='table' and (pierce.armor or 0) or 0
@@ -102,11 +102,12 @@ function M:Step(dt,world)
     elseif self.state=='ult' and self.t>=c.ult.charge then self:Emit('ultBlast');self:Go('recover');self.recoverT=2.5
     elseif self.state=='recover' and self.t>=(self.recoverT or c.recover) then self.recoverT=nil;self:Go('fight')
     elseif self.state=='slamCrouch' and self.t>=c.slam.crouch then self:Go('slamAir');self:Emit('launch',{pos=self.slamTo,flight=self.slamT,kind=self.slamKind})
-    elseif self.state=='slamAir' and (self.t>self.slamT*.9 and world.contacts>0 or self.t>self.slamT+1.2) then
+    elseif self.state=='slamAir' and ((world.flightTime or 0)>self.slamT*.9 and world.contacts>0 or (world.flightTime or 0)>self.slamT+1.2) then
         self:Emit('land')
         if self.slamKind=='hop' then self:Emit('hopImpact',{pos=self.slamTo,r=c.hop.r}) else self:Emit('impact',{pos=self.slamTo,r=c.slam.r,damage=c.slam.dmg,kind='slam'}) end
         if self.slamKind=='drill' then self:Emit('crush');self:Say('crush',true) end
-        self.cool.slam=c.slam.every;self:Go(self.slamKind=='hop' and 'recover' or 'fight')
+        if self.slamKind~='hop' then self.cool.slam=c.slam.every end
+        self:Go(self.slamKind=='hop' and 'recover' or 'fight')
     elseif self.state=='stuck' and self.t>=c.slam.stuck and not world.talking then self:Go('fight')
     elseif self.state=='barrage' then
         if self.t>=1.4 and not self.launched then self.launched=true;self:Emit('missiles') end

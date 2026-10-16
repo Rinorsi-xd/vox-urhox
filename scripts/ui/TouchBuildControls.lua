@@ -125,6 +125,7 @@ function M.Create(session,root,playfield)
         Hold=function(action,on,cancelled)
             if action=='up' or action=='down' then session.buildCamera.held[action]=on;return true end
             if action=='primary' then controls:TouchPrimary(on,cancelled);return true end
+            if action=='erase' and prefs.build=='aim' then controls:TouchErase(on,cancelled);return true end
             return false
         end,
         Action=function(id) layer.Action(id) end}
@@ -171,7 +172,7 @@ function M.Create(session,root,playfield)
         widget.OnPointerUp=function(w,ev)End(w,ev,false)end;widget.OnPointerCancel=function(w,ev)End(w,ev,true)end
         if id=='look' then widget.props.onPointerLeave=nil;widget.props.onPointerEnter=nil end
     end
-    Bind(playfield,'look');for _,id in ipairs({'primary','up','down'}) do Bind(layer.buttons[id],id) end
+    Bind(playfield,'look');for _,id in ipairs({'primary','erase','up','down'}) do Bind(layer.buttons[id],id) end
     function layer.Tick(dt)
         if layer.disposed then return end;layer.time=layer.time+math.max(0,dt)
         if not Ready() then if next(layer.pointers) then layer.Clear() end;return end

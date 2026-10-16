@@ -11,9 +11,9 @@ local Selection=require 'construction.SelectionTools'
 local Groups=require 'construction.BuildGroups'
 local M={};M.__index=M
 local function Copy(v) return {table.unpack(v)} end
-function M.New(bp,onChange)
+function M.New(bp,onChange,onCue)
     local self=setmetatable({bp=bp,bounds=Config.TierBounds(),type='cube',tool='build',paintChannel='shell',color=Config.PALETTE[1].hex,
-        autoColor=false,mirror=true,joinNew=false,spin=0,forward={0,0,1},selection={},clipboard={},pasteSpin=0,pasting=false,dirty=true},M)
+        autoColor=false,mirror=true,joinNew=false,spin=0,forward={0,0,1},selection={},clipboard={},pasteSpin=0,pasting=false,dirty=true,onCue=onCue},M)
     self.history=History.New(bp,function(ops,revision)
         self.dirty=true;self.preview=nil
         self:SelectionChanged()
@@ -21,6 +21,7 @@ function M.New(bp,onChange)
     end)
     return self
 end
+function M:Cue(id) if self.onCue then self.onCue(id) end end
 function M:SelectType(type)
     if not Defs[type] then return false end
     require('construction.BuildStretch').Cancel(self)
@@ -103,7 +104,9 @@ function M:Place()
         if valid.ok then ops[#ops+1]={op='add',data={id=self.bp.nextId,type=pv.type,pos=Copy(m.pos),rot=m.rot,color=first.color,shellColor=first.shellColor,g=first.g and self.bp.nextGroup}} end
         self.bp:Remove(first.id);self.bp.nextId=nextId;self.bp.nextGroup=nextGroup
     end
-    return self.history:Commit(ops,self.joinNew and Groups.JoinAdded or nil)
+    local ok=self.history:Commit(ops,self.joinNew and Groups.JoinAdded or nil)
+    if ok then self:Cue('place') end
+    return ok
 end
 function M:ToggleForm()
     if self.stretch then return false end
@@ -111,6 +114,7 @@ function M:ToggleForm()
         local op,message=Groups.Selection(self);if not op then return false,message end
         local ok=self.history:Commit({op});self.selection={};self.selectionOrder=op.ids
         for _,id in ipairs(op.ids) do self.selection[id]=true end;self:SelectionChanged()
+        if ok then self:Cue('place') end
         return ok,message
     end
     self.joinNew=not self.joinNew;self.dirty=true
@@ -126,6 +130,7 @@ function M:SetRotorMode(index)
         ops[#ops+1]={op='remove',data=before};ops[#ops+1]={op='add',data=after}
     end end
     local ok=self.history:Commit(ops)
+    if ok then self:Cue('place') end
     return ok,'转轴：'..mode.name..' · '..mode.hint..(#ops>2 and '（含镜像）' or '')
 end
 function M:Targets(hit)
@@ -136,7 +141,9 @@ end
 function M:Remove(hit)
     if self.stretch then return require('construction.BuildStretch').Right(self) end
     local ops={};for _,p in ipairs(self:Targets(hit or self.hit)) do ops[#ops+1]={op='remove',data=History.Snapshot(p)} end
-    return self.history:Commit(ops,Groups.SplitRemoved)
+    local ok=self.history:Commit(ops,Groups.SplitRemoved)
+    if ok then self:Cue('remove') end
+    return ok
 end
 function M:Paint()
     if self.tool~='paint' then return false end
@@ -145,7 +152,23 @@ function M:Paint()
         local target=self.autoColor and (field=='shellColor' and 0xcbd1d7 or Defs[p.type].color) or self.color
         if field and (p[field] or (field=='shellColor' and 0xcbd1d7 or Defs[p.type].color))~=target then ops[#ops+1]={op='color',id=p.id,channel=field,from=p[field],to=target} end
     end
-    return self.history:Commit(ops)
+    local ok=self.history:Commit(ops)
+    if ok then self:Cue('paint') end
+    return ok
+end
+function M:PaintSelection()
+    local ops={}
+    for _,p in ipairs(self:Selected()) do
+        local field=Finish.Field(p,self.paintChannel)
+        local target=self.autoColor and (field=='shellColor' and 0xcbd1d7 or Defs[p.type].color) or self.color
+        if field and (p[field] or (field=='shellColor' and 0xcbd1d7 or Defs[p.type].color))~=target then
+            ops[#ops+1]={op='color',id=p.id,channel=field,from=p[field],to=target}
+        end
+    end
+    if #ops==0 then return false,'选区已经是这个颜色' end
+    local ok=self.history:Commit(ops)
+    if ok then self:Cue('paint') end
+    return ok,'选区：涂了 '..#ops..' 个零件'
 end
 function M:Pick(hit)
     local p=hit and self.bp.parts[hit.partId];if not p then return false end
@@ -316,7 +339,9 @@ function M:CommitPaste()
     end
     local ok=self.history:Commit(ops);self.selection={}
     for _,op in ipairs(ops) do self.selection[op.data.id]=true end
-    self.pasting=false;return ok
+    self.pasting=false
+    if ok then self:Cue('place') end
+    return ok
 end
 function M:Act()
     if self.pasting then return self:CommitPaste() end

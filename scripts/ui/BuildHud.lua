@@ -52,6 +52,7 @@ function M.Create(session)
     local overlay=Overlay{position='absolute',width='100%',height='100%',pointerEvents='none'};overlay.session=session;root:AddChild(overlay)
     state.SetColor=function() state.colorOpen=false end
     require('ui.BuildDock').Create(session,state,Action,root,layout)
+    state.selectionBar=require('ui.SourceSelectionBar').Create(session,root)
     local hotbar=state.hotbar
     local hover=require('ui.BuildHover'){position='absolute',width='100%',height='100%',pointerEvents='none'}
     hover.session=session;root:AddChild(hover);state.hover=hover
@@ -88,6 +89,7 @@ function M.Create(session)
             if session.buildCamera.touch then stats.root:SetVisible(not hidden and state.touchControls.statsOpen==true) end
         end
         state.RefreshDock()
+        state.selectionBar:Sync()
         state.buttons.mirror.props.selected=editor.mirror;state.buttons.xray.props.selected=session.app.buildXray==true
         state.buttons.shell.props.selected=editor.paintChannel=='shell';state.buttons.accent.props.selected=editor.paintChannel=='accent'
         for i,c in ipairs(Config.PALETTE) do state.swatches[i].props.selected=not editor.autoColor and c.hex==editor.color end
@@ -99,6 +101,7 @@ function M.Create(session)
     function state.Dispose()
         if state.disposed then return end;state.disposed=true;controls:Cancel()
         if state.touchControls then state.touchControls.Dispose() end
+        state.selectionBar:Dispose()
         if UI.GetFocus()==name then UI.ClearFocus() end
         if UI.GetRoot()==root then UI.SetRoot(nil) end
         if root.node then root:Destroy() end

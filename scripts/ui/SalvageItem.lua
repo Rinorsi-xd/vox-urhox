@@ -2,7 +2,7 @@ local UI=require 'urhox-libs/UI'
 local D=require 'ui.SourceDraw'
 local Theme=require 'ui.VoxTheme'
 local Data=require('core.ResourceData').Read('UI/Outgame.json')
-local M=UI.Button:Extend('VoxSalvageItem')
+local M=require('ui.ActionButton'):Extend('VoxSalvageItem')
 function M:Render(vg)
     D.Begin(vg);local r=self:GetAbsoluteLayout();local it=self.props.item
     local hex=Data.rarity[it.rarity+1].color;local c={tonumber(hex:sub(2,3),16),tonumber(hex:sub(4,5),16),tonumber(hex:sub(6,7),16),255}

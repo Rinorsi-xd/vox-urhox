@@ -15,6 +15,11 @@ local function Color(item)
     local hex=Data.rarity[item.rarity+1].color
     return {tonumber(hex:sub(2,3),16),tonumber(hex:sub(4,5),16),tonumber(hex:sub(6,7),16),255}
 end
+local function CargoRows(cargo)
+    local list={};for id,n in pairs(cargo) do if n>0 then list[#list+1]={id=id,n=n} end end
+    table.sort(list,function(a,b) local ar,br=Data.items[a.id].rarity,Data.items[b.id].rarity;return ar==br and a.id<b.id or ar>br end)
+    return list
+end
 local function Frame(vg,x,y,w,h,color)
     D.Panel(vg,x,y,w,h,12,{14,19,25,230},{11,15,20,242});D.Rect(vg,x,y,w-12,2,color or gold)
 end
@@ -121,9 +126,10 @@ function Panel:Render(vg)
         if e.untilAt>r.time then
             local age=r.time-(e.at or 0);local alpha=math.min(1,age/.3,(e.untilAt-r.time)/.3)
             nvgSave(vg);nvgGlobalAlpha(vg,alpha);local x=16-16*(1-math.min(1,age/.3))
-            D.Rect(vg,x,fy,320,48,{17,21,26,204});D.Rect(vg,x,fy,3,48,cyan)
+            local color=e.color or cyan
+            D.Rect(vg,x,fy,320,48,{17,21,26,204});D.Rect(vg,x,fy,3,48,color)
             nvgIntersectScissor(vg,x,fy,320,48)
-            Text(vg,e.title,x+13,fy+6,11,cyan);Text(vg,e.text,x+13,fy+23,14);nvgRestore(vg);fy=fy+54
+            Text(vg,e.title,x+13,fy+6,11,color);Text(vg,e.text,x+13,fy+23,14);nvgRestore(vg);fy=fy+54
             shown=shown+1;if shown>=feedLimit then break end
         end
     end
@@ -146,12 +152,13 @@ function M.Result(session)
     end
     m:AddContent(sum)
     if result.ok then
+        local cargo=CargoRows(result.cargo)
         local list=UI.Panel{width='100%',flexDirection='row',flexWrap='wrap',gap=4}
-        for _,row in ipairs(run.hudCargo or {}) do local it=Data.items[row.id];local c=Color(it)
+        for _,row in ipairs(cargo) do local it=Data.items[row.id];local c=Color(it)
             list:AddChild(UI.Panel{width='48%',height=30,borderRadius=0,borderLeftWidth=3,borderColor=c,backgroundColor={255,255,255,8},padding={4,8},flexDirection='row',children={T{text=it.name,fontSize=14,flexGrow=1,height=22,color=white},T{text='×'..row.n,fontSize=14,width=45,height=22,color=muted,alignRight=true}}})
         end
-        if #(run.hudCargo or {})==0 then list:AddChild(T{text='两手空空',fontSize=16,width='100%',height=30}) end
-        m:AddContent(UI.ScrollView{width='100%',height=math.min(300,math.max(30,math.ceil(#(run.hudCargo or {})/2)*34)),scrollY=true,children={list}})
+        if #cargo==0 then list:AddChild(T{text='两手空空',fontSize=16,width='100%',height=30}) end
+        m:AddContent(UI.ScrollView{width='100%',height=math.min(300,math.max(30,math.ceil(#cargo/2)*34)),scrollY=true,children={list}})
     else
         m:AddContent(T{text=result.keepCar and '货舱里的东西全丢了，战车开回来了。' or '战车零件和货舱里的东西全丢了。蓝图还在车库里，缺的零件回大厅补买。',fontSize=16,width='100%',height=60,paragraph=true,lineHeight=24})
     end
@@ -160,6 +167,7 @@ function M.Result(session)
         if run:Commit() then session.wantsReturn=true else error.props.text=run.saveError or '保存失败' end
     end}
     m:AddContent(UI.Panel{width='100%',flexDirection='row',justifyContent='flex-end',marginTop=20,children={button}})
+    return m
 end
 function M.Attach(session,root)
     local layer=Panel{position='absolute',width='100%',height='100%',pointerEvents='none'};layer.session=session;root:AddChild(layer)
@@ -169,8 +177,7 @@ function M.Attach(session,root)
         if layer.searchKey~=r.search then layer.searchKey=r.search;layer.searchAt=r.time end
         run.hudRefresh=(run.hudRefresh or 0)-(dt or 0)
         if run.hudRefresh<=0 then
-            run.hudRefresh=.1;local list={};for id,n in pairs(r.cargo) do list[#list+1]={id=id,n=n} end
-            table.sort(list,function(a,b) local ar,br=Data.items[a.id].rarity,Data.items[b.id].rarity;return ar==br and a.id<b.id or ar>br end);run.hudCargo=list
+            run.hudRefresh=.1;run.hudCargo=CargoRows(r.cargo)
             run.hudObjective=r:Objective(run.player:Position())
         end
         layer:SetVisible(not r.finished)

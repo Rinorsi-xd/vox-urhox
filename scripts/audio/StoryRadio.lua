@@ -35,7 +35,10 @@ function M:Play(name,strength)
     if not slot then slot={source=self.root:CreateChild('Cue'..index):CreateComponent('SoundSource')};self.slots[index]=slot end
     self.last[name]=self.time;self.order=self.order+1;slot.order=self.order;slot.id=cue.id
     slot.source:SetSoundType(cue.bus=='weapons' and 'VoxWeapons' or 'VoxFeedback')
-    slot.source:StopImmediate();Levels.Play(slot.source,self.sounds[name],0,self:Gain(name,strength));return true
+    local sound=self.sounds[name]
+    slot.source:StopImmediate();Levels.Play(slot.source,sound,0,self:Gain(name,strength),nil,nil,cue.bus)
+    if name=='open' or name=='intercept' or name=='install' or name=='alert' or name=='done' then Levels.FeedbackFor(sound.length) end
+    return true
 end
 function M:Update(dt,focus)
     if self.disposed then return end

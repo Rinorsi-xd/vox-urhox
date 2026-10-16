@@ -37,7 +37,7 @@ function M:Event(kind,id,extra)
 end
 function M:RecordDamage(amount,point,opts)
     self.env:RecordDamage(self,amount,point,opts)
-    self:Event('unitDamaged',nil,{amount=amount,point=point,source=self.env.attacker})
+    self:Event('unitDamaged',nil,{amount=amount,point=point,source=self.env.attacker,partId=opts and opts.partId,shield=opts and opts.shield})
 end
 function M:DisposeVehicle()
     if self.weapons then self.weapons.drill:Cancel() end

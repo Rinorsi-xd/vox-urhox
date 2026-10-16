@@ -58,8 +58,13 @@ async function main() {
     testSha256: crypto.createHash('sha256').update(fs.readFileSync(__filename)).digest('hex'),
     startedAt: new Date().toISOString(), route: 'Public workshop raceCar -> trial -> N nine times -> mouse aim/fire',
     boundary: 'One desktop Chrome instance; public keyboard/mouse only. QA reads actual state and times actual Flush. No injected damage, placement, HP or deaths. No mobile or audible-quality acceptance.',
-    errors: [], networkErrors: [], skippedBootstrapPackages: [], inputs: [], states: [], damageEvents: [], checks: [], screenshots: [],
+    errors: [], probeErrors: [], networkErrors: [], skippedBootstrapPackages: [], inputs: [], states: [], damageEvents: [], checks: [], screenshots: [],
   };
+  const manifest = JSON.parse(fs.readFileSync(identity.manifest_path));
+  const flashResource = manifest.files.find(file => file.fs_path === 'Shaders/BLGL/RestoreFlash.shader');
+  assert(flashResource, 'Actual shell shader is packaged');
+  report.flashShader = {resource: flashResource, loads: []};
+  const flashShaderKey = flashResource.uuid.replaceAll('-', '_') + '_' + flashResource.hash + '_';
   const {chromium} = require('C:/Users/XD/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
   const browser = await chromium.launch({headless: true, channel: 'chrome', args: ['--use-angle=d3d11']});
   const page = await browser.newPage({viewport: {width: 1920, height: 1080}, deviceScaleFactor: 1});
@@ -73,20 +78,27 @@ async function main() {
   page.on('console', message => {
     const line = message.text();
     fs.appendFileSync(path.join(out, 'console.log'), line + '\n');
+    if (line.includes('Shader::BeginLoad:') && line.includes(flashShaderKey)) {
+      report.flashShader.loads.push({at: Date.now(), phase, line});
+    }
     const skipped = line.match(/No package for (engine-res|urhox-libs), skipping/);
     if (skipped) report.skippedBootstrapPackages.push(skipped[1]);
     if (line.includes('[Bootstrap/DownloadInitialPackage] Completed successfully')) report.bootstrapPackagesCompleted = true;
     const marker = line.indexOf('OUTGAME_STATE ');
     if (marker >= 0) {
       try { state = JSON.parse(line.slice(marker + 14)); revision++; }
-      catch (error) { report.errors.push('Malformed QA state: ' + error.message); }
+      catch (error) {
+        // Shader compilation logs can interrupt a console state line during
+        // boot. Preserve it, then request a complete read-only snapshot again.
+        report.probeErrors.push({at: Date.now(), phase, error: error.message, line});
+      }
     }
     const damage = line.indexOf('DAMAGE_REBUILD ');
     if (damage >= 0) {
       try { report.damageEvents.push({arrivedAt: Date.now(), phase, ...JSON.parse(line.slice(damage + 15))}); }
       catch (error) { report.errors.push('Malformed destruction event: ' + error.message); }
     }
-    if (/ERROR:|Execute Lua|stack traceback|Aborted\(|Shader compilation failed/.test(line)) report.errors.push(line);
+    if (/ERROR:|Execute Lua|stack traceback|Aborted\(|Shader compilation failed|\[LoadingFlow\] Failed/.test(line)) report.errors.push(line);
   });
   page.on('pageerror', error => report.errors.push(String(error)));
   page.on('crash', () => report.errors.push('Browser page crashed'));
@@ -116,6 +128,7 @@ async function main() {
     const started = Date.now(); let nextDump = 0;
     while (!state || !predicate(state)) {
       if (report.errors.length) throw Error(report.errors.join('\n'));
+      if (state?.loadingFlow?.failed) throw Error('Loading failed: ' + state.loadingFlow.error);
       if (Date.now() - started > timeout) throw Error('Timeout: ' + label);
       if (Date.now() >= nextDump) { nextDump = Date.now() + 1000; await key('F8'); }
       await sleep(100);
@@ -183,6 +196,8 @@ async function main() {
     await click('试车场'); await mark('trial-load'); await click('开始试车');
     await wait(state => state.mode === 'trial' && state.map === 'trial' && !state.loadingFlow?.active, 'trial world');
     await dump('trial ready');
+    check('Actual shell shader first loads under loading page',
+      report.flashShader.loads.some(load => load.phase === 'trial-load'), report.flashShader.loads);
     check('Read-only destruction observer available', !!state.destruction && Array.isArray(state.aimTargets));
     check('Real practice player and weapon groups', state.practice?.alive && state.reticle?.groups >= 2);
     await mark('target-area');
@@ -197,6 +212,7 @@ async function main() {
     report.initialTarget = snapshot(target());
     check('Actual feedback and weapon audio counters available', !!state.feedbackAudio?.counts && !!state.weaponAudio?.counts);
     report.initialAudio = {feedback: snapshot(state.feedbackAudio), weapon: snapshot(state.weaponAudio)};
+    report.initialHitFlash = snapshot(state.partHitFlash);
     report.initialWeapons = snapshot(state.weapons);
     pointer = {x: 960, y: 540}; await page.mouse.click(pointer.x, pointer.y);
     await wait(state => state.pointer?.captured && state.pointer?.ready, 'actual pointer capture');
@@ -206,7 +222,7 @@ async function main() {
     await mark('aim');
     check('Native mouse converges on target', await aim());
     await shot('target-before');
-    let minParts = initialParts, broken = false, kill = false, breakShot = false;
+    let minParts = initialParts, broken = false, kill = false, breakShot = false, hitShot = false;
     const started = Date.now();
     await mark('fire');
     report.fireStartedAt = Date.now();
@@ -220,6 +236,9 @@ async function main() {
       // logs alone cannot identify which actor broke; cross-check live targets.
       broken = minParts < initialParts;
       kill = !current && state.weapons.kills > report.initialWeapons.kills && events.some(event => event.killed === true);
+      if (!hitShot && state.partHitFlash?.active > 0 && state.partHitFlash.total > (report.initialHitFlash?.total || 0)) {
+        await shot('target-hit-flash'); hitShot = true;
+      }
       if (broken && !breakShot) { await page.mouse.up(); firing = false; await shot('target-broken'); breakShot = true; }
       if (kill) break;
       if (!current) throw Error('Target vanished without observed real Flush kill');
@@ -240,8 +259,14 @@ async function main() {
     report.targetResult = {initialParts, minParts, broken, kill};
     report.targetEventBoundary = 'Name-only Flush logs include the identically named player; target part loss is verified from aimTargets, and kill from target disappearance plus world kills and Flush event.';
     report.finalAudio = {feedback: snapshot(state.feedbackAudio), weapon: snapshot(state.weaponAudio)};
+    report.finalHitFlash = snapshot(state.partHitFlash);
+    check('Shell shader is not first loaded by live firing',
+      report.flashShader.loads.every(load => load.at < report.fireStartedAt), report.flashShader.loads);
     check('Actual firing creates projectiles', state.weapons.shots > report.initialWeapons.shots, state.weapons);
     check('Actual target parts are destroyed', broken, report.targetResult);
+    check('Actual enemy part-hit flash consumed', state.partHitFlash?.supported &&
+      state.partHitFlash.total > (report.initialHitFlash?.total || 0), state.partHitFlash);
+    check('Actual active part-hit flash captured', hitShot);
     check('Actual target Flush kill observed', kill, report.damageEvents);
     check('Actual target rebuild timing observed', report.damageEvents.some(event => event.name === targetName));
     check('Kill creates original score reward', state.combatFeedback?.scoreTarget >= 300, state.combatFeedback);

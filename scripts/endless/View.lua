@@ -4,7 +4,8 @@ local M={};M.__index=M
 local colors={weapon={1,.64,.27},movement={.30,.73,1},['function']={.38,.93,.69},credits={1,.76,.1}}
 function M.New(scene,shield)
     local self=setmetatable({drops={},warnings={},time=0},M)
-    self.root=scene:CreateChild('EndlessEffects');self.geometry=require('render.ObjectiveView').New({scene=scene},{id='endless'});self.geometry.mesh.enabled=false
+    self.root=scene:CreateChild('EndlessEffects');self.geometry=require('render.ObjectiveView').Geometry(scene)
+    self.geometry:Begin('Endless',{0,0,0},false);self.geometry.mesh.enabled=false
     return self
 end
 function M:Warn(id,pos) self.warnings[id]=pos end
@@ -30,7 +31,7 @@ function M:Add(drop)
     self.drops[drop.id]={root=root,pivot=pivot,visual=visual,drop=drop}
 end
 function M:Update(session,dt)
-    self.time=session.world.time;local now=self.time;local geom=self.geometry;geom.mesh:BeginGeometry(0,TRIANGLE_LIST)
+    self.time=session.world.time;local now=self.time;local geom=self.geometry;geom:Begin('Endless',{0,0,0},false)
     for _,p in pairs(self.warnings) do geom:Beam(p,3,2,40,{1,.61,.27},.22) end
     for id,item in pairs(self.drops) do
         local drop=item.drop;local cat=drop.type and require('parts.Defs').PARTS[drop.type].cat or 'credits';local color=colors[cat] or colors['function']

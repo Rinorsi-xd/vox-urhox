@@ -5727,9 +5727,14 @@
       "checksum": 4179392419
     },
     "scripts/render/MatchMapShot.lua": {
-      "sha256": "ea4d4d6054b35fc3df4f26daee01d0f5a0be0c4c2187756ca997b4cd46493a7d",
-      "bytes": 9994,
-      "checksum": 1041361475
+      "sha256": "5643f32c0b20e7a4cfc621eff1bce37b8d9245c07f1bd9bf5229206fd3ea1b73",
+      "bytes": 11605,
+      "checksum": 3957554732
+    },
+    "scripts/render/Readback.lua": {
+      "sha256": "dfb571a363258ddcca9a15cdf2e5a40d314f2e2a044504fb1f1e96b74f25c667",
+      "bytes": 378,
+      "checksum": 1254346838
     },
     "scripts/render/RenderTargetLifetime.lua": {
       "sha256": "6dcdc4e5332c8c159e2aacabfca65ee0beed8f221d6a7ac5df70f50a6ae00882",
@@ -5742,61 +5747,143 @@
       "checksum": 1314802893
     }
   },
-  "inputSha256": "39eed33e6277a675955441f15fe9647e5af5e155061e031a3d6db7575bd1ca72",
+  "inputSha256": "af29f3ef311ee719f44ce40df727ecc646cf4bffb2a5605d3b53165ad630731e",
   "runtimeChecks": {
     "Scenes/Crater.xml": {
       "checksum": 4093339714,
-      "bytes": 3036751
+      "bytes": 3036751,
+      "variants": [
+        {
+          "bytes": 2989221,
+          "checksum": 2844543420
+        }
+      ]
     },
     "app/ResourceGate.lua": {
       "checksum": 2883108644,
-      "bytes": 4111
+      "bytes": 4111,
+      "variants": [
+        {
+          "bytes": 4194,
+          "checksum": 1954327893
+        }
+      ]
     },
     "core/Coord.lua": {
       "checksum": 3915154078,
-      "bytes": 1733
+      "bytes": 1733,
+      "variants": [
+        {
+          "bytes": 1785,
+          "checksum": 1260375712
+        }
+      ]
     },
     "core/ResourceData.lua": {
       "checksum": 2823726317,
-      "bytes": 920
+      "bytes": 920,
+      "variants": [
+        {
+          "bytes": 940,
+          "checksum": 4078807825
+        }
+      ]
     },
     "core/Rotations.lua": {
       "checksum": 1160357797,
-      "bytes": 5451
+      "bytes": 5451,
+      "variants": [
+        {
+          "bytes": 5645,
+          "checksum": 2927010709
+        }
+      ]
     },
     "drive/CraterLayout.lua": {
       "checksum": 3605548639,
-      "bytes": 1352
+      "bytes": 1352,
+      "variants": [
+        {
+          "bytes": 1377,
+          "checksum": 4051685778
+        }
+      ]
     },
     "render/CraterDust.lua": {
       "checksum": 2723605165,
-      "bytes": 4820
+      "bytes": 4820,
+      "variants": [
+        {
+          "bytes": 4731,
+          "checksum": 2205749246
+        }
+      ]
     },
     "render/CraterEffects.lua": {
       "checksum": 2160089070,
-      "bytes": 6673
+      "bytes": 6673,
+      "variants": [
+        {
+          "bytes": 6571,
+          "checksum": 209488736
+        }
+      ]
     },
     "render/CraterShield.lua": {
       "checksum": 4179392419,
-      "bytes": 3683
+      "bytes": 3683,
+      "variants": [
+        {
+          "bytes": 3765,
+          "checksum": 2473219391
+        }
+      ]
     },
     "render/MatchMapShot.lua": {
-      "checksum": 1041361475,
-      "bytes": 9994
+      "checksum": 3957554732,
+      "bytes": 11605,
+      "variants": [
+        {
+          "bytes": 11833,
+          "checksum": 872895732
+        }
+      ]
+    },
+    "render/Readback.lua": {
+      "checksum": 1254346838,
+      "bytes": 378,
+      "variants": [
+        {
+          "bytes": 386,
+          "checksum": 316681700
+        }
+      ]
     },
     "render/RenderTargetLifetime.lua": {
       "checksum": 3558272495,
-      "bytes": 1209
+      "bytes": 1209,
+      "variants": [
+        {
+          "bytes": 1243,
+          "checksum": 2280284177
+        }
+      ]
     },
     "scene/Crater.lua": {
       "checksum": 1314802893,
-      "bytes": 4851
+      "bytes": 4851,
+      "variants": [
+        {
+          "bytes": 4919,
+          "checksum": 3171619207
+        }
+      ]
     }
   },
   "imageSha256": "6b45693475c6662c4b0972728299ad709662796a4a75a1544f33a18c5beafe8c",
   "pixelsSha256": "120e033ecfe616a38040bcaecd317eff9ab2fe4225b50c86f5e6d1968a069b16",
   "colors": 327,
-  "bakedAt": "2026-10-15T14:16:11.620Z",
+  "bakedAt": "2026-10-15T16:16:04.094Z",
   "capture": {
     "height": 1200,
     "far": 3000,
@@ -5806,6 +5893,6 @@
     "randomSeed": 1337,
     "scope": "Authored static map with environment lighting; no session vehicles, objectives, combat or animated particle snapshot."
   },
-  "nativeEvidence": ".tmp/match-map-bake-2026-10-15T14-15-51-427Z/native.json",
-  "validationEvidence": ".tmp/match-map-bake-2026-10-15T14-15-51-427Z/validation.json"
+  "nativeEvidence": ".tmp/match-map-bake-2026-10-15T16-15-40-237Z/native.json",
+  "validationEvidence": ".tmp/match-map-bake-2026-10-15T16-15-40-237Z/validation.json"
 }

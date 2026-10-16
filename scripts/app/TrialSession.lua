@@ -12,14 +12,14 @@ local UI=require 'urhox-libs/UI'
 local Host=require 'ui.DialogHost'
 local TargetFeedback=require 'render.TargetFeedback'
 local M={};M.__index=M
-function M.New(scene,bp,app,map,preparedWorld,checkpoint,retain)
+function M.New(scene,bp,app,map,preparedWorld,checkpoint,retain,combatFactory)
     local self=setmetatable({disposed=false,app=app,name=bp.name,follow=false,lookIdle=0,scope=false,details=false,map=map or require('app.DriveMaps').trial},M)
     if retain then retain(self) end
-    local ok,err=pcall(self.init,self,scene,bp,preparedWorld,checkpoint)
+    local ok,err=pcall(self.init,self,scene,bp,preparedWorld,checkpoint,combatFactory)
     if not ok then self:Dispose();error(err) end
     return self
 end
-function M:init(scene,bp,preparedWorld,checkpoint)
+function M:init(scene,bp,preparedWorld,checkpoint,combatFactory)
     require('controls.TouchPreferences').Get(self.app)
     local function Progress(p,stage) if checkpoint then checkpoint(p,stage) end end
     self.touch=require('controls.TouchMode').Enabled()
@@ -27,7 +27,12 @@ function M:init(scene,bp,preparedWorld,checkpoint)
     self.pointer=require('controls.DrivePointer').New(self)
     self.world=preparedWorld or require(self.map.world).New(scene)
     Progress(.05,'world')
-    if self.map.endless then
+    -- Cinematic actors must exist before shared views are built; constructing
+    -- a practice car first duplicates its rigid body and every part visual.
+    if combatFactory then
+        self.combat=combatFactory(self,bp,function(p,stage) Progress(.05+p*.4,stage or 'units') end)
+        self.vehicle=self.combat.player.vehicle
+    elseif self.map.endless then
         self.endless=require('app.EndlessSession').New(self,bp,self.map.endlessSaved);self.vehicle=self.endless.player.vehicle
     elseif self.map.salvage then
         self.salvage=require('salvage.Run').New(self,bp);self.vehicle=self.salvage.player.vehicle
@@ -39,7 +44,7 @@ function M:init(scene,bp,preparedWorld,checkpoint)
     else
         self.practice=require('app.PracticeSession').New(self,bp);self.vehicle=self.practice.player.vehicle
     end
-    self.combat=self.battle or self.story or self.salvage or self.endless or self.practice
+    self.combat=self.combat or self.battle or self.story or self.salvage or self.endless or self.practice
     Progress(.45,'units')
     self.world.feedbackPlayer=self.combat and self.combat.player
     if self.map.environment then self.environment=require(self.map.environment).New(scene,self.world.layout) end
@@ -199,7 +204,7 @@ function M:NextArea()
     self.app.toasts:Push('传送：'..self.world.layout.teleports[self.teleport].name)
 end
 local digitKeys={KEY_1,KEY_2,KEY_3,KEY_4,KEY_5,KEY_6,KEY_7,KEY_8,KEY_9,KEY_0}
-local actionKeys={KEY_ESCAPE,KEY_T,KEY_R,KEY_BACKSPACE,KEY_I,KEY_C,KEY_N,KEY_E,KEY_F,KEY_G,KEY_V,KEY_RETURN,KEY_SPACE}
+local actionKeys={KEY_ESCAPE,KEY_T,KEY_R,KEY_BACKSPACE,KEY_I,KEY_C,KEY_N,KEY_E,KEY_F,KEY_G,KEY_V,KEY_RETURN,KEY_SPACE,KEY_TAB,KEY_A,KEY_D,KEY_LEFT,KEY_RIGHT}
 local resultKeys={KEY_RETURN,KEY_ESCAPE,KEY_T}
 function M:KeyPressed(key) return input:GetKeyPress(key) end
 function M:HandleKey(key)
@@ -211,11 +216,13 @@ function M:HandleKey(key)
         return
     end
     if self.salvage and self.salvage:Key(key) then return end
+    if self.battle and require('combat.MatchActions').Key(self.battle,key) then return end
     if self.story and self.story.rules.finished then
         if key==KEY_R then self.app.restartStory=self.map.id;self.wantsReturn=true
         elseif key==KEY_ESCAPE or key==KEY_RETURN or key==KEY_T then self.wantsReturn=true end
         return
     end
+    if self.story and key==KEY_RETURN then self.story.voice:SkipLine();return end
     if not self.practice and (key==KEY_N or key==KEY_BACKSPACE) then return end
     if self.combat and not self.combat.player.alive and key==KEY_R then return end
     if self.story and self.story.rules.choice then
@@ -258,14 +265,23 @@ function M:Aim()
     self.aimHit=hit
     return require('controls.DriveAim').Resolve(self,origin,direction,hit) or (hit and hit.point or {origin[1]+direction[1]*500,origin[2]+direction[2]*500,origin[3]+direction[3]*500})
 end
+function M:ConsumeWorldEvents()
+    self.feedbackAudio:Consume(self.world.viewEvents,self.combat and self.combat.player)
+    self.restoreFlash:Consume(self.combat.player,self.view.view,self.world.viewEvents)
+    if self.hud then self.hud.overlay:Consume(self.world.viewEvents) end
+    self.combatView:Consume(self.world);self.combatView:SavePose()
+    self.effects:Consume(self.world.fx);self.world.fx={}
+end
 function M:Tick(dt,command)
     if self.endless and (self.endless.run.state=='editing' or self.endless.run.state=='over') then self.accumulator=0;if self.hud then self.hud.Update(self,dt) end;return end
     if self.battle and self.battle.rules.state=='over' then if self.hud then self.hud.Update(self,dt) end;return end
     local speaking=self.combat and self.combat.voice and self.combat.voice.card~=nil
-    self.weaponAudio:SetActive(self.pointer.captured and (not self.combat or self.combat.player.alive) and (not self.battle or self.battle.rules.state=='live') and (not self.story or not self.story.rules.finished) and (not self.salvage or self.salvage.begun and not self.salvage.rules.finished))
+    local feedbackActive=self.pointer.captured and (not self.battle or self.battle.rules.state=='live') and (not self.story or not self.story.rules.finished) and (not self.salvage or self.salvage.begun and not self.salvage.rules.finished)
+    self.weaponAudio:SetActive(feedbackActive and (not self.combat or self.combat.player.alive))
     self.weaponAudio:Update(dt,self.weapons,self.camera:GetNode(),self.combat and self.combat.entries,speaking)
     self.drivingAudio:SetActive(self.weaponAudio.active)
-    self.feedbackAudio:SetActive(self.weaponAudio.active)
+    -- H5 keeps damage voices and delayed explosions while the player is dead.
+    self.feedbackAudio:SetActive(feedbackActive)
     if self.salvage then self.salvage.audio:SetActive(self.weaponAudio.active) end
     -- Source audio timers run in real time while kill impact slows simulation.
     self.feedbackAudio:Update(self.realFrameDt or dt,self.camera:GetNode(),speaking)
@@ -309,13 +325,15 @@ function M:Tick(dt,command)
             self.view:SavePose();local center=self.vehicle.body.center()
             self.world.metrics:Timing(self.world.time,{center.x,center.y,center.z},self.vehicle.speed,self.prevZ);self.prevZ=center.z
         end
-        self.feedbackAudio:Consume(self.world.viewEvents,self.combat and self.combat.player)
-        self.restoreFlash:Consume(self.combat.player,self.view.view,self.world.viewEvents)
-        if self.hud then self.hud.overlay:Consume(self.world.viewEvents) end
-        self.combatView:Consume(self.world);self.combatView:SavePose()
-        self.effects:Consume(self.world.fx);self.world.fx={}
+        self:ConsumeWorldEvents()
         self.accumulator=self.accumulator-1/60;self.fixedSteps=self.fixedSteps+1
         if self.battle and self.battle.rules.state=='over' or (self.story or self.salvage) and self.combat.rules.finished or self.endless and (self.endless.run.state=='editing' or self.endless.run.state=='over') then self.accumulator=0;break end
+    end
+    -- UI repairs and external damage can replace bodies between fixed steps.
+    -- Retire or rebind their views before a frame with no physics step renders.
+    if #self.world.viewEvents>0 or #self.world.debris.events>0 or #self.world.fx>0 then
+        if self.combat then self.combat:SyncPlayer() end
+        self:ConsumeWorldEvents()
     end
     self.fxContext.time=self.world.time
     local alive=not self.combat or self.combat.player.alive
@@ -339,6 +357,7 @@ function M:Tick(dt,command)
 end
 function M:Update(dt)
     if self.disposed then return end
+    if self.endless then self.endless:RestorePresentation() end
     if self.app.loadingFlow and self.app.loadingFlow.active then return end
     self.realFrameDt=dt;self.frameDt=dt
     if self.battle then self.battle.sounds:Update(dt);self.battle.voice:Update(dt) end
@@ -359,10 +378,14 @@ function M:Update(dt)
             if input:GetKeyPress(KEY_SPACE) then self.story.epilogue:Key(KEY_SPACE) end
             return
         end
-        if self.story.boss and input:GetKeyDown(KEY_RETURN) then
-            self.bossEnterHeld=(self.bossEnterHeld or 0)+dt
-            if self.bossEnterHeld>=.9 then self.story.boss.skip=true end
-        else self.bossEnterHeld=0 end
+        local boss=self.story.boss
+        if boss and boss.cinematic and input:GetKeyDown(KEY_RETURN) then
+            if input:GetKeyPress(KEY_RETURN) then self.bossEnterHeld=0;self.bossEnterFlow=boss.flow
+            elseif self.bossEnterFlow==boss.flow then
+                self.bossEnterHeld=(self.bossEnterHeld or 0)+dt
+                if self.bossEnterHeld>.9 then boss.skip=true end
+            end
+        else self.bossEnterHeld=0;self.bossEnterFlow=nil end
     end
     if self.endless then
         self.endless:Update(dt)
@@ -391,6 +414,11 @@ function M:Update(dt)
         if not self.salvage or self.salvage:Return() then self:Pause();self.onReturn();return end
     end
     if self.dialog or typing or not self:HasFocus() then self:Pause() end
+    if self.dialog and self.dialog.matchLeave then
+        self.accumulator=0
+        if self.hud then self.hud.Update(self,dt) end
+        return
+    end
     self.pointer:Poll(dt)
     if self.salvage then
         self.salvage.cine:Update(dt)
@@ -429,6 +457,7 @@ function M:Update(dt)
 end
 function M:PostUpdate(dt)
     if self.disposed then return end
+    if self.endless then self.endless:RestorePresentation() end
     if self.endless and self.endless.run.state=='editing' then return end
     if self.boundary then self.boundary:Update(self.world.time,self.combat and self.combat.player:Position() or self:CameraCenter()) end
     if self.battle and self.battle.mvpShow and not self.battle.mvpShow.done then self.battle.mvpShow:Camera();return end
@@ -441,6 +470,16 @@ function M:PostUpdate(dt)
         self.cameraFeedback:Discard()
         self.drillSpeed:Clear()
         require('render.NodeVisibility').Set(self.restoreFlash.root,false,true)
+        if self.battle then
+            local node=self.camera:GetNode();local eye=node.worldPosition
+            local pose=require('combat.MatchActions').Pose(self.battle,{-eye.x,eye.y,eye.z},dt)
+            if pose then ChaseCamera.Watch(self.camera,pose) end
+            if self.aimLines then
+                self.sniperWarnings=self.aimLines:Update(self.world.units,self.combat.player,function(...) return self.world:CastRay(...) end,self.camera:GetCamera(),self.world.time)
+            end
+            if self.environment then self.environment:Update(dt,node) end
+            return
+        end
         local watched=false
         for _,entry in ipairs(self.combat.entries) do if entry.unit.team=='blue' and entry.unit.alive then watched=entry.unit;break end end
         if watched then p=Coord.Vec(table.unpack(watched:Position())) end
@@ -480,8 +519,10 @@ function M:PostUpdate(dt)
     if self.aimLines then self.sniperWarnings=self.aimLines:Update(self.world.units,self.combat.player,function(...) return self.world:CastRay(...) end,c,self.world.time) end
     if self.salvage then self.salvage.cine:Camera();self.fxContext.fov=c.fov end
     if self.environment then self.environment:Update(dt,self.camera:GetNode()) end
+    -- Apply after camera targeting and scope masks; this never moves physics.
+    if self.endless then self.endless:Present() end
 end
-function M:Dispose()
+function M:Dispose(checkpoint)
     if self.disposed then return end
     self.disposed=true
     if self.mapCapture then self.mapCapture:Dispose();self.mapCapture=nil end
@@ -493,23 +534,29 @@ function M:Dispose()
     if self.pointer then self.pointer:Release() end
     if self.hud then self.hud.Dispose();self.hud=nil end
     if self.controls then self.controls:Clear() end
+    if checkpoint then checkpoint() end
     if self.safeReset then self.safeReset:Dispose();self.safeReset=nil end
     if self.restoreFlash then self.restoreFlash:Dispose();self.restoreFlash=nil end
     if self.drillSpeed then self.drillSpeed:Dispose() end
     if self.effects then self.effects:Dispose() end
+    if checkpoint then checkpoint() end
     if self.weaponAudio then self.weaponAudio:Dispose() end
     if self.drivingAudio then self.drivingAudio:Dispose() end
     if self.feedbackAudio then self.feedbackAudio:Dispose() end
     if self.collisionAudio then self.collisionAudio:Dispose();self.collisionAudio=nil end
-    if self.combatView then self.combatView:Dispose() end
+    if checkpoint then checkpoint() end
+    if self.combatView then self.combatView:Dispose(checkpoint) end
     if self.aimLines then self.aimLines:Dispose() end
     if self.boundary then self.boundary:Dispose() end
+    if checkpoint then checkpoint() end
     self.weapons=nil;self.aimHit=nil
     if self.view then self.view:Dispose() end
+    if checkpoint then checkpoint() end
     if self.combat then self.combat:Dispose() elseif self.vehicle then self.vehicle:Dispose() end
     if self.targetFeedback then self.targetFeedback:Dispose() end
     if self.environment then self.environment:Dispose();self.environment=nil end
-    if self.world then self.world:Dispose() end
+    if checkpoint then checkpoint() end
+    if self.world then self.world:Dispose(checkpoint) end
     if self.camera then self.camera:GetNode():Dispose() end
     if self.target then self.target:Dispose() end
     self.combat=nil;self.battle=nil;self.story=nil;self.salvage=nil;self.endless=nil;self.practice=nil

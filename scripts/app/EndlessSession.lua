@@ -26,7 +26,7 @@ function M.New(session,bp,saved)
 end
 function M:init(session,bp,saved)
     self.session=session;self.world=session.world;self.entries={};self.pending={};self.spawnSerial=0;self.repairClock=0;self.invulnerableUntil=self.world.time+C.spawnInvulnerability
-    self.rules=Run.New(bp,session.map.endlessSeed or os.time(),saved or session.map.endlessSaved);self.run=self.rules;self.specCache={};self.banner=nil;self.voice={card=nil};self.audio=require('endless.Audio').New(session.scene)
+    self.rules=Run.New(bp,session.map.endlessSeed or os.time(),saved or session.map.endlessSaved);self.run=self.rules;self.spawnRadii={};self.spawnSpecCache=require('drive.SpawnSpecCache').New();self.banner=nil;self.voice={card=nil};self.audio=require('endless.Audio').New(session.scene)
     self.shield=assert(self.world.layout.base and self.world.layout.base.shield,'Endless requires crater base shield')
     self.spawn=self.world.layout.spawn or self.world.layout.pads.player
     for _,u in ipairs(self.world.units) do u:Dispose() end;self.world.units={}
@@ -44,7 +44,8 @@ function M:init(session,bp,saved)
             if length<.000001 then return to end
             local hit=Query.Ray(self.shield,from,V.Scale(delta,1/length),length);return hit and hit.point or to
         end}
-    self.view=require('endless.View').New(session.scene,self.shield);self:Events()
+    self.view=require('endless.View').New(session.scene,self.shield)
+    self.spawnPresentation=require('endless.SpawnPresentation').New();self.spawnPresentation:Rise(self.world.time);self:Events()
 end
 function M:Environment(unit)
     local world=self.world;local function EnemyScale() return unit.endless and unit.endless.damageScale or 1 end
@@ -79,18 +80,27 @@ function M:Environment(unit)
             world.attacker=unit;world:Explode(point,radius,damage*EnemyScale(),body,function(u) return u.team~=unit.team and not Protected(u) end);world.attacker=nil
         end}
 end
+function M:SpawnRadius(key,source)
+    local radius=self.spawnRadii[key]
+    if not radius then
+        self.spawnSpecCache:Prepare(source)
+        local spec=self.spawnSpecCache:Get(source) or require('drive.VehicleSpec').Build(BP.New():Load(source))
+        radius=Radius(spec);self.spawnRadii[key]=radius
+    end
+    return radius
+end
 function M:Spawn()
     local r=self.run;local nextMeta=r.queue[1]
     if r.state~='combat' or not nextMeta or Count(r.alive)>=C.maxEnemies or r.time<r.nextSpawn then return end
     local key=nextMeta.prefab or (nextMeta.role..':'..nextMeta.tier..':'..nextMeta.variant)
     local source=assert(Data.prefabs[key],'Missing endless prefab '..key)
-    local spec=self.specCache[key];if not spec then spec=require('drive.VehicleSpec').Build(BP.New():Load(source));self.specCache[key]=spec end
+    local radius=self:SpawnRadius(key,source)
     local gates={};for _,g in ipairs(self.world.layout.enemyGates or {}) do if nextMeta.role=='boss' and g.id=='N' or nextMeta.role~='boss' and (r.wave>=C.airdropFromWave or not g.drop) then gates[#gates+1]=g end end
     if #gates==0 then return end
     local gate
     for i=1,#gates do local g=gates[(self.spawnSerial+i-1)%#gates+1];local free=true
-        for _,u in ipairs(self.world.units) do if u.alive and Flat(g.pos,u:Position())<Radius(spec)+1+Radius(u.spec) then free=false;break end end
-        for _,p in ipairs(self.pending) do if Flat(p.gate.pos,g.pos)<(Radius(spec)+1)*2 then free=false end end
+        for _,u in ipairs(self.world.units) do if u.alive and Flat(g.pos,u:Position())<radius+1+Radius(u.spec) then free=false;break end end
+        for _,p in ipairs(self.pending) do if Flat(p.gate.pos,g.pos)<(radius+1)*2 then free=false end end
         if free then gate=g;break end
     end
     if not gate then return end;local meta=r:TakeSpawn();if not meta then return end;self.spawnSerial=self.spawnSerial+1
@@ -98,8 +108,10 @@ function M:Spawn()
     else self:SpawnUnit(meta,gate,false) end
 end
 function M:SpawnUnit(meta,gate,air)
-    local source=Data.prefabs[meta.prefab or (meta.role..':'..meta.tier..':'..meta.variant)];local pos={table.unpack(gate.pos)};if air then pos[2]=pos[2]+C.airdropHeight end
-    local u=Unit.New(self.world,source,{name=(meta.elite and '★ 精英 ' or '')..source.name,spawn={pos=pos,yaw=gate.yaw or 0},team='red',autoRespawn=false,externalControl=true,combat=true,hpMultiplier=meta.hpScale})
+    local key=meta.prefab or (meta.role..':'..meta.tier..':'..meta.variant);local source=Data.prefabs[key]
+    self:SpawnRadius(key,source)
+    local pos={table.unpack(gate.pos)};if air then pos[2]=pos[2]+C.airdropHeight end
+    local u=Unit.New(self.world,source,{name=(meta.elite and '★ 精英 ' or '')..source.name,spawn={pos=pos,yaw=gate.yaw or 0},team='red',autoRespawn=false,externalControl=true,combat=true,hpMultiplier=meta.hpScale,spawnSpecCache=self.spawnSpecCache})
     u.spawnAt=Center(u.spec,{pos=pos,yaw=gate.yaw or 0});u.vehicle:Place(u.spawnAt.pos,u.spawnAt.yaw);u:SavePose();u.previous=u.current;u.endless=meta;u.airdropActive=air;u.airdropStableTime=0
     local driver=meta.prefab=='huhu-fuyuan' and Raider or Driver
     self.world.units[#self.world.units+1]=u;self.entries[#self.entries+1]={unit=u,env=self:Environment(u),driver=driver.New(self.world,u,meta.role,self.spawnSerial,{aimSkill=1,reaction=.25})}
@@ -150,9 +162,9 @@ function M:AfterStep(dt)
     if not self.player.alive and not self.handledDeath then self.handledDeath=true;self.run:LoseLife() end
     if self.player.alive then self.handledDeath=false;for _,id in ipairs(self.run.dropOrder) do local drop=self.run.pendingDrops[id];if drop and V.Length(V.Sub(drop.pos,self.player:Position()))<=C.pickupRadius then self.run:PickupDrop(id) end end end
     self:Events();self.view:Update(self,dt)
-    if self.banner then self.banner.age=self.banner.age+dt;if self.banner.age>3.5 then self.banner=nil end end
 end
 function M:Events()
+    local banners=require('ui.EndlessBanner');local tierAnnouncement=''
     for _,e in ipairs(self.run:Drain()) do
         self.view:Event(e)
         if self.run.state~='editing' then
@@ -160,29 +172,41 @@ function M:Events()
         end
         local env=self.session.environment;local shield=env and env.effects and env.effects.shields and env.effects.shields[1]
         if shield then if e.type=='shieldHit' and e.point then shield:Hit(e.point) elseif e.type=='shieldRaise' then shield:Raise() elseif e.type=='shieldDown' then shield:Down() end end
-        if e.type=='waveStart' then self:Banner('第 '..e.wave..' 波'..(e.boss and ' · Boss 来袭' or ' · 敌人出击'))
-        elseif e.type=='charge' then self:Banner('敌人冲锋！')
-        elseif e.type=='shieldDown' then self:Banner('基地护盾被击破 · 本波停止维修')
-        elseif e.type=='waveClear' then self:Banner('第 '..e.wave..' 波完成');self.session:Pause();self.audio:Play('supply_open')
+        local text;text,tierAnnouncement=banners.Event(e,tierAnnouncement);if text then self:Banner(text) end
+        if e.type=='waveClear' then self.session:Pause();self.audio:Play('supply_open')
         elseif e.type=='pickup' then self.session.app.toasts:Push('获得 '..require('parts.Defs').PARTS[e.partType].name..' ×'..e.count,'ok')
-        elseif e.type=='credits' and e.amount>0 then self.session.app.toasts:Push('+'..e.amount..' 金钱 · 共 '..e.total,'ok')
-        elseif e.type=='respawn' then self.player:Spawn();self.invulnerableUntil=self.world.time+e.invulnerability;self.handledDeath=false;self:SyncPlayer();self.session:ResetCamera()
+        elseif e.type=='credits' and e.amount>0 then self.session.app.toasts:Push('+'..e.amount..' 金钱 · 共 '..e.total,'ok',1400)
+        elseif e.type=='respawn' then self.player:Spawn();self.invulnerableUntil=self.world.time+e.invulnerability;self.spawnPresentation:Rise(self.world.time);self.handledDeath=false;self:SyncPlayer();self.session:ResetCamera()
         elseif e.type=='repair' then self.player:Heal(1);self.player:RestoreMissing(math.huge);self.player:Flush();self:SyncPlayer()
         elseif e.type=='save' then self:Persist()
         elseif e.type=='gameOver' then self:Finish(e.result) end
     end
 end
-function M:Banner(text) self.banner={text=text,age=0} end
-function M:Persist() if self.run.state=='rest' then return self.session.app.store:Write(C.runKey,self.run:Save(),require('endless.Records').Run) end end
+function M:Banner(text) require('ui.EndlessBanner').Push(self,text) end
+function M:Persist()
+    if self.run.state~='rest' then return end
+    local ok,err=self.session.app.store:Write(C.runKey,self.run:Save(),require('endless.Records').Run)
+    if not ok then self.session.app.toasts:Push('本局进度未能写入浏览器存储','warn') end
+    return ok,err
+end
 function M:Finish(result)
     self.rules.finished=true;self.result=result;self.session:Pause()
     local store=self.session.app.store;local old=store:Read(C.bestKey,function(d) return type(d)=='table' end) or {score=0};self.isBest=result.score>old.score;self.best=self.isBest and result or old
     if self.isBest then store:Write(C.bestKey,result,require('endless.Records').Best) end;store:Write(C.runKey,nil,require('endless.Records').Run,true)
 end
-function M:NextWave() if self.run:NextWave() then self:Events();self.session:Resume();return true end;return false end
+function M:WaitForRespawn()
+    if self.run.respawnAt==nil then return false end
+    self.session.app.toasts:Push('战车被摧毁，请等待 '..math.ceil(math.max(0,self.run.respawnAt-self.run.time))..' 秒后复原','info')
+    return true
+end
+function M:NextWave()
+    if self:WaitForRespawn() then return false end
+    if self.run:NextWave() then self:Events();self.session:Resume();return true end;return false
+end
 function M:ChooseSupply(i) local result=self.run:ChooseSupply(i);self:Events();return result end
 function M:Buy(id) local result=self.run:Buy(id);self:Events();return result end
 function M:EnterEdit()
+    if self:WaitForRespawn() then return false end
     if self.run.state=='rest' and not Query.Contains(self.shield,self.player:Position()) then self.session.app.toasts:Push('回到基地护盾里才能改装','warn');return false end
     if not self.run:BeginEdit() then self.session.app.toasts:Push('战斗中不能改装','warn');return false end
     self.session:Pause();self.session.accumulator=0;self.edit=require('endless.Edit').New(self);self.edit:Enter();self:Events();return true
@@ -190,7 +214,7 @@ end
 function M:ResumeEdit(source)
     local result=self.run:ResumeEdit(source);if not result.ok then return result end
     local anchor=self.edit.anchor;self.edit:Leave();self.edit=nil;local u=self.player;u.source=self.run.blueprint;u:Spawn();local at=Center(u.spec,{pos={anchor.pos[1],anchor.pos[2]+.3,anchor.pos[3]},yaw=anchor.yaw})
-    u.vehicle:Place(at.pos,at.yaw);u:SavePose();u.previous=u.current;u.spawnAt=Center(u.spec,self.spawn);self.invulnerableUntil=self.world.time+C.spawnInvulnerability;self:SyncPlayer();self:Persist();self:Events();self.session:Resume();return result
+    u.vehicle:Place(at.pos,at.yaw);u:SavePose();u.previous=u.current;u.spawnAt=Center(u.spec,self.spawn);self.invulnerableUntil=self.world.time+C.spawnInvulnerability;self.spawnPresentation:Rise(self.world.time);self:SyncPlayer();self:Persist();self:Events();self.session:Resume();return result
 end
 function M:HandleKey(key)
     if self.edit then return self.edit:HandleKey(key) end
@@ -199,14 +223,26 @@ function M:HandleKey(key)
     elseif key==KEY_BACKSPACE or key==KEY_N or key==KEY_T then return true end;return false
 end
 function M:Update(dt) self.audio:Update(dt,self.run,self.session.camera:GetNode(),self.session.feedbackAudio.volume);if self.edit then self.edit:Update(dt) end end
+function M:RestorePresentation() self.spawnPresentation:Restore() end
+function M:Present()
+    if self.disposed or self.edit or not self.player.alive then return end
+    local s=self.session;local root=s.view.view.root;local b=self.player.spec.bounds
+    local blink=self.spawnPresentation:Apply(root,self.world.time,b.max[2]-b.min[2],self.invulnerableUntil)
+    local visibility=require('render.NodeVisibility')
+    visibility.Set(root,not s.firstPerson and blink,true)
+    if #s.restoreFlash.items>0 then s.restoreFlash.root:SetTransform(root.worldPosition,root.worldRotation,root.worldScale) end
+    visibility.Set(s.restoreFlash.root,root.enabled,true)
+end
 function M:SyncPlayer() require('combat.PlayerViewSync').Update(self) end
 function M:Snapshot() return {state=self.run.state,wave=self.run.wave,tier=self.run.tier,lives=self.run.lives,score=self.run.score,credits=self.run.credits,enemies=Count(self.run.alive),pending=#self.run.queue,shield=self.run.shield,editing=self.edit~=nil} end
 function M:Dispose()
     if self.disposed then return end;self.disposed=true
     if self.edit then self.edit:Leave();self.edit=nil end
+    if self.spawnPresentation then self.spawnPresentation:Dispose();self.spawnPresentation=nil end
+    if self.spawnSpecCache then self.spawnSpecCache:Dispose();self.spawnSpecCache=nil end
     self.world.RecordDamage=self.baseDamage;self.view:Dispose();self.audio:Dispose()
     for i=#self.entries,1,-1 do local e=self.entries[i];e.unit=nil;e.env=nil;e.driver=nil;self.entries[i]=nil end
-    self.pending={};self.baseDamage=nil;self.shieldTarget=nil;self.specCache={}
+    self.pending={};self.baseDamage=nil;self.shieldTarget=nil;self.spawnRadii={}
     self.view=nil;self.audio=nil;self.player=nil;self.world=nil;self.session=nil;self.shield=nil
 end
 return M

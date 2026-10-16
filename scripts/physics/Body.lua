@@ -99,8 +99,10 @@ function M.Wrap(native)
             return 1/mass+n:DotProduct(InvInertia(r:CrossProduct(n)):CrossProduct(r))
         end,
         velocityAtPoint=function(point)
+            local velocity=ReadLinear();local spin=ReadAngular()
+            if spin.x==0 and spin.y==0 and spin.z==0 then return Unpolar(velocity) end
             local arm=Polar(point)-Center()
-            return Unpolar(ReadLinear()+ReadAngular():CrossProduct(arm))
+            return Unpolar(velocity+spin:CrossProduct(arm))
         end,
         addForce=function(force) native:ApplyForce(Polar(force)) end,
         applyImpulse=function(impulse) native:ApplyImpulse(Polar(impulse));linear=nil end,

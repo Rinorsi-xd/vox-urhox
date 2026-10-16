@@ -2,12 +2,20 @@ local Data=require('core.ResourceData').Read('Story/Mission/Level5.json')
 local Rules=require 'story.BossRules'
 local Unit=require 'combat.CarUnit'
 local Driver=require 'combat.EnemyDriver'
+local Nav=require 'combat.EnemyDriverNav'
 local V=require 'core.Math3'
 local Coord=require 'core.Coord'
 local Radio=require 'audio.StoryRadio'
 local M={};M.__index=M
 local C=Data.boss
 local PARK={throttle=0,steer=0,strafe=0,climb=0,handbrake=true,jump=false,boost=false,cutLift=false}
+local ALLY_ATTACK_STATES={fight=true,stomp=true,sweep=true,lanes=true,ult=true,recover=true,slamCrouch=true,slamAir=true,stuck=true,kneel=true,rise=true,barrage=true,transition=true}
+local ALLY_RESPAWN_STATES={fight=true,kneel=true,rise=true,stuck=true,transition=true,stomp=true,sweep=true,lanes=true,recover=true,barrage=true}
+local BOSS_KNEEL_STATES={kneel=true,dying=true,dead=true,ending=true}
+local BARKS={sweepWarn=true,sweepHit=true,lanesWarn=true,lanesHit=true,laserHit=true,stompHit=true,hardShield=true,
+    chaseUnder=true,pipe=true,outside=true,ultSafe=true,ultHit=true,slamWarn=true,allyDown=true}
+local URGENT_LINES={firstKneel=true,exposed=true,phase2=true,phase3=true,cry=true,ult=true,ultAgain=true,
+    crush=true,slamWarn=true,lanesWarn=true}
 local function Flat(a,b) return math.sqrt((a[1]-b[1])^2+(a[3]-b[3])^2) end
 local function Wrap(a) return math.atan(math.sin(a),math.cos(a)) end
 local function Vec(p) return {x=p[1],y=p[2],z=p[3]} end
@@ -28,7 +36,7 @@ end
 function M.New(mission,step)
     local self=setmetatable({},M);self.mission=mission;self.world=mission.world;self.session=mission.session;self.step=step
     local dps=0;for _,g in ipairs(mission.player.weapons.groups) do dps=dps+(({mg=336,laser=252,sniper=333,missile=187})[g.kind] or 120)*math.min(1,g.output or g.share or 0) end
-    self.rules=Rules.New(C,dps);self.allies={};self.missiles={};self.pending={};self.shots={};self.time=0;self.flow={stage='wait',t=0}
+    self.rules=Rules.New(C,dps);self.allies={};self.missiles={};self.pending={};self.shots={};self.said={};self.time=0;self.flow={stage='wait',t=0}
     local points=self.world.layout.enginePit and self.world.layout.enginePit.points or {}
     self.at={enter=points.bossEnter or {30,0,330},outside=points.breachOutside or {30,0,400}}
     local o=V.Scale(V.Add(self.at.enter,self.at.outside),.5);o[2]=self:Ground(o[1],o[3])+2
@@ -77,13 +85,29 @@ function M:Victim()
     if #team==1 or self.mission.player.alive and math.random()<.6 then return team[1] end
     return team[math.random(self.mission.player.alive and 2 or 1,#team)]
 end
-function M:Say(key,bark)
-    local lines=self.step.lines[key];if not lines then return end
-    if bark and (self.mission.voice:Talking() or self.time<(self.storyUntil or 0)) then return end
+function M:Say(key,urgent)
+    local lines=self.step.lines[key];if not lines then return false end
+    local bark=BARKS[key]
+    if bark and (self.mission.voice:Talking() or self.time<(self.storyUntil or 0)) then return false end
     if type(lines[1])=='string' then lines={lines} end
     local busy=self.time<(self.storyUntil or 0)
     if not bark then local duration=0;for _,line in ipairs(lines) do duration=duration+(utf8.len(line[2]) or #line[2])*.11+2 end;self.storyUntil=math.max(self.storyUntil or 0,self.time)+duration end
-    self.mission.voice:Say(lines,not busy,busy)
+    self.mission.voice:Say(lines,urgent==true and not busy,busy);return true
+end
+function M:Once(key,urgent)
+    self.said=self.said or {}
+    if self.said[key] or not self:Say(key,urgent) then return false end
+    self.said[key]=true;return true
+end
+function M:KneelLine(phase)
+    local lines=self.step.lines;local pool={table.unpack(lines.kneelPool)}
+    if phase==2 then pool[#pool+1]=lines.kneelP2 elseif phase==3 then pool[#pool+1]=lines.kneelP3 end
+    local index=math.random(#pool);local pick=pool[index]
+    if pick==self.lastKneelLine and #pool>1 then pick=pool[index%#pool+1] end
+    -- Source remembers even a bark suppressed by an occupied story channel.
+    self.lastKneelLine=pick
+    if self.mission.voice:Talking() or self.time<(self.storyUntil or 0) then return false end
+    self.mission.voice:Say({pick},false,false);return true
 end
 function M:Banner(kick,title,sub,kind,ms) self.mission:Banner(kick,title,sub,kind,ms) end
 function M:SpawnAlly(index)
@@ -106,7 +130,7 @@ end
 function M:Shelter(pos)
     local best,d=nil,math.huge
     for _,roof in ipairs(self.world.layout.enginePit and self.world.layout.enginePit.ceilings or {}) do
-        if Flat(roof.center,pos)<d then best=roof.center;d=Flat(best,pos) end
+        if Flat(roof.center,pos)<=d then best=roof.center;d=Flat(best,pos) end
     end
     return best and {best[1],self:Ground(best[1],best[3]),best[3]} or nil
 end
@@ -114,9 +138,16 @@ function M:Target() local p=self.mission.player:Position();return self:Threat() 
 function M:Threat() return self.rules.hp>0 and (self.rules.state=='barrage' or self.rules.state=='ult' or #self.missiles>0 or self.raid~=nil) end
 function M:AllyTarget(unit)
     if self.rules.state=='ult' and self.rules.t>1 and not self:UnderRoof(unit.pos,3) then local shelter=self:Shelter(unit.pos);if shelter then return shelter,true end end
-    for i=2,#self.mission.entries do local e=self.mission.entries[i];if e.tag=='drill' and e.unit.alive and Flat(unit.pos,e.unit.pos)<70 then return e.unit:Position(),false,e.unit end end
+    local drill=false;local nearest=math.huge
+    for i=2,#self.mission.entries do local e=self.mission.entries[i]
+        if e.tag=='drill' and e.unit.alive then local distance=Flat(unit.pos,e.unit.pos)
+            if distance<nearest then drill=e.unit;nearest=distance end
+        end
+    end
+    if drill and nearest<70 then return drill:Position(),false,drill end
+    if not ALLY_ATTACK_STATES[self.rules.state] then return nil end
     local best,d=nil,math.huge
-    if self.rules.state~='kneel' then for _,n in ipairs(self.rules.nodes) do if not n.broken and Flat(unit.pos,n.pos)<d then best=n.pos;d=Flat(unit.pos,n.pos) end end end
+    if self.rules.state~='kneel' then for _,n in ipairs(self.rules.nodes) do if not n.broken and Flat(unit.pos,n.pos)<=d then best=n.pos;d=Flat(unit.pos,n.pos) end end end
     return best or self:Cockpit(),false,self.unit
 end
 function M:StepUnit(u,cmd,aim,firing,env,dt,salvo)
@@ -125,20 +156,48 @@ function M:StepUnit(u,cmd,aim,firing,env,dt,salvo)
     u.weapons:Step(dt,{firing=firing,aim=aim,pos=V.Array(v.body.translation()),quat=v.body.rotation(),vel=V.Array(v.body.linvel()),body=v.body,team=u.team,salvo=salvo},env)
     self.session.effects:Consume(u.weapons.fx);self.session.weaponAudio:Consume(u.weapons.fx,true)
 end
-function M:BeforeStep(dt)
-    if self.disposed then return end;local r=self.rules;self:Nodes()
+function M:StepAllies(dt)
+    local r=self.rules
     for i,a in ipairs(self.allies) do
-        if a.deadAt then if self.time-a.deadAt>C.ally.respawn and r.hp>0 and r.state~='ult' then self:SpawnAlly(i) end
-        else local u=a.unit
-            if not u.alive or u:Health()<C.ally.hull then self:Fx(u.pos,3);self:Remove(u);a.deadAt=self.time;self:Say('allyDown',true)
+        if a.deadAt then if self.time-a.deadAt>C.ally.respawn and r.hp>0 and ALLY_RESPAWN_STATES[r.state] then self:SpawnAlly(i) end
+        else local u=a.unit;u:Flush()
+            if not u.alive or u:Health()<C.ally.hull then self:Fx(u.pos,3);self:Remove(u);a.deadAt=self.time;self:Once('allyDown')
             else local target,passive,reference=self:AllyTarget(u)
-                local fake={passive=passive,radius=passive and 3 or nil,unit=reference,spec={bounds={min={0,0,0},max={0,0,0}}},Position=function() return target end}
-                local cmd,aim,fire,driverInfo=a.driver:Step(dt,fake)
-                require('combat.DriverActions').Apply(u,driverInfo)
-                self:StepUnit(u,cmd,aim,fire and not passive,a.env,dt,driverInfo and driverInfo.salvo)
+                if not target then
+                    u.vehicle:StepRotors(nil,false,dt)
+                    require('drive.RotorMotion').Weapons(u.vehicle.rotors,u.weapons)
+                    u.vehicle:Step(PARK,dt)
+                else
+                    local fake={passive=passive,radius=passive and 3 or nil,unit=reference,spec={bounds={min={0,0,0},max={0,0,0}}},Position=function() return target end}
+                    local cmd,aim,fire,driverInfo=a.driver:Step(dt,fake)
+                    require('combat.DriverActions').Apply(u,driverInfo)
+                    self:StepUnit(u,cmd,aim,fire and not passive,a.env,dt,driverInfo and driverInfo.salvo)
+                end
             end
         end
     end
+end
+function M:Waypoint(to)
+    local nav=self.world.layout.nav
+    if not nav or not nav.nodes then return to end
+    local pos=self.unit:Position()
+    if not self.path or self.time>self.pathUntil or Flat(self.pathTo,to)>25 then
+        local ids=Nav.Path(nav,pos,to,4)
+        if #ids==0 then ids=Nav.Path(nav,pos,to,0) end
+        self.path={};for _,id in ipairs(ids) do self.path[#self.path+1]=nav.nodes[id] end
+        self.pathUntil=self.time+1.5;self.pathTo={table.unpack(to)}
+    end
+    while #self.path>0 and Flat(self.path[1],pos)<20 do table.remove(self.path,1) end
+    return #self.path>1 and Flat(pos,to)>60 and self.path[1] or to
+end
+function M:BeforeStep(dt)
+    if self.disposed then return end;local r=self.rules
+    local control=self.unit.vehicle and self.unit.vehicle.mechControl
+    if control then
+        local target=BOSS_KNEEL_STATES[r.state] and 1 or 0
+        control.kneel=(control.kneel or 0)+(target-(control.kneel or 0))*math.min(1,dt*3)
+    end
+    self:Nodes();self:StepAllies(dt)
     local player=self.mission.player
     if r.state=='kneel' and player.weapons then player.weapons.energy=math.min(player.weapons.energyMax,player.weapons.energy+require('combat.WeaponDefs').ENERGY.regen*(C.kneelEnergy-1)*dt) end
     local u=self.unit;local pos=u:Position();local victim=self.focusUnit
@@ -151,12 +210,7 @@ function M:BeforeStep(dt)
     if r.state=='intro' then cmd=Face(self.at.enter,Flat(pos,self.at.enter)>8 and .8 or 0)
     elseif target and r.state=='fight' then
         local dd=Flat(pos,target);local home=self.world.layout.enginePit and self.world.layout.enginePit.points.floorCentre or {0,0,0}
-        local leash=Flat(pos,home)>C.leash;local goal=leash and home or target;local walk=C.walk[r.phase]
-        if dd>C.keep[2] then
-            self.driver.route=self.driver:Path(pos,goal)
-            while #self.driver.route>0 and Flat(pos,self.driver.nav.nodes[self.driver.route[1]])<20 do table.remove(self.driver.route,1) end
-            if #self.driver.route>1 then goal=self.driver.nav.nodes[self.driver.route[1]] end
-        end
+        local leash=Flat(pos,home)>C.leash;local goal=leash and home or dd>C.keep[2] and self:Waypoint(target) or target;local walk=C.walk[r.phase]
         cmd=Face(goal,leash and walk*1.6 or dd>C.keep[2]*2.2 and walk*2.4 or dd>C.keep[2] and walk or dd<C.keep[1] and -.22 or walk*.35,
             not leash and dd<C.keep[2] and math.sin(self.time*.23)*.35 or 0)
         if math.abs(cmd.throttle)>.2 and dd>C.keep[2] then
@@ -190,6 +244,23 @@ function M:OpenNode(to,min,max)
     return best
 end
 function M:Fx(pos,size,big) self.mission.explosion:Explode(pos,size,big==true) end
+function M:OpenDir(radius)
+    local p=self.unit:Position();local best,bestDistance=0,-1
+    for i=0,23 do
+        local angle=i/24*math.pi*2;local direction={math.sin(angle),.12,math.cos(angle)}
+        local origin={p[1]+direction[1]*10,p[2]+2,p[3]+direction[3]*10}
+        local hit=self.world:CastRay(origin,V.Normalize(direction),radius,self.mission.player.vehicle and self.mission.player.vehicle.body)
+        local distance=hit and (not hit.owner or hit.owner.ref~=self.unit) and hit.dist or radius
+        if distance>bestDistance+.5 then bestDistance=distance;best=angle end
+    end
+    return best
+end
+function M:RecoveryPose()
+    local truck=self.flow.truck;if not truck or not truck.from or not truck.to then return nil end
+    local k=math.min(1,truck.t/8);local eased=k*k*(3-2*k);local pos=V.Mix(truck.from,truck.to,eased)
+    pos[2]=self:Ground(pos[1],pos[3])
+    return pos,math.atan(truck.to[1]-truck.from[1],truck.to[3]-truck.from[3]),k<1 and 6 or 0
+end
 function M:HitUnit(unit,damage,from,push,lift)
     self.world.attacker=self.unit;unit:Explode(V.Add(unit:Position(),{0,2.5,0}),7,damage);self.world.attacker=nil;unit:Flush()
     if unit.vehicle and push then local delta=V.Sub(unit.pos,from);local length=math.max(1,Flat(unit.pos,from));local mass=unit.vehicle.body.mass()
@@ -197,16 +268,17 @@ function M:HitUnit(unit,damage,from,push,lift)
 end
 function M:Events()
     for _,e in ipairs(self.rules:Drain()) do
-        if e.type=='say' then self:Say(e.key)
-        elseif e.type=='kneelLine' then local pool=self.step.lines.kneelPool;self.mission.voice:Say({pool[math.random(#pool)]},false,true)
+        if e.type=='say' then self:Say(e.key,URGENT_LINES[e.key])
+        elseif e.type=='exposed' then self.exposedDelay=require('combat.BossExposedDelay').New(self)
+        elseif e.type=='kneelLine' then self:KneelLine(e.phase)
         elseif e.type=='damage' then self.world:RecordDamage(self.unit,e.amount,e.point,{shield=e.shield,pierce=e.pierce,broke=e.broke})
         elseif e.type=='energyFull' then local ws=self.mission.player.weapons;ws.energy=ws.energyMax;ws.offline=false
-        elseif e.type=='kneel' then self:Capture('kneel1',.6);self.mission.rules.stats.kneels=e.kneels;self.mission.rules.retitle='打驾驶舱'
+        elseif e.type=='kneel' then if e.kneels==1 then self:Capture('kneel1',1.6) end;self.mission.rules.stats.kneels=e.kneels;self.mission.rules.retitle='打驾驶舱'
             local left=4-self.rules:Broken();local sub=left>0 and '伤害 ×3 · 驾驶舱 ×4 · 能量回满 · 还剩 '..left..' 条好腿' or self.exposedBanner and '伤害 ×3 · 驾驶舱 ×4 · 能量回满' or '四条腿全废 · 以后打满失衡槽它还会跪'
             self:Banner('虚弱','九尾狐跪下了',(e.interrupted and '大招被打断了 · ' or '')..sub,'install',2600);if left==0 then self.exposedBanner=true end
         elseif e.type=='riseWarning' then self.mission.rules.retitle='它要站起来了'
         elseif e.type=='riseForced' then self:Banner('硬撑','它硬撑着站起来了','这一跪打满了 · 再打下一条腿','enemy',2000)
-        elseif e.type=='phase' then self.radio:Play('alert');self:Banner(e.phase==2 and '二阶段' or '三阶段',e.phase==2 and '急眼了' or '九尾全开',e.phase==2 and '钻头小兵 · 跳砸' or '九个导弹舱齐射 · 进顶棚底下','enemy',3000)
+        elseif e.type=='phase' then self.session.trauma=math.max(self.session.trauma or 0,.5);self.radio:Play('alert');self:Banner(e.phase==2 and '二阶段' or '三阶段',e.phase==2 and '急眼了' or '九尾全开',e.phase==2 and '钻头小兵 · 跳砸' or '九个导弹舱齐射 · 进顶棚底下','enemy',3000)
         elseif e.type=='nodeBreak' then self.radio:Play('alert');self:Fx(e.pos,2.2)
         elseif e.type=='drills' then local at=self.at.enter;local enemies={};for _,x in ipairs({-14,0,14}) do enemies[#enemies+1]={at={at[1]+x,at[3]-18-math.abs(x)},role='assault',driver='drill',source=self.step.drillSource,name='海盗钻头车 · 天元突破'} end;self.mission:Spawn({enemies=enemies,tag='drill'})
             self:Banner('增援','海盗钻头车','3 辆 · 天元突破 · 从北缺口冲进来','enemy',2400)
@@ -217,7 +289,7 @@ function M:Events()
             for _,u in ipairs(self:Team()) do local p=u:Position();local tel=u.vehicle.telemetry
                 local distance=Flat(p,e.pos);local grounded=(tel.contact or 0)>0 or (tel.mechContacts or tel.legContacts or 0)>0 or (tel.hovers or 0)>0
                 local exposed=u==self.mission.player and (grounded or p[2]-e.pos[2]<4) or u~=self.mission.player and p[2]-e.pos[2]<=6
-                if distance<e.r and exposed then self:HitUnit(u,e.damage*(1-.4*distance/e.r),e.pos,C.stomp.push,7);if u==self.mission.player and e.kind=='stomp' then self:Say('stompHit',true) end end
+                if distance<e.r and exposed then self:HitUnit(u,e.damage*(1-.4*distance/e.r),e.pos,C.stomp.push,7);if u==self.mission.player and e.kind=='stomp' then self:Once('stompHit') end end
             end
             if e.kind=='slam' then for i=#self.mission.entries,2,-1 do local entry=self.mission.entries[i];if entry.tag=='drill' and entry.unit.alive and Flat(entry.unit.pos,e.pos)<11 then entry.unit.bodyHp=0;entry.unit.kill='九尾狐踩扁了';entry.unit.dirty=true;entry.unit:Flush() end end end
         elseif e.type=='land' then local body=self.unit.vehicle.body;local velocity=body.linvel();body.setLinvel({x=0,y=math.min(0,velocity.y),z=0});self.flight=nil
@@ -227,7 +299,7 @@ function M:Events()
             for k=-2,2 do local a=e.yaw+k*half/2.2;self:Fx({e.pos[1]+math.sin(a)*C.sweep.r*.6,e.pos[2]+1.5,e.pos[3]+math.cos(a)*C.sweep.r*.6},3.2) end
             self.session.trauma=math.max(self.session.trauma or 0,.55)
             for _,u in ipairs(self:Team()) do local p=u:Position();local a=Wrap(math.atan(p[1]-e.pos[1],p[3]-e.pos[3])-e.yaw)
-            if Flat(p,e.pos)<=C.sweep.r and math.abs(a)<=C.sweep.arc*math.pi/360 and p[2]-e.pos[2]<=12 then self:HitUnit(u,C.sweep.dmg,e.pos,C.sweep.push);if u==self.mission.player then self:Say('sweepHit',true) end end
+            if Flat(p,e.pos)<=C.sweep.r and math.abs(a)<=C.sweep.arc*math.pi/360 and p[2]-e.pos[2]<=12 then self:HitUnit(u,C.sweep.dmg,e.pos,C.sweep.push);if u==self.mission.player then self:Once('sweepHit') end end
         end
         elseif e.type=='lanes' then
             for i=0,C.lanes.n-1 do local a=e.yaw+i*math.pi*2/C.lanes.n
@@ -236,9 +308,9 @@ function M:Events()
             self.session.trauma=math.max(self.session.trauma or 0,.5)
             for _,u in ipairs(self:Team()) do local p=u:Position();for i=0,C.lanes.n-1 do local a=e.yaw+i*math.pi*2/C.lanes.n
             local dx,dz=p[1]-e.pos[1],p[3]-e.pos[3];local along=dx*math.sin(a)+dz*math.cos(a);local off=math.abs(dx*math.cos(a)-dz*math.sin(a))
-            if along>=0 and along<=C.lanes.len and off<=C.lanes.w/2+1.5 then self:HitUnit(u,C.lanes.dmg,V.Add(p,{0,-2,0}),6);if u==self.mission.player then self:Say('lanesHit',true) end;break end
+            if along>=0 and along<=C.lanes.len and off<=C.lanes.w/2+1.5 then self:HitUnit(u,C.lanes.dmg,V.Add(p,{0,-2,0}),6);if u==self.mission.player then self:Once('lanesHit') end;break end
         end end
-        elseif e.type=='ultBlast' then self.radio:Play('alert');self:Capture('ult',.3);local safe=true;self.ultFlash=self.time
+        elseif e.type=='ultBlast' then self.radio:Play('alert');local safe=true;self.ultFlash=self.time
             self.session.trauma=1
             local center=self.world.layout.enginePit and self.world.layout.enginePit.points.floorCentre or {0,0,0}
             for _=1,14 do local a=math.random()*math.pi*2;local r=40+math.random()*300;local x,z=center[1]+math.sin(a)*r,center[3]+math.cos(a)*r;self:Fx({x,self:Ground(x,z)+2,z},5,true) end
@@ -246,14 +318,15 @@ function M:Events()
                 local amount=u.bodyHpMax*C.ult.hit*(u==self.mission.player and 1 or C.ally.ult);self.world.attacker=self.unit
                 if u.hull then u:HurtHull(amount,u.pos);u:RecordDamage(amount,u.pos) end
                 u:Explode(V.Add(u.pos,{0,1,0}),5,u.hull and 300 or amount);self.world.attacker=nil;u:Flush();self:Fx(V.Add(u.pos,{0,2,0}),4,true);if u==self.mission.player then safe=false end
-            end end;self:Say(safe and 'ultSafe' or 'ultHit');self.mission.rules.retitle=self.step.title
+            end end;self:Say(safe and 'ultSafe' or 'ultHit',true);self.mission.rules.retitle=self.step.title
         elseif e.type=='launch' then
             local b=self.unit.vehicle.body;local from=V.Array(b.translation());local to={e.pos[1],self:Ground(e.pos[1],e.pos[3])+from[2]-self:Feet()[2],e.pos[3]}
             self.flight={from=from,to=to,t=0,duration=e.flight,apex=self.rules.slamApex}
         elseif e.type=='missiles' then for i=0,C.missile.n-1 do self.pending[#self.pending+1]={at=self.time+i*C.missile.gap,index=i} end
         elseif e.type=='raid' then self:StartRaid()
-        elseif e.type=='die' then self:Capture('down',2.4);self.mission:ClearEnemies('drill');self.missiles={};self.pending={};self.raid=nil;self.flow={stage='ending',t=0};self.cinematic=true;self:Say('down');self.mission.rules.retitle='九尾狐瘫倒了'
+        elseif e.type=='die' then self:Capture('down',2.4);self.mission:ClearEnemies('drill');self.missiles={};self.pending={};self.raid=nil;self.flow={stage='ending',t=0};self.cinematic=true;self.storyUntil=0;self:Say('down',true);self.mission.rules.retitle='九尾狐瘫倒了'
         elseif e.type=='state' then
+            if e.state=='ult' then self:Capture('ult',6.5) end
             if ({stomp=true,slamCrouch=true,sweep=true,lanes=true,ult=true})[e.state] then self.radio:Play('alert') end
             if e.state=='fight' then self.mission.rules.retitle=self.step.title end
         end
@@ -268,7 +341,8 @@ function M:StartRaid()
     for i=1,C.raid.bombers do local k=i-2;local center=V.Add(p,V.Scale(side,k*22));center[2]=self:Ground(center[1],center[3])+C.raid.alt+(i-1)*4
         planes[i]={from=V.Add(center,V.Scale(dir,-C.raid.len/2)),delay=math.abs(k)*.45,next=0}
     end
-    self.raid={t=0,dir=dir,planes=planes};self.radio:Play('alert');self:Banner('空袭','海盗轰炸机','从天上来 · 钻进顶棚底下','enemy',2600);self:Say('raid')
+    self.raid={t=0,dir=dir,planes=planes};self.radio:Play('alert');self:Banner('空袭','海盗轰炸机','从天上来 · 钻进顶棚底下','enemy',2600)
+    self.said=self.said or {};if not self.said.raid then self.said.raid=true;self:Say('raid',true) end
 end
 function M:Projectiles(dt)
     for i=#self.pending,1,-1 do local e=self.pending[i];if self.time>=e.at and self.rules.hp>0 then
@@ -320,28 +394,35 @@ function M:Update(dt)
     end
     if f.stage=='wait' and f.t>.6 and not self.mission.voice:Talking() then self.radio:Play('alert');f.stage='introCine';f.t=0;self.rules:Go('intro');self.cinematic=true
     elseif f.stage=='introCine' then
+        if f.t>1.2 and not f.shook then f.shook=true;self.session.trauma=math.max(self.session.trauma or 0,.45) end
         if f.t>4.6 and not f.banner then f.banner=true;self.radio:Play('alert');self:Banner('首领','九尾狐','MEGA 级 · 狐狐海盗团镇团之宝','enemy',3600) end
         if f.t>8 or self.skip then
             self.skip=false;if not f.banner then self:Banner('首领','九尾狐','MEGA 级 · 狐狐海盗团镇团之宝','enemy',2400) end
-            self.cinematic=false;self.rules:Go('standoff');self:Say('entrance');f.stage='talk';f.t=0
+            self.cinematic=false;self.rules:Go('standoff');self:Say('entrance',true);f.stage='talk';f.t=0
         end
     elseif f.stage=='talk' and f.t>1 and not self.mission.voice:Talking() then
-        f.stage='fight';f.t=0;self.rules:Go('fight');for i=1,3 do self:SpawnAlly(i) end;self:Banner('支援','合同工小队到了','铁锤 · 螺丝 · 扳手 · 跟你一起打','install',2600);self:Say('allies');self:Say('fightStart')
+        f.stage='fight';f.t=0;self.rules:Go('fight');for i=1,3 do self:SpawnAlly(i) end;self:Banner('支援','合同工小队到了','铁锤 · 螺丝 · 扳手 · 跟你一起打','install',2600);self:Say('allies',true);self:Say('fightStart',true)
     elseif f.stage=='fight' then
         local drill=nil;local nearest=math.huge;for i=2,#self.mission.entries do local entry=self.mission.entries[i];if entry.tag=='drill' and entry.unit.alive then local pos=entry.unit:Position();local distance=Flat(pos,self.unit.pos);if distance<nearest then drill=pos;nearest=distance end end end
-        self.rules:Step(dt,{pos=self.unit:Position(),target=self.focusUnit and self.focusUnit.alive and self.focusUnit:Position() or self.mission.player.alive and self.mission.player:Position(),
+        self.rules:Step(dt,{pos=self.unit:Position(),target=self.mission.player.alive and (self.focusUnit and self.focusUnit.alive and self.focusUnit:Position() or self.mission.player:Position()) or nil,
             yaw=self.unit.vehicle:Yaw(),feet=self:Feet(),contacts=self.unit.vehicle.telemetry.mechContacts or self.unit.vehicle.telemetry.legContacts or self.unit.vehicle.telemetry.contact or 0,drill=drill,
             landing=function(to) local goal=self:UnderRoof(to,-6) and self:OpenNode(to,0,70) or to;goal=goal or to;return {goal[1],self:Ground(goal[1],goal[3]),goal[3]} end,
-            talking=self.mission.voice:Talking(),wantHop=self.wantHop,raid=self.raid~=nil});self.wantHop=nil;self:Events()
+            flightTime=self.flight and self.flight.t or 0,talking=self.mission.voice:Talking(),wantHop=self.wantHop,raid=self.raid~=nil});self.wantHop=nil;self:Events()
     elseif f.stage=='ending' then
+        if not self.skip and f.open==nil then f.open=self:OpenDir(48) end
         if self.skip then self.skip=false;self.mission.voice:Hide();self:Banner('回收','九尾狐瘫倒了','狐狐坐逃生舱跑了 · 小运把残骸拖回公司','install',3000);self:Finish()
         elseif f.t<3.5 and (f.boomAt or 0)<=self.time then f.boomAt=self.time+.45;self:Fx(V.Add(self.unit.pos,{(math.random()-.5)*14,math.random()*8,(math.random()-.5)*14}),3,true);self.session.trauma=math.max(self.session.trauma or 0,.3)
         elseif f.t>5 and not f.pod and not self.mission.voice:Talking() then self.radio:Play('open');f.pod={from=self:Cockpit(),t=0};self:Fx(f.pod.from,2)
         elseif f.pod and not f.truck then f.pod.t=f.pod.t+dt
             local pod=f.pod;pod.smoke=(pod.smoke or 0)-dt
             if pod.smoke<=0 then local t=pod.t;pod.smoke=.18;self:Fx({pod.from[1]+math.sin(t*2.1)*4+t*3,pod.from[2]+t*9-t*t*.25,pod.from[3]+t*t*3.2},.8) end
-            if f.pod.t>1.2 and not f.pod.said then f.pod.said=true;self:Say('pod') end
-            if f.pod.t>7 and not self.mission.voice:Talking() then f.truck={t=0};self:Say('truck') end
+            if f.pod.t>1.2 and not f.pod.said then f.pod.said=true;self:Say('pod');self:Capture('pod',.2) end
+            if f.pod.t>7 and not self.mission.voice:Talking() then
+                local pos=self.unit:Position();local angle=f.open;local sx,sz=math.sin(angle),math.cos(angle)
+                local from={pos[1]+sx*62,0,pos[3]+sz*62};local to={pos[1]+sx*22,0,pos[3]+sz*22}
+                from[2]=self:Ground(from[1],from[3]);to[2]=self:Ground(to[1],to[3])
+                f.truck={t=0,from=from,to=to};self:Say('truck')
+            end
         elseif f.truck then f.truck.t=f.truck.t+dt;if f.truck.t>=8 and not self.mission.voice:Talking() then self:Finish() end end
     end
     self.view:Update(dt);if self.shock then self.shock.age=self.shock.age+dt;if self.shock.age>.7 then self.shock=nil end end
@@ -351,37 +432,52 @@ function M:Key(key,held)
     if not self.cinematic or key~=KEY_RETURN then return false end
     if held and held>=.9 then self.skip=true else self.mission.voice:SkipLine() end;return true
 end
+function M:CinematicShot()
+    local pos=self.unit:Position();local f=self.flow;local eye,at,blend
+    if f.stage=='introCine' then local e=self.at.enter;eye={e[1]-22,self:Ground(e[1]-22,e[3]-50)+4,e[3]-50};at=V.Add(pos,{0,7+math.min(4,f.t),0});blend=f.t<.1 and 1 or .08
+    elseif f.pod and not f.truck then local p=f.pod;at={p.from[1]+math.sin(p.t*2.1)*4+p.t*3,p.from[2]+p.t*9-p.t*p.t*.25,p.from[3]+p.t*p.t*3.2};local angle=(f.open or 0)+.6;eye=V.Add(self:Cockpit(),{math.sin(angle)*44,10,math.cos(angle)*44});blend=.12
+    elseif f.truck and f.truck.to then local angle=(f.open or 0)+1.1;eye=V.Add(f.truck.to,{math.sin(angle)*30,9,math.cos(angle)*30});at=V.Add(self:RecoveryPose(),{0,3,0});blend=.06
+    else local a=(f.open or 0)-.5+f.t*.12;eye={pos[1]+math.sin(a)*40,math.max(pos[2]+6,self:Ground(pos[1]+math.sin(a)*40,pos[3]+math.cos(a)*40)+5),pos[3]+math.cos(a)*40};at=V.Add(pos,{0,4,0});blend=f.t<.1 and 1 or .06 end
+    return eye,at,blend
+end
 function M:AfterCamera(dt)
     if not self.cinematic then return end
-    local camera=self.session.camera:GetCamera();local root=camera:GetNode();local pos=self.unit:Position();local f=self.flow
-    local eye,at
-    if f.stage=='introCine' then local e=self.at.enter;eye={e[1]-22,self:Ground(e[1]-22,e[3]-50)+4,e[3]-50};at=V.Add(pos,{0,7+math.min(4,f.t),0})
-    elseif f.pod and not f.truck then local p=f.pod;at={p.from[1]+math.sin(p.t*2.1)*4+p.t*3,p.from[2]+p.t*9-p.t*p.t*.25,p.from[3]+p.t*p.t*3.2};eye=V.Add(self:Cockpit(),{35,10,28})
-    else local a=-.5+f.t*.12;eye={pos[1]+math.sin(a)*40,math.max(pos[2]+6,self:Ground(pos[1]+math.sin(a)*40,pos[3]+math.cos(a)*40)+5),pos[3]+math.cos(a)*40};at=V.Add(pos,{0,4,0}) end
-    local from=Coord.Vec(eye[1],eye[2],eye[3]);local to=Coord.Vec(at[1],at[2],at[3]);local delta=V.Sub(eye,at);local len=V.Length(delta)
-    if len>10 then local dir=V.Scale(delta,1/len);local origin=V.Add(at,V.Scale(dir,9));local hit=self.world:CastRay(origin,dir,len-9,self.mission.player.vehicle and self.mission.player.vehicle.body)
-        if hit and (not hit.owner or hit.owner.ref~=self.unit) then from=Coord.Vec(table.unpack(V.Add(origin,V.Scale(dir,math.max(0,hit.dist-1.5))))) end
+    local camera=self.session.camera:GetCamera();local root=camera:GetNode();local eye,at,blend=self:CinematicShot()
+    self.cineEye=V.Mix(self.cineEye or {-root.worldPosition.x,root.worldPosition.y,root.worldPosition.z},eye,blend)
+    self.cineAt=V.Mix(self.cineAt or at,at,blend)
+    local delta=V.Sub(self.cineEye,self.cineAt);local len=V.Length(delta)
+    if len>10 then local dir=V.Scale(delta,1/len);local origin=V.Add(self.cineAt,V.Scale(dir,9));local hit=self.world:CastRay(origin,dir,len-9,self.mission.player.vehicle and self.mission.player.vehicle.body)
+        if hit and (not hit.owner or hit.owner.ref~=self.unit) then self.cineEye=V.Add(origin,V.Scale(dir,math.max(0,hit.dist-1.5))) end
     end
-    root.worldPosition=root.worldPosition:Lerp(from,f.t<.1 and 1 or .08);root:LookAt(to,Vector3.UP)
+    root.worldPosition=Coord.Vec(table.unpack(self.cineEye));root:LookAt(Coord.Vec(table.unpack(self.cineAt)),Vector3.UP)
 end
 function M:Snapshot() local state=self.rules:Snapshot();state.cinematic=self.cinematic;state.flow=self.flow.stage;state.threat=self:Threat();return state end
+function M:CaptureNow()
+    if self.captureClock then return self.captureClock() end
+    return Time and Time.GetSystemTime and Time:GetSystemTime()/1000 or self.time
+end
 function M:Capture(key,delay)
-    if self.shots[key] or self.captureWanted then return end
-    self.captureWanted={key=key,at=self.time+(delay or 0)}
+    self.captureWanted=self.captureWanted or {};self.shotCaptures=self.shotCaptures or {}
+    if self.shots[key] or self.captureWanted[key] or self.shotCaptures[key] then return end
+    self.captureWanted[key]=self:CaptureNow()+(delay or 0)
 end
 function M:FramePresented()
-    local wanted=self.captureWanted;if not wanted or self.time<wanted.at or self.disposed then return end
-    local image=Image:new();graphics:TakeScreenShot(image)
-    local texture=Texture2D:new();texture:SetNumLevels(1);texture:SetData(image);image:Dispose()
-    self.shots[wanted.key]=texture;self.captureWanted=nil
+    if self.disposed then return end
+    for key,capture in pairs(self.shotCaptures or {}) do if capture:Presented() then self.shots[key]=capture.texture end end
+    for key,at in pairs(self.captureWanted or {}) do if self:CaptureNow()>=at then
+        self.shotCaptures[key]=require('render.BossSceneCapture').New(require('render.WindowViewports').Get(0))
+        self.captureWanted[key]=nil
+    end end
 end
 function M:Dispose()
-    if self.disposed then return end;self.disposed=true;if self.ownsRadio then self.radio:Dispose() end;self.view:Dispose()
+    if self.disposed then return end;self.disposed=true
+    if self.exposedDelay then self.exposedDelay:Dispose();self.exposedDelay=nil end
+    if self.ownsRadio then self.radio:Dispose() end;self.view:Dispose()
     for _,a in ipairs(self.allies) do if a.unit and not a.deadAt then self:Remove(a.unit) end end
     self:Remove(self.unit);self.missiles={};self.pending={};self.cinematic=false
-    for _,texture in pairs(self.shots) do texture:Dispose() end;self.shots={};self.captureWanted=nil
+    for _,capture in pairs(self.shotCaptures or {}) do capture:Dispose() end;self.shots={};self.shotCaptures={};self.captureWanted=nil
     self.unit.HitRay=nil;self.unit.Explode=nil;self.unit.Damage=nil;self.unit.HurtHull=nil
-    self.allies={};self.focusUnit=nil;self.unit=nil;self.driver=nil;self.env=nil
+    self.allies={};self.focusUnit=nil;self.unit=nil;self.driver=nil;self.env=nil;self.path=nil;self.pathTo=nil
     self.view=nil;self.radio=nil;self.world=nil;self.session=nil;self.mission=nil
 end
 return M

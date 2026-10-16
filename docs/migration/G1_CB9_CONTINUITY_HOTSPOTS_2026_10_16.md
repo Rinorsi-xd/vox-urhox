@@ -1,0 +1,29 @@
+# cb9 continuity hotspots
+
+Scope: read-only alignment of `intro-natural-web-1600x900-manifest-cb9f15ca-shared-gc.json`, its `.log` and `-audio-timeline.json`. Functionality passed 65 checks, errors were zero and shutdown was CLOSED; continuity failed. This run includes F8 state dumps, method wrappers, audio/RAF instrumentation and screenshots, so it is not an uninstrumented performance baseline. Browser labels follow the last explicit marker and can lag the real game stage. Times below are UTC.
+
+## Confirmed hotspots
+
+1. The 253 ms non-boot long task at 22:51:20.348-20.601 crossed logo into idyll. The native log records `[Intro] idyll` at 20.350 and first clearcoat/RECTLIGHT shader load/compile in the same frame 2519: vertex compilation finished at 20.399 and pixel compilation at 20.512. This establishes shader compilation as a contributor; it does not assign the entire 253 ms to compilation. The idyll screenshot file completed at 20.789; file modification time does not establish screenshot start time.
+
+2. During sortie-play, 514 actual `TrialSession:Tick` calls accumulated 24,966 ms (48.57 ms/call). There were 1,513 `actorsBeforeStep` calls (about 2.94 fixed steps/Tick), accumulating 15,243 ms; their vehicle steps are nested within that work. Enemy-view update averaged 5.48 ms, combat-effects update 3.13 ms and opening-page render 3.56 ms over the same interval. The 207 ms long task at 22:52:07.432-07.639 aligns with Tick last/max 186 ms at shot age 30.0457; worldStep max 73 ms and actorFlush max 71 ms share that age and must not be added as independent costs. A late 7.5-second combat interval contains 77 long tasks totaling 6,939 ms, while native mixer callbacks reached only 1.22 ms. Sustained session work is established; screenshots or a single F8 dump cannot explain all of it. These inclusive method measurements do not separate Lua, GC, native physics and rendering internals.
+
+## Gate remains unattributed
+
+The 418 ms task at 22:54:26.444-26.862 follows the first visible hall/tutorial state at 26.423. `CompleteFinish` had already finished at 25.948 in 72 ms, including host disposal 63 ms and HUD restoration 7 ms. The 418 ms task therefore is not that measured synchronous exit call. Native retirement had finished much earlier, at 22:53:21.593 (45 slices, 229 ms total, 24 ms maximum).
+
+The 473.32 ms audio callback gap overlaps this task, but mixing callbacks near it cost at most 0.67 ms, indicating delayed delivery rather than expensive mixer computation. Download group 25 completed at 26.382, group 1 at 26.860, and the music playback log appeared at 26.928. Those timestamps do not identify the blocking native method or the downloaded paths. The hall state dump had already printed at 26.423; measured `probe.Dump` maximum was 40 ms and its last measured call 2 ms. The restored screenshot completed at 27.154 and may overlap the task, but its start timestamp was not recorded. Without a CPU/native stack or screenshot span, neither audio decode nor screenshot readback is a confirmed cause. Preserve the gate failure as unattributed.
+
+## Final 6cf comparison
+
+Read-only comparison with `intro-natural-web-1600x900-manifest-6cf48957-final-gc.json`, its log and audio timeline confirms the same two classes of problem. Functionality again passed 65 checks, errors were zero, shutdown was CLOSED, and continuity failed.
+
+The largest non-boot task is now marked `hall-return`: 782 ms at 23:00:02.383-03.165, with RAF gap 800.60 ms and audio callback gap 828.765 ms. Synchronous `CompleteFinish` had finished at 23:00:01.856 in 74 ms, including 66 ms host disposal and 8 ms HUD restoration. Retirement finished at 22:58:58.001 (48 slices, 245 ms total, 25 ms maximum). Download group 25 completed at 23:00:02.275, group 1 at 03.160, audio disposal at 03.166 measured zero, and the music playback log appeared at 03.470. Nearby mixers cost at most 0.68 ms. This repeats a return-to-hall continuity failure, but does not identify audio decode, screenshot readback, GC or another native method as its cause. It remains unattributed.
+
+Across 71 sortie-play samples, 511 Tick calls accumulated 24,586 ms (48.11 ms/call, versus cb9 48.57). There were 1,505 fixed steps (2.945/Tick), 15,261 ms in actorsBeforeStep including 10,904 ms vehicleStep, 2,701 ms enemyView (5.29/Tick), 1,582 ms combatEffects (3.10/Tick), and 1,727 ms openingPage (3.38/Tick). WorldStep accumulated 2,304 ms (1.53/step); actorFlush accumulated 1,046 ms and peaked at 53 ms. Nested timings must not be summed. The sustained combat cost is reproducible; the dirty-rebuild path is a peak candidate but is not the dominant inclusive total.
+
+Fixed-step source comparison found no duplicate automatic physics update: PhysicsSpace disables automatic updates, and the opening's 0.05-second frame clamp limits accumulation to about three 60 Hz steps per frame. The H5 source also uses 60 Hz steps. The two Flush call sites surround possible new weapon damage, while simulation and view pose snapshots have different consumers. Removing these paths or lowering physics frequency is not supported by this evidence.
+
+The frozen H5 `shared/combat/carUnit.js:686-742` also batches broken parts through a dirty flag, checks connectivity, builds a new spec, disposes/rebuilds the vehicle, restores its state and refits weapons. It does not preserve the old body/colliders as an optimization absent from Lua. Lua `scripts/combat/CarUnit.lua:348-381` follows the same dirty rebuild boundary and passes the already computed connectivity to `Spec.Build`. Neither implementation rebuilds immediately for each individual damage event. No large, strictly behavior-preserving deletion was established in this pass.
+
+No production, tool or frozen snapshot was changed for this analysis; no browser/GPU operation was performed. Resource release success and continuity failure remain separate outcomes. cb9 and 6cf retain their own hashes and acceptance results.

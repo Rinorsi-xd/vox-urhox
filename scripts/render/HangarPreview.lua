@@ -3,6 +3,11 @@
 -- shared/build/editor.js::_thumbnail + three/src/render/pipeline.js::capture.
 local Cache=require 'storage.PreviewCache'
 local Config=require 'Config'
+---@class HangarPreview
+---@field app table
+---@field loader table
+---@field gate table
+---@field job table|nil
 local M={};M.__index=M
 function M.New(app)
     return setmetatable({app=app,loader=require('app.SceneLoader').New(function(scene) scene:SetVar('VoxPreview',Variant(true)) end),queue={},frame=0,
@@ -90,6 +95,8 @@ function M:Start(request)
 end
 function M:Readback()
     local job=self.job;local request=job.request
+    -- WebGPU 不支持同步读回：不调用 GetImage（它会报引擎错误），缩略图按读回失败处理
+    assert(require('render.Readback').Sync(),'Saved preview readback unavailable on '..tostring(graphics.apiName))
     local image=assert(job.texture:GetImage(),'Saved preview readback unavailable')
     -- Canvas drawImage centers a cover fit scaled by 1.35, then shifts up 6%.
     local x=math.floor((job.width-320)/2+.5);local y=math.floor((job.height-200)/2+12+.5)

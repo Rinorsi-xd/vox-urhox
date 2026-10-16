@@ -44,7 +44,8 @@ local function Exercise(s)
     local overlapping=0;for i,source in ipairs(audio.slots) do if source.playing and audio.voiceIds[i]=='mg_fire' then overlapping=overlapping+1 end end
     V.assert(overlapping<=3 and #audio.slots<=10,'burst fire limits same-cue voices to three and all voices to ten')
     audio:Loop('mg_motor',.8,1.05,.4,.1)
-    V.assert(math.abs(audio.loops.mg_motor.source.frequency-audio.sounds.mg_motor:GetFrequency()*1.05)<.1,'motor pitch is multiplied by actual sample frequency')
+    local motorPitch=1+.05*(1-math.exp(-.1/.12))
+    V.assert(math.abs(audio.loops.mg_motor.source.frequency-audio.sounds.mg_motor:GetFrequency()*motorPitch)<.1,'motor pitch follows source .12-second envelope in absolute sample Hz')
     for _,tube in ipairs(w.tubes) do V.assert(tube,'all physical tube rounds replenish') end
     -- Native collision at an unrelated ray angle must block shots before target.
     local wall=world.root:CreateChild('MissileTestWall');wall.position=Coord.Vec(155,12,10)

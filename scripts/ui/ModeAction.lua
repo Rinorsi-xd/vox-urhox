@@ -1,4 +1,4 @@
-local Base=require 'urhox-libs/UI/Widgets/Button'
+local Base=require 'ui.ActionButton'
 local D=require 'ui.SourceDraw'
 local Relief=require 'ui.SourceRelief'
 local Button=Base:Extend('VoxSourceModeAction')

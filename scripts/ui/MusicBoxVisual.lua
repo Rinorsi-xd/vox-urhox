@@ -76,7 +76,7 @@ local Menu=Panel:Extend('VoxMusicModeMenu')
 function Menu:Render(vg)
     local w,h=MD.Local(vg,self);D.Rect(vg,0,0,w,h,{46,59,67,255});MD.Stroke(vg,0,0,w,h,{146,176,192,255});nvgRestore(vg)
 end
-local Console=require('urhox-libs/UI/Widgets/Button'):Extend('VoxMusicConsole')
+local Console=require('ui.ActionButton'):Extend('VoxMusicConsole')
 function Console:Render(vg)
     MD.Begin(vg);local r=self:GetAbsoluteLayout();local p=self.player;local small=self.small;local k=small and self.consoleScale or 1
     nvgSave(vg);nvgTranslate(vg,r.x,r.y);nvgScale(vg,k,k);local w,h=r.w/k,r.h/k

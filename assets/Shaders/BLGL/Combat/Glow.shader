@@ -6,6 +6,11 @@ void vertex() { profile=NORMAL.y; }
 void fragment() {
     float r=length(UV);
     float a=r<0.18 ? mix(1.0,0.85,r/0.18) : (r<0.45 ? mix(0.85,0.28,(r-0.18)/0.27) : mix(0.28,0.0,clamp((r-0.45)/0.55,0.0,1.0)));
-    if(profile>0.5) a=r<0.25 ? mix(1.0,0.7,r/0.25) : mix(0.7,0.0,clamp((r-0.25)/0.75,0.0,1.0));
+    if(profile>1.5) {
+        // Original 128px sniper muzzle sprite: radial .18/.45 stops and 6px crossbar.
+        a=r<0.18 ? mix(1.0,0.85,r/0.18) : (r<0.45 ? mix(0.85,0.22,(r-0.18)/0.27) : mix(0.22,0.0,clamp((r-0.45)/0.55,0.0,1.0)));
+        float crossbar=step(abs(UV.y),3.0/64.0)*0.9*(1.0-abs(UV.x));
+        a=a+crossbar*(1.0-a);
+    } else if(profile>0.5) a=r<0.25 ? mix(1.0,0.7,r/0.25) : mix(0.7,0.0,clamp((r-0.25)/0.75,0.0,1.0));
     ALBEDO=COLOR.rgb*16.0*COLOR.a*a; ALPHA=1.0;
 }

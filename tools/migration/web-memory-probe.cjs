@@ -79,7 +79,7 @@ async function read(page) {
  }));
  return result;
 }
-async function install(page) {
+async function installAbort(page) {
  await page.evaluate(() => {
   if (globalThis.voxMemoryAbortProbe || typeof abortOnCannotGrowMemory !== 'function') return;
   globalThis.voxMemoryAbortProbe = true;
@@ -89,6 +89,9 @@ async function install(page) {
    return previous(requested);
   };
  });
+}
+async function install(page) {
+ await installAbort(page);
  return read(page);
 }
-module.exports = { install, read };
+module.exports = { install, installAbort, read };

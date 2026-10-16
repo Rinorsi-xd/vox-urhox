@@ -78,6 +78,7 @@ end
 ---@field occ table<string, integer>
 ---@field nextId integer
 ---@field name string
+---@field _neighborOwners table<number, table<number, boolean>>
 local Blueprint = {}
 Blueprint.__index = Blueprint
 
@@ -100,6 +101,7 @@ function Blueprint:init()
     self.legIds = {}
     self.clearIds = {}
     self._neighbors = {}
+    self._neighborOwners = {}
     self.nextId = 1
     self.nextGroup = 1
     self.name = "未命名战车"
@@ -113,6 +115,7 @@ function Blueprint:Clear()
     self.legIds = {}
     self.clearIds = {}
     self._neighbors = {}
+    self._neighborOwners = {}
     self.nextId = 1
     self.nextGroup = 1
 end
@@ -249,6 +252,19 @@ end
 
 -- ── 增删改 ────────────────────────────────────
 
+---@param bp Blueprint
+---@param id integer
+local function InvalidateNeighbors(bp,id)
+    local row=bp._neighbors[id]
+    if not row then return end
+    for neighbor in pairs(row) do
+        local owners=bp._neighborOwners[neighbor]
+        owners[id]=nil
+        if not next(owners) then bp._neighborOwners[neighbor]=nil end
+    end
+    bp._neighbors[id]=nil
+end
+
 ---@param spec { type: string, pos: integer[], rot: integer|nil, color: integer|nil, id: integer|nil }
 ---@return BlueprintPart
 function Blueprint:Add(spec)
@@ -269,10 +285,10 @@ function Blueprint:Add(spec)
     self:_Index(part)
     self.parts[part.id] = part
     if next(self._neighbors) then
-        self._neighbors[part.id]=nil
+        InvalidateNeighbors(self,part.id)
         -- Incoming sockets can change only beside an occupied cell of this part.
         for _,c in ipairs(part._cells) do for _,d in ipairs(Rot.DIRS) do
-            for _,id in ipairs(self.cellIds[Key(c[1]+d[1],c[2]+d[2],c[3]+d[3])] or {}) do self._neighbors[id]=nil end
+            for _,id in ipairs(self.cellIds[Key(c[1]+d[1],c[2]+d[2],c[3]+d[3])] or {}) do InvalidateNeighbors(self,id) end
         end end
     end
     return part
@@ -313,8 +329,10 @@ function Blueprint:Remove(id)
         self.occ[key]=ids[1];if #ids==0 then self.cellIds[key]=nil end
     end
     self.parts[id] = nil
-    self._neighbors[id]=nil
-    for _,neighbors in pairs(self._neighbors) do neighbors[id]=nil end
+    InvalidateNeighbors(self,id)
+    -- Only cached rows that reference this part need their incoming edge removed.
+    for owner in pairs(self._neighborOwners[id] or {}) do self._neighbors[owner][id]=nil end
+    self._neighborOwners[id]=nil
     self.legIds[id] = nil
     for _,c in ipairs(part._clear or {}) do
         local key=Key(table.unpack(c));local ids=self.clearIds[key]
@@ -354,7 +372,13 @@ function Blueprint:Graph(checkpoint)
     local adj = {}
     for id, p in pairs(self.parts) do
         local neighbors=self._neighbors[id]
-        if not neighbors then neighbors=self:Neighbors(p,checkpoint);self._neighbors[id]=neighbors end
+        if not neighbors then
+            neighbors=self:Neighbors(p,checkpoint);self._neighbors[id]=neighbors
+            for neighbor in pairs(neighbors) do
+                local owners=self._neighborOwners[neighbor] or {}
+                owners[id]=true;self._neighborOwners[neighbor]=owners
+            end
+        end
         -- Callers own their graph snapshot; cache rows must not escape mutable.
         local row={};for neighbor,value in pairs(neighbors) do row[neighbor]=value end
         adj[id]=row

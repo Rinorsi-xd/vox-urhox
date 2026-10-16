@@ -1,5 +1,5 @@
 -- Original editbar/tool/toggle geometry; Button owns pointer and focus events.
-local Base=require 'urhox-libs/UI/Widgets/Button'
+local Base=require 'ui.ActionButton'
 local D=require 'ui.SourceDraw'
 local Relief=require 'ui.SourceRelief'
 local Motion=require 'ui.SourceButtonMotion'

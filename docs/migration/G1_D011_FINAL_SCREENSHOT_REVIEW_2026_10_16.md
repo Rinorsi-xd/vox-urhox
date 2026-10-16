@@ -1,0 +1,18 @@
+# d011 final screenshot review
+
+Read-only inspection of existing local PNGs from `evidence/intro-natural-web-1600x900-manifest-d01102e0-final-route-*`. No browser, GPU session, production edit or screenshot generation was started. Baseline is frozen H5 `2026-10-15`, commit `b276064942ae09c0227ec28d4cfda1d5ff006455`.
+
+## Confirmed in the actual images
+
+| Images viewed | Confirmed | Remaining evidence boundary |
+| --- | --- | --- |
+| `payslip-stamped.png` | Lock label is visibly above the top cinema bar and readable. Seven payroll rows, repair deduction, `237.50`, original red stamp and barcode are visible. The former lock-label occlusion is not present in this frame. | Source comparator `intro-noncaption-source-payslip-wrecked-t2.png` was also viewed. Content and overall paper composition correspond, but age/viewport differ. Source lock corners have a conspicuous blue glow; target corners are visibly flat. H5 `intro.css:484,494` specifies drop-shadow; target `IntroPayslip.DrawForeground` draws plain lines. This styling residual remains OPEN. |
+| `sortie-hit-feedback.png`, `sortie-damage-feedback.png` | Visible muzzle flash/sparks, aiming reticle, shield resistance text (`抵抗56`), energy readouts and instruction card. Player structure changes from 93% to 92%. There is visible feedback rather than an entirely inert firing scene. | Enemy HULL is 100% in both frames. These two screenshots alone do not prove enemy body damage, kill feedback or input responsiveness. The separate route JSON reports `enemyHit: true`; that is runtime evidence, not a screenshot observation. No matched H5 battle frame was inspected for pixel parity. |
+| `contract-tablet-4-3.png` (1024x768), `contract-tablet-16-10.png` (1280x800), `contract-phone-20-9.png` (840x378) | Terminal, code-name field, signature region, submit button and portrait remain on screen. The signing pad visually overlaps the terminal edge as intended by H5 `intro.css:305` (`left:100%-2.6vh`, z-index 3). No whole panel is pushed outside the viewport in these frames. | At 840x378, contract terms and secondary headings are very small; readable-on-device acceptance remains OPEN. H5 uses `1vh` units (`intro.css:162`), whereas target `IntroContractLayout.Unit` clamps units to a 16:9 composition on narrower tablets. This is an intentional responsive adaptation and cannot be described as unchanged source coordinates. No same-size H5 contract screenshot was available among the selected evidence. |
+| `gate.png`, `gate-open.png`, `gate-open-phone-20-9.png` | Actual armor panels, large 07, striped bands, status lamps, lock halves, opening slit and the revealed live hangar are present. 20:9 opening remains inside the viewport. | These are different moments, not a frame sequence. The selected images do not show the identity verification card or establish the six-bolt release, two-stage pause, exact camera travel or timings described by H5 `introStory.js:485-580`. Those remain runtime/sequence evidence requirements. |
+
+## What this review does not close
+
+The existing package audit establishes the exact candidate, and the current natural route JSON records 66 functional checks, `functionality: PASS`, errors 0, shutdown `CLOSED`; it also explicitly records overall `FAIL` and `continuity: FAIL`. This visual review does not override that failure, claim playback is smooth, or establish 1:1 visual acceptance.
+
+Confirmed text/font details and the two minimal fixes are in `G1_INTRO_TEXT_FONT_DIFF_2026_10_16.md`. Known comic title exit and red-dove transform residuals remain OPEN in `G1_INTRO_VISUAL_RESIDUALS_FOCUSED_2026_10_16.md`. No extra cosmetic implementation was undertaken during this frozen-candidate review.

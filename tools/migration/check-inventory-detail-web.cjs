@@ -7,20 +7,28 @@ const sourceRoot=baseline.source;
 const out=path.join(root,'docs/migration/evidence/inventory-detail-web-'+new Date().toISOString().replace(/[:.]/g,'-'));
 fs.mkdirSync(out,{recursive:true});
 const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
-const cases=[{name:'pc',width:1920,height:1080,dpr:1},{name:'20x9',width:840,height:378,dpr:3,touch:true}];
+const cases=[{name:'pc',width:1920,height:1080,dpr:1},{name:'20x9',width:840,height:378,dpr:3,touch:true,android:true},
+ {name:'20x9-desktopua',width:840,height:378,dpr:3,touch:true,diagnostic:true}];
+const mobileUA='Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Mobile Safari/537.36';
+function context(test){return {viewport:{width:test.width,height:test.height},deviceScaleFactor:test.dpr,...(test.touch?{hasTouch:true,isMobile:true}:{}),...(test.android?{userAgent:mobileUA}:{})};}
 const parts=[{id:'tianyuanDrill',name:'天元钻头'},{id:'fuyuanDrill',name:'夫元钻头'},{id:'laser1',name:'激光枪 T1'}];
-const report={baseline:{branch:baseline.branch,commit:baseline.commit},checks:[],pages:[],errors:[],
+const report={baseline:{branch:baseline.branch,commit:baseline.commit},checks:[],pages:[],bottoms:[],devices:[],errors:[],
  boundary:'Real source/target public build/inventory inputs and screenshots. Read-only target QA probe. Touch emulation is not real-phone acceptance; capture alone is not visual acceptance.'};
 function check(name,value){report.checks.push({name,pass:!!value});assert(value,name)}
 async function source(browser,test){
- const page=await browser.newPage({viewport:{width:test.width,height:test.height},deviceScaleFactor:test.dpr,...(test.touch?{hasTouch:true,isMobile:true}:{})});
+ const page=await browser.newPage(context(test));
  page.on('pageerror',e=>report.errors.push({side:'source',case:test.name,error:e.message}));
  try{
   await page.goto(sourceURL);await page.locator('.home-tabs [data-tab="hangar"]').waitFor({state:'visible',timeout:120000});
+  report.devices.push({side:'source',case:test.name,stage:'hall',state:await page.evaluate(()=>({
+   width:innerWidth,height:innerHeight,dpr:devicePixelRatio,screen:{width:screen.width,height:screen.height},
+   coarse:matchMedia('(pointer: coarse)').matches,maxTouchPoints:navigator.maxTouchPoints,
+   compact:document.documentElement.hasAttribute('data-ui-compact'),userAgent:navigator.userAgent,
+  }))});
   await page.locator('.home-tabs [data-tab="hangar"]').click();await page.keyboard.press('e');
   await page.locator('#editbar').waitFor({state:'visible',timeout:45000});await page.keyboard.press('b');
   await page.locator('#inventory .inv-search').waitFor({state:'visible',timeout:30000});
-  for(const part of parts){
+  for(const part of (test.diagnostic?parts.slice(0,1):parts)){
    await page.locator('#inventory .inv-search').fill(part.name);
    const card=page.locator('#inventory .inv-part[data-type="'+part.id+'"]');await card.waitFor({state:'visible'});
    await card.focus();await sleep(500);const more=page.locator('#inventory .inv-more');
@@ -40,12 +48,18 @@ async function source(browser,test){
    report.pages.push({side:'source',case:test.name,part:part.id,state});
    await page.screenshot({path:path.join(out,'source-'+test.name+'-'+part.id+'.png')});
    await page.locator('#inventory .inv-detail').evaluate(el=>{el.scrollTop=el.scrollHeight});await sleep(100);
+   report.bottoms.push({side:'source',case:test.name,part:part.id,state:await page.evaluate(()=>{
+    const inv=document.querySelector('#inventory'),detail=inv.querySelector('.inv-detail');
+    const rect=el=>{const r=el.getBoundingClientRect();return [r.x,r.y,r.width,r.height]};
+    return {scrollTop:detail.scrollTop,scrollHeight:detail.scrollHeight,detailRect:rect(detail),cardRect:rect(inv.querySelector('.inv-card')),
+     texts:[...detail.querySelectorAll('h3,p,.inv-tag,.inv-stats li > span,.inv-stats li > b,.inv-value,summary')].map(el=>({text:el.textContent.trim(),rect:rect(el)}))};
+   })});
    await page.screenshot({path:path.join(out,'source-'+test.name+'-'+part.id+'-bottom.png')});
   }
  }finally{await page.close();}
 }
 async function target(browser,test){
- const page=await browser.newPage({viewport:{width:test.width,height:test.height},deviceScaleFactor:test.dpr,...(test.touch?{hasTouch:true,isMobile:true}:{})});
+ const page=await browser.newPage(context(test));
  let state,revision=0;
  page.on('console',msg=>{const line=msg.text();fs.appendFileSync(path.join(out,'target-'+test.name+'.log'),line+'\n');const at=line.indexOf('OUTGAME_STATE ');
   if(at>=0){try{state=JSON.parse(line.slice(at+14));revision++;}catch{}}
@@ -70,8 +84,13 @@ async function target(browser,test){
  try{
   await page.goto(base+'/outgame.html?-game_url='+base+'/game-dist/&-log=info&cached=1');
   await wait(s=>s.tab==='hangar'&&s.sceneVisible&&!s.loadingFlow?.active,'actionable hall');await sleep(800);
-  await key('e');await wait(s=>s.build&&!s.loadingFlow?.active,'builder');await key('b');await wait(s=>s.inventory,'inventory');
-  for(const part of parts){
+  await dump();report.devices.push({side:'target',case:test.name,stage:'hall',state:{device:state.device,width:state.width,height:state.height,physical:state.physical,dpr:state.dpr,touch:state.touch}});
+  if(test.diagnostic)await page.screenshot({path:path.join(out,'target-'+test.name+'-hall.png')});
+  await key('e');await wait(s=>s.build&&!s.loadingFlow?.active,'builder');
+  report.devices.push({side:'target',case:test.name,stage:'build',state:{device:state.device,width:state.width,height:state.height,physical:state.physical,dpr:state.dpr,touch:state.touch}});
+  if(test.diagnostic)await page.screenshot({path:path.join(out,'target-'+test.name+'-build.png')});
+  await key('b');await wait(s=>s.inventory,'inventory');
+  for(const part of (test.diagnostic?parts.slice(0,1):parts)){
    await dump();await tap(state.inventoryState.searchRect);await key('Control+a');await page.keyboard.insertText(part.name);
    await wait(s=>s.inventoryState?.query===part.name&&s.widgets.some(w=>w.inventoryMotion&&w.part===part.id),'search '+part.id);
    await dump();const card=state.widgets.find(w=>w.inventoryMotion&&w.part===part.id);await tap(card.rect);await wait(s=>s.inventoryState.shown===part.id,'detail '+part.id);
@@ -90,13 +109,14 @@ async function target(browser,test){
    report.pages.push({side:'target',case:test.name,part:part.id,state:structuredClone(state)});
    await page.screenshot({path:path.join(out,'target-'+test.name+'-'+part.id+'.png')});
    for(let i=0;i<8;i++)await scroll(detail.scrollRect,420);await sleep(250);await dump();
+   report.bottoms.push({side:'target',case:test.name,part:part.id,state:structuredClone(state)});
    await page.screenshot({path:path.join(out,'target-'+test.name+'-'+part.id+'-bottom.png')});
   }
   await key('Escape');await wait(s=>!s.inventory,'close inventory');check(test.name+' inventory backdrop released',!state.backdrop);
  }finally{await page.close();}
 }
 (async()=>{
- for(const file of ['shared/ui/inventory.js','shared/css/new-ui-inventory.css']){
+ for(const file of ['shared/ui/inventory.js','shared/css/new-ui-inventory.css','shared/ui/homeScale.js','shared/css/new-ui-responsive.css']){
   const live=fs.readFileSync(path.join(sourceRoot,file),'utf8'),frozen=fs.readFileSync(path.join(baseline.snapshot.replaceAll('\\\\','/'),file),'utf8');
   const sha=text=>crypto.createHash('sha256').update(text).digest('hex');
   check('frozen source hash '+file,sha(frozen)===baseline.files[file].sha256);

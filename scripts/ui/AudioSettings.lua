@@ -25,7 +25,7 @@ function M.Open(owner,options)
     local player=owner.app.music
     local k,compact=Metrics()
     local modal=Host.Open(owner,'声音与音乐',nil,{width=780*k,fullScroll=true,sourceScale=k})
-    modal.sourceScale=k;modal.compact=compact
+    modal.sourceScale=k;modal.compact=compact;modal.sourceAudioSettings=true
     modal.controls={};modal.rows={}
     local _,h=UI.GetViewportSize()
     local natural=(compact and 376.25 or 424.25)*k

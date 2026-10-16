@@ -1,4 +1,4 @@
-local Base=require 'urhox-libs/UI/Widgets/Button'
+local Base=require 'ui.ActionButton'
 local D=require 'ui.SourceDraw'
 local Relief=require 'ui.SourceRelief'
 local Button=Base:Extend('VoxWorkshopSourceButton')
@@ -31,7 +31,8 @@ function Button:GetTabContent(vg)
 end
 function Button:Render(vg)
     D.Begin(vg);local r=self:GetAbsoluteLayout();local p=self.props;local x,y,w,h=r.x,r.y,r.w,r.h
-    local kind=p.sourceKind;local c=D.white
+    local kind=p.sourceKind;local c=D.white;local shop=p.shop
+    local ShopPaint=require 'ui.WorkshopShopPaint'
     nvgSave(vg);if p.disabled then nvgGlobalAlpha(vg,.45) end
     if kind=='tab' or kind=='sort' then
         c=(p.selected or self.state.hovered) and D.white or {219,238,255,kind=='sort' and 115 or 128}
@@ -57,7 +58,10 @@ function Button:Render(vg)
             end
         end
     else
-        if kind=='view' or kind=='all' or kind=='go' then Relief.Draw(vg,x,y,w,h,true,false,{x,y,x+w-14,y,x+w,y+14,x+w,y+h,x,y+h})
+        if shop and (kind=='go' or kind=='add') then
+            c=shop.poor and ShopPaint.muted or ShopPaint.ink
+            D.Path(vg,{x,y,x+w,y,x+w,y+h-14,x+w-14,y+h,x,y+h});nvgFillColor(vg,D.Color(shop.poor and {58,61,68,255} or D.orange));nvgFill(vg)
+        elseif kind=='view' or kind=='all' or kind=='go' then Relief.Draw(vg,x,y,w,h,true,false,{x,y,x+w-14,y,x+w,y+14,x+w,y+h,x,y+h})
         elseif kind=='back' then Relief.Draw(vg,x,y,w,h,false,false,{x,y,x+w,y,x+w,y+h-14,x+w-14,y+h,x,y+h})
         elseif kind=='control' then
             c=p.selected and D.ink or {219,238,255,153}
@@ -73,13 +77,21 @@ function Button:Render(vg)
         if kind=='view' then
             D.Icon(vg,'eye',x+20,y+18,28);D.Text(vg,p.text,x+62,y+10,22,{255,255,255,255},nil,nil,3);D.Text(vg,'实景 3D 预览',x+62,y+39,12,{237,246,255,191},'vox-body')
         elseif kind=='go' then
-            D.Rect(vg,x,y,70,h,{8,15,28,64});D.Icon(vg,'plus',x+20,y+20,30)
-            D.Text(vg,p.text,x+88,y+11,26,nil,nil,nil,4);D.Text(vg,'现有的车不受影响',x+88,y+44,12,{237,246,255,179},'vox-body')
+            D.Rect(vg,x,y,70,h,{8,15,28,64});D.Icon(vg,'plus',x+20,y+20,30,c)
+            D.Text(vg,p.text,x+88,y+11,26,c,nil,nil,4)
+            if shop then ShopPaint.Subtitle(vg,shop,x+88,y+44)
+            else D.Text(vg,'现有的车不受影响',x+88,y+44,12,{237,246,255,179},'vox-body') end
             local kw=D.Width(vg,'Enter',11)+18;local kx=x+w-20-kw;local ky=y+(h-22)/2
             D.Rect(vg,kx,ky,kw,22,{8,15,28,89})
             D.Line(vg,kx,ky,kx+kw,ky,{255,255,255,89});D.Line(vg,kx,ky+22,kx+kw,ky+22,{255,255,255,89})
             D.Line(vg,kx,ky,kx,ky+22,{255,255,255,89});D.Line(vg,kx+kw,ky,kx+kw,ky+22,{255,255,255,89})
             D.Text(vg,'Enter',kx+9,ky+4,11,{255,255,255,255})
+        elseif kind=='add' and shop then
+            local labelWidth=D.Width(vg,p.text,16,nil,2)
+            D.Icon(vg,'plus',x+22,y+23,18,c);D.Text(vg,p.text,x+50,y+22.4,16,c,nil,nil,2)
+            local sx=x+50+labelWidth+16
+            D.Line(vg,sx,y+21,sx,y+43,{26,13,5,64})
+            ShopPaint.Cost(vg,shop.cost,sx+12,y+21.2,18,c)
         else
             local size=kind=='add' and 16 or kind=='all' and 16 or kind=='control' and 13 or 14
             local icon=(kind=='add' or kind=='back') and 18 or 17;local ix=x+(kind=='all' and 20 or kind=='add' and 22 or kind=='back' and 14 or 12)

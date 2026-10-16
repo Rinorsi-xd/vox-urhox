@@ -122,6 +122,7 @@ function M:Update(dt)
     require('ui.ReticleTarget').Update(self,dt)
 end
 function M:Consume(events)
+    if self.session.battle then require('ui.MatchFeedback').Consume(self.session.battle,events) end
     for _,e in ipairs(events) do
         if e.type=='unitSpawn' and e.unit then self.partCounts[e.unit]=e.unit.bp:Size() end
     end

@@ -46,7 +46,7 @@ function M.Slider:OnPointerCancel(event)
     self:SetState({dragging=false})
     return UI.Slider.OnPointerCancel(self,event)
 end
-M.Checkbox=UI.Button:Extend('VoxGraphicsCheckbox')
+M.Checkbox=require('ui.ActionButton'):Extend('VoxGraphicsCheckbox')
 function M.Checkbox:Render(vg)
     D.Begin(vg);local r=Rect(vg,self);local y=r.y+(r.h-18)/2
     nvgSave(vg);if self.props.disabled then nvgGlobalAlpha(vg,.45) end

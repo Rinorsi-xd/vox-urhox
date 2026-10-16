@@ -38,7 +38,8 @@ function M.Create(session,root)
         end,
         Action=function(action)
             if action:sub(1,4)=='aux-' then layer.aux=action:sub(5)
-            elseif action=='exit' then session.wantsReturn=true
+            elseif action=='exit' then
+                if session.battle then require('combat.MatchActions').ConfirmLeave(session.battle) else session.wantsReturn=true end
             elseif action=='scope' then session.scope=not session.scope
             elseif action=='settings' then require('ui.GameSettings').Open(session)
             elseif action=='weapon' then session.weapons:Select(session.weapons.current%math.max(1,#session.weapons.groups)+1)
@@ -76,7 +77,10 @@ function M.Create(session,root)
             l.buttons.scope.props.selected=session.scope
             local time=session.world.time or 0;local q=v.body.rotation();local inverted=1-2*(q.x*q.x+q.z*q.z)<.35
             if not inverted then l.flipSince=nil elseif not l.flipSince then l.flipSince=time end
-            local salvage=session.salvage;local prompt=salvage and salvage.rules.prompt
+            local story=session.story;local rules=story and story.rules;local step=rules and rules:StepSpec()
+            local storyPrompt=story and story.player.alive and not rules.finished and not rules.completeAt and rules.inside and step and
+                (step.kind=='install' and not rules.blocked or step.kind=='capture' and rules.cap and rules.cap.phase=='scrub')
+            local salvage=session.salvage;local prompt=salvage and salvage.touchPrompt or storyPrompt
             l.contextRole=salvage and salvage.touchSwap and 'swap' or prompt and 'interact' or l.flipSince and time-l.flipSince>1 and not session.resetChan and 'flip' or nil
             l.buttons.interact:SetVisible(not l.menu and not l.blocked and l.contextRole~=nil)
             l.buttons.interact.props.icon=l.contextRole=='swap' and 'erase' or l.contextRole=='flip' and 'flip' or 'interact'

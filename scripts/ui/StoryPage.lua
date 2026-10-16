@@ -11,12 +11,16 @@ local Paragraph=require 'ui.SourceParagraph'
 local Data=require('core.ResourceData').Read('UI/Outgame.json')
 local Page=UI.Panel:Extend('VoxStoryPage')
 local Brief=UI.Panel:Extend('VoxStoryBrief')
-local Button=UI.Button:Extend('VoxStoryButton')
+local Button=require('ui.ActionButton'):Extend('VoxStoryButton')
 local Comms=UI.Panel:Extend('VoxStoryComms')
 local Labels=UI.Panel:Extend('VoxStoryLabels')
 local Layout=require 'ui.StoryPageLayout'
 local M={}
 local ice={214,240,255,255};local cy={110,214,255,255};local muted={214,240,255,158};local dim={214,240,255,92};local red={255,77,66,255}
+-- Layout can re-show the mounted page before the next tab rebuild replaces it.
+local function PageActive(page)
+    return page.owner.storyPage==page and page.owner.storyHolo~=nil
+end
 local function Diamond(vg,x,y,size,color,fill)
     D.Path(vg,{x,y-size,x+size,y,x,y+size,x-size,y})
     if fill then nvgFillColor(vg,D.Color(color));nvgFill(vg) else nvgStrokeColor(vg,D.Color(color));nvgStrokeWidth(vg,1.5);nvgStroke(vg) end
@@ -173,6 +177,7 @@ function Labels:Render(vg)
     end
 end
 function Page:Render(vg)
+    if not PageActive(self) then return end
     D.Begin(vg);local r=self:GetAbsoluteLayout();local x,y=r.x,r.y
     -- GarageLayout sizes the outer page to the viewport; drawing uses its scaled design space.
     local w,h=self.storyLogicalWidth,self.storyLogicalHeight
@@ -202,7 +207,12 @@ function Page:Render(vg)
         D.Line(vg,p[1],p[2],p[1]+p[3]*38.88,p[2],dim);D.Line(vg,p[1],p[2],p[1],p[2]+p[4]*38.88,dim)
     end
 end
+function Page:CustomRenderChildren(vg,renderFn)
+    if PageActive(self) then UI.Panel.CustomRenderChildren(self,vg,renderFn) end
+end
 function M.Leave(s)
+    -- Tab input can retire the scene after this frame's page rebuild.
+    if s.storyPage then s.storyPage:SetVisible(false);s.storyPage=nil end
     if s.storyHolo then s.storyHolo:Dispose();s.storyHolo=nil end
     if s.storyVoice then s.storyVoice:Dispose();s.storyVoice=nil end
     if s.storyFaceGate then s.storyFaceGate:Cancel();s.storyFaceGate=nil end
@@ -250,14 +260,16 @@ function M.Create(s)
     local page=Page{position='absolute',width=w,height=h,scale=pageScale,transformOrigin='top-left',pointerEvents='box-none'};page.owner=s
     page.storyLogicalWidth=w;page.storyLogicalHeight=h
     local drag=UI.Panel{position='absolute',width=w,height=h,pointerEvents='auto'};local last={}
-    drag.OnPointerDown=function(self,e) last[e.pointerId]={x=e.x,y=e.y};return true end
+    drag.OnPointerDown=function(self,e) if not PageActive(page) then return false end;last[e.pointerId]={x=e.x,y=e.y};return true end
     drag.OnPointerMove=function(self,e)
+        if not PageActive(page) then return end
         local p=last[e.pointerId];if p then s.storyHolo:Drag((e.x-p.x)/pageScale,(e.y-p.y)/pageScale,h);p.x=e.x;p.y=e.y end
     end
     drag.OnPointerUp=function(self,e) last[e.pointerId]=nil end;drag.OnPointerCancel=drag.OnPointerUp
-    drag.OnWheel=function(self,dx,dy) s.storyHolo:Zoom(-dy*40) end
+    drag.OnWheel=function(self,dx,dy) if PageActive(page) then s.storyHolo:Zoom(-dy*40) end end
     local tap={time=-1000,x=0,y=0}
     drag.OnClick=function(self,e)
+        if not PageActive(page) then return end
         local now=e.timestamp
         if now-tap.time<350 and math.abs(e.x-tap.x)+math.abs(e.y-tap.y)<12 then s.storyHolo:Reset();tap.time=-1000
         else tap.time=now;tap.x=e.x;tap.y=e.y end
@@ -279,6 +291,7 @@ function M.Create(s)
     local comm=Comms{position='absolute',left=64,top=h-218,width=880,height=136,pointerEvents='none'}
     comm.owner=s;comm.paragraph=Paragraph.New(20,32);comm.paragraph.spacing=.4;page:AddChild(comm)
     Add('播放语音','voice',546,h-224,84,20,function() s.storyVoice:Play(s.storyLevel,Data.levels[s.storyLevel].nono[2]) end)
+    s.storyPage=page
     return page
 end
 return M

@@ -64,9 +64,10 @@ function M:Reset()
     self.groundedTime=0;self.cooldown=0;self.airTime=0;self.jumpHeld=false;self.jumpBuffer=0;self.wallMemo=nil
     Gait.Reset(self)
 end
-local STATE={'surf','groundedTime','cooldown','airTime','jumpHeld','jumpBuffer','phase','phaseAcc','cadence','settle'}
+local STATE={'surf','groundedTime','cooldown','airTime','jumpHeld','jumpBuffer','phase','phaseAcc','cadence','settle','offGround','wallMemo'}
 function M:Snapshot()
     local out={states={}};for _,k in ipairs(STATE) do out[k]=self[k] end
+    out.wallMemo=self.wallMemo or false
     for _,s in ipairs(self.list) do
         local t={};for _,k in ipairs({'foot','previous','grounded','swing','contact','mode','sw','cycle'}) do t[k]=s[k] end
         out.states[#out.states+1]={s.leg.partId,t}
@@ -76,6 +77,7 @@ end
 function M:Restore(data)
     if not data then return end
     for _,k in ipairs(STATE) do if data[k]~=nil then self[k]=data[k] end end;self.normal=self.surf
+    if self.wallMemo==false then self.wallMemo=nil end
     for _,entry in ipairs(data.states or {}) do local s=self.states[entry[1]];if s then for k,value in pairs(entry[2]) do s[k]=value end end end
 end
 function M:IsStep(h,surf,input,ground)
@@ -84,8 +86,16 @@ function M:IsStep(h,surf,input,ground)
     return top~=nil and top.distance>.02 and dot(top.normal,surf)>.8
 end
 function M:Target(s,foot,q,p)
-    local delta=mul(sub(rotate(V.Inverse(q),sub(foot,p)),s.leg.origin),1/CELL);local result={}
-    for i,axis in ipairs(targetAxes[s.leg.rot]) do result[i]=dot(delta,axis) end
+    -- Keep RotateUnit's grouping while avoiding five intermediate vector tables.
+    local x,y,z,w=-q.x,-q.y,-q.z,q.w
+    local vx,vy,vz=foot[1]-p[1],foot[2]-p[2],foot[3]-p[3]
+    local cx,cy,cz=y*vz-z*vy,z*vx-x*vz,x*vy-y*vx
+    local twice=2*w;local origin=s.leg.origin;local scale=1/CELL
+    local dx=(vx+(cx*twice+(y*cz-z*cy)*2)-origin[1])*scale
+    local dy=(vy+(cy*twice+(z*cx-x*cz)*2)-origin[2])*scale
+    local dz=(vz+(cz*twice+(x*cy-y*cx)*2)-origin[3])*scale
+    local result={}
+    for i,axis in ipairs(targetAxes[s.leg.rot])do result[i]=dx*axis[1]+dy*axis[2]+dz*axis[3]end
     return result
 end
 local function Evaluation(self,s,foot,q,p)
@@ -123,7 +133,7 @@ function M:Step(cmd,dt,contactSupport)
     if self.wallMemo then self.wallMemo.ttl=self.wallMemo.ttl-dt;if self.wallMemo.ttl<=0 then self.wallMemo=nil end end
     local jump=cmd.jump==true and not self.jumpHeld;self.jumpHeld=cmd.jump==true
     self.jumpBuffer=jump and .3 or math.max(0,self.jumpBuffer-dt)
-    local caps=v.capabilities;local usable=self.loadAll+caps.wheelLoad+caps.hoverLoad;local ratio=mass/math.max(1,usable)
+    local caps=v.capabilities;local usable=math.max(1,caps.totalLoad and caps.totalLoad~=0 and caps.totalLoad or self.loadAll);local ratio=mass/math.max(1,usable)
     local grip=v.legMode and n>=4 and ratio<=1;local gripCos=grip and -1 or GRIP
     local leaving=self.airTime>0 or n<2;local sn=self.surf;local sup={}
     for _,s in ipairs(legs) do
@@ -215,6 +225,16 @@ function M:Step(cmd,dt,contactSupport)
     if authority>0 then
         local gt=reject({0,-G,0},surf);local hold=grip or dot(surf,UP)>=GRIP
         local force=mul(sub(mul(input,speedLimit),vt),mass*(moving and 3 or 6)*authority)
+        if moving then
+            if v.driveJets==nil then
+                v.driveJets=false
+                for _,t in ipairs(v.spec.thrusters) do if math.abs(t.dir[2])<.7 then v.driveJets=true;break end end
+            end
+            if v.driveJets then
+                local d=norm(input);local over=dot(force,d)
+                if over<0 and dot(vt,d)>speedLimit*length(input) then force=sub(force,mul(d,over)) end
+            end
+        end
         if hold then force=sub(force,mul(gt,mass*authority)) end
         local max=(moving and 10 or 14)*authority+(hold and length(gt) or 0)
         if length(force)>mass*max then force=mul(norm(force),mass*max) end;body.addForce(vec(force),true)

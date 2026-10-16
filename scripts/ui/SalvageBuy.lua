@@ -118,7 +118,7 @@ function M.Car(s,id)
             return true
         end,function()
             if s.salvage then require('ui.SalvagePage').Tab(s,'garage') end
-            s.SetTab('salvage');s.revision=-1
+            s.SetTab('salvage',{quiet=true});s.revision=-1
         end,bp)
     end
     local row=Actions(modal);row:AddChild(Button{text='取消',sourceKind='dialog',width=64,height=40,onClick=function() Host.Close(s) end})

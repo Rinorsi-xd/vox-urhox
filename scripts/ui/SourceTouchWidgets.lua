@@ -1,7 +1,7 @@
 -- Source touch-controls.css relief; rendered inside the UI-owned VG frame.
 local UI=require 'urhox-libs/UI'
 local D=require 'ui.SourceDraw'
-local Button=require('urhox-libs/UI/Widgets/Button'):Extend('VoxSourceTouchButton')
+local Button=require('ui.ActionButton'):Extend('VoxSourceTouchButton')
 local Stick=UI.Panel:Extend('VoxSourceTouchStick')
 local contexts=setmetatable({},{__mode='k'})
 local function Font(vg)

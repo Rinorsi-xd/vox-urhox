@@ -6,6 +6,16 @@ const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
 const read=p=>fs.readFileSync(path.join(root,p));
 const exists=p=>fs.existsSync(path.join(root,p));
 function checksum(bytes){let h=0;for(const b of bytes)h=(Math.imul(h,65599)+b)>>>0;return h;}
+// Line-ending variants: this Windows workspace checks out CRLF (core.autocrlf) while the
+// Maker repository and Web package carry the committed LF bytes. Runtime accepts either.
+function eolVariants(bytes,own){
+ const lf=bytes.toString('latin1').replace(/\r\n/g,'\n'),out=[];
+ for(const text of [lf,lf.replace(/\n/g,'\r\n')]){
+  const b=Buffer.from(text,'latin1'),v={bytes:b.length,checksum:checksum(b)};
+  if((v.bytes!==own.bytes||v.checksum!==own.checksum)&&!out.some(o=>o.bytes===v.bytes&&o.checksum===v.checksum))out.push(v);
+ }
+ return out;
+}
 function files(dir){return fs.readdirSync(path.join(root,dir),{withFileTypes:true}).flatMap(e=>e.isDirectory()?files(dir+'/'+e.name):[dir+'/'+e.name]);}
 function inputs(){
  const selected=new Set(['assets/Scenes/Crater.xml','.cli/build.json']);
@@ -46,7 +56,8 @@ async function main(){const mode=process.argv[2]||'check';
   assert(colors.size>32,'Uniform/placeholder map refused');
   const runtimeChecks={};
   for(const file of ['assets/Scenes/Crater.xml',...Object.keys(actualInputs).filter(p=>p.startsWith('scripts/'))]){
-   const resource=file.replace(/^(assets|scripts)\//,'');runtimeChecks[resource]={checksum:actualInputs[file].checksum,bytes:actualInputs[file].bytes};
+   const resource=file.replace(/^(assets|scripts)\//,'');
+   runtimeChecks[resource]={checksum:actualInputs[file].checksum,bytes:actualInputs[file].bytes,variants:eolVariants(read(file),actualInputs[file])};
   }
   for(const [file,value]of Object.entries(native.checksums))assert(runtimeChecks[file]?.checksum===value,'Native checksum algorithm differs: '+file);
   const meta={version:1,revision:'crater-static-v1',scene:request.scene,image:'Crater/Minimap.bin',size:1024,half:320,

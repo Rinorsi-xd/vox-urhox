@@ -17,7 +17,7 @@ function M.Draw(vg,layer,b,w,h)
     nvgFillPaint(vg,nvgLinearGradient(vg,x,y,x+width,y,nvgRGBA(8,9,12,240),nvgRGBA(8,9,12,0)));nvgFill(vg)
     D.Rect(vg,x,y,3,height,orange)
     local fx,fy=x+7,y+7;local points={fx+8,fy,fx+54,fy,fx+54,fy+46,fx+46,fy+54,fx,fy+54,fx,fy+8}
-    Paint.Image(vg,'UI/Faces/nono_smile.png',{x=fx,y=fy,w=54,h=54},1.72,.17,points,nil,.45)
+    Paint.Image(vg,require('ui.CommsPortrait').Path('nono','smile'),{x=fx,y=fy,w=54,h=54},1.72,.17,points,nil,.45)
     for i=1,18 do D.Rect(vg,fx,fy+i*3,54,1,{0,0,0,80}) end
     D.Text(vg,'诺诺',x+71,y+7,12,orange,'vox-title',nil,3)
     D.Text(vg,'战术领航员 · 频道 07',x+115,y+8,11,{255,255,255,112},'vox-title',nil,2)

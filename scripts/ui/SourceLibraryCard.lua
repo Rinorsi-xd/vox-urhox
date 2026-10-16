@@ -1,5 +1,5 @@
 -- Original .slotcard / .meta / .del; storage and preview ownership stay outside.
-local Button=require 'urhox-libs/UI/Widgets/Button'
+local Button=require 'ui.ActionButton'
 local D=require 'ui.SourceDraw'
 local Motion=require 'ui.SourceButtonMotion'
 local Card=Button:Extend('VoxLibraryCard')

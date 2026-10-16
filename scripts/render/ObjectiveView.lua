@@ -6,12 +6,16 @@ local function Hex(n)
     return {Linear((n>>16)&255),Linear((n>>8)&255),Linear(n&255)}
 end
 local colors={none=Hex(0xd8dde3),blue=Hex(0x2ea8ff),red=Hex(0xff4a3d),contest=Hex(0xff6a13),push=Hex(0x6fd36f),white={1,1,1}}
-function M.New(world,mode)
-    local self=setmetatable({world=world,mode=mode,age=0,nextUpdate=0},M)
-    self.root=world.scene:CreateChild('BattleObjectives');self.materials={};self.batches={}
+function M.Geometry(scene)
+    local self=setmetatable({age=0,nextUpdate=0,culled={}},M)
+    self.root=scene:CreateChild('BattleObjectives');self.materials={};self.batches={}
     for i,shader in ipairs({'Objective','ObjectiveOverlay'}) do
         local m=Material:new();assert(m:SetSurfaceShader('Shaders/BLGL/Combat/'..shader..'.shader'));m.renderOrder=144;self.materials[i]=m
     end
+    return self
+end
+function M.New(world,mode)
+    local self=M.Geometry(world.scene);self.world=world;self.mode=mode
     if mode.id~='conquest' then self.route=require('render.ObjectiveRoute').New(self.root,mode,self.materials[1],colors.contest) end
     return self
 end
@@ -50,13 +54,31 @@ function M:Crystal(pos,color,alpha)
         self:Vertex(pos[1]+math.cos(b)*.56,pos[2],pos[3]+math.sin(b)*.56,color,alpha)
     end end
 end
+function M:Refresh(name,frustum,pos,radius,bottom,top,due)
+    if not due and not self.culled[name] then return false end
+    -- Use the full animated volume, including the 90m column above a zone.
+    -- Coord mirrors X, so the source maximum X becomes the native minimum.
+    local outside=frustum and frustum:IsInsideFast(BoundingBox(
+        Coord.Vec(pos[1]+radius,pos[2]+bottom,pos[3]-radius),
+        Coord.Vec(pos[1]-radius,pos[2]+top,pos[3]+radius)))==OUTSIDE
+    self.culled[name]=outside or nil
+    local batch=self.batches[name]
+    if batch then batch.mesh.enabled=not outside end
+    return not outside
+end
 function M:Update(dt,rule,camera)
-    self.age=self.age+dt;if self.age<self.nextUpdate then return end;self.nextUpdate=self.age+.1
+    self.age=self.age+dt;local due=self.age>=self.nextUpdate
+    if due then self.nextUpdate=self.age+.1 end
+    -- BattleObjectives passes the camera Node, not the Camera component.
+    local component=camera and camera.GetComponent and camera:GetComponent('Camera')
+    local frustum=component and component.frustum
     local t=self.age
     if self.mode.id=='conquest' then
         for i,p in ipairs(self.mode.points) do local st=rule.points[i]
             local c=colors[st.contested and 'contest' or st.owner or 'none'];local pos={p.pos[1],p.pos[2]+.25,p.pos[3]}
-            local radius=p.radius;self:Begin('PointRing'..i,p.pos,true)
+            local radius=p.radius
+            if self:Refresh('PointRing'..i,frustum,p.pos,radius,0,.3,due) then
+            self:Begin('PointRing'..i,p.pos,true)
             self:Ring(pos,radius-.6,radius,0,math.pi*2,c,.7+.2*math.sin(t*4),96)
             for seg=0,2 do
                 local a=math.pi/2-seg*math.pi*2/3-.06;local length=math.pi*2/3-.12
@@ -65,15 +87,20 @@ function M:Update(dt,rule,camera)
                 local f=math.max(0,math.min(1,math.abs(st.v)*3-seg))
                 if f>.002 then self:Ring(progress,radius-3,radius-1,a-length*f,length*f,colors[st.v>=0 and 'blue' or 'red'],.95,48) end
             end
-            self.mesh:Commit();self:Begin('PointVolume'..i,p.pos,false)
+            self.mesh:Commit()
+            end
+            if self:Refresh('PointVolume'..i,frustum,p.pos,radius,0,90,due) then
+            self:Begin('PointVolume'..i,p.pos,false)
             local near=camera and math.sqrt((camera.position.x+p.pos[1])^2+(camera.position.z-p.pos[3])^2) or 99
             local far=math.max(0,math.min(1,(near-35)/60))
             self:Ring({p.pos[1],p.pos[2]+.2,p.pos[3]},0,radius-.6,0,math.pi*2,c,.03+.07*far,96)
             self:Beam(p.pos,radius,radius,3,c,.16,96)
             if far>0 then self:Beam(p.pos,1.8,1.2,90,c,(.16+.08*math.sin(t*3))*far) end
             self.mesh:Commit()
+            end
         end
         for _,team in ipairs({'blue','red'}) do local base=self.mode.bases[team];local center=base.aim
+            if self:Refresh('Reactor'..team,frustum,center,4,-2.5,2.5,due) then
             self:Begin('Reactor'..team,center,false)
             local base=colors[not rule.shield[team] and 'contest' or team];local c={}
             local warn=not rule.shield[team] and (.5+.5*math.sin(t*8))*.3 or 0
@@ -82,12 +109,15 @@ function M:Update(dt,rule,camera)
                 self:Crystal({center[1]+math.cos(a)*(2.2+ring*.8),center[2]+ring*1.6-.8,center[3]+math.sin(a)*(2.2+ring*.8)},c,.95)
             end
             self:Beam({center[1],center[2]-2.5,center[3]},.5,.5,5,colors[team],.35,12);self.mesh:Commit()
+            end
         end
     else
         local p=self.mode:At(rule.s).pos
+        if self:Refresh('PayloadHalo',frustum,p,22,0,.3,due) then
         self:Begin('PayloadHalo',p,true)
         self:Ring({p[1],p[2]+.3,p[3]},21.3,22,0,math.pi*2,colors[rule.contested and 'contest' or rule.idle>=8 and 'red' or rule.pushing>0 and 'push' or 'white'],.35+.2*math.sin(t*5),128)
         self.mesh:Commit()
+        end
     end
 end
 function M:Dispose() self.root:Dispose();for _,m in ipairs(self.materials) do m:Dispose() end end

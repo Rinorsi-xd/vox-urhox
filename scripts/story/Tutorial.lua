@@ -1,5 +1,6 @@
 local UI=require 'urhox-libs/UI'
 local Rules=require 'story.TutorialRules'
+local Sound=require 'audio.UiSound'
 local M={};M.__index=M
 function M.New(app)
     local self=setmetatable({},M);self:init(app);return self
@@ -28,8 +29,10 @@ function M:Busy(state)
 end
 function M:Prepare()
     if self.gate.state=='idle' or self.gate.state=='failed' then
-        local paths={'UI/Faces/nono_talk.png','UI/Faces/nono_deadpan.png','UI/Faces/nono_smile.png'}
+        local Portrait=require('ui.CommsPortrait');local paths={}
+        for _,face in ipairs({'talk','deadpan','smile'}) do paths[#paths+1]=Portrait.Path('nono',face) end
         for _,v in pairs(self.data.voices) do paths[#paths+1]=v.path end
+        for _,path in ipairs(require('audio.StoryCommsCues').Dependencies()) do paths[#paths+1]=path end
         self.gate:Start(paths,function(ok,message)
             if not ok then print('[Tutorial] Portrait download failed: '..tostring(message)) end
         end)
@@ -37,15 +40,23 @@ function M:Prepare()
 end
 function M:Start() self.initialized=true;self.rules:Start(1,nil,self:State());self.revision=-1 end
 function M:Replay() self.initialized=true;self.rules:Replay(self:State());self.revision=-1 end
+function M:Lines()
+    local spec=self.rules:StepSpec()
+    return require('controls.TouchMode').Enabled() and spec.touchLines or spec.lines
+end
+function M:Hint()
+    local spec=self.rules:StepSpec()
+    return require('controls.TouchMode').Enabled() and spec.touchHint or spec.hint
+end
 function M:Advance()
     if not self.visible or self.rules:StepSpec().next~='button' then return end
-    local s=self.rules:StepSpec();local line=s.lines[self.line]
+    local lines=self:Lines();local line=lines[self.line]
     local count=utf8.len(line[2]);local duration=self.typing or count*.032
     if self.lineAge<duration and not (self.voice and self.voice.card and self.voice.card.finishedTyping) then
         self.lineAge=duration
         if self.voice then self.voice:FinishLine() end
-    elseif self.line<#s.lines then self.line=self.line+1;self.lineAge=0
-    else self.rules:Advance(self:State()) end
+    elseif self.line<#lines then self.line=self.line+1;self.lineAge=0
+    elseif self.rules:Advance(self:State()) then Sound.Play('press') end
 end
 function M:Skip()
     if self.rules.replay then self.rules:Stop();return end
@@ -55,6 +66,7 @@ function M:Skip()
 end
 function M:Choose(path)
     if not self.visible or not self.rules:StepSpec().choice then return end
+    Sound.Play('press')
     if path=='build' then self.app:EnterBuild()
     else local h=require('ui.GarageHud').GetState();if h then h.SetTab('battle') end end
 end
@@ -66,20 +78,27 @@ function M:Update(dt)
         if not self.rules:Resume(state) and not self.app.isValidation and not rawget(_G,'VOX_SKIP_TUTORIAL') and
             not self.rules.record.done and not self.rules.record.skipped then self.rules:Start(1,nil,state) end
     end
+    local wasReplay=self.rules.replay
+    local beforeDone,beforeRevision=self.rules.doneAt,self.rules.revision
     self.rules:Tick(math.min(dt,.1),state,busy)
+    if not busy and not beforeDone and self.rules.doneAt and self.rules.revision==beforeRevision then Sound.Play('confirm') end
+    if wasReplay and not self.rules.running then self.app.toasts:Push('拼装教学看完了','ok',2000) end
     if self.rules.running then self:Prepare();busy=self:Busy(state) end
     self.visible=self.rules.running and not busy
     if self.skipConfirm then self.skipConfirm=math.max(0,self.skipConfirm-dt) end
-    if self.revision~=self.rules.revision then self.revision=self.rules.revision;self.line=1;self.lineAge=0;self.skipConfirm=0 end
+    if self.revision~=self.rules.revision then self.revision=self.rules.revision;self.line=1;self.lineAge=0;self.skipConfirm=0;self.suspended=false end
     if not self.visible then
         self.page:CancelInput()
         if self.voice then
-            if not self.rules.running or state.drive or self.app.loadingFlow.active then self.voice:Hide();self.voiceKey=false
+            if not self.rules.running or state.drive or self.app.loadingFlow.active or input.focus and not input.minimized then
+                self.voice:Hide();self.voiceKey=false;self.suspended=self.rules.running
             else self.voice:Update(0,false) end
         end
         return
     end
-    local s=self.rules:StepSpec();local line=s.lines[self.line]
+    local lines=self:Lines();local line=lines[self.line]
+    -- H5 replays this step's authored lines after a modal/scene borrows the card.
+    if self.suspended then self.line=1;self.lineAge=0;self.voiceKey=false;self.suspended=false;line=lines[1] end
     if not self.voice then self.voice=require('audio.StoryComms').New(self.app.scene,self.data,true) end
     if not self.voice:Owns() then self.voice:Use(true);self.voiceKey=false end
     local key=self.rules.revision..':'..self.line
@@ -88,7 +107,7 @@ function M:Update(dt)
     local card=self.voice.card;self.typing=card and card.typing or utf8.len(line[2])*.032
     self.lineAge=card and card.age or 0
     local length=card and card.length or utf8.len(line[2])*.102+1.8
-    if self.line<#s.lines and self.lineAge>length then self.line=self.line+1;self.lineAge=0 end
+    if self.line<#lines and self.lineAge>length then self.line=self.line+1;self.lineAge=0 end
 end
 function M:Keys()
     if not self.visible then return false end

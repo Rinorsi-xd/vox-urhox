@@ -6,26 +6,31 @@ package.loaded['urhox-libs/UI/Core/ImageCache']={Release=function()end}
 package.loaded['urhox-libs.Platform.PlatformUtils']={IsWebPlatform=function()return true end}
 package.loaded['app.ResourceGate']={New=function()return {Start=function(_,_,cb)cb(true)end,Cancel=function()end}end}
 package.loaded['ui.LoadingPage']={New=function()return {Open=function()end,Close=function()end,Dispose=function()end}end}
-Time={GetSystemTime=function()return 5 end};renderer={GetViewport=function()return {camera={}}end}
+local clock=5
+Time={GetSystemTime=function()return clock end};renderer={GetViewport=function()return {camera={}}end}
 local counters={new=0,presented=0,dispose=0,restore=0};local failure
 package.loaded['render.SceneWarmup']={New=function()return {items={1},skipped=0,batches=1,
  Rendered=function()return true end,Restore=function()counters.restore=counters.restore+1 end}end}
 package.loaded['render.CombatWarmup']={New=function()
  counters.new=counters.new+1;if failure=='new'then error('new failed')end
+ clock=clock+3
  local w={calls=0};function w:Presented()counters.presented=counters.presented+1;if failure=='presented'then error('presented failed')end;self.calls=self.calls+1;return self.calls>=2 end
  function w:Dispose()counters.dispose=counters.dispose+1 end;return w
 end}
 local Flow=require'app.LoadingFlow'
 local function fresh(boot)
- counters={new=0,presented=0,dispose=0,restore=0};failure=nil
+ counters={new=0,presented=0,dispose=0,restore=0};failure=nil;clock=5
  local app={scene={},trial=not boot and {disposed=false}or nil,graphicsSettings={SetSceneVisible=function()end}}
  local f=Flow.New(app);f:Open({id=boot and 'boot'or 'trial',boot=boot});f:Finish();return f
 end
 local checks=0
 do
- local f=fresh(false);f:Rendered();eq(counters.new,0,'scene warmup must finish first');f:Rendered();eq(counters.new,1,'one combat warmup')
- eq(f.warmFrames,0,'no reveal before effects');f:Rendered();eq(f.warmFrames,0,'no reveal before presented completion')
- f:Rendered();eq(f.warmFrames,0,'completion frame remains covered');for _=1,6 do f:Rendered()end
+ local f=fresh(false);clock=25;f:Rendered();eq(counters.new,0,'scene warmup must finish first');clock=40;f:Rendered();eq(counters.new,1,'one combat warmup')
+ eq(f.warmupTimes.sceneMs,20,'scene warmup timing');eq(f.warmupTimes.restoredWorldMs,15,'full restored-world presentation remains separate')
+ eq(f.warmupTimes.combatConstructMs,3,'constructor timing excludes restored render')
+ eq(f.warmFrames,0,'no reveal before effects');clock=60;f:Rendered();eq(f.warmFrames,0,'no reveal before presented completion')
+ clock=75;f:Rendered();eq(f.warmupTimes.combatMs,32,'combat presentation timing');eq(f:Snapshot().warmupTimes,f.warmupTimes,'snapshot exposes timings')
+ eq(f.warmFrames,0,'completion frame remains covered');for _=1,6 do f:Rendered()end
  eq(counters.new,1,'repeated rendered must not reinitialize');eq(f.warmFrames,6,'warmFrames resumes after combat');f:Close();checks=checks+1
 end
 do

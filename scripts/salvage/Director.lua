@@ -28,16 +28,20 @@ function M:Add(kind,at,yaw,enc,seed)
     if self.run.session.hud then self.run.session.hud.overlay.tags[#self.run.session.hud.overlay.tags+1]={unit=u,visible=false} end
     return e
 end
-function M:Alert(enc)
+function M:Alert(enc,why)
     if enc.alerted then return end;enc.alerted=true
-    self.run:Feed(enc.kind=='ambush' and '伏击！' or enc.name,'被发现 · '..#enc.units..' 辆车冲过来了')
     local cine=self.run.cine
-    if enc.kind=='elite' then for _,entry in ipairs(enc.units) do if entry.unit.alive and entry.unit.elite then
-        cine:Elite(entry.unit);cine:NameCard('精英 · '..entry.def.name,(entry.def.title or '')..' · '..(entry.def.gang or ''),3.4);cine:Flash(.2,.6);break
-    end end
-    elseif enc.kind=='ambush' then cine:NameCard('伏击！',enc.name..' · '..#enc.units..' 辆冲出来了',2.4);cine:Flash(.15,.4) end
+    local elite=false
+    for _,entry in ipairs(enc.units) do if entry.unit.alive and entry.unit.elite then elite=entry;break end end
+    if enc.kind=='elite' and elite then
+        cine:Elite(elite.unit);cine:NameCard('精英 · '..elite.def.name,(elite.def.title or '')..' · '..(elite.def.gang or ''),3.4);cine:Flash(.2,.6)
+    elseif enc.kind=='ambush' then cine:NameCard('伏击！',enc.name..' · '..#enc.units..' 辆冲出来了',2.4);cine:Flash(.15,.4)
+    else
+        local alive=0;for _,entry in ipairs(enc.units) do if entry.unit.alive then alive=alive+1 end end
+        self.run:Feed(enc.name..' · 被发现',(why and why~='' and why..'，' or '')..alive..' 辆车冲过来了','#ff5a3c')
+    end
 end
-function M:Noise(at,r) for _,e in ipairs(self.encounters) do if e.state=='active' and not e.alerted and Flat(at,e.g)<r then self:Alert(e) end end end
+function M:Noise(at,r) for _,e in ipairs(self.encounters) do if e.state=='active' and not e.alerted and Flat(at,e.g)<r then self:Alert(e,'听到动静') end end end
 function M:Spawn(enc)
     local types=enc.left;local rand=self.run.rules.rand
     for i,kind in ipairs(types) do
@@ -81,7 +85,7 @@ function M:Step(dt)
     local r=self.run.rules;self.huntLeft=self.huntLeft-dt*r.heat/50;self.timer=self.timer+dt
     if r.heat>=35 and self.huntLeft<=0 then
         self.huntLeft=18;local n=0;for _,e in ipairs(self.entries) do if e.hunter then n=n+1 end end
-        if n<3 then self:Hunt(r.heat>70 and 2 or 1);self.run:Feed('追兵','热度太高，路边有车追上来了') end
+        if n<3 then self:Hunt(r.heat>70 and 2 or 1);self.run:Feed('追兵','热度太高，路边有车追上来了','#ff8a6a') end
     end
     if self.timer<.25 then return end;self.timer=0;local pos=self.run.player:Position();local nearest=false;local nearestDist=math.huge
     for _,e in ipairs(self.encounters) do
@@ -91,22 +95,26 @@ function M:Step(dt)
             -- Do not truncate a squad when the active cap is full.
             if #self.entries-1+#e.left<=14 then self:Spawn(e) end
         elseif e.state=='active' then
-            local alive=0;for _,entry in ipairs(e.units) do if entry.unit.alive then alive=alive+1;e.lastPos=entry.unit:Position();if entry.unit.hitAt>entry.hit0 then self:Alert(e) end end end
+            if not e.hinted and not e.alerted and d<280 then e.hinted=true;self.run:Feed(e.name,e.hint or '',e.kind=='elite' and '#ff5a3c' or '#f0a21c') end
+            local alive=0;local hit=false
+            for _,entry in ipairs(e.units) do if entry.unit.alive then alive=alive+1;e.lastPos=entry.unit:Position();hit=hit or entry.unit.hitAt>entry.hit0 end end
             if alive==0 then
-                e.state='cleared';local tier=math.min(3,e.reward or 1)
+                e.state='cleared';local tier=math.min(3,e.reward and e.reward~=0 and e.reward or 1)
                 local at=e.kind=='patrol' and (e.lastPos or e.g) or e.g
                 local loot={table.unpack(Data.crateLoot[tier+1])}
                 if e.id=='convoy' then loot[#loot+1]={'ore',2,4};loot[#loot+1]={'cell',1,1,.7} end
-                self.run.rules:AddExtra({id='C:'..e.id,kind='cache',tier=tier,name=e.name,g=self:Surface(at[1],at[3],true) or at,loot=loot})
-                self.run:Feed('清除 · '..e.name,'补给箱掉在了据点边')
-            elseif not e.alerted and d<(e.aggroR or 140) then self:Alert(e)
+                local ground=self:Surface(at[1],at[3],true) or at
+                self.run.rules:AddExtra({id='C:'..e.id,kind='cache',tier=tier,name=e.name,g=ground,loot=loot})
+                self.run.fx:Loot(ground,({0xc9c1b2,0x3ddc84,0x3ea8ff,0xc46bff})[tier+1],0)
+                self.run:Feed('清除 · '..e.name,({'','普通','优良','稀有'})[tier+1]..'补给箱掉在了'..(e.kind=='patrol' and '车队残骸边' or '据点中间'),'#3ddc84')
+            elseif not e.alerted and hit then self:Alert(e,'被打了')
+            elseif not e.alerted and d<(e.aggroR or 140) then self:Alert(e,'发现了你')
             elseif not e.alerted and d>650 then
                 e.left={};for _,entry in ipairs(e.units) do if entry.unit.alive then e.left[#e.left+1]=entry.kind end;self:Remove(entry) end
                 e.units={};e.state=#e.left>0 and 'dormant' or 'cleared'
             end
             if e.state=='active' and d<nearestDist then nearest={name=e.name,n=alive,d=d,alerted=e.alerted==true};nearestDist=d end
         end
-        if not e.hinted and not e.alerted and d<280 then e.hinted=true;self.run:Feed(e.name,e.hint or '') end
     end
     self.run.threat=nearest and nearestDist<400 and nearest or nil
 end

@@ -31,7 +31,10 @@ function M.Open(owner,options)
         Host.Close(owner);if inGame and owner.Resume then owner:Resume() end
     end)
     if inGame then
-        Add('return','返回车库','hangar','结束当前驾驶并返回',function() Host.Close(owner);owner.wantsReturn=true end)
+        Add('return','返回车库','hangar','结束当前驾驶并返回',function()
+            Host.Close(owner)
+            if owner.battle then require('combat.MatchActions').ConfirmLeave(owner.battle) else owner.wantsReturn=true end
+        end)
     end
     if build then
         Add('save','保存','save',touch and '存进车位' or '存进车位（Ctrl+S）',function() owner:SaveSlot() end)

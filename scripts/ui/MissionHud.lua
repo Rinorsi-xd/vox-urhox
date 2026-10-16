@@ -49,11 +49,11 @@ function Panel:Render(vg)
     D.Begin(vg);local s=self.session;local mission=s.story;local r=mission.rules;local box=self:GetAbsoluteLayout();local w,h=box.w,box.h
     local scale=s.touch and .65 or 1;nvgSave(vg);nvgTranslate(vg,box.x,box.y);nvgScale(vg,scale,scale);w=w/scale;h=h/scale
     local step=r:StepSpec();local cinematic=mission.boss and mission.boss.cinematic
-    if step and not cinematic then
+    local objective=mission.objective and mission.objective:State()
+    if objective and not cinematic then
         local top=s.touch and 92 or 62
-        Tag(vg,mission.level.no,mission.level.name,20,top,430);Text(vg,string.format('%02d / %02d',r.index,#mission.level.steps),430,top+10,14,muted,NVG_ALIGN_RIGHT)
-        Frame(vg,20,top+44,430,170);Text(vg,r.retitle or (r.phase=='fight' and step.fightTitle or step.title),56,top+66,23)
-        self.hint:Draw(vg,step.hint or '',56,top+101,368,muted)
+        Tag(vg,mission.level.no,mission.level.name,20,top,430);Text(vg,string.format('%02d / %02d',objective.index,objective.total),430,top+10,14,muted,NVG_ALIGN_RIGHT)
+        Frame(vg,20,top+44,430,170);mission.objective:Draw(vg,self.hint,38,top+66,386)
         local rows=mission.convoy and {{'运输车','CARGO HP',mission.convoy.hp,1,orange,true},{'检查点','CHECKPOINT',r.stats.checkpoints,3,cyan}} or
             {{'情报','INTEL',r.stats.intel,3,cyan},{'采集器','COLLECTOR',r.stats.collectors,3,orange}}
         if mission.level.id=='s3' then

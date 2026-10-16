@@ -7,6 +7,8 @@ local Data=require('core.ResourceData').Read('UI/Workshop.json')
 local Paragraph=require 'ui.SourceParagraph'
 local Carousel=require 'ui.WorkshopCarousel'
 local Entrance=require 'ui.WorkshopEntrance'
+local Shop=require 'ui.WorkshopShop'
+local ShopPaint=require 'ui.WorkshopShopPaint'
 local Page=UI.Panel:Extend('VoxWorkshopPage')
 local Card=require 'ui.WorkshopCard'
 local Dot=UI.Panel:Extend('VoxWorkshopDot')
@@ -16,6 +18,12 @@ local featureDescriptionColor={219,238,255,191}
 local featured=Carousel.ids
 local groups={{'all','全部'},{'wheel','轮式'},{'track','履带'},{'mech','机甲'},{'plane','飞机'},{'pirate','海盗'},{'blank','底盘'}}
 local function Find(id) for _,p in ipairs(Data.prefabs) do if p.id==id then return p end end end
+local function IsFeatured(id) for _,candidate in ipairs(featured) do if candidate==id then return true end end;return false end
+local function FeaturedSelection(ws)
+    for _,id in ipairs(featured) do if id==ws.featureSelected then return id end end
+    for _,id in ipairs(featured) do if id==ws.selected then return id end end
+    return featured[1]
+end
 local function Clamp(v,a,b) return math.max(a,math.min(b,v)) end
 local function Fade(vg,x,y,w,h,a,b,horizontal) nvgBeginPath(vg);nvgRect(vg,x,y,w,h);D.Gradient(vg,x,y,w,h,a,b,horizontal) end
 function Dot:Render(vg)
@@ -50,6 +58,15 @@ function Page:FeatureLayout(descHeight)
     return actionY
 end
 function Page:Update(dt)
+    if self.shop then
+        local wallet=self.owner.app.salvageLobby.data.credits
+        if self.shopWallet~=wallet then
+            self.shopWallet=wallet
+            local shop=Shop.State(self.owner,self.item.id)
+            for _,button in ipairs(self.purchaseButtons) do button.props.shop=shop end
+            for _,card in ipairs(self.shopCards) do card.shop=Shop.State(self.owner,card.item.id) end
+        end
+    end
     if self.view~='feature' then
         local entry=self.owner.workshop.entrance
         local elapsed=entry and entry.elapsed or .9
@@ -87,6 +104,10 @@ local function EntranceBegin(vg,ws,index)
     local alpha,dx,dy=Entrance.Group(ws,index)
     nvgSave(vg);nvgGlobalAlpha(vg,alpha);nvgTranslate(vg,dx,dy)
 end
+local function RetirePage(s)
+    -- H5 switches the old .wsv off synchronously, before the next frame rebuild.
+    if s.workshopPage then s.workshopPage:SetVisible(false);s.workshopPage=nil end
+end
 function Page:Render(vg)
     D.Begin(vg);local r=self:GetAbsoluteLayout();local s=self.owner;local ws=s.workshop;local p=self.item
     local x,y,w,h=r.x,r.y,r.w,r.h;local pad=self.pad
@@ -119,7 +140,8 @@ function Page:Render(vg)
         nvgRestore(vg)
         D.Text(vg,'官方预制车',x+pad,y+self.shelfY+3,24,nil,nil,nil,3)
         D.Text(vg,'OFFICIAL PREFABS',x+pad+146,y+self.shelfY+14,11,D.orange,nil,nil,4)
-        D.Text(vg,'共 '..#Data.prefabs..' 辆 · 点开可在机库里 3D 预览',x+pad+320,y+self.shelfY+12,13,{219,238,255,115},'vox-body')
+        D.Text(vg,'共 '..#Data.prefabs..' 辆 · '..(self.shop and '整车价格 = 零件标价合计，买下直接开走' or '点开可在机库里 3D 预览'),x+pad+320,y+self.shelfY+12,13,{219,238,255,115},'vox-body')
+        if self.shop then ShopPaint.Wallet(vg,s.app.salvageLobby.data.credits,x+w-pad-181,y+self.shelfY+12) end
     elseif self.view=='browse' then
         D.Rect(vg,x,y,w,h,{5,11,20,240})
         nvgSave(vg);nvgIntersectScissor(vg,x,y,w,h)
@@ -129,7 +151,7 @@ function Page:Render(vg)
         nvgRestore(vg)
         Paint.Radial(vg,{x,y,x+w,y,x+w,y+h,x,y+h},x+w*.7,y+h*.3,w*.9,h*.7,{30,70,120,89},.7)
         EntranceBegin(vg,ws,2)
-        D.Text(vg,'创意工坊',x+pad+62,y+84,34,nil,nil,nil,3,false,35.7,Paint.textShadows.title);D.Text(vg,'WORKSHOP · 官方预制车',x+pad+62,y+123,11,D.orange,nil,nil,4)
+        D.Text(vg,'创意工坊',x+pad+62,y+84,34,nil,nil,nil,3,false,35.7,Paint.textShadows.title);D.Text(vg,self.shop and 'WORKSHOP · 用信用点买整车' or 'WORKSHOP · 官方预制车',x+pad+62,y+123,11,D.orange,nil,nil,4)
         nvgRestore(vg)
         EntranceBegin(vg,ws,2);D.Rect(vg,x+pad+62+self.browseTitleWidth+22,y+84,1,49.6875,{122,216,255,64});nvgRestore(vg)
     else
@@ -161,11 +183,23 @@ function Page:Render(vg)
         local factsY=barsY+144;D.Rect(vg,x+pad,y+factsY,width,1,{122,216,255,38})
         local b=a.blueprint.bb;local cell=require('Config').CELL
         local dims=string.format('%.1f × %.1f × %.1f m',(b.maxX-b.minX+1)*cell,(b.maxY-b.minY+1)*cell,(b.maxZ-b.minZ+1)*cell)
-        for i,f in ipairs({{'零件',D.Number(a.stats.parts or 0)},{'质量',string.format('%.1f t',(a.stats.mass or 0)/1000)},{'尺寸',dims}}) do
+        local facts={{'零件',D.Number(a.stats.parts or 0)},{'质量',string.format('%.1f t',(a.stats.mass or 0)/1000)},{'尺寸',dims}}
+        if self.shop then local price=Shop.Price(p.id);facts[#facts+1]={'整车价格',price>0 and D.Number(price) or '免费'} end
+        local factX=x+pad
+        local minWidths,total={},0
+        for i,f in ipairs(facts) do
+            local content=math.max(D.Width(vg,f[1],12,'vox-body'),D.Width(vg,f[2],18,'vox-tabular'))
+            if f[1]=='整车价格' then content=math.max(content,ShopPaint.CostWidth(vg,Shop.Price(p.id),18)) end
+            minWidths[i]=content;total=total+content+(i==1 and 14 or 29)
+        end
+        for i,f in ipairs(facts) do
             local contentWidth=(width-72)/3
-            local fx=x+pad+(i-1)*(contentWidth+29)-(i>1 and 15 or 0)
+            local fx=self.shop and factX or x+pad+(i-1)*(contentWidth+29)-(i>1 and 15 or 0)
             if i>1 then D.Rect(vg,fx,y+factsY+10,1,41,{122,216,255,38});fx=fx+14 end
-            D.Text(vg,f[1],fx,y+factsY+11,12,{219,238,255,128},'vox-body');D.Text(vg,f[2],fx,y+factsY+29,18,nil,'vox-tabular')
+            D.Text(vg,f[1],fx,y+factsY+11,12,{219,238,255,128},'vox-body')
+            if f[1]=='整车价格' then ShopPaint.Cost(vg,Shop.Price(p.id),fx,y+factsY+29,18,D.white)
+            else D.Text(vg,f[2],fx,y+factsY+29,18,nil,'vox-tabular') end
+            factX=factX+minWidths[i]+(i==1 and 14 or 29)+math.max(0,(width-total)/#facts)
         end
         local loadY=factsY+75;D.Rect(vg,x+pad,y+factsY+61,width,1,{122,216,255,38})
         nvgRestore(vg)
@@ -202,6 +236,8 @@ function Page:Render(vg)
     Fade(vg,x,y,w,120,{4,9,18,217},{4,9,18,0})
 end
 function M.Leave(s)
+    RetirePage(s)
+    if s.workshop and s.workshop.view=='feature' then s.workshop.featureSelected=s.workshop.selected end
     Paint.TrimImages({})
     Carousel.Leave(s.workshop)
     if s.workshopPreview then s.workshopPreview:Dispose();s.workshopPreview=nil end
@@ -209,6 +245,8 @@ function M.Leave(s)
     -- Original leave() changes detail to browse quietly; returning to this tab
     -- does not replay browse entry. Explicit view()/filter clicks start it below.
     if s.workshop then
+        -- H5 keeps heroI independent of detailId, including across tab changes.
+        s.workshop.selected=FeaturedSelection(s.workshop)
         s.workshop.entrance=s.workshop.view~='feature' and {kind=s.workshop.view,elapsed=.9} or nil
     end
 end
@@ -248,6 +286,10 @@ end
 function M.Create(s)
     s.workshop=s.workshop or {view='feature',selected='scorpion',group='all',sort='rec',elapsed=0}
     local ws=s.workshop;local w,h=s.width,s.height;local pad=Clamp(w*.03,24,64)
+    if ws.view=='feature' then
+        if not IsFeatured(ws.selected) then ws.selected=FeaturedSelection(ws) end
+        ws.featureSelected=ws.selected
+    end
     local keep={}
     if ws.view=='feature' then
         Carousel.Mount(s)
@@ -261,12 +303,17 @@ function M.Create(s)
     local page=Page{position='absolute',width=w,height=h,pointerEvents='box-none'}
     -- A key can change state after this frame's rebuild. Render the mounted tree's view.
     page.view=ws.view;page.item=Find(ws.selected)
-    page.owner=s;page.pad=pad;page.textWidth=Clamp(w*.27,380,500)
+    page.owner=s;page.pad=pad;page.textWidth=Clamp(w*.27,380,500);page.shop=Shop.Active(s)
+    page.purchaseButtons={};page.shopCards={}
     page.titleSize=ws.view=='detail' and Clamp(w*.027,34,54) or Clamp(w*.039,44,76)
     page.description=Paragraph.New(ws.view=='detail' and 13 or 14,ws.view=='detail' and 22.75 or 24.5)
     page.description.maxLines=3
     local function Change(view,id,from)
-        ws.view=view;ws.selected=id or ws.selected;ws.from=from or ws.from;s.revision=-1;ws.elapsed=0
+        RetirePage(s)
+        if ws.view=='feature' then ws.featureSelected=ws.selected end
+        -- Featured artwork must never replace an already opened detail vehicle.
+        if ws.view=='feature' and view~='feature' then Carousel.Leave(ws) end
+        ws.view=view;ws.selected=view=='feature' and FeaturedSelection(ws) or id or ws.selected;ws.from=from or ws.from;s.revision=-1;ws.elapsed=0
         if view=='detail' then
             s.workshopPreview=s.workshopPreview or require('render.WorkshopPreview').New(s.app);s.workshopPreview:Show(ws.selected)
         else M.Leave(s);s.app:HomeView('workshop') end
@@ -288,25 +335,32 @@ function M.Create(s)
     if ws.view=='feature' then
         local rowHeight=Clamp(h*.24,180,260);page.shelfY=h-22-rowHeight-12-44;page.heroHeight=page.shelfY-18
         local actionY=page:FeatureLayout(73.5)
+        local shop=Shop.State(s,ws.selected)
+        local label=Shop.Label(ws.selected,false,shop)
+        local vg=UI.GetNVGContext();D.Begin(vg)
+        local purchaseWidth=shop and math.max(162,50+D.Width(vg,label,16,nil,2)+28+ShopPaint.CostWidth(vg,shop.cost,18)+22) or 162
         page.actionButtons={
             Add('查看详情','eye',pad,actionY,192,64,function() Change('detail',ws.selected,'feature') end,'view'),
-            Add('放进新车位','plus',pad+202,actionY,162,64,function() s.CreateVehicle(ws.selected) end,'add',{disabled=s.usedCount==20}),
+            Add(label,'plus',pad+202,actionY,purchaseWidth,64,function() s.CreateVehicle(ws.selected) end,'add',{disabled=s.usedCount==20,shop=shop}),
         }
+        page.purchaseButtons={page.actionButtons[2]}
         page:Update(0)
         page:AddChild(UI.Panel{position='absolute',left=0,top=60,width=w,height=page.heroHeight-60,pointerEvents='box-none',onPointerEnter=function() ws.hold=true end,onPointerLeave=function() ws.hold=false end})
         for i,id in ipairs(featured) do
             local dot=s.Track(Dot{text=Find(id).name,position='absolute',left=pad+(i-1)*142,top=page.heroHeight-120,width=132,height=98,onClick=function() Carousel.Select(s,id) end})
             dot.owner=s;dot.item=Find(id);page:AddChild(dot)
         end
-        page.shelfWidgets={
-            Add('导入蓝图','download',w-pad-439.140625,page.shelfY+2,113,40,function() require('ui.GarageDialogs').Code(s,true) end,'ghost'),
-            Add('分享当前战车','share',w-pad-318.140625,page.shelfY+2,143,40,function() require('ui.GarageDialogs').Code(s,false) end,'ghost'),
-            Add('查看全部',nil,w-pad-161.140625,page.shelfY,161.140625,44,function() Change('browse') end,'all',{count=#Data.prefabs}),
-        }
+        page.shelfWidgets={}
+        if not page.shop then
+            page.shelfWidgets[#page.shelfWidgets+1]=Add('导入蓝图','download',w-pad-439.140625,page.shelfY+2,113,40,function() require('ui.GarageDialogs').Code(s,true) end,'ghost')
+            page.shelfWidgets[#page.shelfWidgets+1]=Add('分享当前战车','share',w-pad-318.140625,page.shelfY+2,143,40,function() require('ui.GarageDialogs').Code(s,false) end,'ghost')
+        end
+        page.shelfWidgets[#page.shelfWidgets+1]=Add('查看全部',nil,w-pad-161.140625,page.shelfY,161.140625,44,function() Change('browse') end,'all',{count=#Data.prefabs})
         local unit=(w-pad*2-60)/5.85;local moreWidth=math.max(200,unit*.85);unit=(w-pad*2-60-moreWidth)/5
         for i=1,5 do
             local p=Data.prefabs[i];local card=s.Track(Card{text=p.name,position='absolute',left=pad+(i-1)*(unit+12),top=page.shelfY+56,width=unit,height=rowHeight,onClick=function() Change('detail',p.id,'feature') end})
-            card.item=p;card.tier=Data.stats[p.id].tier or 1;card.mini=true;page:AddChild(card)
+            card.item=p;card.tier=Data.stats[p.id].tier or 1;card.mini=true;card.shop=Shop.State(s,p.id);page:AddChild(card)
+            page.shopCards[#page.shopCards+1]=card
             page.shelfWidgets[#page.shelfWidgets+1]=card
         end
         local more=s.Track(More{text='查看全部预制车',position='absolute',left=pad+5*(unit+12),top=page.shelfY+56,width=moreWidth,height=rowHeight,onClick=function() Change('browse') end})
@@ -315,7 +369,9 @@ function M.Create(s)
     elseif ws.view=='detail' then
         if not s.workshopPreview then Change('detail',ws.selected,ws.from or 'browse') end
         Animate(Add('返回','back',pad,92,84,44,function() Change(ws.from or 'browse') end,'back'),1)
-        Animate(Add('放进新车位','plus',pad,h-84,page.textWidth,70,function() s.CreateVehicle(ws.selected) end,'go',{disabled=s.usedCount==20}),7)
+        local shop=Shop.State(s,ws.selected)
+        local purchase=Animate(Add(Shop.Label(ws.selected,true,shop),'plus',pad,h-84,page.textWidth,70,function() s.CreateVehicle(ws.selected) end,'go',{disabled=s.usedCount==20,shop=shop}),7)
+        page.purchaseButtons={purchase}
         local idx=1;for i,p in ipairs(Data.prefabs) do if p.id==ws.selected then idx=i end end;page.index=idx
         local footX=pad+page.textWidth+40
         Add('','chev',footX,h-60,44,44,function() Change('detail',Data.prefabs[(idx-2)%#Data.prefabs+1].id) end,'pager',{iconRotation=90})
@@ -325,7 +381,7 @@ function M.Create(s)
     else
         Animate(Add('','back',pad,87,44,44,function() Change('feature') end,'back'),1)
         local vg=UI.GetNVGContext();D.Begin(vg)
-        page.browseTitleWidth=math.max(D.Width(vg,'创意工坊',34,nil,3),D.Width(vg,'WORKSHOP · 官方预制车',11,nil,4))
+        page.browseTitleWidth=math.max(D.Width(vg,'创意工坊',34,nil,3),D.Width(vg,page.shop and 'WORKSHOP · 用信用点买整车' or 'WORKSHOP · 官方预制车',11,nil,4))
         local cssWidth=graphics:GetWidth()/graphics:GetDPR()
         local tabSize=cssWidth<=1440 and 16 or 19
         local tabHeight=math.floor(tabSize+.5)+math.floor(tabSize*.2+.5)+22
@@ -338,17 +394,14 @@ function M.Create(s)
             ws.tabMotions=ws.tabMotions or {};button.tabMotion=ws.tabMotions[g[1]];button:Update(0);ws.tabMotions[g[1]]=button.tabMotion
             Animate(button,3);x=x+width+2
         end
-        local sx=w-pad-245
-        for i,sort in ipairs({{'rec','推荐',52},{'tier','档位',60},{'parts','零件数',74},{'speed','极速',59}}) do
+        local sorts={{'rec','推荐',52},{'tier','档位',60},{'parts','零件数',74},{'speed','极速',59}}
+        if page.shop then sorts[#sorts+1]={'price','价格',59} end
+        local sx=w-pad-245-(page.shop and 59 or 0)
+        for i,sort in ipairs(sorts) do
             Animate(Add(sort[2],nil,sx,95,sort[3],28,function() ws.sort=sort[1];Entrance.Start(ws,'grid');s.revision=-1 end,'sort',{selected=ws.sort==sort[1],separator=i>1}),4);sx=sx+sort[3]
         end
         local list={};for _,p in ipairs(Data.prefabs) do if ws.group=='all' or p.group==ws.group then list[#list+1]=p end end
-        if ws.sort~='rec' then table.sort(list,function(a,b)
-            local key=ws.sort=='tier' and 'tier' or ws.sort=='parts' and 'parts' or 'speed'
-            local x,y=Data.stats[a.id][key] or 0,Data.stats[b.id][key] or 0
-            if x~=y then return x>y end
-            local ai,bi=1,1;for i,p in ipairs(Data.prefabs) do if p.id==a.id then ai=i elseif p.id==b.id then bi=i end end;return ai<bi
-        end) end
+        Shop.Sort(list,ws.sort,Data.stats,page.shop)
         local hero=#list>3;local slots=#list+(hero and 3 or 0)+(ws.group=='all' and 1 or 0)
         local rows=math.ceil(slots/4);local gridWidth=w-pad*2;local gridTop=84+49.6875+14;local available=h-gridTop-14
         -- CSS grid-auto-rows:minmax(0,1fr) can be smaller than a card's
@@ -366,7 +419,8 @@ function M.Create(s)
                 col,row,ww,hh=cursor%4,math.floor(cursor/4),cw,ch;cursor=cursor+1
             end
             local card=s.Track(Card{text=p.name,position='absolute',left=2+col*(cw+12),top=2+row*(trackHeight+12),width=ww,height=hh,onClick=function() Change('detail',p.id,'browse') end})
-            card.item=p;card.tier=Data.stats[p.id].tier or 1;card.hero=i==1 and hero;grid:AddChild(card)
+            card.item=p;card.tier=Data.stats[p.id].tier or 1;card.hero=i==1 and hero;card.shop=Shop.State(s,p.id);grid:AddChild(card)
+            page.shopCards[#page.shopCards+1]=card
             card.heroTitleSize=cssWidth<=1440 and 34 or 46
             Animate(card,4+i)
         end
@@ -393,6 +447,7 @@ function M.Create(s)
         page:AddChild(UI.ScrollView{position='absolute',left=pad,top=gridTop,width=gridWidth,height=available,scrollX=false,scrollY=true,bounces=false,children={grid}})
     end
     page:Update(0)
+    s.workshopPage=page
     return page
 end
 return M

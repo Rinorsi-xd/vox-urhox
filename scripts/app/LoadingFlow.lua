@@ -24,6 +24,7 @@ function M:Open(map,onBack)
         if ok then require('urhox-libs/UI/Core/ImageCache').Release(map.loadingArt or 'UI/Modes/crater.jpg') end
     end) end
     self.steps={};self.current=1;self.progress=0;self.warmFrames=0;self.readyTime=0;self.pageFrames=0;self.pageDrawn=false
+    self.warmupTimes={};self.worldRestoredAt=nil
     for i,id in ipairs(phases) do self.steps[i]={id=id,label=labels[i],state=i==1 and 'run' or 'wait',elapsed=0,note=''} end
     self.page:Open();print('[LoadingFlow] Open '..map.id)
     if map.boot then self.pageVisible=true;self.phase='loading' end
@@ -85,8 +86,12 @@ function M:Finish()
     if self.app.scene and require('urhox-libs.Platform.PlatformUtils').IsWebPlatform() then
         if self.renderWarmup then self.renderWarmup:Restore() end
         local viewport=renderer:GetViewport(0)
+        self.sceneWarmupAt=Time:GetSystemTime()
         self.renderWarmup=require('render.SceneWarmup').New(self.app.scene,nil,viewport and viewport.camera)
-        print('[LoadingFlow] Render warm-up drawables='..#self.renderWarmup.items..' outside='..self.renderWarmup.skipped)
+        self.warmupTimes.drawables=#self.renderWarmup.items
+        self.warmupTimes.outside=self.renderWarmup.skipped
+        self.warmupTimes.disabled=self.renderWarmup.disabled or 0
+        print('[LoadingFlow] Render warm-up drawables='..#self.renderWarmup.items..' outside='..self.renderWarmup.skipped..' disabled='..self.warmupTimes.disabled)
         self.combatWarmupPending=self.app.trial~=nil
     end
     print('[LoadingFlow] Scene installed; awaiting rendered frames')
@@ -95,25 +100,37 @@ function M:Rendered()
     if not self.active or self.failed then return end
     if self.renderWarmup then
         if self.renderWarmup:Rendered() then
-            print('[LoadingFlow] Render warm-up batches='..self.renderWarmup.batches)
+            self.worldRestoredAt=Time:GetSystemTime()
+            self.warmupTimes.sceneMs=math.max(0,self.worldRestoredAt-self.sceneWarmupAt)
+            self.warmupTimes.batches=self.renderWarmup.batches
+            print('[LoadingFlow] Render warm-up batches='..self.renderWarmup.batches..' elapsedMs='..self.warmupTimes.sceneMs)
             self.renderWarmup=nil
         end
         return
     end
     if self.combatWarmupPending then
         self.combatWarmupPending=false
+        local started=Time:GetSystemTime()
+        self.warmupTimes.restoredWorldMs=self.worldRestoredAt and math.max(0,started-self.worldRestoredAt) or 0
         local trial=self.app.trial
         if trial and not trial.disposed then
             local ok,warmup=pcall(function() return require('render.CombatWarmup').New(trial) end)
             if not ok then self:Fail(warmup);return end
             self.combatWarmup=warmup
+            self.combatWarmupAt=Time:GetSystemTime()
+            self.warmupTimes.combatConstructMs=math.max(0,self.combatWarmupAt-started)
+            print('[LoadingFlow] Combat warm-up restoredWorldMs='..self.warmupTimes.restoredWorldMs..' constructMs='..self.warmupTimes.combatConstructMs)
         end
         return
     end
     if self.combatWarmup then
         local ok,done=pcall(self.combatWarmup.Presented,self.combatWarmup)
         if not ok then self:Fail(done);return end
-        if done then self.combatWarmup=nil end
+        if done then
+            self.warmupTimes.combatMs=math.max(0,Time:GetSystemTime()-self.combatWarmupAt)
+            print('[LoadingFlow] Combat warm-up elapsedMs='..self.warmupTimes.combatMs)
+            self.combatWarmup=nil
+        end
         return
     end
     if self.active and self.finished and not self.failed then self.warmFrames=self.warmFrames+1 end
@@ -157,9 +174,10 @@ function M:Advance(dt)
         step.elapsed=math.max(step.elapsed,math.max(0,Time:GetSystemTime()-self.installedAt)/1000)
     end
     if self.sounds then self.sounds:Update(elapsed) end
+    if self.sounds and self.sounds.failure then self:Fail(self.sounds.failure);return end
     if self.match and self.phase=='loading' and not self.failed then
         local match=self.match;match.age=match.age+elapsed
-        if match.stage=='queue' and match.age>=match.wait then match.stage='found';match.age=0;self.sounds:Found()
+        if match.stage=='queue' and match.age>=match.wait and self.sounds.ready then match.stage='found';match.age=0;self.sounds:Found()
         elseif match.stage=='found' and match.age>=1.1 then
             match.stage='roster';match.age=0
             if not self.app:EnterTrial('crater',match.cfg.id,match.roster,true) then self:Fail('对局未能启动') end
@@ -200,7 +218,8 @@ end
 function M:Snapshot()
     return {active=self.active,phase=self.phase,visible=self.pageVisible,progress=self.progress,
         failed=self.failed,error=self.error,map=self.map and self.map.id,steps=self.steps,warmFrames=self.warmFrames,
-        pageFrames=self.pageFrames,match=self.match and {stage=self.match.stage,age=self.match.age,wait=self.match.wait,mode=self.match.cfg.id}}
+        pageFrames=self.pageFrames,warmupTimes=self.warmupTimes,
+        match=self.match and {stage=self.match.stage,age=self.match.age,wait=self.match.wait,mode=self.match.cfg.id}}
 end
 function M:Dispose()
     if self.disposed then return end;self:Close();self.disposed=true;self.page:Dispose();self.page=nil

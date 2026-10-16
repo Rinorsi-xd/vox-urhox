@@ -65,6 +65,7 @@ function M:Objective(step,target)
     if self.zone.enabled then local radius=step.r or step.healR
         self.zone.position=Vec({step.pos[1],step.pos[2]+.3,step.pos[3]});self.zone.scale=Vector3(radius,1,radius)
         self.zoneMaterial:SetShaderParameter('uColor',Variant(step.kind=='hold' and Color(70,200,255) or step.kind=='capture' and Color(255,59,70) or Color(255,106,19)))
+        self.zoneMaterial:SetShaderParameter('uProgress',Variant(0))
     end
     Visibility.Set(self.beacon.root,target~=nil and step.kind~='pickup' and step.kind~='escort');self.beacon.born=self.time;self.beacon.fade=1
     if target then self.beacon.root.position=Vec(target) end
@@ -118,7 +119,10 @@ function M:Update(dt,rules,camera)
         end end
     end
     for _,obj in ipairs(self.objects) do for _,m in ipairs(obj.materials) do if m.data.shader=='Beam' then m.material:SetShaderParameter('uTime',Variant(t)) end end end
-    local step=rules:StepSpec();local progress=step and (step.kind=='hold' or step.kind=='capture') and rules.progress or rules.install/2.4
+    local step=rules:StepSpec();local progress=rules.install/2.4
+    -- The hold ring stays static; capture keeps its completed arc while scrubbing.
+    if step and step.kind=='hold' then progress=0
+    elseif step and step.kind=='capture' then progress=rules.cap and rules.cap.p or 0 end
     self.zoneMaterial:SetShaderParameter('uTime',Variant(t));self.zoneMaterial:SetShaderParameter('uProgress',Variant(math.min(1,progress)))
     for _,site in pairs(self.sites) do
         site.cloth.rotation=Quaternion(-math.sin(t*1.7+site.wave)*.18*180/math.pi,Vector3.UP)

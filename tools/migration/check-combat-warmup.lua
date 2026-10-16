@@ -22,6 +22,11 @@ function Material:new()
  function m:GetShaderParameter(k)return self.params[k]or Variant()end
  function m:RemoveShaderParameter(k)self.params[k]=nil end
  function m:Dispose()self.disposed=true end
+ function m:Clone()
+  local copy=Material:new();copy.shader=self.shader
+  for key,value in pairs(self.params)do copy.params[key]=value end
+  return copy
+ end
  return m
 end
 local models={};cache={}
@@ -68,10 +73,12 @@ local function session()
  local s=scene();local mat={};local model=cache:GetResource('Model','world')
  for i=1,6 do local n=s:CreateChild('real'..i);local d=n:CreateComponent('StaticModel');d.model=model;d.material=mat;d.castShadows=true end
  local n=s:CreateChild('realGeometry');n:CreateComponent('CustomGeometry')
- local camera={node=s:CreateChild('camera'),farClip=2600,frustum={IsInsideFast=function()return 1 end}}
+ local camera={node=s:CreateChild('camera'),farClip=2600,fov=60,nearClip=.1,frustum={IsInsideFast=function()return 1 end}}
+ function camera:GetNode()return self.node end
  return {scene=s,camera={GetCamera=function()return camera end},effects=require('render.CombatEffects').New(s)}
 end
 local Warm=require'render.CombatWarmup'
+if rawget(_G,'COMBAT_WARMUP_TEST_HELPERS') then return {session=session,Warm=Warm,Node=Node} end
 local function checkRestored(s,before,light,clock)
  for d,mask in pairs(before)do eq(d.viewMask,mask,'view mask restored')end
  eq(s.effects.light.light.range,light.range,'light range');eq(s.effects.light.light.brightness,light.brightness,'light brightness')
@@ -160,5 +167,91 @@ do
  eq(pcall(w.Presented,w),false,'presented failure propagated');eq(w.disposed,true,'presented failure self-disposes')
  for _,b in pairs(s.effects.batches)do eq(b.mesh.enabled,false,'presented failure hides warm geometry')end
  eq(s.effects.light.light.enabled,false,'presented failure restores light');checks=checks+1
+end
+local function withFlashes(joinedOnly)
+ local s=session();local source=s.scene:GetComponents('StaticModel',true)[1]
+ local material=Material:new();material:SetSurfaceShader('Shaders/BLGL/RestoreFlash.shader')
+ material:SetShaderParameter('joined_alpha',Variant(-1))
+ s.restoreFlash={material=material};s.view={view={visuals=joinedOnly and {}or {[1]={joined=false,models={source}}}}}
+ return s,source,material
+end
+for cancelAt=0,16 do
+ local s,source,material=withFlashes(false)
+ local oldPosition=source.node.position;local oldScale=source.node.scale;local oldModel=source.model
+ local w=Warm.New(s,{batchSize=4});local flash=w.flashWarmup;local clone=flash.material
+ eq(#flash.nodes,4,'four real-model shell probes');eq(clone.shader,material.shader,'actual shell shader')
+ eq(clone:GetShaderParameter('joined_alpha').value,1.1,'joined geometry uniform')
+ local seen={}
+ for i=1,cancelAt do if not w.disposed then
+  w:Presented();seen[w.phase]=true
+  if w.phase=='flash-instanced'or w.phase=='flash-single'then
+   local n=0;for _,node in ipairs(flash.nodes)do if node.enabled then n=n+1 end end
+   eq(n,w.phase=='flash-instanced'and 4 or 1,'present both actual model variants')
+   eq(flash.joined.enabled,true,'joined geometry also presented')
+   eq(s.effects.light.light.enabled,false,'unlit probes do not keep point light')
+  elseif not w.disposed then
+   for _,node in ipairs(flash.nodes)do eq(node.enabled,false,'shell probes hidden during other phases')end
+   eq(flash.joined.enabled,false,'joined probe hidden during other phases')
+  end
+ end end
+ local root=flash.root;w:Dispose();w:Dispose()
+ eq(flash.disposed,true,'flash probes disposed on cancel/completion')
+ eq(clone.disposed,true,'owned joined material disposed')
+ if root then eq(root.disposed,true,'probe tree disposed')end
+ eq(material.disposed,false,'borrowed actual shell material retained')
+ eq(material:GetShaderParameter('joined_alpha').value,-1,'borrowed uniform unchanged')
+ eq(source.node.position,oldPosition,'source part position unchanged')
+ eq(source.node.scale,oldScale,'source part scale unchanged');eq(source.model,oldModel,'source model unchanged')
+ if cancelAt==16 then assert(seen['flash-instanced']and seen['flash-single'],'both frames occur before completion')end
+ checks=checks+1
+end
+do
+ local s,_,material=withFlashes(true);local w=Warm.New(s);local flash=w.flashWarmup
+ eq(#flash.nodes,0,'all-block vehicle requires no imported model');eq(flash.joined.enabled,false,'joined starts hidden')
+ while w.phase~='flash-instanced'do assert(not w:Presented(),'joined phase reachable')end
+ eq(flash.joined.enabled,true,'all-block shader warmup still draws');w:Dispose()
+ eq(material.disposed,false,'all-block material retained');checks=checks+1
+end
+do
+ local s,source,material=withFlashes(false);local clone=material.Clone
+ material.Clone=function()error('shell clone failure')end
+ eq(pcall(Warm.New,s),false,'shell init failure propagated')
+ eq(source.viewMask,7,'shell init failure restores world masks')
+ eq(material.disposed,false,'shell failure cannot dispose borrowed material')
+ for _,child in ipairs(s.scene.children)do if child.name=='FlashWarmupProbes'then eq(child.disposed,true,'partial shell tree disposed')end end
+ material.Clone=clone;checks=checks+1
+end
+graphics={GetHeight=function()return 2160 end,GetDPR=function()return 2 end}
+for cancelAt=0,16 do
+ local s=session();s.aimLines=require('render.AimLines').New(s.scene)
+ local lines=s.aimLines;local lineMask,glowMask=lines.mesh.viewMask,lines.glow.mesh.viewMask
+ eq(lines.mesh.enabled,false,'new sniper geometry starts hidden')
+ local w=Warm.New(s,{batchSize=4})
+ eq(lines.mesh.enabled,true,'actual sniper line shader submitted during first effect frame')
+ eq(lines.glow.mesh.enabled,true,'actual muzzle and impact batch submitted')
+ eq(lines.count,1,'one warm line');eq(lines.glow.count,2,'muzzle and impact profiles')
+ eq(lines.mesh.vertices,6,'real line geometry');eq(lines.glow.mesh.vertices,12,'real glow geometry')
+ eq(lines.height,1080,'warmup uses logical pixels')
+ for i=1,cancelAt do if not w.disposed then
+  w:Presented()
+  local effects=w.phase:sub(1,7)=='effects'
+  eq(lines.mesh.enabled,effects,'sniper visible only during effect phases')
+ end end
+ w:Dispose();w:Dispose()
+ eq(lines.mesh.enabled,false,'sniper hidden after cancel/completion')
+ eq(lines.glow.mesh.enabled,false,'muzzle hidden after cancel/completion')
+ eq(lines.mesh.viewMask,lineMask,'sniper original view mask restored')
+ eq(lines.glow.mesh.viewMask,glowMask,'muzzle original view mask restored')
+ eq(lines.material.disposed,false,'retained session shader not disposed')
+ eq(#s.effects.beams,0,'no simulation effect events emitted');checks=checks+1
+end
+do
+ local s=session();s.aimLines=require('render.AimLines').New(s.scene)
+ s.aimLines.mesh.Commit=function()error('sniper shader upload failure')end
+ eq(pcall(Warm.New,s),false,'sniper warmup failure propagated')
+ eq(s.aimLines.mesh.enabled,false,'failed sniper upload hidden')
+ eq(s.aimLines.glow.mesh.enabled,false,'failed sniper glow hidden')
+ eq(s.aimLines.mesh.viewMask,7,'failed sniper original mask restored')
+ eq(s.effects.light.light.enabled,false,'failed sniper warmup restores light');checks=checks+1
 end
 print('CombatWarmup offline lifecycle: '..checks..' scenarios PASS; no GPU/runtime performance claim')

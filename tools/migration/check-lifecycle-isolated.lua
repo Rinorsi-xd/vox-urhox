@@ -24,6 +24,7 @@ Module('ui.GarageHud',hud)
 Module('app.HotReload',{})
 Module('render.Quality',{})
 Module('audio.StoryComms',{Tick=Noop})
+Module('audio.UiSound',{Update=Noop})
 Module('storage.BlueprintStore',{UpdateAll=Noop})
 Module('app.ResourceGate',{UpdatePending=Noop})
 Module('render.RenderTargetLifetime',{Update=Noop})
@@ -39,6 +40,7 @@ local function Owner()
   graphicsSettings={Update=function()calls.update=calls.update+1 end,PostUpdate=function()calls.post=calls.post+1 end,
    SetSceneVisible=function(_,visible)if not visible then calls.hidden=calls.hidden+1 end end,Apply=Noop,Show=Noop},
   loadingFlow={active=false,finished=false,pageVisible=true,Advance=Noop,Observe=Noop},
+  mapTransition={BeginRecovery=function()return false end},
   tutorial={Keys=function()return false end,DetachVoice=Noop}},App)
  local trial={Update=function()calls.trialUpdate=calls.trialUpdate+1 end,
   PostUpdate=function()calls.trialPost=calls.trialPost+1 end}

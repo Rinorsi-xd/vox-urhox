@@ -44,6 +44,7 @@ function M:Enter()
     local build=self.build
     build.OpenLibrary=function() build:Notify('本局改装期间不可用','warn');return false end
     build.LoadSlot=build.OpenLibrary
+    build.SaveSlot=build.OpenLibrary
     build.OpenPause=function() build:Notify('完成改装后按 Enter 返回本局战斗','info') end
     build.Trace=function(b,x,y)
         local w,h=UI.GetViewportSize();if b.buildCamera.mode=='fp' then x,y=w*.5,h*.5 end
@@ -74,7 +75,16 @@ function M:Enter()
 end
 function M:ConfigureHud()
     local build=self.build
-    for _,key in ipairs({'trial','save','help'}) do if build.hud.buttons[key] then build.hud.buttons[key]:SetDisabled(true) end end
+    local name=build.hud.name
+    if name and not name.endlessSubmit then
+        local submit=name.props.onSubmit;name.endlessSubmit=true
+        name.props.onSubmit=function(...)
+            -- Submit clears focus before Update polls the same Enter press.
+            self.departKeyConsumed=true
+            if submit then return submit(...) end
+        end
+    end
+    for _,key in ipairs({'home','trial','save','help'}) do if build.hud.buttons[key] then build.hud.buttons[key]:SetDisabled(true) end end
     for _,button in ipairs(build.hud.stats.pane.tiers) do button:SetDisabled(true) end
     self.bar=require('ui.EndlessEditBar').Attach(self,build.hud.root);self.hudRoot=build.hud.root
 end
@@ -99,11 +109,39 @@ function M:Depart()
     return self.controller:ResumeEdit(self.host.blueprint:ToTable())
 end
 function M:Reset()
-    self.host.blueprint:Load(self.controller.run.blueprint);self.host.car:Rebuild(self.host.blueprint);self.host.editor.history.undoStack={};self.host.editor.history.redoStack={};self.host.editor.selection={};self.host.editor.dirty=true
+    local e=self.host.editor
+    self.build.controls:Cancel();require('construction.BuildStretch').Cancel(e)
+    self.host.blueprint:Load(self.controller.run.blueprint)
+    e.history.undoStack={};e.history.redoStack={};e.selection={};e.selectionOrder={};e.selectionCorners={}
+    e.clipboard={};e.pasting=false
+    for _,key in ipairs({'hit','preview','focusIds','boxing','down','hold','rotorAim','turretPreview','dragPreview'}) do e[key]=nil end
+    e:SelectionChanged();self.host.car:Rebuild(self.host.blueprint);self.build:Refresh()
 end
-function M:HandleKey(key) if key==KEY_RETURN and not self.build.dialog and not self.build.inventoryPanel and not self.shop then self:Depart();return true end;return true end
+function M:Buy(id)
+    local result=self.controller:Buy(id)
+    if not result.ok then return result end
+    local inventory=self.host.inventory
+    local empty
+    for i=1,10 do
+        if inventory.hotbar[i]==id then return result end
+        if not inventory.hotbar[i] and not empty then empty=i end
+    end
+    if empty then inventory.hotbar[empty]=id;inventory.revision=inventory.revision+1;self.build:Refresh() end
+    return result
+end
+function M:CanDepartKey()
+    if self.departKeyConsumed or self.build.dialog or self.build.inventoryPanel or self.shop then return false end
+    local focus=UI.GetFocus()
+    return not (focus and focus.OnTextInput and focus~=self.build.hud.playfield)
+end
+function M:HandleKey(key)
+    if (key==KEY_RETURN or key==KEY_KP_ENTER) and self:CanDepartKey() then self:Depart() end
+    return true
+end
 function M:Update(dt)
-    if input:GetKeyPress(KEY_RETURN) and not self.build.dialog and not self.build.inventoryPanel and not self.shop then self:Depart();return end
+    local enter=input:GetKeyPress(KEY_RETURN) or input:GetKeyPress(KEY_KP_ENTER)
+    if not enter and not input:GetKeyDown(KEY_RETURN) and not input:GetKeyDown(KEY_KP_ENTER) then self.departKeyConsumed=false end
+    if enter and self:CanDepartKey() then self:Depart();return end
     if self.shop then
         self.build.controls:Cancel();self.build.buildCamera:Release()
         if input:GetKeyPress(KEY_ESCAPE) then self.shop:Close() end

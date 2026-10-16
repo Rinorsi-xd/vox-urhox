@@ -16,6 +16,8 @@ local bodyFace=nil
 local inlineCode=nil
 ---@type table?
 local helpSymbol=nil
+---@type table?
+local repairSymbol=nil
 function M.Resolve()
     if resolved then return resolved end
     local paths={body='Fonts/VoxIndustrial-Bold.otf',bold='Fonts/VoxIndustrial-Bold.otf',code='Fonts/Anonymous Pro.ttf'}
@@ -50,6 +52,24 @@ function M.ResolveHelpSymbol()
         helpSymbol.descent=source and metrics.winDescent or metrics.descent
     end
     return helpSymbol
+end
+-- Original Windows Chromium renders only this repair glyph with Segoe UI Symbol.
+-- Other targets use the licensed one-glyph Noto substitute, never a global fallback.
+function M.ResolveRepairSymbol()
+    if repairSymbol then return repairSymbol end
+    local path='Fonts/VoxRepairSymbols-Regular.ttf';local source=false
+    if GetPlatform()=='Windows' and os.getenv then
+        local windows=os.getenv('SystemRoot') or 'C:/Windows'
+        local candidate=windows:gsub('\\','/')..'/Fonts/seguisym.ttf'
+        if fileSystem:FileExists(candidate) then path=candidate;source=true end
+    end
+    repairSymbol={path=path}
+    local metrics=require('core.BodyFontMetrics').Load(path)
+    if metrics then
+        repairSymbol.ascent=source and metrics.winAscent or metrics.ascent
+        repairSymbol.descent=source and metrics.winDescent or metrics.descent
+    end
+    return repairSymbol
 end
 -- The original bare <code> uses the browser's Chinese monospace fallback,
 -- unlike its explicitly styled Consolas textarea. Load it only when used.

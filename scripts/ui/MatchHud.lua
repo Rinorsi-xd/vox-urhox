@@ -21,9 +21,10 @@ function Layer:Render(vg)
     if self.minimap then self.minimap:Draw(vg) end
     require('ui.MatchFeed').Draw(vg,b,w)
     require('ui.MatchComms').Draw(vg,self,b,w,h)
+    require('ui.MatchFeedback').Draw(vg,b,w,h)
     if rule.state~='over' then require('ui.MatchBanner').Draw(vg,b.banner,w,h) end
-    if not b.player.alive and rule.state~='over' then D.Text(vg,'战车已被击毁 · 观战队友',cx,h-78,24,D.white,'vox-title',NVG_ALIGN_CENTER,3) end
-    if rule.state=='over' or input:GetKeyDown(KEY_TAB) or s.touchScoreboard then
+    if not b.player.alive and rule.state~='over' then require('ui.MatchSpectator').Draw(vg,b,w,h) end
+    if rule.state=='over' or b.boardOn or s.touchScoreboard then
         require('ui.MatchScoreboard').Draw(vg,self,b,w,h,k,cfg)
     else self.resultRect=nil end
     nvgRestore(vg)
@@ -31,17 +32,18 @@ end
 function M.Attach(session,root)
     local layer=Layer{position='absolute',width='100%',height='100%',pointerEvents='none'};layer.session=session;root:AddChild(layer)
     layer.minimap=require('ui.MatchMinimap').New(session)
-    local exit=require('ui.SourceButton'){text='退出对局',sourceKind='flat',pointerEvents='auto',position='absolute',right=14,top=12,width=112,height=34,onClick=function() session.wantsReturn=true end};root:AddChild(exit)
+    local exit=require('ui.SourceButton'){text='退出对局',sourceKind='flat',pointerEvents='auto',position='absolute',right=14,top=12,width=112,height=34,onClick=function() require('combat.MatchActions').ConfirmLeave(session.battle) end};root:AddChild(exit)
     local back=require('ui.MatchResultButton'){text='回机库',position='absolute',width=134,height=50,visible=false,onClick=function() session.wantsReturn=true end};root:AddChild(back)
-    local retry=require('ui.MatchResultButton'){text='再来一局',primary=true,position='absolute',width=156,height=50,visible=false,onClick=function() session.battle:Restart() end};root:AddChild(retry)
+    local retry=require('ui.MatchResultButton'){text='再来一局',primary=true,position='absolute',width=156,height=50,visible=false,onClick=function() require('combat.MatchActions').Again(session.battle) end};root:AddChild(retry)
     local result={layer=layer,exit=exit,back=back,retry=retry}
     function result.Update(dt)
+        require('ui.MatchFeedback').Update(session.battle,nil,session.intro and not session.intro.done or false)
         require('ui.MatchBanner').Update(session.battle)
         require('ui.MatchFeed').Update(session.battle)
         require('ui.MatchObjectives').Update(session,dt)
         layer.minimap:Update()
         local show=session.battle.mvpShow;local over=session.battle.rules.state=='over' and session.battle.result~=nil and (not show or show.done);back:SetVisible(over);retry:SetVisible(over);exit:SetVisible(session.battle.rules.state~='over' and (not show or show.done))
-        require('ui.MatchScoreboard').Update(layer,session.battle,over or ((not show or show.done) and (input:GetKeyDown(KEY_TAB) or session.touchScoreboard==true)),dt)
+        require('ui.MatchScoreboard').Update(layer,session.battle,over or ((not show or show.done) and (session.battle.boardOn or session.touchScoreboard==true)),dt)
         back.revealAlpha=layer.boardAlpha;retry.revealAlpha=layer.boardAlpha
         local r=layer.resultRect
         if over and r then

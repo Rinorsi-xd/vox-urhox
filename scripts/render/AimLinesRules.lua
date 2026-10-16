@@ -1,6 +1,9 @@
 -- Frozen three/src/drive/aimLines.js selection and occlusion; no audio event.
 local V=require 'core.Math3'
-local M={RANGE=1000,ENEMY={1,59/255,48/255},ALLY={46/255,168/255,1}}
+local function Linear(byte)
+    local s=byte/255;return s<.04045 and s*.0773993808 or (s*.9478672986+.0521327014)^2.4
+end
+local M={RANGE=1000,ENEMY={1,Linear(59),Linear(48)},ALLY={Linear(46),Linear(168),1}}
 function M.Scan(units,me,cast,camera,time,emit)
     local warnings={}
     for _,u in ipairs(units) do if u~=me and u.alive and u.vehicle and u.weapons then

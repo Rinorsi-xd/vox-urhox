@@ -23,6 +23,7 @@ function Loader:init()
     self.gate=require('app.ResourceGate').New()
     self.prepareFrames=0;self.maxPrepareMs=0;self.prepareBudgetMs=3
     self.warmIndex=1;self.warmWait=0;self.warmPath='';self.sceneProgressStart=.35
+    self.warmPending=nil ---@type table|nil
     self.presentedPhase='';self.phaseFrames=0
     self.sceneLoadedProgress=0;self.prepareProgress={}
 end
@@ -38,6 +39,7 @@ function Loader:Cancel()
     self.beginDownload=nil
     self.readSceneToken=nil
     self.warmIndex=1;self.warmWait=0;self.warmPath='';self.sceneProgressStart=.35
+    self.warmPending=nil
     if options and options.cancel then options.cancel() end
 end
 function Loader:Load(path,onReady,onError,options)
@@ -58,7 +60,11 @@ function Loader:Load(path,onReady,onError,options)
         if not ok then self:Fail(tostring(result));return end
         resources=result
     end
-    self.gate:Start(resources,function(ok,message)
+    -- Scene XML must be local before GetFile, even when a caller supplies only
+    -- media dependencies. Download bytes without constructing a cached XML DOM.
+    local requested={path}
+    for _,resource in ipairs(resources) do requested[#requested+1]=resource end
+    self.gate:Start(requested,function(ok,message)
         if self.generation~=token then return end
         if not ok then self:Fail(message);return end
         if Platform.IsWebPlatform() and options and options.webWarmup and #options.webWarmup>0 then
@@ -71,29 +77,25 @@ function Loader:Load(path,onReady,onError,options)
     end
 end
 function Loader:ReadScene(path,token)
-    -- Open through ResourceCache so packaged resources and remote manifests work too.
-    local function ready(resource)
-        if self.generation~=token then return end
-        if not resource then self:Fail("Scene resource unavailable: "..path);return end
-        local file=cache:GetFile(path)
-        if not file then self:Fail("Cannot open scene: "..path);return end
+    if self.generation~=token or self.state~='loading' then return end
+    -- ResourceGate already downloaded the raw file. Loading an XMLFile first
+    -- retained a second full DOM beside LoadAsyncXML's own parser on WASM.
+    local opened,file=pcall(cache.GetFile,cache,path)
+    if not opened or not file then self:Fail("Cannot open scene: "..path..(opened and '' or ': '..tostring(file)));return end
+    self.sourceFile=file
+    local ok,parsed=pcall(function()
         self.pending=Scene()
         if self.prepare then self.prepare(self.pending) end
+        if self.generation~=token then return true end
         self.pending.asyncLoadingMs=3
-        -- WASM cannot wait for background resource completion. Load the scene
-        -- in slices, resolving its already-downloaded resources on the main
-        -- thread to avoid incomplete materials and overlapping image decodes.
+        -- Arrays are already prepared before this parser starts. Keep scene
+        -- parsing sliced without a blocking wait for background resources.
         local mode=Platform.IsWebPlatform() and LOAD_SCENE or LOAD_SCENE_AND_RESOURCES
-        local ok=self.pending:LoadAsyncXML(file,mode)
-        self.sourceFile=file
-        if not ok then self:Fail("Cannot parse scene: "..path) end
-    end
-    if cache.GetResourceAsync then cache:GetResourceAsync("XMLFile",path,ready)
-    else
-        -- Older WASM builds lack the async binding. XML is render-blocking and
-        -- ResourceGate has already completed its download before ReadScene.
-        ready(cache:GetResource("XMLFile",path))
-    end
+        return self.pending:LoadAsyncXML(file,mode)
+    end)
+    if self.generation~=token then return end
+    if not ok then self:Fail("Cannot load scene: "..path..': '..tostring(parsed))
+    elseif not parsed then self:Fail("Cannot parse scene: "..path) end
 end
 function Loader:Fail(message)
     local failed=self.onError
@@ -139,8 +141,25 @@ function Loader:Update(dt)
             self.phase='scene';self.elapsed=0
             self.readSceneToken=self.generation;return
         end
-        local ok,resource=pcall(cache.GetResource,cache,item.type,item.name)
-        if not ok or not resource then self:Fail('Cannot prepare texture: '..item.name);return end
+        local pending=self.warmPending
+        if pending and pending.token~=self.generation then self.warmPending=nil;return end
+        if pending and Now()-pending.started>20000 then
+            self:Fail('Texture preparation timed out: '..item.name);return
+        end
+        local ok,resource=pcall(cache.GetExistingResource,cache,item.type,item.name)
+        if not ok then self:Fail('Cannot inspect texture: '..item.name..': '..tostring(resource));return end
+        local ready=resource and (item.type~='Texture2DArray' or (resource.width>0 and resource.height>0))
+        if not ready then
+            if not pending then
+                self.warmPending={token=self.generation,started=Now()}
+                local queued,result=pcall(cache.BackgroundLoadResource,cache,item.type,item.name,true)
+                -- false can mean another owner already queued this resource.
+                -- Poll the cache until ready; never fall back to blocking GetResource.
+                if not queued then self:Fail('Cannot queue texture: '..item.name..': '..tostring(result));return end
+            end
+            return
+        end
+        self.warmPending=nil
         print('[SceneLoader] Prepared '..item.name..' bytes='..resource.memoryUse..' cache='..cache:GetTotalMemoryUse())
         self.elapsed=0
         self.warmIndex=self.warmIndex+1;self.warmWait=3

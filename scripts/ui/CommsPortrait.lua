@@ -1,7 +1,16 @@
 -- Retained GPU portrait; only the visible speaker queues its two small targets.
-local D=require 'ui.SourceDraw'
+local Layout=require 'ui.CommsPortraitLayout'
+local Platform=require 'urhox-libs.Platform.PlatformUtils'
+---@class CommsPortrait
+---@field who string
+---@field width integer
+---@field height integer
 local M={};M.__index=M
 local vertices={{-1,-1,0,1},{-1,1,0,0},{1,1,1,0},{-1,-1,0,1},{1,1,1,0},{1,-1,1,1}}
+function M.Path(who,face)
+    face=face:gsub('^'..who..'_','')
+    return (who=='nono' and 'Intro/Images/' or 'UI/Faces/')..who..'_'..face..'.png'
+end
 function M.New(who)
     local self=setmetatable({who=who,scenes={},textures={},materials={},images={},faces={},glitch=0,nextGlitch=3,lastTime=0},M)
     self.width=who=='huhu' and 156 or 330;self.height=who=='huhu' and 195 or 410
@@ -28,10 +37,15 @@ function M.New(who)
 end
 function M:Texture(face)
     if self.faces[face] then return self.faces[face] end
-    local path='UI/Faces/'..self.who..'_'..face..'.png'
+    local path=M.Path(self.who,face)
     if not cache:Exists(path) then return nil end
     local texture=cache:GetResource('Texture2D',path)
     if texture then self.faces[face]=texture end;return texture
+end
+function M:ResetPresentation()
+    self.width=self.who=='huhu' and 156 or 330;self.height=self.who=='huhu' and 195 or 410
+    self.glitch=0;self.nextGlitch=3;self.lastTime=0;self.face=nil;self.ready=false;self.requested=false
+    for _,material in ipairs(self.materials) do material:SetShaderParameter('canvas_size',Variant(Vector2(self.width,self.height))) end
 end
 function M:Prepare(time,face,talking)
     face=(face or 'talk'):gsub('^'..self.who..'_','')
@@ -42,11 +56,10 @@ function M:Prepare(time,face,talking)
     if self.face and self.face~=face then self.glitch=math.max(self.glitch,.7) end;self.face=face
     if time>self.nextGlitch then self.glitch=math.max(self.glitch,.45);self.nextGlitch=time+4.5 end
     self.glitch=self.glitch*math.exp(-dt*10)
-    local box=self.width/self.height;local aspect=texture.width/texture.height
-    local sx=aspect>box and 1 or aspect/box;local sy=aspect>box and box/aspect or 1
+    local sx,sy,ox,oy=Layout.Fit(self.width,self.height,texture.width,texture.height)
     for i,material in ipairs(self.materials) do
         material:SetSurfaceTexture('face_map',texture);material:SetSurfaceTexture('mouth_map',closed)
-        material:SetShaderParameter('image_scale',Variant(Vector2(sx,sy)));material:SetShaderParameter('image_offset',Variant(Vector2((1-sx)/2,0)))
+        material:SetShaderParameter('image_scale',Variant(Vector2(sx,sy)));material:SetShaderParameter('image_offset',Variant(Vector2(ox,oy)))
         material:SetShaderParameter('clock',Variant(time));material:SetShaderParameter('glitch',Variant(self.glitch))
         material:SetShaderParameter('mouth_on',Variant(face=='talk' and talking and math.floor(time/.09)%2==0 and 1.0 or 0.0))
     end
@@ -62,16 +75,16 @@ function M:Draw(vg,r)
     local handles=self.images[vg]
     if not handles then handles={nvgCreateVideo(vg,self.textures[1]),nvgCreateVideo(vg,self.textures[2])};self.images[vg]=handles end
     nvgSave(vg)
-    -- The pinned WASM runtime's render-target bridge differs from native DX11.
-    if require('urhox-libs.Platform.PlatformUtils').IsWebPlatform() then
-        nvgTranslate(vg,0,r.y*2+r.h);nvgScale(vg,1,-1)
-    end
+    -- The Web spatial target reaches the NanoVG bridge upside down. Transform
+    -- coverage and RGB together; native targets already have the right direction.
+    if Platform.IsWebPlatform() then nvgTranslate(vg,0,r.y*2+r.h);nvgScale(vg,1,-1) end
     nvgBeginPath(vg);nvgRect(vg,r.x,r.y,r.w,r.h)
     nvgFillPaint(vg,nvgImagePatternTinted(vg,r.x,r.y,r.w,r.h,0,handles[1],nvgRGBA(0,0,0,255)));nvgFill(vg)
     nvgGlobalCompositeBlendFuncSeparate(vg,NVG_ONE,NVG_ONE,NVG_ZERO,NVG_ONE)
     nvgFillPaint(vg,nvgImagePattern(vg,r.x,r.y,r.w,r.h,0,handles[2],1));nvgFill(vg);nvgRestore(vg)
 end
 function M:Dispose()
+    if self.disposed then return end;self.disposed=true
     for vg,handles in pairs(self.images) do for _,image in ipairs(handles) do nvgDeleteVideo(vg,image) end end;self.images={}
     for _,texture in ipairs(self.textures) do texture:GetRenderSurface():SetNumViewports(0) end
     for _,scene in ipairs(self.scenes) do scene:Dispose() end

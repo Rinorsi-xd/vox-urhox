@@ -62,6 +62,14 @@ local function Runs(text)
 end
 local function DirectFont(font) return font and font~='vox-display' and font~='vox-tabular' and font~='vox-legacy-display' and font~='vox-hud' and font~='vox-hud-medium' end
 local function InlineFont(vg,font)
+    if font=='vox-repair-symbol' then
+        local ctx=contexts[vg]
+        if not ctx.repairSymbol then
+            local face=require('ui.SourceFonts').ResolveRepairSymbol()
+            assert(nvgCreateFont(vg,font,face.path)>=0,'Repair symbol font unavailable');ctx.repairSymbol=face
+        end
+        return
+    end
     if font=='vox-help-symbol' then
         local ctx=contexts[vg]
         if not ctx.helpSymbol then
@@ -133,7 +141,7 @@ end
 function M.FontMetrics(vg,size,font)
     if font=='vox-legacy-display' then return M.FontMetrics(vg,size,'vox-story') end
     InlineFont(vg,font)
-    local inline=font=='vox-inline-code' and contexts[vg].inlineCode or font=='vox-help-symbol' and contexts[vg].helpSymbol
+    local inline=font=='vox-inline-code' and contexts[vg].inlineCode or font=='vox-help-symbol' and contexts[vg].helpSymbol or font=='vox-repair-symbol' and contexts[vg].repairSymbol
     if inline and inline.ascent then return math.floor(inline.ascent*size+.5+1e-8),math.floor(inline.descent*size+.5+1e-8) end
     local ascent,descent=Typography.Metrics(font,size)
     if ascent then return ascent,descent end

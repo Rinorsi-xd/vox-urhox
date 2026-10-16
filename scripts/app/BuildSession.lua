@@ -61,10 +61,28 @@ function M:ToggleForm()
     if message then self:Notify(message,ok and 'ok' or 'bad') end
     self:Refresh();return ok
 end
+function M:SelectionAction(action)
+    if self.disposed or self.dialog or self.inventoryPanel or self.editor.pasting then return false end
+    local e=self.editor;self.controls:Cancel();UI.ClearFocus()
+    local ok,message
+    if action=='paint' then ok,message=e:PaintSelection()
+    elseif action=='copy' then
+        ok=e:Copy();message=ok and ('已复制 '..#e.clipboard..' 个零件，Ctrl+V 粘贴') or '先用 Shift+左键 选择要复制的零件'
+    elseif action=='join' then return self:ToggleForm()
+    elseif action=='stretch' then self.selecting=false;e.selectionCorners={};e:SetTool('stretch');self.wheelAcc=0;ok=true
+    elseif action=='delete' then
+        local count=e.bp:Size();ok=e:DeleteSelection()
+        if ok then message='已删除 '..(count-e.bp:Size())..' 个零件' end
+    elseif action=='clear' then e.selection={};e.selectionCorners={};e:SelectionChanged();ok=true
+    elseif action=='move' then message='用方向键前后左右移动，PageUp / PageDown 上下移动';ok=true
+    else return false end
+    if message then self:Notify(message) end
+    self:Refresh();return ok
+end
 function M:Escape()
     self.controls:Cancel()
     if self.editor.stretch then require('construction.BuildStretch').Cancel(self.editor);self:Refresh();return end
-    if self.buildCamera.captured or self.buildCamera.pending then self.buildCamera:Release();self:Refresh();return end
+    if not self.buildCamera.touch and (self.buildCamera.captured or self.buildCamera.pending) then self.buildCamera:Release();self:Refresh();return end
     if self.dialog then self.dialog:Close()
     elseif self.inventoryPanel then self.inventoryPanel:Close()
     elseif self.hud.colorOpen then self.hud.SetColor(false)
@@ -151,7 +169,7 @@ function M:Act()
 end
 function M:SaveSlot()
     local ok,err,reason=self.app.bays:Save()
-    if ok then self.slot=self.app.bays.active end
+    if ok then self.slot=self.app.bays.active;require('audio.UiSound').Play('stamp') end
     self:Notify(ok and ('已保存到车位 '..self.slot) or err,ok and 'ok' or 'bad')
     self.app.store:Flush()
     if not ok and reason=='full' then self:OpenLibrary('save') end

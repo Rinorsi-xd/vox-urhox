@@ -17,7 +17,7 @@ assert hashlib.sha256(source.read_bytes()).hexdigest() == baseline['files'][rela
 font = TTFont(source)
 glyphs = font.getGlyphSet()
 units = font['head'].unitsPerEm
-text = '繁荣！秩序带薪年假……*加入星际前途维和先锋零件大师英雄成为——战地机修已损毁出动123砰轰NO滋？扣款'
+text = '繁荣！秩序带薪年假……*加入星际前途维和先锋零件大师英雄成为——战地机修已损毁出动123砰轰NO!滋？扣款击绩效 +（感谢友军炮火）'
 result = {'units': units, 'ascent': font['hhea'].ascent / units, 'descent': -font['hhea'].descent / units, 'glyphs': {}}
 for char in sorted(set(text)):
     name = font.getBestCmap()[ord(char)]

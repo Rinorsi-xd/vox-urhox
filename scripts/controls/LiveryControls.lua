@@ -3,7 +3,45 @@ local P=require 'render.LiveryProjection'
 local Models=require 'render.LiveryModel'
 local Coord=require 'core.Coord'
 local M={};M.__index=M
-function M.New(s) return setmetatable({session=s,app=s.app,drag=false,pointer=false},M) end
+function M.New(s) local self=setmetatable({},M);self:init(s);return self end
+function M:init(s)
+    self.session=s;self.app=s.app;self.drag=false;self.pointer=false
+    self.touches={};self.touchOrder={};self.touchX=0;self.touchY=0;self.touchMode=false
+end
+function M:CssPoint(x,y)
+    local w=UI.GetViewportSize();local k=(graphics:GetWidth()/graphics:GetDPR())/w
+    return x*k,y*k
+end
+function M:CameraMove(dx,dy,pan)
+    local c=self.app.camera
+    if pan then
+        local rot=c.node.rotation;c.target=c.target-rot*Vector3.RIGHT*(dx*c.dist*.0014)+rot*Vector3.UP*(dy*c.dist*.0014)
+        c.target=Vector3(c.target.x,math.max(0,math.min(c.panMaxY,c.target.y)),c.target.z)
+    else c.yaw=c.yaw+math.deg(dx*.005);c.pitch=math.max(90-math.deg(1.62),math.min(90-math.deg(.12),c.pitch+math.deg(dy*.004))) end
+end
+function M:TouchDown(e)
+    if self.touches[e.pointerId] then return end
+    local x,y=self:CssPoint(e.x,e.y)
+    self.touches[e.pointerId]={x=x,y=y};self.touchOrder[#self.touchOrder+1]=e.pointerId
+end
+function M:TouchMove(e)
+    local p=self.touches[e.pointerId];if not p then return end
+    local x,y=self:CssPoint(e.x,e.y);local dx,dy=x-p.x,y-p.y;local other=false
+    for _,id in ipairs(self.touchOrder) do if id~=e.pointerId then other=self.touches[id];if other then break end end end
+    if other then
+        local before=math.sqrt((p.x-other.x)^2+(p.y-other.y)^2);local after=math.sqrt((x-other.x)^2+(y-other.y)^2)
+        if before>8 and after>8 then
+            local c=self.app.camera;c.dist=math.max(c.minDist,math.min(c.maxDist,c.dist*before/after))
+        end
+        self.touchX=self.touchX+dx/2;self.touchY=self.touchY+dy/2;self.touchMode='pan'
+    else
+        local prefs=require('controls.TouchPreferences').Get(self.app)
+        local short=math.min(graphics:GetWidth(),graphics:GetHeight())/graphics:GetDPR()
+        local gain=math.min(3,600/math.max(240,short))*prefs.sens
+        self.touchX=self.touchX+dx*gain;self.touchY=self.touchY+dy*gain;self.touchMode='orbit'
+    end
+    self.app.camera.flight=false;self.app.camera.autoSpin=false;p.x=x;p.y=y
+end
 function M:Ray(x,y)
     local w,h=UI.GetViewportSize();return self.app.camera.camera:GetScreenRay(x/w,y/h)
 end
@@ -55,6 +93,7 @@ end
 function M:Start(kind,x,y,id)
     local d=self.session:List()[self.session.sel];local c=d and self:Screen(d.p)
     if not c then return end
+    self.touchX=0;self.touchY=0;self.touchMode=false
     self.drag={kind=kind,id=id,dx=c.x-x,dy=c.y-y,cx=c.x,cy=c.y,w=d.w,r=d.r,d=math.sqrt((x-c.x)^2+(y-c.y)^2),a=math.atan(c.y-y,x-c.x)}
 end
 function M:Down(e)
@@ -74,11 +113,16 @@ function M:Down(e)
         elseif session.sel>0 then session:Select(0) end
     end
     local camera=self.app.camera;camera.flight=false;camera.autoSpin=false
+    if e.pointerType=='touch' then self:TouchDown(e);return end
     self.drag={kind=(e.button==MOUSEB_MIDDLE or input:GetKeyDown(KEY_SHIFT)) and 'pan' or 'orbit',x=x,y=y,id=e.pointerId}
 end
 function M:Move(e)
     local x,y=e.x,e.y;self.pointer={id=e.pointerId,x=x,y=y};local g=self.drag
-    if g and g.id~=e.pointerId then return end
+    if g and g.id~=e.pointerId then
+        local p=self.touches[e.pointerId];if p then p.x,p.y=self:CssPoint(x,y) end
+        return
+    end
+    if not g and self.touches[e.pointerId] then self:TouchMove(e);return end
     if g then
         if g.kind=='move' then local hit=self:Surface(x+g.dx,y+g.dy);if hit then self.session:Edit(function(d) d.p=hit.p;d.n=hit.n end);g.moved=true end
         elseif g.kind=='scale' then self.session:Edit(function(d) d.w=math.floor(math.max(1,math.min(30,g.w*math.sqrt((x-g.cx)^2+(y-g.cy)^2)/math.max(4,g.d)))*100+.5)/100 end);g.moved=true
@@ -87,11 +131,7 @@ function M:Move(e)
             if not input:GetKeyDown(KEY_SHIFT) and math.abs(r-snapped)<.06 then r=snapped end
             self.session:Edit(function(d) d.r=r end);g.moved=true
         else
-            local w=UI.GetViewportSize();local k=(graphics:GetWidth()/graphics:GetDPR())/w;local dx,dy=(x-g.x)*k,(y-g.y)*k;local c=self.app.camera
-            if g.kind=='pan' then
-                local rot=c.node.rotation;c.target=c.target-rot*Vector3.RIGHT*(dx*c.dist*.0014)+rot*Vector3.UP*(dy*c.dist*.0014)
-                c.target=Vector3(c.target.x,math.max(0,math.min(c.panMaxY,c.target.y)),c.target.z)
-            else c.yaw=c.yaw+math.deg(dx*.005);c.pitch=math.max(90-math.deg(1.62),math.min(90-math.deg(.12),c.pitch+math.deg(dy*.004))) end
+            local dx,dy=self:CssPoint(x-g.x,y-g.y);self:CameraMove(dx,dy,g.kind=='pan')
             g.x=x;g.y=y
         end
     elseif self.session.pick then
@@ -99,12 +139,25 @@ function M:Move(e)
     end
 end
 function M:Up(e)
+    if self.touches[e.pointerId] then
+        self.touches[e.pointerId]=nil
+        for i,id in ipairs(self.touchOrder) do if id==e.pointerId then table.remove(self.touchOrder,i);break end end
+        if #self.touchOrder==0 then self.touchMode=false end
+    end
     if self.drag and self.drag.id==e.pointerId then if self.drag.moved then self.session:Record() end;self.drag=false end
 end
-function M:Cancel() if self.drag and self.drag.moved then self.session:Record() end;self.drag=false;self.pointer=false;self.app.car.livery:SetPreview(nil) end
+function M:Cancel()
+    if self.drag and self.drag.moved then self.session:Record() end
+    self.drag=false;self.pointer=false;self.touches={};self.touchOrder={};self.touchMode=false;self.touchX=0;self.touchY=0
+    self.app.car.livery:SetPreview(nil)
+end
 function M:Update(dt,blocked)
     self.session:Update(dt);local c=self.app.camera
     if blocked or not input.focus or input.minimized then self:Cancel();c:Step(dt);return end
+    -- H5 accumulates CSS-pixel deltas until CameraRig.update; pinch changes
+    -- distance immediately, so a frame's pan uses its final zoom distance.
+    if self.touchMode and (self.touchX~=0 or self.touchY~=0) then self:CameraMove(self.touchX,self.touchY,self.touchMode=='pan') end
+    self.touchX=0;self.touchY=0
     local x,y=input.mousePosition.x,input.mousePosition.y;local w,h=UI.GetViewportSize();x=x/graphics:GetWidth()*w;y=y/graphics:GetHeight()*h
     local over=x>=28 and x<=332 and y>=84 and y<=h-96 or x>=w-328 and x<=w-28 and y>=84 and y<=h-96 or y<=60 or y>=h-88
     local wheel=input.mouseMoveWheel

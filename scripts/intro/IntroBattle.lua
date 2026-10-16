@@ -9,11 +9,16 @@ function M.New(session,data,playerSource,checkpoint)
  local w=self.world
  for _,u in ipairs(w.units) do u:Dispose() end;w.units={};w.viewEvents={}
  local function Add(source,name,x,z,yaw,team,role,external)
-  local u=Unit.New(w,source,{name=name,spawn={pos={x,w:GroundAt(x,z)+1.5,z},yaw=yaw},team=team,externalControl=true,externalView=external,autoRespawn=false,combat=true})
+  local index=#self.entries+1
+  local entry={}
+  -- World/session teardown must own a candidate before its assembly suspends.
+  local u=Unit.New(w,source,{name=name,spawn={pos={x,w:GroundAt(x,z)+1.5,z},yaw=yaw},team=team,externalControl=true,externalView=external,autoRespawn=false,combat=true},
+   checkpoint and function(p)checkpoint((index-1+p)/9,'intro-actors')end,function(unit)
+    entry.unit=unit;w.units[#w.units+1]=unit;self.entries[index]=entry
+   end)
   assert(u.alive,'Invalid opening actor '..name)
-  local e={unit=u,env=self:Environment(u)};if role then e.driver=Driver.New(w,u,role,#self.entries+1) end
-  w.units[#w.units+1]=u;self.entries[#self.entries+1]=e
-  if checkpoint then checkpoint(#self.entries/9,'intro-actors') end
+  entry.env=self:Environment(u);if role then entry.driver=Driver.New(w,u,role,index) end
+  if checkpoint then checkpoint(index/9,'intro-actors') end
   return u
  end
  self.player=Add(playerSource,'坠舰陨坑 · 实机演示',62,-176,0,'blue',nil,true)
@@ -22,9 +27,23 @@ function M.New(session,data,playerSource,checkpoint)
   Add(cfg.source,cfg.name,cfg.spawn.pos[1],cfg.spawn.pos[3],cfg.spawn.yaw,'red',data.actors.invaders[#self.entries].role,false)
  end
  self.cart=Add(data.actors.cart,'星际前途 · 贵重矿车',30,-170,math.pi/2,'blue',nil,false)
- self.easy=self.entries[6].unit;self.easy.damageMultiplier=8
- self.easy.vehicle:Place({66,w:GroundAt(66,-130)+1.5,-130},math.pi)
+ self.easy=self.entries[6].unit
  return self
+end
+function M:BeginSortie()
+ self.stage=0;self.damageScale=.12;self.driversParked=false
+ for _,entry in ipairs(self.entries) do if entry.unit~=self.player and entry.unit~=self.cart then entry.unit.damageMultiplier=2 end end
+end
+function M:StartSortie()
+ self.stage=1;self.easy.damageMultiplier=8
+ if self.easy.alive then self.easy.vehicle:Place({66,self.world:GroundAt(66,-130)+1.2,-130},math.pi) end
+end
+function M:EndSortie()
+ self.stage=0;self.damageScale=1;self.driversParked=false
+ for _,entry in ipairs(self.entries) do local u=entry.unit
+  u.damageMultiplier=1
+  if u~=self.player and u~=self.cart and not u.alive then u:Spawn();u.externalControl=true end
+ end
 end
 function M:Environment(shooter)
  local w=self.world
@@ -50,21 +69,31 @@ function M:BeforeStep(dt,command,aim)
  for _,e in ipairs(self.entries) do local u=e.unit;u:Flush()
   if u.alive then
    local cmd,target,firing={throttle=0,steer=0,handbrake=true},u:Position(),false
+   local driverInfo=nil ---@type table|nil
    if u==self.player then cmd=command;target=aim;firing=command.firing==true
-   elseif e.driver and self.stage>0 then
+   elseif e.driver and not self.driversParked then
     local victim=(self.stage>=3 or u==self.easy and self.stage>=1) and self.player or self.cart
-    cmd,target,firing=e.driver:Step(dt,victim,true)
+    if victim and victim.alive then cmd,target,firing,driverInfo=e.driver:Step(dt,victim,true) end
    end
    if u.vehicle then
-    local v=u.vehicle;v:StepRotors(target,cmd.rotorStep,dt);require('drive.RotorMotion').Weapons(v.rotors,u.weapons);v:Step(cmd,dt)
-    local p,vel=v.body.translation(),v.body.linvel();local eye=u==self.player and self.session.camera:GetNode().worldPosition
-    u.weapons:Step(dt,{firing=firing,aim=target,pos={p.x,p.y,p.z},quat=v.body.rotation(),vel={vel.x,vel.y,vel.z},body=v.body,team=u.team,eye=eye and {-eye.x,eye.y,eye.z}},e.env)
-    self.session.effects:Consume(u.weapons.fx);self.session.weaponAudio:Consume(u.weapons.fx,u~=self.player)
+    if e.driver and self.driversParked then
+     u.vehicle:Step(cmd,dt)
+     u.vehicle:StepRotors(nil,false,dt)
+    else
+     require('combat.DriverActions').Apply(u,driverInfo)
+     local v=u.vehicle;v:StepRotors(target,cmd.rotorStep,dt);require('drive.RotorMotion').Weapons(v.rotors,u.weapons);v:Step(cmd,dt)
+     local p,vel=v.body.translation(),v.body.linvel();local eye=u==self.player and self.session.camera:GetNode().worldPosition
+     u.weapons:Step(dt,{firing=firing,aim=target,salvo=driverInfo and driverInfo.salvo,pos={p.x,p.y,p.z},quat=v.body.rotation(),vel={vel.x,vel.y,vel.z},body=v.body,team=u.team,eye=eye and {-eye.x,eye.y,eye.z}},e.env)
+     self.session.effects:Consume(u.weapons.fx);self.session.weaponAudio:Consume(u.weapons.fx,u~=self.player)
+    end
    end
   end
  end
 end
-function M:AfterStep() end
+function M:AfterStep()
+ local overlay=self.session.openingOverlay
+ if overlay then overlay:Consume(self.world.viewEvents) end
+end
 function M:SyncPlayer() require('combat.PlayerViewSync').Update(self) end
 function M:Kill(u)
  if not u or not u.alive then return end

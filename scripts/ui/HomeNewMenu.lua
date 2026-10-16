@@ -1,7 +1,7 @@
 -- .bay-new-menu: original PC content, CSS boxes, transparent items and entry.
 -- UI retains hit testing/ownership; entry opacity composites one bounded layer.
 local Popover=require 'ui.SourcePopover'
-local Button=require 'urhox-libs/UI/Widgets/Button'
+local Button=require 'ui.ActionButton'
 local D=require 'ui.SourceDraw'
 local Motion=require 'ui.SourceButtonMotion'
 local source=require('core.ResourceData').Read('UI/SourceHomeMenu.json')

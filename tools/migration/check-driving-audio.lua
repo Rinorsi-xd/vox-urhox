@@ -31,8 +31,9 @@ local function Logic(scene)
     V.assert(loops==5,'mixed chassis owns exactly five local loops')
     V.assert(Near(audio.loops.drive_idle.source.frequency,audio.sounds.drive_idle:GetFrequency()*.975),'loop pitch uses source Hz')
     local gain=audio.loops.drive_idle.source.gain
-    for _=1,120 do audio:Update(1/60,vehicle,{throttle=1},camera,nil,true) end
-    V.assert(Near(audio.loops.drive_idle.source.gain,gain*.3),'voice ducks original driving bed to 30 percent')
+    for _=1,120 do require('audio.AudioLevels').MixContext(1/60,true);audio:Update(1/60,vehicle,{throttle=1},camera,nil,true) end
+    V.assert(Near(audio.loops.drive_idle.source.gain,gain*.3),'source shared context ducks driving bed to 30 percent')
+    require('audio.AudioLevels').MixContext(10,false)
     local enemy={alive=true,vehicle={speed=6,wheels={{track=false}},spec={hovers={}},thrusterOutputs={},telemetry={},body={translation=function() return {x=10,y=0,z=0} end}}}
     for _=1,60 do audio:Update(1/60,vehicle,{},camera,{{unit=enemy}}) end
     V.assert(audio.loops['remote:drive_idle'].source.playing and audio.loops['remote:drive_idle'].source.panning<0,'remote vehicle gets distance attenuation and mirrored listener stereo')

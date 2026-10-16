@@ -1,7 +1,7 @@
 local D=require 'ui.SourceDraw'
 local Relief=require 'ui.SourceRelief'
 local Data=require 'construction.LiveryData'
-local Button=require('urhox-libs/UI/Widgets/Button'):Extend('VoxLiveryButton')
+local Button=require('ui.ActionButton'):Extend('VoxLiveryButton')
 local function Stroke(vg,x,y,w,h,color,line)
     nvgBeginPath(vg);nvgRect(vg,x,y,w,h);nvgStrokeWidth(vg,line or 1);nvgStrokeColor(vg,D.Color(color));nvgStroke(vg)
 end

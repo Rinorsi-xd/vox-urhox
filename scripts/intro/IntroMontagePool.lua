@@ -9,11 +9,13 @@ function M:init(session,battle,source,checkpoint)
  local world=session.world
  self.unit=require('combat.CarUnit').New(world,source,{name='坠舰陨坑 · 实机演示',
   spawn={pos={66,world:GroundAt(66,-174)+1.5,-174},yaw=0},team='blue',
-  externalControl=true,externalView=true,autoRespawn=false,combat=true})
+  externalControl=true,externalView=true,autoRespawn=false,combat=true},
+  checkpoint and function(p)checkpoint(p*.3)end,function(unit)self.unit=unit end)
  assert(self.unit.alive,'Invalid original montage hero')
  self.unit.vehicle.native.enabled=false
  for i=#world.viewEvents,1,-1 do if world.viewEvents[i].unit==self.unit then table.remove(world.viewEvents,i) end end
- self.view=require('render.DriveView').New(session.scene,self.unit.bp,self.unit.vehicle,checkpoint,function(view)self.view=view end)
+ self.view=require('render.DriveView').New(session.scene,self.unit.bp,self.unit.vehicle,
+  checkpoint and function(p)checkpoint(.3+p*.7)end,function(view)self.view=view end)
  self:SetWarmVisible(false)
 end
 function M:SetWarmVisible(visible)

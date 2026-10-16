@@ -1,7 +1,7 @@
 local UI=require 'urhox-libs/UI'
 local D=require 'ui.SourceDraw'
 local Relief=require 'ui.SourceRelief'
-local Button=require('urhox-libs/UI/Widgets/Button'):Extend('VoxTouchEditorButton')
+local Button=require('ui.ActionButton'):Extend('VoxTouchEditorButton')
 local Surface=UI.Panel:Extend('VoxTouchEditorSurface')
 local M={Button=Button,Surface=Surface}
 local function Cut(x,y,w,h,c) return {x,y,x+w-c,y,x+w,y+c,x+w,y+h,x,y+h} end

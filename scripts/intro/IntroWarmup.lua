@@ -7,23 +7,38 @@ local function Pose(camera,at,look,fov)
  camera.node.position=Coord.Vec(table.unpack(at));camera.node:LookAt(Coord.Vec(table.unpack(look)));camera.fov=fov
 end
 function M.New(state,host,done)
- local self=setmetatable({state=state,host=host,done=done,index=0,frames=0,batches=0,rest=0,seen={},sampleCounts={},repeated=0},M)
+ local self=setmetatable({state=state,host=host,done=done,index=0,frames=0,batches=0,rest=0,seen={},startSeen={},sampleCounts={},repeated=0},M)
  self.hallPose={position=state.hallCamera.node.position,rotation=state.hallCamera.node.rotation,fov=state.hallCamera.fov}
  local c=state.session.camera:GetCamera();self.craterPose={position=c.node.position,rotation=c.node.rotation,fov=c.fov}
  self.garageEnabled=state.garage.root.enabled;self.heroEnabled=state.hallActor.root.enabled
  self.phases={'idyll','idyll-crossing','build','brief','drive','effects','effects-single'};return self
 end
-function M:Next()
+function M:Next(continueIdyll)
  if self.batch then self.batch:Restore();self.batches=self.batches+self.batch.batches;self.batch=nil end
- self.index=self.index+1;self.rest=0
+ if not continueIdyll then self.index=self.index+1 end;self.rest=0
  local id=self.phases[self.index];self.phase=id
- if not id then self:Dispose();self.completed=true;self.done();return end
+ if not id then
+  if self.host.BeginLeaveCapture then
+   self.sample='leave-capture';self.leaveCapture=true
+   local s=self.state;self.host.UseScene('garage')
+   s.garage.root:SetEnabledRecursive(false);s.hallActor:SetVisible(false);s.app.car:SetVisible(false)
+   Pose(s.hallCamera,{4,1.6,-34},{7,9,-90},56)
+   s.app.graphicsSettings:PostUpdate();self.host.BeginLeaveCapture();return
+  end
+  self:Dispose();self.completed=true;self.done();return
+ end
+ local sample=id=='idyll' and not continueIdyll and 'idyll-start' or id;self.sample=sample
  local s=self.state;local idyllic=id=='idyll' or id=='idyll-crossing';local hall=idyllic or id=='build';self.host.UseScene(hall and 'garage' or 'crater')
  local camera=hall and s.hallCamera or s.session.camera:GetCamera()
  s.session.combat.montage:SetWarmVisible(id=='drive' or id=='effects' or id=='effects-single')
  s.hallActor:SetVisible(id=='build');s.garage.root:SetEnabledRecursive(idyllic)
  if idyllic then
-  Pose(camera,{2,5,-40},{-4,16,-90},46);local t=id=='idyll' and 3 or 6;s.garage:Update(t-s.garage.time,{time=t},camera)
+  -- The exterior glass is outside the terminal frustum but visible on frame one.
+  -- Keep the original terminal samples after this additional first-camera pass.
+  local t=id=='idyll' and 3 or 6
+  if sample=='idyll-start' then Pose(camera,{7,1,-28},{2,4,-90},52);t=0
+  else Pose(camera,{2,5,-40},{-4,16,-90},46) end
+  s.garage:Update(t-s.garage.time,{time=t},camera)
  elseif id=='build' then Pose(camera,{15,6,21},{0,3,0},44);s.assembly:WarmFlash(true)
  elseif id=='brief' then
   Pose(camera,{98,self.host.GroundAt(98,-212)+13,-212},{46,self.host.GroundAt(46,-140)+2,-140},50)
@@ -73,32 +88,42 @@ function M:Next()
  self.batch=Warm.New(scene,8,camera,function(drawable,kind)
   if not drawable.enabledEffective then return false end
   if kind~='StaticModel' then
-   if self.seen[drawable] then self.repeated=self.repeated+1;return false end
-   self.seen[drawable]=true;return true
+   local seen=sample=='idyll-start' and self.startSeen or self.seen
+   if seen[drawable] then self.repeated=self.repeated+1;return false end
+   seen[drawable]=true;return true
   end
   -- Exact immutable Model identity includes vertex layouts and geometry. Keep
-  -- four real copies of each mask/material combination for instanced variants.
+  -- Four real copies cover instancing; the final pose keeps one copy so static
+  -- map shadow casters also submit their non-instanced material permutations.
   local model=drawable.model;if not model then return true end
-  local key={id,tostring(scene),kind,tostring(model),lighting,tostring(drawable.zone),
+  local key={sample,tostring(scene),kind,tostring(model),lighting,tostring(drawable.zone),
    tostring(drawable.viewMask),tostring(drawable.lightMask),tostring(drawable.shadowMask),tostring(drawable.zoneMask),
    tostring(drawable.castShadows),tostring(drawable.maxLights),tostring(drawable.useInstanceColor),tostring(drawable.useInstanceCustomData)}
   for i=0,model.numGeometries-1 do key[#key+1]=tostring(drawable:GetMaterial(i)) end
   key=table.concat(key,'|');local count=self.sampleCounts[key] or 0
-  if count>=4 then self.repeated=self.repeated+1;return false end
+  local copies=id=='effects-single' and 1 or 4
+  if count>=copies then self.repeated=self.repeated+1;return false end
   self.sampleCounts[key]=count+1;return true
  end)
- print('[IntroWarmup] '..id..' visible='..#self.batch.items..' skipped='..self.batch.skipped..' reused='..self.repeated)
+ print('[IntroWarmup] '..sample..' visible='..#self.batch.items..' skipped='..self.batch.skipped..' reused='..self.repeated)
 end
 function M:Presented()
  if self.disposed then return end
  self.frames=self.frames+1
+ if self.leaveCapture then
+  if self.host.PresentLeaveCapture() then
+   self.leaveCapture=false;self:Dispose();self.completed=true;self.done()
+  end
+  return
+ end
  if self.batch then
   if self.batch:Rendered() then self.batches=self.batches+self.batch.batches;self.batch=nil;self.rest=2 end
  elseif self.rest>0 then self.rest=self.rest-1
- else self:Next() end
+ else self:Next(self.phase=='idyll' and self.sample=='idyll-start') end
 end
 function M:Dispose()
  if self.disposed then return end;self.disposed=true
+ if self.leaveCapture then self.host.CancelLeaveCapture();self.leaveCapture=false end
  if self.batch then self.batch:Restore();self.batch=nil end
  if self.strike then self.strike:Dispose();self.strike=nil end
  if self.effects then self.effects:Dispose();self.effects=nil end

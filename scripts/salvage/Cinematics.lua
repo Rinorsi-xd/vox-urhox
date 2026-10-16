@@ -22,8 +22,8 @@ end
 function M:Elite(unit)
     if self.blocking then return end;local c=self:Start('elite',3.2,false);c.unit=unit
 end
-function M:Approach(exit)
-    self.approach={exit=exit,E=Vec(exit.g),t=0,wait=math.max(3,math.min(exit.wait,6))}
+function M:Approach(exit,wait)
+    self.approach={exit=exit,E=Vec(exit.g),t=0,wait=math.max(3,math.min(wait or exit.wait,6))}
     Motion.Approach(self.approachShot,0,self.approach.E,self.approach.wait);self.view:Ship(self.approachShot,.95)
 end
 function M:Extract(exit)
@@ -97,6 +97,7 @@ function M:LandingDust(at,approach)
 end
 function M:Update(dt)
     if self.disposed then return end
+    if self.run.UpdateFeedback then self.run:UpdateFeedback() end
     dt=math.max(0,math.min(dt,.1));self.time=self.time+dt;self.shake=self.shake*math.exp(-dt*5)
     if self.run.explosion and not self.run.result then self.run.explosion:Update(dt,self.session.camera:GetNode(),self.run.player:Position()) end
     self.flashTime=self.flashTime+dt
@@ -104,7 +105,7 @@ function M:Update(dt)
     local c=self.current
     if not self.run.result and (not c or c.name=='elite') then
         local ex=self.run.rules.ex;local a=self.approach
-        if ex and (not a or a.exit~=ex.e or a.leaving) then self:Approach(ex.e);a=self.approach
+        if ex and (not a or a.exit~=ex.e or a.leaving) then self:Approach(ex.e,ex.approachWait or ex.left);a=self.approach
         elseif not ex and a and not a.leaving then a.leaving=0 end
         if a then
             if a.leaving then
@@ -153,7 +154,9 @@ end
 function M:Finish(c)
     self:ReleaseCar();self.current=nil;self.playing=false;self.blocking=false;self.barsOn=false;self.captionTitle=nil;self.skipOn=false
     if self.filter then self.filter:Dispose();self.filter=nil end
-    if c.name=='drop' then self.view:HideShip();self.run.landed=true;self.run:Feed('行动开始',self.run.spawn.name..' · '..self.run.rules.op.name..' · 15:00')
+    if c.name=='drop' then
+        self.view:HideShip();self.run.landed=true
+        self.run:Feed('行动开始',self.run.spawn.name..' · 时限 15:00 · 货舱 20 格 · '..self.run.rules.op.name..'行动 · 按 E 搜箱子 / 按住 E 拆残骸','#3ee6ff')
     elseif c.name=='extract' then self.run:Finish(true,'从「'..c.exit.name..'」撤离',false,c.exit)
     elseif c.name=='death' then self.run:Finish(false,'战车被击毁',false) end
     print('[SalvageCine] '..c.name..' end')

@@ -3,6 +3,7 @@ local Data=require('core.ResourceData').Read('Combat/FeedbackSounds.json')
 local Mix=require 'audio.RecoveryMix'
 local V=require 'core.Math3'
 local DAMAGE={vehicleCollision='vehicle_collision',unitKilled='vehicle_destroy',shieldRaise='shield_up',shieldUp='shield_up',shieldHit='shield_hit',shieldDown='shield_down',hullBreach='shield_down'}
+local DAMAGE_CUES={vehicle_collision=true,vehicle_destroy=true,part_break=true,part_detach=true,shield_up=true,shield_hit=true,shield_down=true}
 local Levels=require 'audio.AudioLevels'
 local M={};M.__index=M
 function M.Dependencies()
@@ -44,7 +45,8 @@ function M:Play(id,amount,pan,rate)
     local voice=self.voices[index];if not voice then voice={source=self:Source('Feedback'..index)};self.voices[index]=voice end
     voice.source:StopImmediate();voice.order=self.cursor;voice.id=id
     local sound=self.sounds[sample];local pitch=rate or (cue.jitter and .97+math.random()*.06 or 1)
-    Levels.Play(voice.source,sound,sound:GetFrequency()*pitch,math.min(1,cue.gain*amount*self.volume*self.duck),pan or 0)
+    Levels.Play(voice.source,sound,sound:GetFrequency()*pitch,cue.gain*amount*self.volume,pan or 0,nil,DAMAGE_CUES[id] and 'damage' or 'feedback')
+    if id=='kill_confirm' or id=='objective_gain' or id=='game_over' then Levels.FeedbackFor(sound.length) end
     self.counts[id]=(self.counts[id] or 0)+1;return true
 end
 function M:Hit(tier)
@@ -74,7 +76,7 @@ function M:SetActive(active)
     if self.active and not nextActive then self:Stop() end;self.active=nextActive
 end
 function M:Update(dt,camera,speaking)
-    if self.disposed then return end;self.time=self.time+math.max(0,dt);self.duck=speaking and .3 or 1
+    if self.disposed then return end;self.time=self.time+math.max(0,dt)
     local p=camera.worldPosition;local right=camera.worldRotation*Vector3.RIGHT
     self.listener[1]=-p.x;self.listener[2]=p.y;self.listener[3]=p.z
     self.right[1]=-right.x;self.right[2]=right.y;self.right[3]=right.z
@@ -104,8 +106,8 @@ function M:Consume(events,unit)
     if amount>.005 then
         if not self.loop then self.loop=self:Source('Repair') end
         local gain,pan=self:Spatial(self.mix.position,18);local sound=self.sounds.repair_loop
-        local volume=Data.cues.repair_loop.gain*amount*gain*self.volume*self.duck
-        if not self.loop.playing then Levels.Play(self.loop,sound,sound:GetFrequency()*self.mix.rate,0,pan) end
+        local volume=Data.cues.repair_loop.gain*amount*gain*self.volume
+        if not self.loop.playing then Levels.Play(self.loop,sound,sound:GetFrequency()*self.mix.rate,0,pan,nil,'feedback') end
         local previous=Levels.RawGain(self.loop);Levels.SetGain(self.loop,previous+(volume-previous)*(1-math.exp(-1/60/.12)))
         self.loop.frequency=sound:GetFrequency()*self.mix.rate;self.loop.panning=pan
     elseif self.loop then self.loop:StopImmediate();Levels.SetGain(self.loop,0) end

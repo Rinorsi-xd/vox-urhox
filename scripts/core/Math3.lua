@@ -18,12 +18,16 @@ function M.Inverse(q) return {x=-q.x,y=-q.y,z=-q.z,w=q.w} end
 -- Source legMath uses the unit-quaternion cross-product form. Keep its rounding
 -- separate from the older vehicle/weapon quaternion sandwich implementation.
 function M.RotateUnit(q,v)
-    local u={q.x,q.y,q.z};local uv=M.Cross(u,v)
-    return M.Add(v,M.Add(M.Scale(uv,2*q.w),M.Scale(M.Cross(u,uv),2)))
+    local x,y,z=q.x,q.y,q.z
+    local cx,cy,cz=y*v[3]-z*v[2],z*v[1]-x*v[3],x*v[2]-y*v[1]
+    local twice=2*q.w
+    return {v[1]+(cx*twice+(y*cz-z*cy)*2),v[2]+(cy*twice+(z*cx-x*cz)*2),v[3]+(cz*twice+(x*cy-y*cx)*2)}
 end
 function M.QMul(a,b)
-    local v=M.Add(M.Add(M.Scale(M.Array(a),b.w),M.Scale(M.Array(b),a.w)),M.Cross(M.Array(a),M.Array(b)))
-    return {x=v[1],y=v[2],z=v[3],w=a.w*b.w-M.Dot(M.Array(a),M.Array(b))}
+    return {x=(a.x*b.w+b.x*a.w)+(a.y*b.z-a.z*b.y),
+        y=(a.y*b.w+b.y*a.w)+(a.z*b.x-a.x*b.z),
+        z=(a.z*b.w+b.z*a.w)+(a.x*b.y-a.y*b.x),
+        w=a.w*b.w-(a.x*b.x+a.y*b.y+a.z*b.z)}
 end
 function M.Rotate(q,v)
     local x,y,z,w=q.x,q.y,q.z,q.w

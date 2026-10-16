@@ -6,7 +6,7 @@ local CELL=require("Config").CELL
 local M={};M.__index=M
 local function Vec(p) return Coord.Vec(table.unpack(p)) end
 local function Quat(q) return Quaternion(q.w,q.x,-q.y,-q.z) end
-function M.New(scene) return setmetatable({scene=scene,units={},pieces={}},M) end
+function M.New(scene) return setmetatable({scene=scene,units={},pieces={},hitFlash=require('render.PartHitFlash').New(scene)},M) end
 function M:Consume(world,checkpoint)
     -- Capture matching live visuals before kill/removal events retire their
     -- owning drive view. Part table identity disambiguates IDs across cars.
@@ -43,6 +43,7 @@ function M:Consume(world,checkpoint)
         end
         if checkpoint then checkpoint(i/math.max(1,#world.viewEvents)) end
     end
+    self.hitFlash:Consume(world,self.units)
     world.viewEvents={}
     for _,e in ipairs(world.debris.events) do
         if e.type=="spawn" then
@@ -67,6 +68,7 @@ function M:Update(alpha,dt,context)
         view.view:UpdateIdle(dt,context and context.time or 0,true)
         view.view:UpdateWeaponEffects(dt,context)
     end
+    self.hitFlash:Update(dt,self.units)
     for piece,d in pairs(self.pieces) do
         local root=d.view.root;local position=Vec(piece.previous.p):Lerp(Vec(piece.current.p),alpha)
         local rotation=Quat(piece.previous.q):Slerp(Quat(piece.current.q),alpha);root.rotation=rotation
@@ -76,9 +78,10 @@ function M:Update(alpha,dt,context)
         root.position=position
     end
 end
-function M:Dispose()
-    for _,v in pairs(self.units) do v:Dispose() end
-    for _,d in pairs(self.pieces) do d.view:Dispose() end
+function M:Dispose(checkpoint)
+    self.hitFlash:Dispose()
+    for _,v in pairs(self.units) do v:Dispose();if checkpoint then checkpoint() end end
+    for _,d in pairs(self.pieces) do d.view:Dispose();if checkpoint then checkpoint() end end
     self.units={};self.pieces={}
 end
 return M

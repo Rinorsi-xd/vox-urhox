@@ -36,14 +36,17 @@ function M.Shop(edit)
     header:AddChild(UI.Label{text='整备商店 · 零件图纸',fontFamily='vox-title',fontSize=18,color='#e0f3fa',flexGrow=1})
     header:AddChild(UI.Label{text='◆ '..D.Number(edit.controller.run.credits),fontFamily='vox-title',fontSize=16,color='#ffc21a'})
     header:AddChild(W.Button{text='关闭 Esc',width=100,height=32,onClick=function() modal:Close() end})
-    local body=UI.Panel{width=width-40,gap=6};modal:AddChild(UI.ScrollView{width=width-40,height=math.max(80,sh*.8-82),scrollY=true,children={body}})
+    local bodyWidth=width-40
+    local columns=math.max(1,math.floor((bodyWidth+6)/216))
+    local cardWidth=(bodyWidth-6*(columns-1))/columns
+    local body=UI.Panel{width=bodyWidth,gap=6};modal:AddChild(UI.ScrollView{width=bodyWidth,height=math.max(80,sh*.8-82),scrollY=true,children={body}})
     body:AddChild(UI.Label{text='买一张图纸，本局仓库多一件，马上能装。T1–T5 都能买，越高阶越贵。',fontFamily='vox-title',fontSize=14,color='#9fb6c4',height=28})
     for _,cat in ipairs({{'weapon','武器'},{'movement','移动'},{'function','功能'}}) do
         body:AddChild(UI.Label{text=cat[2],fontFamily='vox-title',fontSize=14,color='#8fd8ff',height=24});local grid=UI.Panel{width='100%',flexDirection='row',flexWrap='wrap',gap=6};body:AddChild(grid)
         local parts={};for _,p in ipairs(require('parts.Defs').LIST) do if p.cat==cat[1] and not p.hidden then parts[#parts+1]=p end end
         table.sort(parts,function(a,b) local ta,tb=Inv.Tier(a.id),Inv.Tier(b.id);return ta==tb and Inv.Price(a.id)<Inv.Price(b.id) or ta<tb end)
-        for _,p in ipairs(parts) do local id=p.id;local button=W.Button{text=p.name,shop=true,thumb=require('ui.VoxTheme').Thumbnail(id),subtitle='◆ '..Inv.Price(id)..' · 仓库 '..(edit.controller.run.inventory[id] or 0),width=(width-52)/3,height=74,disabled=edit.controller.run.credits<Inv.Price(id)}
-            button.props.onClick=function() local result=edit.controller:Buy(id);if result.ok then edit.build:Notify('买到 '..p.name,'ok');modal:Close();edit.shop=nil;M.Shop(edit) else edit.build:Notify(result.reason,'bad') end end;grid:AddChild(button)
+        for _,p in ipairs(parts) do local id=p.id;local button=W.Button{text=p.name,shop=true,thumb=require('ui.VoxTheme').Thumbnail(id),subtitle='◆ '..Inv.Price(id)..' · 仓库 '..(edit.controller.run.inventory[id] or 0),width=cardWidth,height=74,disabled=edit.controller.run.credits<Inv.Price(id)}
+            button.props.onClick=function() local result=edit:Buy(id);if result.ok then edit.build:Notify('买到 '..p.name..' · 剩 ◆ '..D.Number(edit.controller.run.credits),'ok');modal:Close();edit.shop=nil;M.Shop(edit) else edit.build:Notify(result.reason,'bad') end end;grid:AddChild(button)
         end
     end
     root:AddChild(modal);return modal

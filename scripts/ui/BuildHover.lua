@@ -81,7 +81,8 @@ function Hover:Render(vg)
     D.Begin(vg);local info=self.info
     if not self.textLayout then self.textLayout=Rich.Layout(vg,info.paragraphs,316,20,{size=12.5,font='vox-body'}) end
     local layout=self.textLayout;local w,h=layout.width+24,layout.height+14;local r=self:GetAbsoluteLayout()
-    local x,y=info.center and (r.w-w)/2 or info.x,info.center and r.h/2+36 or info.y
+    local selection=self.session.hud.selectionBar
+    local x,y=info.center and (r.w-w)/2 or info.x,info.center and r.h/2+36-(selection and selection.shown and 48 or 0) or info.y
     self.bounds={x=x,y=y,w=w,h=h}
     nvgSave(vg);nvgGlobalAlpha(vg,self.alpha or 0)
     nvgBeginPath(vg);nvgRect(vg,x-20,y-12,w+40,h+48)

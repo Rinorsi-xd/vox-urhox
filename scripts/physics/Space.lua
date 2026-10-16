@@ -41,13 +41,14 @@ function Space:Raycast(origin,direction,length,excluded,skipOwnerType,fixedOnly,
     local ray=Ray(Coord.Vec(table.unpack(origin)),Coord.Vec(table.unpack(direction)))
     local results=self.world:Raycast(ray,length,collisionMask or 0xffff)
     for _,hit in ipairs(results) do
-        if hit.body and (not excluded or hit.body~=excluded.native) and not hit.body.trigger
-            and (not fixedOnly or (hit.body.mass==0 and not hit.body.kinematic)) then
-            local entry=self.bodies[hit.body.node:GetID()]
+        local native=hit.body
+        if native and (not excluded or native~=excluded.native) and not native.trigger
+            and (not fixedOnly or (native.mass==0 and not native.kinematic)) then
+            local id=native.node:GetID();local entry=self.bodies[id]
             if not (skipOwnerType and entry and entry.owner and entry.owner.type==skipOwnerType) then
             local p,n=hit.position,hit.normal
             return {dist=hit.distance,point={-p.x,p.y,p.z},normal={-n.x,n.y,n.z},
-                body=entry and entry.body or Body.Wrap(hit.body),owner=entry and entry.owner or nil,collider=hit.body.node:GetID()}
+                body=entry and entry.body or Body.Wrap(native),owner=entry and entry.owner or nil,collider=id}
             end
         end
     end

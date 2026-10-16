@@ -12,9 +12,10 @@ local Theme=require 'ui.VoxTheme'
 local M={}
 local tabs={{'loadout','整备',86},{'ops','行动',86},{'market','商人',86},{'garage','车库',86},{'workshop','创意工坊',154}}
 function M.Deploy(s) return s.app:EnterTrial('salvage') end
-function M.Tab(s,id)
+function M.Tab(s,id,options)
     local sv=s.salvage;if sv.tab=='workshop' then require('ui.Workshop').Leave(s) end
     sv.tab=id;sv.selected=false;sv.qty=1;s.revision=-1;s.app:HomeView('salvage')
+    if not (options and options.quiet) then require('audio.UiSound').Play('whoosh') end
 end
 function M.Toggle(s) s.salvage.stash=not s.salvage.stash;s.salvage.selected=false;s.revision=-1;s.app:HomeView('salvage') end
 function M.Trade(s)

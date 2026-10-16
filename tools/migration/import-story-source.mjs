@@ -143,4 +143,5 @@ level4.setup={sites:[{id:'A',pos:[-190,-12,0]},{id:'B',pos:[120,.35,117]},{id:'C
 level4.resultPolicy='sites';
 writeJson(path.join(dest,'Level4.json'),{source:{branch:baseline.branch,commit:baseline.commit,
  scriptSha256:hash(fs.readFileSync(path.join(source,'shared/story/level4.js')))},level:level4});
+execFileSync(process.execPath,['--experimental-vm-modules',path.join(root,'tools/migration/import-story-result-voices.mjs')],{stdio:'inherit',env:process.env});
 console.log(JSON.stringify({steps:LEVEL1.steps.length,models:models.length,voices:Object.keys(voices).length,bytes:models.reduce((n,m)=>n+m.bytes,0)}));

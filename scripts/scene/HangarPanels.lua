@@ -19,7 +19,6 @@ function M:init(hangar,provider,scale)
         {'mark',2048,1126,'albedo_map',Signs.Mark},{'bay',2048,1024,'albedo_map',Signs.Bay}}
     for _,s in ipairs(specs) do
         local material=s[4]=='uMap' and hangar:Material('Holo_'..s[1]) or hangar.planeMats[s[1]]
-        material:SetShaderParameter('canvas_flip_v',Variant(require('urhox-libs.Platform.PlatformUtils').IsWebPlatform() and 1.0 or 0.0))
         local entry={id=s[1],width=s[2],height=s[3],sampler=s[4],draw=s[5],material=material,
             fallback=material:GetSurfaceTexture(s[4]),dirty=true,renders=0}
         self.entries[s[1]]=entry
