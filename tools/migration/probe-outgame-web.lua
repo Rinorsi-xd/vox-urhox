@@ -1172,6 +1172,10 @@ local function Dump(app)
         if r.w>0 and r.h>0 then data.widgets[#data.widgets+1]={text='关闭',rect={r.x,r.y,r.w,r.h}} end
     end
     data.frames=FrameStats()
+    if VOX_QA_HOME_ROUTE then
+        print('OUTGAME_STATE '..cjson.encode(VOX_QA_HOME_ROUTE.Project(data)))
+        return
+    end
     local shopWidgets={}
     for _,widget in ipairs(data.widgets) do
         shopWidgets[#shopWidgets+1]={text=widget.text,kind=widget.kind,rect=widget.rect,disabled=widget.disabled,
@@ -1503,7 +1507,7 @@ function HandleUpdate(et,ed)
     key=key..':'..tostring(home and home.workshop and home.workshop.selected)..':'..tostring(home and home.workshop and home.workshop.pending)..':'..tostring(home and home.musicBox~=nil)
     local mb=home and home.musicBox
     if mb then key=key..':'..tostring(mb.player.pending)..':'..tostring(mb.player:Track() and mb.player:Track().id)..':'..mb.filter..':'..mb.query..':'..tostring(mb.player.userPaused)..':'..mb.player.playMode..':'..tostring(mb.modeMenu:IsVisible())..':'..tostring(mb.player.volume) end
-    if frames%30==0 and key~=previous or input:GetKeyPress(KEY_F8) then previous=key;Dump(app) end
+    if not VOX_QA_HOME_ROUTE and frames%30==0 and key~=previous or input:GetKeyPress(KEY_F8) then previous=key;Dump(app) end
 end
 local originalPostUpdate=HandlePostUpdate
 function HandlePostUpdate(et,ed)

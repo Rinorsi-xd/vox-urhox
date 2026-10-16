@@ -1,0 +1,62 @@
+{
+  "result": "PASS",
+  "checkedAt": "2026-10-16T20:45:29.9435739+08:00",
+  "fixture": true,
+  "boundary": "Controlled 90ms Time:Sleep fixture; not game CPU/GPU/FPS benchmark",
+  "runtime": "D:/UrhoXEditor/versions/0.9.0-beta.40_20261015.121839.6dc5c357cced/UrhoXRuntime.exe",
+  "arguments": [
+    "PerfProbe.lua",
+    "-tapcode_dir=D:/Rino_Project/maker/Vox/VoxelCraft/.tmp/performance-native/snapshot",
+    "-tool_mode",
+    "-skip_login",
+    "-skip_isolation",
+    "-log",
+    "info",
+    "-graphicsheadless",
+    "-quality=desktop",
+    "-pp",
+    "D:/Rino_Project/maker/Vox/VoxelCraft/.cli/"
+  ],
+  "processId": 70916,
+  "exitCode": 0,
+  "isolatedSnapshot": ".tmp/performance-native/snapshot",
+  "productionFilesModified": false,
+  "productionMonitorSha256": "C42707C21B5501E4673C7FB1FF7F78271E9F0D9658BAEBE591804E76A63833D6",
+  "snapshotMonitorSha256": "C42707C21B5501E4673C7FB1FF7F78271E9F0D9658BAEBE591804E76A63833D6",
+  "sourceProbeSha256": "37C431D183A7504D8E4BCF6A53ED4353130429F10184B08B2995B631C55B08F5",
+  "executedProbeSha256": "711B51C32E26ED67E9D1ED505FF16EAF4095291422DAE66B9BD40334535533A3",
+  "isolatedProbeAdjustment": "After original assertions and PASS print, io.stdout:flush() before engine:Exit; prevents native stdout tail truncation",
+  "stdoutPass": {
+    "result": "PASS",
+    "records": 5,
+    "path": "performance/native-fixture-112493875.0-1.jsonl",
+    "fixture": true
+  },
+  "persistedRecordCount": 5,
+  "recordTypes": [
+    "session",
+    "slow_frame",
+    "marker",
+    "sample_tail",
+    "session_end"
+  ],
+  "sleepStage": {
+    "name": "fixture.controlled-sleep",
+    "calls": 1,
+    "selfMs": 91,
+    "ms": 91,
+    "maxMs": 91
+  },
+  "sessionEnd": {
+    "frame": 8,
+    "type": "session_end",
+    "atMs": 219,
+    "session": "native-fixture-112493875.0",
+    "slowFrames": 1,
+    "fileError": ""
+  },
+  "stdout": ".tmp/performance-native/final-stdout.log",
+  "stderr": ".tmp/performance-native/final-stderr.log",
+  "initialAttempts": "Two unmodified-probe runs exited 0 with complete JSONL but stdout tail truncated before PASS; not counted as passed",
+  "renderedValidation": false
+}

@@ -7,7 +7,8 @@ const sha=b=>crypto.createHash('sha256').update(b).digest('hex');
 async function run(){
  assert.match(base||'',/^http:\/\/127\.0\.0\.1:\d+$/);
  const identity=await fetch(base+'/identity.json').then(r=>{assert.ok(r.ok);return r.json();});
- assert.equal(identity.qa,true);assert.equal(identity.probeSha256,sha(fs.readFileSync(path.join(__dirname,'probe-outgame-web.lua'))));
+ assert.equal(identity.qa,true);assert.equal(identity.homeRoute,true);
+ assert.equal(identity.probeSha256,sha(Buffer.concat([fs.readFileSync(path.join(__dirname,'home-route-observer.lua')),Buffer.from('\n'),fs.readFileSync(path.join(__dirname,'probe-outgame-web.lua'))])));
  const catalog=JSON.parse(fs.readFileSync(path.join(root,'assets/Parts/Catalog.json')));
  const workshop=JSON.parse(fs.readFileSync(path.join(root,'assets/UI/Workshop.json')));
  const targets=[['fox','buildFox'],['megaMech','buildMegaMech']].map(([id,preset])=>({id,...catalog.presets[preset],label:workshop.prefabs.find(p=>p.id===id).name}));

@@ -1,4 +1,64 @@
 const fs=require('node:fs'),http=require('node:http'),path=require('node:path');
+const crypto=require('node:crypto');
+function createPerfLogReceiver(options={}){
+ const maxBytes=256*1024,maxRecords=500,maxQueuedBytes=4*1024*1024;
+ const directory=path.resolve(options.directory||path.join(__dirname,'../../docs/migration/evidence/performance-live',new Date().toISOString().replace(/[:.]/g,'-')+'-'+process.pid+'-'+crypto.randomBytes(3).toString('hex')));
+ const sessions=new Map();let queuedBytes=0,pendingBatches=0,receivedRecords=0,writtenRecords=0,rejectedBatches=0,writeFailures=0,lastError=null,chain=Promise.resolve();
+ const ready=fs.promises.mkdir(directory,{recursive:true});ready.catch(error=>{lastError=error.message});
+ function status(){return {enabled:true,directory,identityFile:path.join(directory,'identity.json'),countsIncludeTransportRetries:true,receivedRecords,writtenRecords,queuedBytes,pendingBatches,rejectedBatches,writeFailures,lastError,sessions:[...sessions.values()].map(s=>({...s}))}}
+ function trusted(req,requireOrigin){
+  try{
+   const host=req.headers.host;if(!host)return false;
+   const origin=new URL('http://'+host);
+   if(!['127.0.0.1','localhost'].includes(origin.hostname)||origin.port!==String(options.port))return false;
+   if(req.headers['sec-fetch-site']==='cross-site')return false;
+   return req.headers.origin?req.headers.origin===origin.origin:!requireOrigin;
+  }catch{return false}
+ }
+ function json(res,code,value){res.writeHead(code,{'Content-Type':'application/json','Cache-Control':'no-store','Cross-Origin-Resource-Policy':'same-origin'});res.end(JSON.stringify(value))}
+ function handle(req,res){
+  const endpoint=req.url.split('?')[0];if(endpoint!=='/__vox_perf'&&endpoint!=='/__vox_perf_status')return false;
+  if(!trusted(req,endpoint==='/__vox_perf')){rejectedBatches++;json(res,403,{error:'Same-origin local requests only'});return true}
+  if(endpoint==='/__vox_perf_status'){if(req.method!=='GET'){json(res,405,{error:'GET required'});return true}json(res,200,status());return true}
+  if(req.method!=='POST'){json(res,405,{error:'POST required'});return true}
+  if(!/^(application\/json|text\/plain)(?:;|$)/i.test(req.headers['content-type']||'')){rejectedBatches++;json(res,415,{error:'JSON required'});return true}
+  if(Number(req.headers['content-length'])>maxBytes){rejectedBatches++;json(res,413,{error:'Batch exceeds 256 KiB'});req.resume();return true}
+  let size=0,finished=false;const chunks=[];
+  req.on('data',chunk=>{
+   if(finished)return;size+=chunk.length;
+   if(size>maxBytes){finished=true;rejectedBatches++;json(res,413,{error:'Batch exceeds 256 KiB'});return}
+   chunks.push(chunk);
+  });
+  req.on('error',()=>{finished=true});
+  req.on('end',()=>{
+   if(finished)return;finished=true;
+   let records,serialized;try{
+    const body=JSON.parse(Buffer.concat(chunks).toString('utf8'));records=Array.isArray(body)?body:body.records;
+    if(!Array.isArray(records)||records.length<1||records.length>maxRecords||records.some(record=>!record||typeof record!=='object'||Array.isArray(record)||typeof record.session!=='string'||!record.session||record.session.length>160||typeof record.type!=='string'||record.type.length>80))throw Error('Expected 1..500 records with session/type');
+    serialized=records.map(record=>JSON.stringify(record));
+   }catch(error){rejectedBatches++;json(res,400,{error:error.message});return}
+   const added=new Set(records.map(record=>record.session).filter(session=>!sessions.has(session)));
+   if(sessions.size+added.size>128||queuedBytes+size>maxQueuedBytes){rejectedBatches++;json(res,429,{error:'Collector write queue or session limit reached'});return}
+   const groups=new Map();
+   for(let i=0;i<records.length;i++){
+    const record=records[i];
+    let session=sessions.get(record.session);
+    if(!session){session={session:record.session,file:path.join(directory,'session-'+crypto.createHash('sha256').update(record.session).digest('hex').slice(0,24)+'.jsonl'),receivedRecords:0,writtenRecords:0};sessions.set(record.session,session)}
+    session.receivedRecords++;const lines=groups.get(session)||[];lines.push(serialized[i]);groups.set(session,lines);
+   }
+   queuedBytes+=size;pendingBatches++;receivedRecords+=records.length;
+   const write=chain.then(async()=>{
+    await ready;
+    for(const [session,lines] of groups){await fs.promises.appendFile(session.file,lines.join('\n')+'\n','utf8');session.writtenRecords+=lines.length;writtenRecords+=lines.length}
+   });
+   chain=write.catch(error=>{writeFailures++;lastError=error.message}).finally(()=>{queuedBytes-=size;pendingBatches--});
+   write.then(()=>json(res,200,{accepted:records.length,written:true}),error=>json(res,500,{error:'Performance log write failed: '+error.message}));
+  });return true;
+ }
+ function setIdentity(identity){const write=chain.then(async()=>{await ready;await fs.promises.writeFile(path.join(directory,'identity.json'),JSON.stringify(identity,null,2)+'\n','utf8')});chain=write.catch(error=>{writeFailures++;lastError=error.message});return write}
+ return {handle,status,setIdentity,drain:()=>chain};
+}
+function startPreviewServer(){
 const root=path.resolve(__dirname,'../..'),engine=path.join(root,'.tmp/web-engine');
 const prepared=JSON.parse(fs.readFileSync(path.resolve(root,process.env.VOX_PREPARE_FILE||'.tmp/outgame-prepare.json'),'utf8').replace(/^\uFEFF/,''));
 if(!prepared.ok)throw Error('Preparation failed. A cached visual fixture must be selected explicitly with VOX_PREPARE_FILE.');
@@ -7,7 +67,11 @@ const manifest=JSON.parse(fs.readFileSync(prepared.manifest_path,'utf8'));
 const main=manifest.files.find(f=>f.fs_path==='main.lua');
 const mainName=main.uuid+'-'+main.hash+main.ext;
 const qa=process.argv.includes('--qa');
+const perfMonitor=process.argv.includes('--perf-monitor');
 const storyRoute=qa&&process.argv.includes('--story-route');
+const homeRoute=qa&&process.argv.includes('--home-route');
+if(homeRoute&&storyRoute)throw Error('Select one QA route projection.');
+const homeRouteProbe=homeRoute?fs.readFileSync(path.join(__dirname,'home-route-observer.lua'),'utf8')+'\n':'';
 const loadProfile=qa&&process.argv.includes('--profile-loads');
 const combatProfile=qa&&process.argv.includes('--profile-combat');
 const warmBatchArg=process.argv.find(arg=>arg.startsWith('--warm-batch-size='));
@@ -20,15 +84,23 @@ const concurrencyArg=process.argv.find(arg=>arg.startsWith('--download-concurren
 const downloadConcurrency=concurrencyArg?Number(concurrencyArg.split('=')[1]):null;
 if(downloadConcurrency!==null&&(!loadProfile||!Number.isInteger(downloadConcurrency)||downloadConcurrency<1||downloadConcurrency>16))throw Error('Download concurrency is a QA load-profile option, range 1..16');
 const probe=qa?(storyRoute?fs.readFileSync(path.join(__dirname,'story-route-observer.lua'),'utf8')+'\n':'')+(loadProfile?'G0_DOWNLOAD_CONCURRENCY='+(downloadConcurrency??'nil')+'\nG0_WARM_BATCH_SIZE='+(warmBatchSize??'nil')+'\n'+fs.readFileSync(path.join(__dirname,'profile-load-bindings.lua'),'utf8')+'\n':'')+(renderExperiment?'G0_WARM_EXPERIMENT='+String(warmExperiment)+'\nG0_WARM_INTRO_EXPERIMENT='+String(warmIntroExperiment)+'\n'+fs.readFileSync(path.join(__dirname,'probe-render-experiment.lua'),'utf8')+'\n':'')+fs.readFileSync(path.join(__dirname,'probe-outgame-web.lua'),'utf8')+(combatProfile?'\n'+fs.readFileSync(path.join(__dirname,'probe-combat-performance.lua'),'utf8'):''):'';
-const probeSha256=qa?require('node:crypto').createHash('sha256').update(probe).digest('hex'):null;
+const probeSha256=qa?require('node:crypto').createHash('sha256').update(homeRouteProbe+probe).digest('hex'):null;
 const port=Number(process.env.VOX_PREVIEW_PORT||4203);
+const perfLogs=perfMonitor?createPerfLogReceiver({port}):null;
 const sourceCache=require('./cached-engine-sources.cjs');
 const sourceBaseline=JSON.parse(fs.readFileSync(path.join(root,'docs/migration/outgame-baseline.json')));
 const sourceRoot=path.resolve(root,sourceBaseline.snapshot);
+const previewIdentity=()=>({...prepared,qa,perfMonitor,perfLogDirectory:perfLogs?.status().directory||null,storyRoute,homeRoute,loadProfile,combatProfile,downloadConcurrency,warmBatchSize,renderExperiment,warmExperiment,warmIntroExperiment,probeSha256,port,processId:process.pid,servedManifest:path.basename(prepared.manifest_path)});
+if(perfLogs)perfLogs.setIdentity(previewIdentity()).catch(error=>console.error('Performance identity write failed: '+error.message));
 const server=http.createServer((req,res)=>{
+ if(perfLogs&&perfLogs.handle(req,res))return;
+ if(perfMonitor&&req.url==='/__vox_perf_collector.js'){
+  res.writeHead(200,{'Content-Type':'text/javascript','Cache-Control':'no-store','Cross-Origin-Resource-Policy':'same-origin'});
+  fs.createReadStream(path.join(__dirname,'perf-web-collector.js')).pipe(res);return;
+ }
  if(req.url==='/identity.json'){
   res.setHeader('Content-Type','application/json');res.setHeader('Cache-Control','no-store');
-  res.end(JSON.stringify({...prepared,qa,storyRoute,loadProfile,combatProfile,downloadConcurrency,warmBatchSize,renderExperiment,warmExperiment,warmIntroExperiment,probeSha256,port,processId:process.pid,servedManifest:path.basename(prepared.manifest_path)}));return;
+  res.end(JSON.stringify(previewIdentity()));return;
  }
  if(req.url.startsWith('/baseline/')){
   const relative=decodeURIComponent(req.url.split('?')[0].slice('/baseline/'.length));
@@ -57,9 +129,14 @@ const server=http.createServer((req,res)=>{
  res.setHeader('Cross-Origin-Opener-Policy','same-origin');res.setHeader('Cross-Origin-Embedder-Policy','require-corp');
  res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.wasm':'application/wasm','.json':'application/json'})[path.extname(file)]||'application/octet-stream');
  res.setHeader('Cache-Control','no-store');
- if(qa&&file.endsWith(mainName)){res.end(fs.readFileSync(file,'utf8')+'\n'+probe);return;}
- if(qa&&file===prepared.manifest_path){main.size=fs.statSync(path.join(dist,'assets',mainName)).size+Buffer.byteLength('\n'+probe);res.end(JSON.stringify(manifest));return;}
+ if(perfMonitor&&file===path.join(__dirname,'preview-outgame.html')){res.end(fs.readFileSync(file,'utf8').replace(/<!doctype html>/i,'$&\n<script src="/__vox_perf_collector.js"></script>'));return;}
+ if(qa&&file.endsWith(mainName)){res.end(fs.readFileSync(file,'utf8')+'\n'+homeRouteProbe+probe);return;}
+ if(qa&&file===prepared.manifest_path){main.size=fs.statSync(path.join(dist,'assets',mainName)).size+Buffer.byteLength('\n'+homeRouteProbe+probe);res.end(JSON.stringify(manifest));return;}
  fs.createReadStream(file).pipe(res);
 });
 server.listen(port,'127.0.0.1',()=>console.log(`Outgame preview: http://127.0.0.1:${port}/outgame.html?-game_url=http://127.0.0.1:${port}/game-dist/&-log=info`));
 process.on('SIGINT',()=>server.close());
+return server;
+}
+module.exports={createPerfLogReceiver,startPreviewServer};
+if(require.main===module)startPreviewServer();

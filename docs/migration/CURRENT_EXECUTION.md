@@ -1,5 +1,18 @@
 # 当前迁移执行位置
 
+## 2026-10-16 最新：实时卡顿监控与逐帧明细
+
+- 最新用户要求是写实时监控、记录超过80ms及瞬时卡顿，随后追加“不到30帧，想知道每一帧在计算什么”。本轮接续诊断，禁止重开G0或在未实测时猜优化。说明及复现入口见 `PERFORMANCE_MONITOR_2026_10_16.md`。
+- 当前逐帧冻结 `.tmp/outgame-cached-1792155052577` / `manifest-6bafddc3.json`，537Lua，指纹 `d18bd5d3ae0a3f41edd0f4eccfd0199284a04b3ce518290f8792dfa63cfbd82a`，父提交25149307。工作区/冻结/包字节一致PASS。原main/1016远端25149307没有自动包含本轮未提交修改。
+- 新增 PerformanceMonitor / PerformanceBindings / PerformancePanel 与main接入：默认启用、F6显隐、F10用户标记。每帧数字数组保存分段ms/self/calls/max、字典每秒发出；>80ms完整慢帧/前15帧/游戏状态/GC/后台资源/地图保留。46行为与537Lua语法PASS；collector真实HTTP/限额/持久化/重试去重与CSV夹具PASS。引擎线程/GPU仍未独立计时，未归因不是GPU。
+- 普通4471 / QA4472启动此逐帧包；前者无QA玩法注入。Web实际日志目录通过 `/__vox_perf_status` 获取。用户ambient旧4350实核停服，不能把自动测试日志当用户旧网页对局证据。Web落盘需本地收集服务；Native落performance目录。不得让collector增加/重编码启动参数（曾在Lua前触发WASM越界，已删除URL改写）。
+- 历史1dc匹配13项PASS、0eb普通F6面板8项PASS、Native90ms夹具读回PASS不是当前逐帧增强实战签收。旧0eb剧情已到第一步且错误0，但runner中断、result仍RUNNING，保留原证据，不能误标PASS。逐帧包首个匹配runner坐标没换算导致未点中，已中断；修正坐标后的最终匹配与剧情均已完成，结果见下文，不重跑旧脚本。
+- 已实读旧匹配帧3886/3909/3924：43ms/3步/Lua25ms，56ms/4步/Lua38ms，88ms/0步/Lua60ms中gc44ms。多补步与GC是实测候选，不能由三帧断言整局唯一瓶颈。完整逐帧CSV正在验收，不再只保存>80ms明细。
+- 最终同包匹配117检查/111直接明细帧PASS，落盘开战126/126帧明细完整；剧情188检查/182直接明细帧PASS。均真实输入驾驶开火、解析/丢弃/超长/发送失败0，root实看两张实战图。精简原始选段+CSV+来源SHA及截图见 `evidence/performance-monitor/final/`；这不是完整战斗/关卡或性能验收。
+- 实测六车短窗口平均54.55ms，Lua34.07ms、Vehicle13.43ms含子段、Bullet4.83ms、AI1.89ms，平均3.07物理步。监控本身也有扰动，另用隔离Native量包装开销，不能将调试构建当未插桩基准。
+- Native监控扰动4轮对照已完成，状态与RNG完全相同，但约1秒级循环的热机/调度噪声明显，不能报零开销或确定增量。归档 `evidence/performance-monitor/overhead/`；无渲染/AI/开火，不是整场FPS。
+- 本轮按此前“完成后上传整理”授权将main/1016同步同提交；实际SHA以push/ls-remote核验为准，仅这两个活动分支，历史标签保留。普通4471保持最终非QA逐帧包；QA4472验收已结束并停止以释放机器负担。未做Maker发布。骁龙845/TapTap长期30FPS与原G0-G6开放项继续OPEN。
+
 ## 2026-10-16 本轮收口：同步 main / 1016，继续点见交付清单
 
 - 最新用户要求本轮完成后上传 Git、清理其他分支并同步数据；本轮按此要求收口，不重开 G0，不再扩大尚未验证的优化。交付入口为 `SYNC_1016_2026_10_16.md`。

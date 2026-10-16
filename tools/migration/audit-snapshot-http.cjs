@@ -17,7 +17,9 @@ async function bytes(port,route){const response=await fetch(`http://127.0.0.1:${
   assert.equal(identity.qa,qa);assert.equal(identity.port,port);assert.equal(identity.servedManifest,path.basename(prepared.manifest_path));
   assert.equal(path.resolve(identity.source_directory),snapshot);assert.deepEqual(identity.identity,prepared.identity);assert.deepEqual(identity.engineSources,prepared.engineSources);
   for(const flag of ['loadProfile','combatProfile','renderExperiment','warmExperiment','warmIntroExperiment'])assert.equal(identity[flag],false,flag);
-  const servedProbe=identity.storyRoute?Buffer.concat([fs.readFileSync(path.join(__dirname,'story-route-observer.lua')),Buffer.from('\n'),probe]):probe;
+  assert.ok(!(identity.storyRoute&&identity.homeRoute),'Only one route projection');
+  const route=identity.homeRoute?'home-route-observer.lua':identity.storyRoute?'story-route-observer.lua':null;
+  const servedProbe=route?Buffer.concat([fs.readFileSync(path.join(__dirname,route)),Buffer.from('\n'),probe]):probe;
   const expected=qa?Buffer.concat([packedMain,Buffer.from('\n'),servedProbe]):packedMain;
   assert.ok(servedMain.equals(expected),'HTTP main payload bytes');
   const expectedManifest=JSON.parse(manifestBytes);if(qa)expectedManifest.files.find(f=>f.fs_path==='main.lua').size=expected.length;

@@ -10,7 +10,8 @@ async function run(){
  const identity=await fetch(base+'/identity.json').then(r=>{assert.ok(r.ok);return r.json();});
  assert.equal(identity.qa,true,'Only an explicit QA preview is allowed');
  assert.ok(!identity.storyRoute&&!identity.loadProfile&&!identity.combatProfile&&!identity.renderExperiment,'Use the ordinary QA observer without experiment injection');
- const currentProbe=sha(fs.readFileSync(path.join(__dirname,'probe-outgame-web.lua')));
+ const rawProbe=fs.readFileSync(path.join(__dirname,'probe-outgame-web.lua'));
+ const currentProbe=sha(identity.homeRoute?Buffer.concat([fs.readFileSync(path.join(__dirname,'home-route-observer.lua')),Buffer.from('\n'),rawProbe]):rawProbe);
  assert.equal(identity.probeSha256,currentProbe,'Restart QA server after the read-only quantity observer changed');
  const out=path.join(root,'docs/migration/evidence','salvage-quantity-web-'+path.basename(identity.manifest_path,'.json')+'-'+new Date().toISOString().replace(/[:.]/g,'-'));
  fs.mkdirSync(out,{recursive:true});
@@ -31,7 +32,7 @@ async function run(){
    if(local)assert.equal(hash,sha(fs.readFileSync(path.join(root,local))),'Candidate matches reviewed quantity file '+local);
    report.resources.push({relative,url,bytes:bytes.length,sha256:hash});persist();return bytes;
   }
-  for(const relative of ['ui/SalvageQuantity.lua','ui/SalvagePage.lua','ui/SalvagePaint.lua'])await asset(relative,'scripts/'+relative);
+  for(const relative of ['ui/SalvageQuantity.lua','ui/SalvagePage.lua','ui/SalvagePaint.lua','app/SalvageLobby.lua'])await asset(relative,'scripts/'+relative);
   const data=JSON.parse((await asset('UI/Outgame.json')).toString('utf8'));
   const rules=JSON.parse((await asset('UI/SalvageRules.json')).toString('utf8'));
   report.fixture={testFill:rules.testFill,cells:rules.cells,sellRate:rules.sellRate};
@@ -144,6 +145,32 @@ async function run(){
   assert.deepEqual(afterSale.installed,beforeSale.installed);check(state.salvage.qty===1,'Successful inspection trade resets quantity to one');
   report.inventoryAfterSale=afterSale;report.cleanup='Two fixture materials sold only inside a new anonymous context. Context is destroyed at shutdown; no real account was used. No buyback attempted because testFill:999 can exceed the 120-cell purchase limit.';
   await shot('07-inspect-sold');
+  await click('商人','tab');await click('出售','segment');
+  await wait(s=>!s.salvage.selected&&widgets().some(w=>w.text==='卖掉全部货物'),'unselected bulk-cargo offer');
+  anonymous();const beforeBulk=inventory(),cargo=[];let gain=0;
+  for(const [id,itemData] of Object.entries(data.items)){
+   if(itemData.cat!=='cargo')continue;
+   const count=state.salvage.loose[id]||0;if(count<=0)continue;
+   cargo.push({id,count});gain+=Math.max(1,Math.floor(itemData.price*rules.sellRate))*count;
+  }
+  check(cargo.length>0&&gain>0,'Public anonymous fixture has loose cargo');
+  report.bulkSale={before:beforeBulk,cargo,gain};await shot('08-bulk-cargo-offer');
+  await click('卖掉全部货物');
+  await wait(s=>s.salvageInventory.credits===beforeBulk.credits+gain,'actual bulk sale');await dump();
+  const afterBulk=inventory(),sold=new Map(cargo.map(row=>[row.id,row.count]));
+  for(const id of new Set([...Object.keys(beforeBulk.items),...Object.keys(afterBulk.items)])){
+   assert.equal(afterBulk.items[id]||0,(beforeBulk.items[id]||0)-(sold.get(id)||0),'Exact bulk stock delta '+id);
+  }
+  check(afterBulk.credits===beforeBulk.credits+gain,'Bulk sale uses source buyback sum');
+  assert.deepEqual(afterBulk.installed,beforeBulk.installed);assert.deepEqual(afterBulk.stats,beforeBulk.stats);
+  check(!widgets().some(w=>w.text==='卖掉全部货物'),'Empty cargo removes bulk-sale action');
+  assert.equal(afterBulk.saved.data.credits,afterBulk.credits);assert.deepEqual(afterBulk.saved.data.items,afterBulk.items);
+  check(state.salvage.tab==='market'&&state.salvage.market==='sell'&&!state.salvage.selected,'Bulk sale preserves unselected sell page');
+  report.bulkSale.after=afterBulk;await shot('09-bulk-cargo-sold');
+  await click('整备','tab');await click('竞技对战','mode');
+  await wait(s=>s.lobby==='arena'&&s.tab==='hangar'&&!s.loadingFlow.active,'normal return to arena hall');
+  check(state.salvageInventory.credits===afterBulk.credits,'Normal return retains saved sale');await shot('10-returned-hall');
+  report.cleanup='Two materials and all loose cargo sold only inside a new anonymous context, closed after testing. No real-account stock or cloud writes.';
   check(report.errors.length===0&&report.probeErrors.length===0&&report.httpErrors.length===0,'No runtime, observer or HTTP errors on this UI route');
   report.result='PASS';
  }catch(error){report.result='FAIL';report.failure=error.stack;await page?.screenshot({path:path.join(out,'failure.png')}).catch(()=>{});}

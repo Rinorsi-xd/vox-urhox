@@ -1,0 +1,9 @@
+{
+  "result": "PASS",
+  "manifest": "manifest-6bafddc3.json",
+  "sourceCommit": "b276064942ae09c0227ec28d4cfda1d5ff006455",
+  "buildParentCommit": "25149307e790b7799d40012d02e1b67a6af09ab7",
+  "scriptCount": 537,
+  "scriptFingerprint": "d18bd5d3ae0a3f41edd0f4eccfd0199284a04b3ce518290f8792dfa63cfbd82a",
+  "scope": "Exact current Lua / snapshot / packaged Lua byte comparison. No engine execution or visual/performance acceptance."
+}
