@@ -3,6 +3,8 @@
 -- 跟涂装颜色有关的槽（paint / glassPaint / glowPaint / lampPaint / beamPaint / flag）从实例色取色，
 -- 所以同一种零件无论涂成什么颜色都能被引擎自动合批（GPU Instancing）。
 
+local Defs=require("parts.Defs")
+
 local Config = require "Config"
 
 local Materials = {}
@@ -79,7 +81,7 @@ local function Make(key)
         SetFloat(m,'band_strength',cell and 1.1 or .5)
         return m
     end
-    local source=require("parts.Defs").DATA.materials[key]
+    local source=Defs.DATA.materials[key]
     if source and key~="armorWhite" and key~="glass" then
         local animated=key=='spinSteel' or key=='spinGlow' or key=='glowBlink' or key=='glowCyan' or key=='glowGreen'
         local m=NewSurface(key=='spinSteel' and 'VoxDecorDouble.shader' or animated and 'VoxDecor.shader' or source.coat>0 and "VoxPBRCoat.shader" or "VoxPBR.shader")

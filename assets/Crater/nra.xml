@@ -8,5 +8,5 @@
   <layer name="Crater/nra-5.bin" />
   <address coord="u" mode="wrap" />
   <address coord="v" mode="wrap" />
-  <filter mode="anisotropic" />
+  <filter mode="trilinear" />
 </texture>

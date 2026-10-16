@@ -1,3 +1,9 @@
+local ShieldQuery=require("combat.ShieldQuery")
+local Data=require("endless.Data")
+local Blueprint=require("construction.Blueprint")
+local EndlessBanner=require("ui.EndlessBanner")
+local VoxTheme=require("ui.VoxTheme")
+
 local UI=require('urhox-libs/UI')
 local D=require('ui.SourceDraw')
 local W=require('ui.EndlessWidgets')
@@ -22,7 +28,7 @@ function Panel:Render(vg)
     end
     Text(vg,'金钱',right-130,y+32,12,muted,'vox-hud-medium');Text(vg,D.Number(r.credits),right,y+21,34,gold,'vox-display',NVG_ALIGN_RIGHT)
     Text(vg,'得分',right-110,y+68,12,muted,'vox-hud-medium');Text(vg,D.Number(math.floor(r.score)),right,y+63,20,white,'vox-display',NVG_ALIGN_RIGHT)
-    if e.player.alive and require('combat.ShieldQuery').Contains(e.shield,e.player:Position()) then
+    if e.player.alive and ShieldQuery.Contains(e.shield,e.player:Position()) then
         local cx,cy=box.x+w*.5,box.y+h-64;Text(vg,'基地护盾 '..D.Number(math.ceil(r.shield.hp))..' / '..D.Number(r.shield.max),cx,cy-25,13,blue,'vox-hud-medium',NVG_ALIGN_CENTER)
         D.Rect(vg,cx-210,cy,420,6,{255,255,255,31});D.Rect(vg,cx-210,cy,420*math.max(0,r.shield.hp/r.shield.max),6,{46,168,255,255})
     end
@@ -39,12 +45,12 @@ local function Summary(s,root)
     for _,row in ipairs({{r.wave,'坚持波次'},{D.Number(math.floor(r.score)),'得分 · 最高 '..math.floor(e.best.score or 0)},{math.floor(r.time/60)..' 分 '..math.floor(r.time%60)..' 秒','用时'},{D.Number(math.floor(r.damage+.5)),'造成伤害'}}) do
         grid:AddChild(UI.Panel{width=(width-64-44)/3,height=76,children={UI.Label{text=tostring(row[1]),fontFamily='vox-title',fontSize=28,color='#eef7ff',height=38},UI.Label{text=row[2],fontFamily='vox-title',fontSize=14,color='#a8c3d4',height=24}}})
     end
-    local kills={};for _,role in ipairs({'assault','heavy','sniper','hover','boss'}) do kills[#kills+1]=require('endless.Data').roles[role].name..' '..(r.kills[role] or 0) end
+    local kills={};for _,role in ipairs({'assault','heavy','sniper','hover','boss'}) do kills[#kills+1]=Data.roles[role].name..' '..(r.kills[role] or 0) end
     frame:AddChild(UI.Label{text='击杀 '..table.concat(kills,' · '),fontFamily='vox-title',fontSize=14,color='#a8c3d4',height=26})
     local actions=UI.Panel{width='100%',flexDirection='row',gap=12,height=44};frame:AddChild(actions)
     actions:AddChild(W.Button{text='再来一局',width=112,height=44,onClick=function() s.app.endlessAgain=true;s.wantsReturn=true end})
     actions:AddChild(W.Button{text='把这辆车存到车位',width=210,height=44,onClick=function()
-        for i=1,20 do if not s.app.store:LoadSlot(i) then local ok,err=s.app.store:SaveSlot(i,require('construction.Blueprint').New():Load(e.run.blueprint));s.app.toasts:Push(ok and '已保存到车位 '..i or err,ok and 'ok' or 'bad');return end end
+        for i=1,20 do if not s.app.store:LoadSlot(i) then local ok,err=s.app.store:SaveSlot(i,Blueprint.New():Load(e.run.blueprint));s.app.toasts:Push(ok and '已保存到车位 '..i or err,ok and 'ok' or 'bad');return end end
         s.app.toasts:Push('车位已满，请先在机库腾出一个空位','warn')
     end})
     actions:AddChild(W.Button{text='回主页',width=112,height=44,onClick=function() s.wantsReturn=true end})
@@ -56,7 +62,7 @@ function M.Attach(session,root)
     local state={root=hud,age=0,key=false,rest=nil,summary=nil}
     function state.Update(dt)
         state.age=state.age+(dt or 0);local e=session.endless;local r=e.run
-        require('ui.EndlessBanner').Update(e,r)
+        EndlessBanner.Update(e,r)
         hud:SetVisible(r.state~='editing');exit:SetVisible(r.state~='editing' and r.state~='over')
         if r.state=='over' and not state.summary then state.summary=Summary(session,root) end
         local key=r.state..':'..r.wave..':'..#r.supplies
@@ -73,7 +79,7 @@ function M.Attach(session,root)
             actions:AddChild(W.Button{text=(session.touch and '' or 'Enter ')..'开始第 '..(r.wave+1)..' 波',disabled=#r.supplies>0,width=224,height=44,onClick=function() e:NextWave() end})
             box:AddChild(UI.Label{text=#r.supplies>0 and (r.wave%5==0 and '金色补给箱' or '补给箱')..' · 选择一件' or '补给已领取 · 可以改装或开始下一波',fontFamily='vox-title',fontSize=14,color='#eef7ff',height=24,textAlign='center'})
             if #r.supplies>0 then local grid=UI.Panel{width='100%',flexDirection='row',gap=16};box:AddChild(grid)
-                for i,choice in ipairs(r.supplies) do local index=i;grid:AddChild(W.Button{text=choice.name,thumb=choice.type and require('ui.VoxTheme').Thumbnail(choice.type) or nil,repair=not choice.type,subtitle=choice.type and 'T'..choice.tier..' · '..(choice.category=='weapon' and '武器' or choice.category=='movement' and '移动零件' or '功能零件') or choice.description,width=(width-56-32)/3,height=164,onClick=function() e:ChooseSupply(index) end}) end
+                for i,choice in ipairs(r.supplies) do local index=i;grid:AddChild(W.Button{text=choice.name,thumb=choice.type and VoxTheme.Thumbnail(choice.type) or nil,repair=not choice.type,subtitle=choice.type and 'T'..choice.tier..' · '..(choice.category=='weapon' and '武器' or choice.category=='movement' and '移动零件' or '功能零件') or choice.description,width=(width-56-32)/3,height=164,onClick=function() e:ChooseSupply(index) end}) end
             end
         end
     end

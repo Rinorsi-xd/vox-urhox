@@ -1,3 +1,5 @@
+local TerrainObstacles=require("drive.TerrainObstacles")
+
 local Math=require "core.Math3"
 local Capabilities=require "drive.Capabilities"
 local C=Math.Clamp
@@ -17,7 +19,7 @@ end
 function M.Step(v,contactSupport)
     local body=v.body;local q,t=body.rotation(),body.translation()
     local function WorldPoint(p) return Math.Add(Math.Rotate(q,p),{t.x,t.y,t.z}) end
-    local function Cast(p,length) return v.space:Raycast(p,{0,-1,0},length,body,nil,false,require('drive.TerrainObstacles').SUPPORT_MASK) end
+    local function Cast(p,length) return v.space:Raycast(p,{0,-1,0},length,body,nil,false,TerrainObstacles.SUPPORT_MASK) end
     v.hoverStates={}
     local active,totalForce,distance,hoverLoad=0,0,0,0
     for _,h in ipairs(v.spec.hovers) do if h.works then hoverLoad=hoverLoad+h.load end end

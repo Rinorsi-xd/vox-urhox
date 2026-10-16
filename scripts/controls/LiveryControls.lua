@@ -1,3 +1,7 @@
+local TouchPreferences=require("controls.TouchPreferences")
+local LiveryData=require("construction.LiveryData")
+local Wheel=require("controls.Wheel")
+
 local UI=require 'urhox-libs/UI'
 local P=require 'render.LiveryProjection'
 local Models=require 'render.LiveryModel'
@@ -35,7 +39,7 @@ function M:TouchMove(e)
         end
         self.touchX=self.touchX+dx/2;self.touchY=self.touchY+dy/2;self.touchMode='pan'
     else
-        local prefs=require('controls.TouchPreferences').Get(self.app)
+        local prefs=TouchPreferences.Get(self.app)
         local short=math.min(graphics:GetWidth(),graphics:GetHeight())/graphics:GetDPR()
         local gain=math.min(3,600/math.max(240,short))*prefs.sens
         self.touchX=self.touchX+dx*gain;self.touchY=self.touchY+dy*gain;self.touchMode='orbit'
@@ -77,7 +81,7 @@ function M:Screen(p)
     local v=camera.camera:WorldToScreenPoint(world);local w,h=UI.GetViewportSize();return {x=v.x*w,y=v.y*h}
 end
 function M:Corners(d)
-    local st=require('construction.LiveryData').Catalog().byId[d.s];if not st then return nil end
+    local st=LiveryData.Catalog().byId[d.s];if not st then return nil end
     local f=P.Frame(d);local w,h=P.Size(d,st);local out={}
     for _,sign in ipairs({{-1,-1},{1,-1},{1,1},{-1,1}}) do
         local q=self:Screen(P.ToWorld(f,{sign[1]*w/2,sign[2]*h/2,.05}));if not q then return nil end;out[#out+1]=q
@@ -166,7 +170,7 @@ function M:Update(dt,blocked)
         if self.session.sel>0 and (alt or shift) then
             local direction=wheel>0 and -1 or 1
             self.session:Edit(function(d) if alt then d.w=math.max(1,math.min(30,d.w*(direction>0 and .92 or 1.08))) else d.r=d.r+direction*math.pi/36 end end,'soon')
-        else c.flight=false;c.autoSpin=false;c.dist=require('controls.Wheel').Zoom(c.dist,wheel,c.minDist,c.maxDist) end
+        else c.flight=false;c.autoSpin=false;c.dist=Wheel.Zoom(c.dist,wheel,c.minDist,c.maxDist) end
     end;c:Step(dt)
 end
 function M:Key()

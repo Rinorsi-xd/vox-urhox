@@ -1,3 +1,14 @@
+local LiveryPage=require("ui.LiveryPage")
+local Workshop=require("ui.Workshop")
+local HomeBattle=require("ui.HomeBattle")
+local StoryPage=require("ui.StoryPage")
+-- Load optional/cyclic dependencies once, without changing first-use order.
+local DeferredModules=setmetatable({},{__index=function(modules,name)
+    local module=require(name)
+    rawset(modules,name,module)
+    return module
+end})
+
 local Panel=require 'urhox-libs/UI/Widgets/Panel'
 local D=require 'ui.SourceDraw'
 local Paragraph=require 'ui.SourceParagraph'
@@ -17,11 +28,11 @@ function Page:Render(vg)
 end
 local M={}
 function M.Create(s)
-    if s.tab=='livery' then return require('ui.LiveryPage').Create(s) end
-    if s.tab=='workshop' then return require('ui.Workshop').Create(s) end
-    if s.tab=='battle' then return require('ui.HomeBattle').Create(s) end
-    if s.tab=='story' then return require('ui.StoryPage').Create(s) end
-    if s.tab=='salvage' then return require('ui.SalvagePage').Create(s) end
+    if s.tab=='livery' then return LiveryPage.Create(s) end
+    if s.tab=='workshop' then return Workshop.Create(s) end
+    if s.tab=='battle' then return HomeBattle.Create(s) end
+    if s.tab=='story' then return StoryPage.Create(s) end
+    if s.tab=='salvage' then return DeferredModules['ui.SalvagePage'].Create(s) end
     local page=Page{position='absolute',width=s.width,height=s.height,pointerEvents='none'}
     page.paragraph=Paragraph.New(13,22.1)
     return page

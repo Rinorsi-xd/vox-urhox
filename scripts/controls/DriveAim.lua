@@ -1,3 +1,6 @@
+local TouchPreferences=require("controls.TouchPreferences")
+local AimAssist=require("combat.AimAssist")
+
 local M={}
 function M.Resolve(s,origin,direction,hit)
     local group=s.weapons:Group();local stats
@@ -7,15 +10,15 @@ function M.Resolve(s,origin,direction,hit)
         s.assistPlayer=s.assistPlayer or {team='player'};player=s.assistPlayer
         local p=s.vehicle.body.translation();player.pos={p.x,p.y,p.z};player.vehicle=s.vehicle
     end
-    local prefs=require('controls.TouchPreferences').Get(s.app)
+    local prefs=TouchPreferences.Get(s.app)
     local wide=(s.scope and 1.8 or 1)*(s.touch and prefs.assist and 2.2 or 1)
-    s.assist=require('combat.AimAssist').Apply(origin,direction,hit,player,s.world.combatUnits or s.world.units,function(...) return s.world:CastRay(...) end,stats,wide)
+    s.assist=AimAssist.Apply(origin,direction,hit,player,s.world.combatUnits or s.world.units,function(...) return s.world:CastRay(...) end,stats,wide)
     s.aimRef=s.assist and s.assist.ref or hit and hit.owner and hit.owner.ref
     return s.assist and s.assist.point
 end
 function M.Look(s,dt)
     s.aimSlow=(s.aimSlow or 1)+((s.assist and s.assist.slow or 1)-(s.aimSlow or 1))*math.min(1,dt*10)
-    local prefs=require('controls.TouchPreferences').Get(s.app)
+    local prefs=TouchPreferences.Get(s.app)
     if s.touch and prefs.assist and s.assist and s.assist.point and not s.scope then
         local p=s.camera:GetNode().worldPosition;local a=s.assist.point
         local dx,dy,dz=a[1]+p.x,a[2]-p.y,a[3]-p.z;local k=math.min(1,dt*3)
@@ -26,6 +29,6 @@ function M.Look(s,dt)
     return s.aimSlow
 end
 function M.AutoFire(s)
-    return s.touch and require('controls.TouchPreferences').Get(s.app).autoFire and s.assist and s.assist.ref~=nil and not s.scope and s.pointer.captured and not s.dialog or false
+    return s.touch and TouchPreferences.Get(s.app).autoFire and s.assist and s.assist.ref~=nil and not s.scope and s.pointer.captured and not s.dialog or false
 end
 return M

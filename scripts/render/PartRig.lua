@@ -1,4 +1,9 @@
 -- Joint hierarchy uses source pivots. Display state never supplies physics/damage.
+local PartAssets=require("parts.PartAssets")
+local WingRig=require("render.WingRig")
+local MechIK=require("parts.MechIK")
+local LegIK=require("parts.LegIK")
+
 local Coord=require "core.Coord"
 local Materials=require "parts.Materials"
 local Config=require "Config"
@@ -14,7 +19,9 @@ local function Attach(parent,data,part,vis)
     if not data or not data.layers then return end
     for _,layer in ipairs(data.layers) do
         local sm=parent:CreateComponent("StaticModel")
-        sm.model=require('parts.PartAssets').Model(layer)
+        sm.model=PartAssets.Model(layer)
+        vis.models[#vis.models+1]=sm
+        vis.resources[#vis.resources+1]=layer.model
         local dynamic=false;local shield=false
         for i,slot in ipairs(layer.slots) do
             local emission=vis.emissionSlot==slot;dynamic=dynamic or emission
@@ -34,8 +41,6 @@ local function Attach(parent,data,part,vis)
         sm.castShadows=layer.shadow
         if vis.instanced then vis.materialSlots[sm]=layer.slots end
         sm.instanceColor=Config.HexLinear(part.color,vis.variation)
-        vis.models[#vis.models+1]=sm
-        vis.resources[#vis.resources+1]=layer.model
     end
 end
 function M.Build(node,data,part,vis)
@@ -53,7 +58,7 @@ function M.Build(node,data,part,vis)
     local function Add(n,d) Attach(n,d,part,vis) end
     if not s or s==cjson.null then Add(node,data.whole);return end
     if s.wing then
-        require('render.WingRig').Build(node,s,part,vis,Add)
+        WingRig.Build(node,s,part,vis,Add)
     elseif s.mech then
         r.mech={};r.mechSubs={};r.mechVanes={}
         local parents={thigh='base',shin='thigh',tarsus='shin',foot='tarsus',toecap='foot'}
@@ -71,7 +76,7 @@ function M.Build(node,data,part,vis)
             r.mechSubs[sub.name]=n;Add(n,sub.model)
             for _,v in ipairs(s.info.vanes) do if v.name==sub.name then r.mechVanes[#r.mechVanes+1]={node=n,axis=Vec(v.axis):Normalized()} end end
         end
-        M.SetMechPose(vis,require('parts.MechIK').Solve(s.type,s.info.joints.toe),0)
+        M.SetMechPose(vis,MechIK.Solve(s.type,s.info.joints.toe),0)
     elseif s.wheel then
         Add(node,s.mount);r.steer=Group(node,"Steer")
         if s.knuckle then Add(Group(r.steer,"Knuckle",data.wheel.kingpin),s.knuckle) end
@@ -158,7 +163,7 @@ function M.SetWeapon(vis,yaw,pitch,spin,recoil,kick)
     if vis.rig.spin then vis.rig.spin.rotation=Quaternion(-spin*180/math.pi,Vector3.FORWARD) end
 end
 function M.SetLegTarget(vis,target,bladeAngle)
-    local pose=require("parts.LegIK").Solve(vis.data.segments.info,target,bladeAngle)
+    local pose=LegIK.Solve(vis.data.segments.info,target,bladeAngle)
     local j=vis.rig.joints
     j.hip.rotation=Quaternion(-pose.yaw*180/math.pi,Vector3.UP)
     j.link1.rotation=Quaternion(-pose.first*180/math.pi,Vector3.FORWARD)

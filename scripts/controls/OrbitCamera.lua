@@ -1,6 +1,8 @@
 -- 车库环绕相机（对应 H5 shared/controls/cameraRig.js 的 orbit 模式）
 -- 原网页首页左/右键旋转、中键/Shift+拖动平移；建造输入由 BuildControls 管理。
 
+local Wheel=require("controls.Wheel")
+
 ---@class OrbitCamera
 ---@field node Node
 ---@field camera Camera
@@ -140,7 +142,7 @@ function OrbitCamera:Update(dt, blockMouse, viewOnly)
     local wheel = input.mouseMoveWheel
     if not blockMouse and wheel ~= 0 then
         self.flight=false;self.autoSpin=false
-        self.dist = require('controls.Wheel').Zoom(self.dist,wheel,self.minDist,self.maxDist)
+        self.dist = Wheel.Zoom(self.dist,wheel,self.minDist,self.maxDist)
     end
 
     self:Step(dt)

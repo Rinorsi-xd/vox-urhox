@@ -1,3 +1,5 @@
+local VoxTheme=require("ui.VoxTheme")
+
 local UI=require 'urhox-libs/UI'
 local D=require 'ui.SourceDraw'
 local Relief=require 'ui.SourceRelief'
@@ -29,7 +31,7 @@ function Button:Render(vg)
         else Relief.Draw(vg,0,0,w,h,p.primary,true,points,true) end
         if selected then D.Path(vg,points);nvgFillColor(vg,nvgRGBA(42,85,131,255));nvgFill(vg);D.Rect(vg,0,h-3,w,3,{155,215,250,255}) end
         if p.kind=='slot' then
-            if p.partType then local z=math.min(w,h)*.84;self:RenderBackgroundImage(vg,require('ui.VoxTheme').Thumbnail(p.partType),{x=(w-z)/2,y=(h-z)/2,w=z,h=z},'contain',nil)
+            if p.partType then local z=math.min(w,h)*.84;self:RenderBackgroundImage(vg,VoxTheme.Thumbnail(p.partType),{x=(w-z)/2,y=(h-z)/2,w=z,h=z},'contain',nil)
             else D.Icon(vg,'plus',(w-14)/2,(h-14)/2,14,{237,246,255,115}) end
         elseif p.kind=='row' then
             D.Rect(vg,4,4,32,32,{16,37,58,255});D.Icon(vg,p.icon,11.5,11.5,17,selected and color or {174,196,218,255})

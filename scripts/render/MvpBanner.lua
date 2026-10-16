@@ -1,4 +1,6 @@
 -- Fixed source canvas, rendered once per award; screen DPR does not resize it.
+local RenderTargetLifetime=require("render.RenderTargetLifetime")
+
 ---@class MvpBanner
 ---@field chars string[]
 local M={};M.__index=M
@@ -43,6 +45,6 @@ function M:Dispose()
     UnsubscribeFromEvent(self.vg,'NanoVGRender')
     if self.image then nvgDeleteImage(self.vg,self.image) end
     nvgDelete(self.vg);self.vg=nil
-    require('render.RenderTargetLifetime').Retire(self.texture);self.texture=nil
+    RenderTargetLifetime.Retire(self.texture);self.texture=nil
 end
 return M

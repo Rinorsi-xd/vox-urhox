@@ -1,5 +1,7 @@
 -- Dynamic massless analytic sensors, exactly the four source IK segment boxes.
 -- The solid mounting plate stays in VehicleSpec; sensors never hold up a car.
+local VehicleSpec=require("drive.VehicleSpec")
+
 local V=require('core.Math3')
 local Rot=require('core.Rotations')
 local IK=require('parts.MechIK')
@@ -22,7 +24,7 @@ function M:Update()
         local angle=pose.thigh;if item.name~='thigh' then angle=angle+pose.shin end;if item.name=='tarsus' or item.name=='foot' then angle=angle+pose.tarsus end;if item.name=='foot' then angle=angle+pose.foot end
         local q=V.QMul(V.QMul({x=0,y=math.sin(pose.yaw/2),z=0,w=math.cos(pose.yaw/2)},{x=0,y=0,z=math.sin(pose.roll/2),w=math.cos(pose.roll/2)}),{x=math.sin(angle/2),y=0,z=0,w=math.cos(angle/2)})
         local localPoint=V.Add(pose.points[joints[item.name]],V.RotateUnit(q,item.segmentCenter))
-        item.center=V.Add(l.origin,V.Scale(Rot.ApplyRot(l.rot,localPoint),CELL));item.quat=V.QMul(require('drive.VehicleSpec').GEOMETRY.rotations[l.rot+1],q)
+        item.center=V.Add(l.origin,V.Scale(Rot.ApplyRot(l.rot,localPoint),CELL));item.quat=V.QMul(VehicleSpec.GEOMETRY.rotations[l.rot+1],q)
     end
     if #self.items>0 then vehicle.rayBounds=nil end
 end

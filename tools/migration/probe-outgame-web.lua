@@ -143,7 +143,7 @@ local function EnsureUpdateTiming(app)
     WrapUpdateTiming(app.vehicleGate and getmetatable(app.vehicleGate),'UpdatePending','app.ResourceGate.UpdatePending')
 end
 local battleTiming={enabled=false,epoch=0,toggles=0,boundMethods=0,active=false,unitLimit=5,sampledUnits=0,missing={},
-    boundary='Explicit F15 opt-in QA CPU wall milliseconds; inclusive nested calls must not be summed. No GPU or isolated frame timing. At most five sampled units; combat vehicle view labels aggregate actual vehicle views, never part traversal. Missing methods are reported without substitution. New or rebuilt objects bind at the next QA update.'}
+    boundary='Explicit F15 opt-in QA CPU wall milliseconds; inclusive nested calls must not be summed. No GPU or isolated frame timing. At most five sampled units; combat vehicle view labels aggregate actual vehicle views, never part traversal. Missing methods are reported without substitution. Actual view metatables instrument New/Rebuild before spawn; other new or rebuilt instances bind at the next QA update.'}
 local battleBindings={}
 local function RestoreBattleBinding(binding)
     if binding.object[binding.method]==binding.wrapped then binding.object[binding.method]=binding.original end
@@ -181,14 +181,23 @@ local function EnsureBattleTiming(app)
         Bind(unit,'Flush',label..'.Flush')
         local vehicle=unit.vehicle
         Bind(vehicle,'Step',label..'.Vehicle.Step')
+        Bind(vehicle,'StepRotors',label..'.Vehicle.StepRotors')
+        Bind(unit.weapons,'Step',label..'.Weapons.Step')
         Bind(vehicle and vehicle.mechControl,'Step',label..'.MechControl.Step')
+        for _,entry in ipairs(trial.combat and trial.combat.entries or {}) do
+            if entry.unit==unit and entry.driver then Bind(entry.driver,'Step',label..'.Driver.Step');break end
+        end
     end
     if trial then
         Bind(trial,'Tick','battle.Trial.Tick');Bind(trial,'RenderViews','battle.Trial.RenderViews')
         Bind(trial,'PostUpdate','battle.Trial.PostUpdate')
+        Bind(trial,'ConsumeWorldEvents','battle.Trial.ConsumeWorldEvents')
         local world=trial.world;Bind(world,'Step','battle.World.Step');Bind(world and world.space,'Step','battle.Space.Step')
         local story=trial.story
         for _,method in ipairs({'BeforeStep','AfterStep','Update'}) do Bind(story,method,'battle.Mission.'..method) end
+        if trial.combat and trial.combat~=story then
+            for _,method in ipairs({'BeforeStep','AfterStep','Update'}) do Bind(trial.combat,method,'battle.Combat.'..method) end
+        end
         local boss=story and story.boss
         for _,method in ipairs({'BeforeStep','StepAllies','Projectiles','Update'}) do Bind(boss,method,'battle.Boss.'..method) end
         Bind(boss and boss.view,'Update','battle.BossView.Update')
@@ -197,6 +206,12 @@ local function EnsureBattleTiming(app)
         for i=1,3 do local ally=boss and boss.allies and boss.allies[i];Unit(ally and ally.unit,'battle.Ally'..i) end
         for i=1,battleTiming.unitLimit do Unit(world and world.units and world.units[i],'battle.Unit'..i) end
         VehicleView(trial.view,'battle.PlayerView')
+        -- Bind the actual classes already used by this trial; no eager require.
+        -- Shared constructor/rebuild bindings see first-spawn work before the
+        -- next observer frame can discover the newly constructed instance.
+        Bind(trial.view and getmetatable(trial.view),'New','battle.DriveView.New')
+        Bind(trial.view and trial.view.view and getmetatable(trial.view.view),'Rebuild','battle.VehicleView.Rebuild')
+        Bind(trial.combatView,'Consume','battle.CombatView.Consume')
         Bind(trial.combatView,'Update','battle.CombatView.Update')
         for _,drive in pairs(trial.combatView and trial.combatView.units or {}) do VehicleView(drive,'battle.CombatVehicle') end
     end
@@ -838,6 +853,7 @@ local function DumpTrial(app)
     data.boundary=s.boundary and {walls=#s.boundary.spec.walls,ceiling=s.boundary.spec.ceiling~=nil,enabled=s.boundary.root.enabled} or false
     data.wing={count=#s.view.wings,telemetry=s.vehicle.telemetry,state=s.vehicle.wingState and s.vehicle.wingState.phase}
     data.intro=s.intro and {active=not s.intro.done,shot=s.intro.index,time=s.intro.time,full=s.intro.full,skipRect=s.intro.page and s.intro.page.skipRect} or false
+    if G0_StoryRouteState and data.story then data=G0_StoryRouteState(data) end
     print('OUTGAME_STATE '..cjson.encode(data))
 end
 local function Dump(app)
@@ -1068,6 +1084,19 @@ local function Dump(app)
         shown=shown and widget:IsVisible()
         if not shown then return end
         local p=widget.props
+        if widget._className=='VoxSalvageQuantityRow' then
+            local function QuantityBounds(control)
+                local r=control:GetAbsoluteLayoutForHitTest()
+                return {r.x,r.y,r.w,r.h}
+            end
+            local hold=widget.hold
+            data.salvageQuantity={rect=QuantityBounds(widget),fieldRect=QuantityBounds(widget.field),
+                minusRect=QuantityBounds(widget.children[1]),plusRect=QuantityBounds(widget.children[3]),
+                maxRect=QuantityBounds(widget.children[4]),value=widget.field:GetValue(),
+                focused=UI.GetFocus()==widget.field,qty=widget.owner.salvage.qty,
+                maximum=widget.maximum(),disposed=widget.disposed==true,
+                hold=hold and {pointerId=hold.pointerId,direction=hold.direction,ticks=hold.ticks} or false}
+        end
         if p.onClick then
             local r=widget:GetAbsoluteLayoutForHitTest()
             if r.w>0 and r.h>0 then
@@ -1349,7 +1378,7 @@ function HandleUpdate(et,ed)
         if input:GetKeyPress(KEY_F8) then pendingBattleObjects=true end
         if input:GetKeyPress(KEY_F14) then pendingBattleObjects=true;pendingSceneObjects=true end
         local key=app.loadingFlow.phase..':'..tostring(app.trial.pointer.captured)..':'..tostring(app.trial.pointer.pending)
-        if frames%30==0 or input:GetKeyPress(KEY_F8) or pendingPresentationHistory or pendingSceneObjects then previous=key;pendingTrialDump=app end
+        if frames%30==0 and not G0_StoryRouteState or input:GetKeyPress(KEY_F8) or pendingPresentationHistory or pendingSceneObjects then previous=key;pendingTrialDump=app end
         return
     end
     if input:GetKeyPress(KEY_F2) then

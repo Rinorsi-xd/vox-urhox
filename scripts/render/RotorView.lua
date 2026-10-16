@@ -1,5 +1,8 @@
 -- Absolute source poses avoid parenting drift. Joined surfaces and decals are
 -- partitioned once at bind time; animation changes transforms, never vertices.
+local JoinedMesh=require("render.JoinedMesh")
+local Defs=require("parts.Defs")
+
 local R=require 'construction.Rotors'
 local Coord=require 'core.Coord'
 local V=require 'core.Math3'
@@ -19,12 +22,12 @@ function M:init(view,vehicle)
         if view.rotorOwners[id] then self.rest[id]={position=vis.node.position,rotation=vis.node.rotation} end
         if vis.joined then local owner=view.rotorOwners[id];local mesh=view.joined
             if owner then
-                view.rotorJoined[owner]=view.rotorJoined[owner] or require('render.JoinedMesh').New(view.root)
+                view.rotorJoined[owner]=view.rotorJoined[owner] or JoinedMesh.New(view.root)
                 mesh=view.rotorJoined[owner];mesh:SetXray(view.xray~=nil)
             end;mesh:Add(p)
         end
         if R.Is(p.type) and vis.head then
-            vis.rotorOffset=require('parts.Defs').PARTS[p.type].rotor=='aim' and R.AimOffset(p) or 0
+            vis.rotorOffset=Defs.PARTS[p.type].rotor=='aim' and R.AimOffset(p) or 0
             vis.head.rotation=Quaternion(-vis.rotorOffset*180/math.pi,Vector3.UP)
         end
     end

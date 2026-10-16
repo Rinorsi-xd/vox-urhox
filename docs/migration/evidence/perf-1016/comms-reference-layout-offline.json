@@ -1,0 +1,1512 @@
+{
+  "status": "PASS",
+  "checks": 529,
+  "cases": 11,
+  "sourceHomeScaleSha256": "b62c5f5d7623f1ad6715056a9b132b5230ca6e4cea9098b59417214d30bb138c",
+  "sourceUiScaleSha256": "9b481a97e9957d2d696821bd31dd80e823f6bb11a1b1bdd28ede385a7dc5a025",
+  "productionSha256": {
+    "CommsLayout": "3c37d1184c8a8e824543601076b1ccec6392a4e5364fa370810c6b7b21780ed8",
+    "MissionHud": "2cd51432bc56060ccd78fb56829422c8404b8f2306ee2f93e30e3ae4ee337d67",
+    "Epilogue": "4dd54de7d4e5b913194e90c907cb10b0ba86c316d05881d625fa96e1aaf65d8c"
+  },
+  "negativeControl": "restored fixed scale at 2880x1800 produces 646px card versus expected 969px",
+  "renders": [
+    {
+      "case": [
+        1920,
+        1080,
+        1,
+        1,
+        false
+      ],
+      "surface": "mission",
+      "height": 196,
+      "cinematic": false,
+      "y": 820.0,
+      "x": 20.0,
+      "w": 646.0,
+      "font": 19.0,
+      "h": 196.0
+    },
+    {
+      "case": [
+        1920,
+        1080,
+        1,
+        1,
+        false
+      ],
+      "surface": "epilogue",
+      "height": 196,
+      "cinematic": false,
+      "y": 860.0,
+      "x": 20.0,
+      "w": 646.0,
+      "font": 19.0,
+      "h": 196.0
+    },
+    {
+      "case": [
+        1920,
+        1080,
+        1,
+        1,
+        false
+      ],
+      "surface": "mission",
+      "height": 196,
+      "cinematic": true,
+      "y": 772.8,
+      "font": 19.0,
+      "w": 646.0,
+      "x": 20.0,
+      "h": 196.0
+    },
+    {
+      "case": [
+        1920,
+        1080,
+        1,
+        1,
+        false
+      ],
+      "surface": "epilogue",
+      "height": 196,
+      "cinematic": true,
+      "y": 860.0,
+      "font": 19.0,
+      "w": 646.0,
+      "x": 20.0,
+      "h": 196.0
+    },
+    {
+      "case": [
+        1920,
+        1080,
+        1,
+        1,
+        false
+      ],
+      "surface": "mission",
+      "height": 360,
+      "cinematic": false,
+      "font": 19.0,
+      "w": 646.0,
+      "h": 360.0,
+      "y": 656.0,
+      "x": 20.0
+    },
+    {
+      "case": [
+        1920,
+        1080,
+        1,
+        1,
+        false
+      ],
+      "surface": "epilogue",
+      "height": 360,
+      "cinematic": false,
+      "font": 19.0,
+      "w": 646.0,
+      "h": 360.0,
+      "y": 696.0,
+      "x": 20.0
+    },
+    {
+      "case": [
+        1920,
+        1080,
+        1,
+        1,
+        false
+      ],
+      "surface": "mission",
+      "height": 360,
+      "cinematic": true,
+      "y": 608.8,
+      "x": 20.0,
+      "w": 646.0,
+      "font": 19.0,
+      "h": 360.0
+    },
+    {
+      "case": [
+        1920,
+        1080,
+        1,
+        1,
+        false
+      ],
+      "surface": "epilogue",
+      "height": 360,
+      "cinematic": true,
+      "y": 696.0,
+      "x": 20.0,
+      "w": 646.0,
+      "font": 19.0,
+      "h": 360.0
+    },
+    {
+      "case": [
+        2880,
+        1800,
+        1,
+        1,
+        false
+      ],
+      "surface": "mission",
+      "height": 196,
+      "cinematic": false,
+      "y": 1410.0,
+      "x": 30.0,
+      "w": 969.0,
+      "font": 28.5,
+      "h": 294.0
+    },
+    {
+      "case": [
+        2880,
+        1800,
+        1,
+        1,
+        false
+      ],
+      "surface": "epilogue",
+      "height": 196,
+      "cinematic": false,
+      "y": 1470.0,
+      "x": 30.0,
+      "w": 969.0,
+      "font": 28.5,
+      "h": 294.0
+    },
+    {
+      "case": [
+        2880,
+        1800,
+        1,
+        1,
+        false
+      ],
+      "surface": "mission",
+      "height": 196,
+      "cinematic": true,
+      "font": 28.5,
+      "w": 969.0,
+      "h": 294.0,
+      "x": 30.0,
+      "y": 1323.0
+    },
+    {
+      "case": [
+        2880,
+        1800,
+        1,
+        1,
+        false
+      ],
+      "surface": "epilogue",
+      "height": 196,
+      "cinematic": true,
+      "font": 28.5,
+      "w": 969.0,
+      "h": 294.0,
+      "x": 30.0,
+      "y": 1470.0
+    },
+    {
+      "case": [
+        2880,
+        1800,
+        1,
+        1,
+        false
+      ],
+      "surface": "mission",
+      "height": 360,
+      "cinematic": false,
+      "y": 1164.0,
+      "x": 30.0,
+      "w": 969.0,
+      "font": 28.5,
+      "h": 540.0
+    },
+    {
+      "case": [
+        2880,
+        1800,
+        1,
+        1,
+        false
+      ],
+      "surface": "epilogue",
+      "height": 360,
+      "cinematic": false,
+      "y": 1224.0,
+      "x": 30.0,
+      "w": 969.0,
+      "font": 28.5,
+      "h": 540.0
+    },
+    {
+      "case": [
+        2880,
+        1800,
+        1,
+        1,
+        false
+      ],
+      "surface": "mission",
+      "height": 360,
+      "cinematic": true,
+      "w": 969.0,
+      "font": 28.5,
+      "y": 1077.0,
+      "x": 30.0,
+      "h": 540.0
+    },
+    {
+      "case": [
+        2880,
+        1800,
+        1,
+        1,
+        false
+      ],
+      "surface": "epilogue",
+      "height": 360,
+      "cinematic": true,
+      "w": 969.0,
+      "font": 28.5,
+      "y": 1224.0,
+      "x": 30.0,
+      "h": 540.0
+    },
+    {
+      "case": [
+        2880,
+        1800,
+        2,
+        2,
+        false
+      ],
+      "surface": "mission",
+      "height": 196,
+      "cinematic": false,
+      "font": 28.5,
+      "w": 969.0,
+      "x": 30.0,
+      "y": 1410.0,
+      "h": 294.0
+    },
+    {
+      "case": [
+        2880,
+        1800,
+        2,
+        2,
+        false
+      ],
+      "surface": "epilogue",
+      "height": 196,
+      "cinematic": false,
+      "font": 28.5,
+      "w": 969.0,
+      "x": 30.0,
+      "y": 1470.0,
+      "h": 294.0
+    },
+    {
+      "case": [
+        2880,
+        1800,
+        2,
+        2,
+        false
+      ],
+      "surface": "mission",
+      "height": 196,
+      "cinematic": true,
+      "w": 969.0,
+      "font": 28.5,
+      "y": 1323.0,
+      "x": 30.0,
+      "h": 294.0
+    },
+    {
+      "case": [
+        2880,
+        1800,
+        2,
+        2,
+        false
+      ],
+      "surface": "epilogue",
+      "height": 196,
+      "cinematic": true,
+      "w": 969.0,
+      "font": 28.5,
+      "y": 1470.0,
+      "x": 30.0,
+      "h": 294.0
+    },
+    {
+      "case": [
+        2880,
+        1800,
+        2,
+        2,
+        false
+      ],
+      "surface": "mission",
+      "height": 360,
+      "cinematic": false,
+      "w": 969.0,
+      "x": 30.0,
+      "y": 1164.0,
+      "font": 28.5,
+      "h": 540.0
+    },
+    {
+      "case": [
+        2880,
+        1800,
+        2,
+        2,
+        false
+      ],
+      "surface": "epilogue",
+      "height": 360,
+      "cinematic": false,
+      "w": 969.0,
+      "x": 30.0,
+      "y": 1224.0,
+      "font": 28.5,
+      "h": 540.0
+    },
+    {
+      "case": [
+        2880,
+        1800,
+        2,
+        2,
+        false
+      ],
+      "surface": "mission",
+      "height": 360,
+      "cinematic": true,
+      "w": 969.0,
+      "font": 28.5,
+      "y": 1077.0,
+      "x": 30.0,
+      "h": 540.0
+    },
+    {
+      "case": [
+        2880,
+        1800,
+        2,
+        2,
+        false
+      ],
+      "surface": "epilogue",
+      "height": 360,
+      "cinematic": true,
+      "w": 969.0,
+      "font": 28.5,
+      "y": 1224.0,
+      "x": 30.0,
+      "h": 540.0
+    },
+    {
+      "case": [
+        3840,
+        2160,
+        2,
+        2,
+        false
+      ],
+      "surface": "mission",
+      "height": 196,
+      "cinematic": false,
+      "w": 1292.0,
+      "x": 40.0,
+      "y": 1640.0,
+      "font": 38.0,
+      "h": 392.0
+    },
+    {
+      "case": [
+        3840,
+        2160,
+        2,
+        2,
+        false
+      ],
+      "surface": "epilogue",
+      "height": 196,
+      "cinematic": false,
+      "w": 1292.0,
+      "x": 40.0,
+      "y": 1720.0,
+      "font": 38.0,
+      "h": 392.0
+    },
+    {
+      "case": [
+        3840,
+        2160,
+        2,
+        2,
+        false
+      ],
+      "surface": "mission",
+      "height": 196,
+      "cinematic": true,
+      "w": 1292.0,
+      "font": 38.0,
+      "y": 1545.6,
+      "x": 40.0,
+      "h": 392.0
+    },
+    {
+      "case": [
+        3840,
+        2160,
+        2,
+        2,
+        false
+      ],
+      "surface": "epilogue",
+      "height": 196,
+      "cinematic": true,
+      "w": 1292.0,
+      "font": 38.0,
+      "y": 1720.0,
+      "x": 40.0,
+      "h": 392.0
+    },
+    {
+      "case": [
+        3840,
+        2160,
+        2,
+        2,
+        false
+      ],
+      "surface": "mission",
+      "height": 360,
+      "cinematic": false,
+      "w": 1292.0,
+      "x": 40.0,
+      "y": 1312.0,
+      "font": 38.0,
+      "h": 720.0
+    },
+    {
+      "case": [
+        3840,
+        2160,
+        2,
+        2,
+        false
+      ],
+      "surface": "epilogue",
+      "height": 360,
+      "cinematic": false,
+      "w": 1292.0,
+      "x": 40.0,
+      "y": 1392.0,
+      "font": 38.0,
+      "h": 720.0
+    },
+    {
+      "case": [
+        3840,
+        2160,
+        2,
+        2,
+        false
+      ],
+      "surface": "mission",
+      "height": 360,
+      "cinematic": true,
+      "w": 1292.0,
+      "font": 38.0,
+      "y": 1217.6,
+      "x": 40.0,
+      "h": 720.0
+    },
+    {
+      "case": [
+        3840,
+        2160,
+        2,
+        2,
+        false
+      ],
+      "surface": "epilogue",
+      "height": 360,
+      "cinematic": true,
+      "w": 1292.0,
+      "font": 38.0,
+      "y": 1392.0,
+      "x": 40.0,
+      "h": 720.0
+    },
+    {
+      "case": [
+        1600,
+        900,
+        1,
+        1,
+        false
+      ],
+      "surface": "mission",
+      "height": 196,
+      "cinematic": false,
+      "w": 538.3333333333334,
+      "x": 16.666666666666668,
+      "y": 683.3333333333333,
+      "font": 15.833333333333334,
+      "h": 163.33333333333334
+    },
+    {
+      "case": [
+        1600,
+        900,
+        1,
+        1,
+        false
+      ],
+      "surface": "epilogue",
+      "height": 196,
+      "cinematic": false,
+      "w": 538.3333333333334,
+      "x": 16.666666666666668,
+      "y": 716.6666666666666,
+      "font": 15.833333333333334,
+      "h": 163.33333333333334
+    },
+    {
+      "case": [
+        1600,
+        900,
+        1,
+        1,
+        false
+      ],
+      "surface": "mission",
+      "height": 196,
+      "cinematic": true,
+      "w": 538.3333333333334,
+      "font": 15.833333333333334,
+      "y": 644.0,
+      "x": 16.666666666666668,
+      "h": 163.33333333333334
+    },
+    {
+      "case": [
+        1600,
+        900,
+        1,
+        1,
+        false
+      ],
+      "surface": "epilogue",
+      "height": 196,
+      "cinematic": true,
+      "w": 538.3333333333334,
+      "font": 15.833333333333334,
+      "y": 716.6666666666666,
+      "x": 16.666666666666668,
+      "h": 163.33333333333334
+    },
+    {
+      "case": [
+        1600,
+        900,
+        1,
+        1,
+        false
+      ],
+      "surface": "mission",
+      "height": 360,
+      "cinematic": false,
+      "w": 538.3333333333334,
+      "x": 16.666666666666668,
+      "y": 546.6666666666666,
+      "font": 15.833333333333334,
+      "h": 300.0
+    },
+    {
+      "case": [
+        1600,
+        900,
+        1,
+        1,
+        false
+      ],
+      "surface": "epilogue",
+      "height": 360,
+      "cinematic": false,
+      "w": 538.3333333333334,
+      "x": 16.666666666666668,
+      "y": 580.0,
+      "font": 15.833333333333334,
+      "h": 300.0
+    },
+    {
+      "case": [
+        1600,
+        900,
+        1,
+        1,
+        false
+      ],
+      "surface": "mission",
+      "height": 360,
+      "cinematic": true,
+      "w": 538.3333333333334,
+      "font": 15.833333333333334,
+      "y": 507.33333333333337,
+      "x": 16.666666666666668,
+      "h": 300.0
+    },
+    {
+      "case": [
+        1600,
+        900,
+        1,
+        1,
+        false
+      ],
+      "surface": "epilogue",
+      "height": 360,
+      "cinematic": true,
+      "w": 538.3333333333334,
+      "font": 15.833333333333334,
+      "y": 580.0,
+      "x": 16.666666666666668,
+      "h": 300.0
+    },
+    {
+      "case": [
+        1280,
+        720,
+        1,
+        0.95,
+        false
+      ],
+      "surface": "mission",
+      "height": 196,
+      "cinematic": false,
+      "w": 430.6666666666667,
+      "h": 130.66666666666669,
+      "font": 12.666666666666666,
+      "y": 546.6666666666666,
+      "x": 13.333333333333334
+    },
+    {
+      "case": [
+        1280,
+        720,
+        1,
+        0.95,
+        false
+      ],
+      "surface": "epilogue",
+      "height": 196,
+      "cinematic": false,
+      "w": 430.6666666666667,
+      "h": 130.66666666666669,
+      "font": 12.666666666666666,
+      "y": 573.3333333333334,
+      "x": 13.333333333333334
+    },
+    {
+      "case": [
+        1280,
+        720,
+        1,
+        0.95,
+        false
+      ],
+      "surface": "mission",
+      "height": 196,
+      "cinematic": true,
+      "w": 430.6666666666667,
+      "font": 12.666666666666666,
+      "y": 515.1999999999999,
+      "x": 13.333333333333334,
+      "h": 130.66666666666669
+    },
+    {
+      "case": [
+        1280,
+        720,
+        1,
+        0.95,
+        false
+      ],
+      "surface": "epilogue",
+      "height": 196,
+      "cinematic": true,
+      "w": 430.6666666666667,
+      "font": 12.666666666666666,
+      "y": 573.3333333333334,
+      "x": 13.333333333333334,
+      "h": 130.66666666666669
+    },
+    {
+      "case": [
+        1280,
+        720,
+        1,
+        0.95,
+        false
+      ],
+      "surface": "mission",
+      "height": 360,
+      "cinematic": false,
+      "w": 430.6666666666667,
+      "h": 240.0,
+      "font": 12.666666666666666,
+      "y": 437.3333333333333,
+      "x": 13.333333333333334
+    },
+    {
+      "case": [
+        1280,
+        720,
+        1,
+        0.95,
+        false
+      ],
+      "surface": "epilogue",
+      "height": 360,
+      "cinematic": false,
+      "w": 430.6666666666667,
+      "h": 240.0,
+      "font": 12.666666666666666,
+      "y": 464.0,
+      "x": 13.333333333333334
+    },
+    {
+      "case": [
+        1280,
+        720,
+        1,
+        0.95,
+        false
+      ],
+      "surface": "mission",
+      "height": 360,
+      "cinematic": true,
+      "w": 430.6666666666667,
+      "font": 12.666666666666666,
+      "y": 405.8666666666666,
+      "x": 13.333333333333334,
+      "h": 240.0
+    },
+    {
+      "case": [
+        1280,
+        720,
+        1,
+        0.95,
+        false
+      ],
+      "surface": "epilogue",
+      "height": 360,
+      "cinematic": true,
+      "w": 430.6666666666667,
+      "font": 12.666666666666666,
+      "y": 464.0,
+      "x": 13.333333333333334,
+      "h": 240.0
+    },
+    {
+      "case": [
+        2560,
+        1080,
+        1,
+        1,
+        false
+      ],
+      "surface": "mission",
+      "height": 196,
+      "cinematic": false,
+      "w": 646.0,
+      "h": 196.0,
+      "font": 19.0,
+      "y": 820.0,
+      "x": 20.0
+    },
+    {
+      "case": [
+        2560,
+        1080,
+        1,
+        1,
+        false
+      ],
+      "surface": "epilogue",
+      "height": 196,
+      "cinematic": false,
+      "w": 646.0,
+      "h": 196.0,
+      "font": 19.0,
+      "y": 860.0,
+      "x": 20.0
+    },
+    {
+      "case": [
+        2560,
+        1080,
+        1,
+        1,
+        false
+      ],
+      "surface": "mission",
+      "height": 196,
+      "cinematic": true,
+      "w": 646.0,
+      "font": 19.0,
+      "y": 772.8,
+      "x": 20.0,
+      "h": 196.0
+    },
+    {
+      "case": [
+        2560,
+        1080,
+        1,
+        1,
+        false
+      ],
+      "surface": "epilogue",
+      "height": 196,
+      "cinematic": true,
+      "w": 646.0,
+      "font": 19.0,
+      "y": 860.0,
+      "x": 20.0,
+      "h": 196.0
+    },
+    {
+      "case": [
+        2560,
+        1080,
+        1,
+        1,
+        false
+      ],
+      "surface": "mission",
+      "height": 360,
+      "cinematic": false,
+      "w": 646.0,
+      "h": 360.0,
+      "font": 19.0,
+      "y": 656.0,
+      "x": 20.0
+    },
+    {
+      "case": [
+        2560,
+        1080,
+        1,
+        1,
+        false
+      ],
+      "surface": "epilogue",
+      "height": 360,
+      "cinematic": false,
+      "w": 646.0,
+      "h": 360.0,
+      "font": 19.0,
+      "y": 696.0,
+      "x": 20.0
+    },
+    {
+      "case": [
+        2560,
+        1080,
+        1,
+        1,
+        false
+      ],
+      "surface": "mission",
+      "height": 360,
+      "cinematic": true,
+      "w": 646.0,
+      "font": 19.0,
+      "y": 608.8,
+      "x": 20.0,
+      "h": 360.0
+    },
+    {
+      "case": [
+        2560,
+        1080,
+        1,
+        1,
+        false
+      ],
+      "surface": "epilogue",
+      "height": 360,
+      "cinematic": true,
+      "w": 646.0,
+      "font": 19.0,
+      "y": 696.0,
+      "x": 20.0,
+      "h": 360.0
+    },
+    {
+      "case": [
+        1200,
+        900,
+        1,
+        1,
+        false
+      ],
+      "surface": "mission",
+      "height": 196,
+      "cinematic": false,
+      "font": 11.875,
+      "y": 737.5,
+      "x": 12.5,
+      "w": 403.75,
+      "h": 122.5
+    },
+    {
+      "case": [
+        1200,
+        900,
+        1,
+        1,
+        false
+      ],
+      "surface": "epilogue",
+      "height": 196,
+      "cinematic": false,
+      "font": 11.875,
+      "y": 762.5,
+      "x": 12.5,
+      "w": 403.75,
+      "h": 122.5
+    },
+    {
+      "case": [
+        1200,
+        900,
+        1,
+        1,
+        false
+      ],
+      "surface": "mission",
+      "height": 196,
+      "cinematic": true,
+      "w": 403.75,
+      "font": 11.875,
+      "y": 687.75,
+      "x": 12.5,
+      "h": 122.5
+    },
+    {
+      "case": [
+        1200,
+        900,
+        1,
+        1,
+        false
+      ],
+      "surface": "epilogue",
+      "height": 196,
+      "cinematic": true,
+      "w": 403.75,
+      "font": 11.875,
+      "y": 762.5,
+      "x": 12.5,
+      "h": 122.5
+    },
+    {
+      "case": [
+        1200,
+        900,
+        1,
+        1,
+        false
+      ],
+      "surface": "mission",
+      "height": 360,
+      "cinematic": false,
+      "y": 635.0,
+      "x": 12.5,
+      "w": 403.75,
+      "h": 225.0,
+      "font": 11.875
+    },
+    {
+      "case": [
+        1200,
+        900,
+        1,
+        1,
+        false
+      ],
+      "surface": "epilogue",
+      "height": 360,
+      "cinematic": false,
+      "y": 660.0,
+      "x": 12.5,
+      "w": 403.75,
+      "h": 225.0,
+      "font": 11.875
+    },
+    {
+      "case": [
+        1200,
+        900,
+        1,
+        1,
+        false
+      ],
+      "surface": "mission",
+      "height": 360,
+      "cinematic": true,
+      "font": 11.875,
+      "y": 585.25,
+      "x": 12.5,
+      "w": 403.75,
+      "h": 225.0
+    },
+    {
+      "case": [
+        1200,
+        900,
+        1,
+        1,
+        false
+      ],
+      "surface": "epilogue",
+      "height": 360,
+      "cinematic": true,
+      "font": 11.875,
+      "y": 660.0,
+      "x": 12.5,
+      "w": 403.75,
+      "h": 225.0
+    },
+    {
+      "case": [
+        2400,
+        1080,
+        3,
+        2.12,
+        true
+      ],
+      "surface": "mission",
+      "height": 196,
+      "cinematic": false,
+      "y": 789.8399999999999,
+      "x": 22.320000000000004,
+      "w": 720.9360000000001,
+      "h": 218.73600000000005,
+      "font": 21.204000000000004
+    },
+    {
+      "case": [
+        2400,
+        1080,
+        3,
+        2.12,
+        true
+      ],
+      "surface": "epilogue",
+      "height": 196,
+      "cinematic": false,
+      "y": 834.48,
+      "x": 22.32,
+      "w": 720.936,
+      "h": 218.73600000000002,
+      "font": 21.204
+    },
+    {
+      "case": [
+        2400,
+        1080,
+        3,
+        2.12,
+        true
+      ],
+      "surface": "mission",
+      "height": 196,
+      "cinematic": true,
+      "font": 21.204000000000004,
+      "w": 720.9360000000001,
+      "x": 22.320000000000004,
+      "y": 748.4399999999999,
+      "h": 218.73600000000005
+    },
+    {
+      "case": [
+        2400,
+        1080,
+        3,
+        2.12,
+        true
+      ],
+      "surface": "epilogue",
+      "height": 196,
+      "cinematic": true,
+      "font": 21.204,
+      "w": 720.936,
+      "x": 22.32,
+      "y": 834.48,
+      "h": 218.73600000000002
+    },
+    {
+      "case": [
+        2400,
+        1080,
+        3,
+        2.12,
+        true
+      ],
+      "surface": "mission",
+      "height": 360,
+      "cinematic": false,
+      "y": 606.8159999999999,
+      "x": 22.320000000000004,
+      "w": 720.9360000000001,
+      "h": 401.7600000000001,
+      "font": 21.204000000000004
+    },
+    {
+      "case": [
+        2400,
+        1080,
+        3,
+        2.12,
+        true
+      ],
+      "surface": "epilogue",
+      "height": 360,
+      "cinematic": false,
+      "y": 651.456,
+      "x": 22.32,
+      "w": 720.936,
+      "h": 401.76000000000005,
+      "font": 21.204
+    },
+    {
+      "case": [
+        2400,
+        1080,
+        3,
+        2.12,
+        true
+      ],
+      "surface": "mission",
+      "height": 360,
+      "cinematic": true,
+      "font": 21.204000000000004,
+      "w": 720.9360000000001,
+      "x": 22.320000000000004,
+      "y": 565.4159999999998,
+      "h": 401.7600000000001
+    },
+    {
+      "case": [
+        2400,
+        1080,
+        3,
+        2.12,
+        true
+      ],
+      "surface": "epilogue",
+      "height": 360,
+      "cinematic": true,
+      "font": 21.204,
+      "w": 720.936,
+      "x": 22.32,
+      "y": 651.456,
+      "h": 401.76000000000005
+    },
+    {
+      "case": [
+        1920,
+        1080,
+        2,
+        1.73,
+        true
+      ],
+      "surface": "mission",
+      "height": 196,
+      "cinematic": false,
+      "y": 789.8400000000001,
+      "x": 22.319999999999997,
+      "w": 720.9359999999998,
+      "h": 218.73599999999996,
+      "font": 21.203999999999994
+    },
+    {
+      "case": [
+        1920,
+        1080,
+        2,
+        1.73,
+        true
+      ],
+      "surface": "epilogue",
+      "height": 196,
+      "cinematic": false,
+      "y": 834.48,
+      "x": 22.319999999999997,
+      "w": 720.9359999999998,
+      "h": 218.73599999999996,
+      "font": 21.203999999999997
+    },
+    {
+      "case": [
+        1920,
+        1080,
+        2,
+        1.73,
+        true
+      ],
+      "surface": "mission",
+      "height": 196,
+      "cinematic": true,
+      "font": 21.203999999999994,
+      "w": 720.9359999999998,
+      "x": 22.319999999999997,
+      "y": 748.44,
+      "h": 218.73599999999996
+    },
+    {
+      "case": [
+        1920,
+        1080,
+        2,
+        1.73,
+        true
+      ],
+      "surface": "epilogue",
+      "height": 196,
+      "cinematic": true,
+      "font": 21.203999999999997,
+      "w": 720.9359999999998,
+      "x": 22.319999999999997,
+      "y": 834.48,
+      "h": 218.73599999999996
+    },
+    {
+      "case": [
+        1920,
+        1080,
+        2,
+        1.73,
+        true
+      ],
+      "surface": "mission",
+      "height": 360,
+      "cinematic": false,
+      "y": 606.816,
+      "x": 22.319999999999997,
+      "w": 720.9359999999998,
+      "h": 401.75999999999993,
+      "font": 21.203999999999994
+    },
+    {
+      "case": [
+        1920,
+        1080,
+        2,
+        1.73,
+        true
+      ],
+      "surface": "epilogue",
+      "height": 360,
+      "cinematic": false,
+      "y": 651.456,
+      "x": 22.319999999999997,
+      "w": 720.9359999999998,
+      "h": 401.75999999999993,
+      "font": 21.203999999999997
+    },
+    {
+      "case": [
+        1920,
+        1080,
+        2,
+        1.73,
+        true
+      ],
+      "surface": "mission",
+      "height": 360,
+      "cinematic": true,
+      "font": 21.203999999999994,
+      "w": 720.9359999999998,
+      "x": 22.319999999999997,
+      "y": 565.416,
+      "h": 401.75999999999993
+    },
+    {
+      "case": [
+        1920,
+        1080,
+        2,
+        1.73,
+        true
+      ],
+      "surface": "epilogue",
+      "height": 360,
+      "cinematic": true,
+      "font": 21.203999999999997,
+      "w": 720.9359999999998,
+      "x": 22.319999999999997,
+      "y": 651.456,
+      "h": 401.75999999999993
+    },
+    {
+      "case": [
+        2048,
+        1536,
+        2,
+        2,
+        true
+      ],
+      "surface": "mission",
+      "height": 196,
+      "cinematic": false,
+      "y": 1258.6666666666665,
+      "x": 21.333333333333332,
+      "w": 689.0666666666666,
+      "h": 209.06666666666666,
+      "font": 20.266666666666666
+    },
+    {
+      "case": [
+        2048,
+        1536,
+        2,
+        2,
+        true
+      ],
+      "surface": "epilogue",
+      "height": 196,
+      "cinematic": false,
+      "y": 1301.3333333333333,
+      "x": 21.333333333333332,
+      "w": 689.0666666666666,
+      "h": 209.06666666666666,
+      "font": 20.266666666666666
+    },
+    {
+      "case": [
+        2048,
+        1536,
+        2,
+        2,
+        true
+      ],
+      "surface": "mission",
+      "height": 196,
+      "cinematic": true,
+      "font": 20.266666666666666,
+      "w": 689.0666666666666,
+      "x": 21.333333333333332,
+      "y": 1173.7599999999998,
+      "h": 209.06666666666666
+    },
+    {
+      "case": [
+        2048,
+        1536,
+        2,
+        2,
+        true
+      ],
+      "surface": "epilogue",
+      "height": 196,
+      "cinematic": true,
+      "font": 20.266666666666666,
+      "w": 689.0666666666666,
+      "x": 21.333333333333332,
+      "y": 1301.3333333333333,
+      "h": 209.06666666666666
+    },
+    {
+      "case": [
+        2048,
+        1536,
+        2,
+        2,
+        true
+      ],
+      "surface": "mission",
+      "height": 360,
+      "cinematic": false,
+      "y": 1083.7333333333331,
+      "x": 21.333333333333332,
+      "w": 689.0666666666666,
+      "h": 384.0,
+      "font": 20.266666666666666
+    },
+    {
+      "case": [
+        2048,
+        1536,
+        2,
+        2,
+        true
+      ],
+      "surface": "epilogue",
+      "height": 360,
+      "cinematic": false,
+      "y": 1126.4,
+      "x": 21.333333333333332,
+      "w": 689.0666666666666,
+      "h": 384.0,
+      "font": 20.266666666666666
+    },
+    {
+      "case": [
+        2048,
+        1536,
+        2,
+        2,
+        true
+      ],
+      "surface": "mission",
+      "height": 360,
+      "cinematic": true,
+      "w": 689.0666666666666,
+      "y": 998.8266666666666,
+      "x": 21.333333333333332,
+      "font": 20.266666666666666,
+      "h": 384.0
+    },
+    {
+      "case": [
+        2048,
+        1536,
+        2,
+        2,
+        true
+      ],
+      "surface": "epilogue",
+      "height": 360,
+      "cinematic": true,
+      "w": 689.0666666666666,
+      "y": 1126.4,
+      "x": 21.333333333333332,
+      "font": 20.266666666666666,
+      "h": 384.0
+    }
+  ],
+  "boundary": "Actual MissionHud.Render and Epilogue.Render with affine NanoVG/UI/paragraph adapters; no GPU, native text shaping or physical display acceptance."
+}

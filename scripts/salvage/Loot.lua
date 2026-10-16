@@ -2,6 +2,20 @@
 local Items=require('core.ResourceData').Read('UI/Outgame.json').items
 local Data=require('core.ResourceData').Read('Salvage/RunData.json')
 local M={CAPACITY=20}
+-- H5 cargo is a Map: equal-price swaps discard the first acquired item.
+-- Keep that order outside the numeric cargo record (HUD, saves and settlement
+-- iterate its item counts); weak keys release it with the raid's cargo table.
+local cargoOrders=setmetatable({},{__mode='k'})
+local function Order(cargo)
+    local order=cargoOrders[cargo]
+    if not order then
+        order={}
+        for id in pairs(cargo) do order[#order+1]=id end
+        -- Pre-populated compatibility callers have no acquisition history.
+        table.sort(order);cargoOrders[cargo]=order
+    end
+    return order
+end
 function M.Stack(id) return Items[id].cat=='material' and 20 or 5 end
 function M.Size(id) return (Items[id].size or 1)>=2 and 2 or 1 end
 function M.Slots(id,n) return math.ceil(n/M.Stack(id))*M.Size(id) end
@@ -58,19 +72,29 @@ function M.Roll(kind,rand,state,op,region)
     return Sort(out)
 end
 function M.Take(cargo,id,n)
-    local k=M.Room(cargo,id,n);if k>0 then cargo[id]=(cargo[id] or 0)+k end;return k
+    local k=M.Room(cargo,id,n)
+    if k>0 then
+        local order=Order(cargo)
+        if cargo[id]==nil then order[#order+1]=id end
+        cargo[id]=(cargo[id] or 0)+k
+    end
+    return k
 end
 function M.Swap(cargo,it)
-    local dropped={}
+    local dropped={};local order=Order(cargo)
     for _=1,20 do
         if M.Room(cargo,it.id,it.left)>=it.left then break end
         local best,price=false,math.huge
-        for id,n in pairs(cargo) do if id~=it.id then
+        for _,id in ipairs(order) do local n=cargo[id];if n and id~=it.id then
             local k=math.min(n,5);local p=M.Price(id)*k/M.Slots(id,k)
             if p<price then best=id;price=p end
         end end
         if not best then break end
-        local n=math.min(cargo[best],M.Stack(best));cargo[best]=cargo[best]-n;if cargo[best]==0 then cargo[best]=nil end
+        local n=math.min(cargo[best],M.Stack(best));cargo[best]=cargo[best]-n
+        if cargo[best]==0 then
+            cargo[best]=nil
+            for i,id in ipairs(order) do if id==best then table.remove(order,i);break end end
+        end
         dropped[#dropped+1]={best,n,n}
     end
     local k=M.Take(cargo,it.id,it.left);it.left=it.left-k;if it.left==0 then it.state='shown' end

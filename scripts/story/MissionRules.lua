@@ -1,4 +1,7 @@
 -- Frozen storyMission.js basic objective chain; scene/input are supplied snapshots.
+local HoldRules=require("story.HoldRules")
+local CaptureRules=require("story.CaptureRules")
+
 local M={};M.__index=M
 local function Copy(p) return {p[1],p[2],p[3]} end
 local function Flat(a,b) return math.sqrt((a[1]-b[1])^2+(a[3]-b[3])^2) end
@@ -16,8 +19,8 @@ function M:Go(index)
     self.stepT=0;self.beatsFired={};self.asked=false;self.choice=nil;self.pendingAsk=nil;self.progress=0;self.retitle=nil
     local step=self:StepSpec()
     if step then
-        if step.kind=='hold' then self.hold=require('story.HoldRules').New(step) end
-        if step.kind=='capture' then self.cap=require('story.CaptureRules').New() end
+        if step.kind=='hold' then self.hold=HoldRules.New(step) end
+        if step.kind=='capture' then self.cap=CaptureRules.New() end
         self:Emit('objective',{step=step,index=index})
     else self.phase='complete';self.completeAt=self.time+4;self:Emit('complete') end
 end
@@ -107,7 +110,6 @@ function M:Step(dt,world)
     local step=self:StepSpec()
     if not world.alive then
         self:UpdateChoices()
-        self.install=math.max(0,self.install-dt*.8)
         if not self.deadAt then self.deadAt=self.time;self.stats.deaths=self.stats.deaths+1;self:Emit('dead') end
         self.respawnLeft=math.max(0,3-(self.time-self.deadAt))
         if self.respawnLeft<=0 then self:Emit('respawn',{at=self.checkpoint});self.deadAt=nil end

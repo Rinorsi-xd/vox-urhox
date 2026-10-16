@@ -1,3 +1,5 @@
+local Config=require("Config")
+
 local Base=require 'ui.ActionButton'
 local D=require 'ui.SourceDraw'
 local Relief=require 'ui.SourceRelief'
@@ -18,7 +20,7 @@ function Button:Render(vg)
         D.Text(vg,'出战战车 · LOADOUT',x+104,y+14,11,{127,154,180,255},nil,nil,2)
         D.Text(vg,p.text,x+104,y+30,24,nil,nil,nil,1,false,26.4)
         D.Icon(vg,p.valid and 'check' or 'warn',x+104,y+61,13,p.valid and D.green or {255,109,114,255})
-        D.Text(vg,p.valid and '按 '..require('Config').TIERS[p.tier].name..' 匹配' or '不符合出战限制',x+122,y+61,12,D.muted,'vox-body')
+        D.Text(vg,p.valid and '按 '..Config.TIERS[p.tier].name..' 匹配' or '不符合出战限制',x+122,y+61,12,D.muted,'vox-body')
         D.Text(vg,'换车 ›',x+w-44,y+36,13,{219,238,255,255},nil,NVG_ALIGN_RIGHT,2)
     else
         D.Text(vg,p.text,x+40,y+14.5,40,{243,249,255,255},nil,nil,4,false,40);D.Text(vg,p.subtitle,x+40,y+58.5,12,{228,244,255,255},'vox-body',nil,2)

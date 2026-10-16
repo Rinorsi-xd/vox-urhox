@@ -1,4 +1,6 @@
 -- Frozen actNo/_burst: clones lose their layer transform, retain bottom containment.
+local IntroComic=require("ui.IntroComic")
+
 local D=require 'ui.SourceDraw'
 local Opacity=require 'ui.IntroOpacity'
 local Motion=require 'ui.IntroComicMotion'
@@ -17,7 +19,7 @@ function M.Particles(box,seed)
 end
 function M.Draw(page,vg,w,h)
  local I=page.owner;local age=I.age-.5;if age<0 then return end
- local box=require('ui.IntroComic').DoveBounds(I,w,h)
+ local box=IntroComic.DoveBounds(I,w,h)
  local start=I.time-I.age
  for _,entry in ipairs(I.log or {}) do if entry.shot=='no' then start=entry.t end end
  local burst=page.comicBurst

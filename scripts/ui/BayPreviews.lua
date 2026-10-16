@@ -1,6 +1,8 @@
 -- Visible-only textures backed by saved-generation images. The app's capture
 -- service serializes all missing images; this widget owns no 3D scene.
 -- UI owns the NanoVG frame; this widget never starts a second frame.
+local SourceDraw=require("ui.SourceDraw")
+
 local Panel=require 'urhox-libs/UI/Widgets/Panel'
 local Picture=Panel:Extend('VoxBayPicture')
 function Picture:Release()
@@ -21,7 +23,7 @@ function Picture:Render(nvg)
     if self.image==0 then return end
     local r=self:GetAbsoluteLayout()
     nvgSave(nvg);nvgIntersectScissor(nvg,r.x,r.y,r.w,r.h)
-    if self.cut then require('ui.SourceDraw').Path(nvg,{r.x,r.y,r.x+r.w-self.cut,r.y,r.x+r.w,r.y+self.cut,r.x+r.w,r.y+r.h,r.x,r.y+r.h})
+    if self.cut then SourceDraw.Path(nvg,{r.x,r.y,r.x+r.w-self.cut,r.y,r.x+r.w,r.y+self.cut,r.x+r.w,r.y+r.h,r.x,r.y+r.h})
     else nvgBeginPath(nvg);nvgRect(nvg,r.x,r.y,r.w,r.h) end
     local scale=math.max(r.w/320,r.h/200);local w,h=320*scale,200*scale
     nvgFillPaint(nvg,nvgImagePattern(nvg,r.x+(r.w-w)/2,r.y+(r.h-h)/2,w,h,0,self.image,1));nvgFill(nvg);nvgRestore(nvg)

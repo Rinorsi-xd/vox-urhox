@@ -1,11 +1,14 @@
+local ResourceData=require("core.ResourceData")
+local MusicPlayer=require("audio.MusicPlayer")
+
 local Motion=require 'combat.MvpMotion'
 local Levels=require 'audio.AudioLevels'
 local M={};M.__index=M
 function M.New(scene,player)
     local self=setmetatable({},M);self.player=player;self.sound=assert(cache:GetResource('Sound','Mvp/music.mp3'))
     self.sound.looped=true;self.source=scene:CreateChild('MvpMusic'):CreateComponent('SoundSource');self.source.soundType='VoxMvpMusic';self.source:Play(self.sound)
-    self.beats=require('core.ResourceData').Read('Mvp/Beats.json').beats
-    self.cues=require('core.ResourceData').Read('Mvp/Cues.json');self.root=scene:CreateChild('MvpCues');self.slots={};self.cursor=0
+    self.beats=ResourceData.Read('Mvp/Beats.json').beats
+    self.cues=ResourceData.Read('Mvp/Cues.json');self.root=scene:CreateChild('MvpCues');self.slots={};self.cursor=0
     self:Update();return self
 end
 function M:Play(id,gain)
@@ -17,7 +20,7 @@ end
 function M:Update()
     if self.disposed then return end
     local p=self.player;local enabled=p.enabled and p.volume>0 and input.focus and not input.minimized
-    self.source.gain=require('audio.MusicPlayer').Gain(p.volume)
+    self.source.gain=MusicPlayer.Gain(p.volume)
     if enabled then audio:ResumeSoundType('VoxMvpMusic') else audio:PauseSoundType('VoxMvpMusic') end
     self.beat=enabled and self.source.playing and Motion.Beat(self.source.timePosition,self.beats) or {pulse=0,bounce=0,lean=0,twist=0,index=-1}
 end

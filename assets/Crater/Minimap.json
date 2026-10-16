@@ -5,6 +5,19 @@
   "image": "Crater/Minimap.bin",
   "size": 1024,
   "half": 320,
+  "dependencyPolicy": "pixel-inputs-v2-lifetime-separate",
+  "captureImplementationInputs": {
+    "scripts/render/RenderTargetLifetime.lua": {
+      "sha256": "3c07d2065e177ead4d9ce8a28f2a33898af3b7e6292421f69f21f7bb206c7268",
+      "bytes": 2286,
+      "checksum": 2116585537
+    },
+    "scripts/core/CollectionCycle.lua": {
+      "sha256": "1c015323c410abb084fa4aecec066ab6791f5e51bfbcb5894a214577225e68e0",
+      "bytes": 1713,
+      "checksum": 1524070007
+    }
+  },
   "source": {
     "branch": "2026-10-15",
     "commit": "b276064942ae09c0227ec28d4cfda1d5ff006455",
@@ -837,9 +850,9 @@
       "checksum": 1248510758
     },
     "assets/Crater/albedo.xml": {
-      "sha256": "f3f550de6f2d5064916b2e877d73b2545f78d6c4de3c9213e980ebdf8fed5e84",
+      "sha256": "6ecd8e959bb7763f281080b830cdb723ddc8d1618aebdefc61f1db795a0f09fa",
       "bytes": 408,
-      "checksum": 3305654877
+      "checksum": 1707542457
     },
     "assets/Crater/albedo.xml.meta": {
       "sha256": "37d92d874c1fbdc4b94ed2ba3cf6dd84fcf320d5c82a464f1537be6859e6ad59",
@@ -887,9 +900,9 @@
       "checksum": 4043152105
     },
     "assets/Crater/material-1.xml": {
-      "sha256": "9f462c2fe24280d99b9a9b959115a0e484fe0a698f5c6fa9da726aefde290cab",
-      "bytes": 913,
-      "checksum": 4089756714
+      "sha256": "ebc9f638f8dca5687a0b043548a5617cbb7ea9bc2d05f48bdda36465817ee456",
+      "bytes": 954,
+      "checksum": 2581232046
     },
     "assets/Crater/material-1.xml.meta": {
       "sha256": "734c1987889c104c41472ea132de02bde998857ac3a517be0c902fd7880b69bf",
@@ -5067,9 +5080,9 @@
       "checksum": 2924040112
     },
     "assets/Crater/nra.xml": {
-      "sha256": "97ae8ab9b8ec71f0d9d9e701e7029981177e0638ca592f1a407f5ea4f4e8862e",
+      "sha256": "b915a8e15075bc0865dbffbe961bd3392ab0a24d403fd50680bb23d9935b4c59",
       "bytes": 390,
-      "checksum": 3500101953
+      "checksum": 1901989533
     },
     "assets/Crater/nra.xml.meta": {
       "sha256": "963fd9ee6109436d5f3c187279b9fc61930b5c0de5b71025ba8471788cd8a25e",
@@ -5736,18 +5749,18 @@
       "bytes": 378,
       "checksum": 1254346838
     },
-    "scripts/render/RenderTargetLifetime.lua": {
-      "sha256": "6dcdc4e5332c8c159e2aacabfca65ee0beed8f221d6a7ac5df70f50a6ae00882",
-      "bytes": 1209,
-      "checksum": 3558272495
-    },
     "scripts/scene/Crater.lua": {
       "sha256": "b096a36db9a1ed4e5f916cb988bd8809bf1290079722cfa4cc264892f414f636",
       "bytes": 4851,
       "checksum": 1314802893
+    },
+    "tools/migration/bake-match-map-runtime.lua": {
+      "sha256": "251602d2734f1c84aea9b542396fa78d354eba01c5dfa7685c40c9b4eb4883f8",
+      "bytes": 3651,
+      "checksum": 1615306154
     }
   },
-  "inputSha256": "af29f3ef311ee719f44ce40df727ecc646cf4bffb2a5605d3b53165ad630731e",
+  "inputSha256": "cff0e00479f2addf97956206387568434880eed34a10c268796261d6aa3a863b",
   "runtimeChecks": {
     "Scenes/Crater.xml": {
       "checksum": 4093339714,
@@ -5859,16 +5872,6 @@
         }
       ]
     },
-    "render/RenderTargetLifetime.lua": {
-      "checksum": 3558272495,
-      "bytes": 1209,
-      "variants": [
-        {
-          "bytes": 1243,
-          "checksum": 2280284177
-        }
-      ]
-    },
     "scene/Crater.lua": {
       "checksum": 1314802893,
       "bytes": 4851,
@@ -5880,10 +5883,10 @@
       ]
     }
   },
-  "imageSha256": "6b45693475c6662c4b0972728299ad709662796a4a75a1544f33a18c5beafe8c",
-  "pixelsSha256": "120e033ecfe616a38040bcaecd317eff9ab2fe4225b50c86f5e6d1968a069b16",
+  "imageSha256": "40c49ee5c0605fcb84a0ddee30b83bbe597016b216c0e1bcaf6508fa096476bf",
+  "pixelsSha256": "520113d3c3c2b002e4aca532b56df2965a8a09e61b74d3c9a9d82628587c56e3",
   "colors": 327,
-  "bakedAt": "2026-10-15T16:16:04.094Z",
+  "bakedAt": "2026-10-16T08:50:25.193Z",
   "capture": {
     "height": 1200,
     "far": 3000,
@@ -5891,8 +5894,10 @@
     "tone": "production MatchMapShot.Process",
     "environmentTime": 1,
     "randomSeed": 1337,
+    "textureFilter": "trilinear",
+    "textureAnisotropy": 1,
     "scope": "Authored static map with environment lighting; no session vehicles, objectives, combat or animated particle snapshot."
   },
-  "nativeEvidence": ".tmp/match-map-bake-2026-10-15T16-15-40-237Z/native.json",
-  "validationEvidence": ".tmp/match-map-bake-2026-10-15T16-15-40-237Z/validation.json"
+  "nativeEvidence": ".tmp/match-map-bake-2026-10-16T08-50-01-885Z/native.json",
+  "validationEvidence": ".tmp/match-map-bake-2026-10-16T08-50-01-885Z/validation.json"
 }

@@ -1,4 +1,7 @@
 -- Frozen testDrive._fireState and reticle.js geometry, independent of rendering.
+local TouchMode=require("controls.TouchMode")
+local ReticleNavigation=require("ui.ReticleNavigation")
+
 local M={}
 local function Clamp(v) return math.max(0,math.min(1,v or 0)) end
 M.Clamp=Clamp
@@ -6,7 +9,7 @@ M.zoom={laser=2.2,mg=1.4,sniper=5,missile=2.8}
 function M.ScopeFov(base,kind) return 2*math.atan(math.tan(base*math.pi/360)/(M.zoom[kind] or 2))*180/math.pi end
 function M.Compact()
     local dpr=math.max(1,graphics:GetDPR())
-    return require('controls.TouchMode').Enabled() and math.min(graphics:GetWidth()/dpr,graphics:GetHeight()/dpr)<=600
+    return TouchMode.Enabled() and math.min(graphics:GetWidth()/dpr,graphics:GetHeight()/dpr)<=600
 end
 function M.Layout(w,h,compact)
     if compact==nil then compact=M.Compact() end
@@ -71,7 +74,7 @@ end
 function M.Update(widget,dt)
     local s=widget.session;local w=s.weapons;local me=s.combat and s.combat.player
     widget.clock=(widget.clock or 0)+dt
-    widget.waypoint=require('ui.ReticleNavigation').Read(s)
+    widget.waypoint=ReticleNavigation.Read(s)
     widget.hp=me and me:Life() or 1;widget.integrity=me and me:Integrity() or 1
     if widget.hp<(widget.lastHp or 1)-.002 then widget.hurtUntil=widget.clock+.12 end
     widget.lastHp=widget.hp

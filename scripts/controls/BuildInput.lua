@@ -1,5 +1,7 @@
 -- Pointer ownership originates on the playfield. No global mouse-down editing;
 -- cancellation, leaving the field, focus loss and scene switches release holds.
+local ImportedUI=require("urhox-libs/UI")
+
 local M={};M.__index=M
 function M.New(session) return setmetatable({session=session,pointer=nil,inside=false,dirty=true},M) end
 function M:Cancel() self.pointer=nil;self.inside=false;self.dirty=true;self.selectionBox=nil;self.dragSelection=nil;self.touchPrimary=false;self.touchErase=nil;self.touchTarget=false end
@@ -19,6 +21,8 @@ function M:Down(e)
     self.session:Trace(e.x,e.y)
     local kind=e:IsTouch() and 'left' or e:IsSecondaryButton() and 'right' or e:IsPrimaryButton() and 'left' or 'middle'
     self.pointer={id=e.pointerId,kind=kind,x=e.x,y=e.y,startX=e.x,startY=e.y,travel=0,held=0,nextRepeat=.3,touch=e:IsTouch(),select=input:GetKeyDown(KEY_SHIFT) or self.session.selecting,orbit=kind=='left' and input:GetKeyDown(KEY_SPACE),stretch=self.session.editor.tool=='stretch'}
+    local hit=self.session.editor.hit
+    self.pointer.hit=hit and {partId=hit.partId,cell=hit.cell,place=hit.place,normal=hit.normal} or {}
     self.pointer.add=input:GetKeyDown(KEY_CTRL)
     if self.pointer.orbit then self.pointer.select=false end
     -- Desktop left paints/builds immediately; touch waits to distinguish a tap
@@ -50,13 +54,16 @@ function M:Up(e)
     if self.session.buildCamera.mode=='fp' and not self.session.buildCamera.touch then return end
     local p=self.pointer;if not p or p.id~=e.pointerId then return end
     self.pointer=nil;self:Position(e);self.session:Trace(e.x,e.y)
+    local moved=p.touch and p.travel or math.sqrt((e.x-p.startX)^2+(e.y-p.startY)^2)
     if p.select and p.kind=='left' and p.travel>=8 then
         self.session:BoxSelect({x0=p.startX,y0=p.startY,x1=e.x,y1=e.y,add=p.add})
-    elseif p.travel<8 then
+    elseif moved<8 then
         local editor=self.session.editor
         if p.select and p.kind=='left' then if editor.hit then editor:ToggleSelect(editor.hit.partId) end
-        elseif p.kind=='right' and editor.tool~='paint' and not p.stretch then editor:Remove()
-        elseif p.kind=='middle' then if editor.tool=='paint' then editor:Eyedrop(editor.hit) else editor:Pick(editor.hit) end
+        elseif p.kind=='right' and editor.tool~='paint' and not p.stretch then
+            if self.session.selecting then editor:SweepSelect(false,p.hit) else editor:Remove(p.hit) end
+        elseif p.kind=='middle' then
+            if editor:Pick(p.hit) then self.session.selecting=false end
         elseif p.touch then self.session:Act() end
     end
     self.selectionBox=nil
@@ -64,7 +71,7 @@ function M:Up(e)
 end
 function M:FirstPerson(dt)
     local fly=self.session.buildCamera;local e=self.session.editor
-    local UI=require 'urhox-libs/UI';local w,h=UI.GetViewportSize()
+    local UI=ImportedUI;local w,h=UI.GetViewportSize()
     self.x,self.y=w*.5,h*.5;self.inside=fly.captured
     if not fly.captured or fly.touch then self:Cancel();return end
     if not fly.buttonsReady then
@@ -147,7 +154,7 @@ function M:TouchErase(on,cancelled)
         return
     end
     if session.disposed or session.dialog or session.inventoryPanel or self.touchErase then return end
-    local UI=require 'urhox-libs/UI';local w,h=UI.GetViewportSize()
+    local UI=ImportedUI;local w,h=UI.GetViewportSize()
     self.touchTarget=false;self.x,self.y=w/2,h/2;self.inside=true;session:Trace(self.x,self.y)
     local hit=e.hit and {partId=e.hit.partId,cell=e.hit.cell,place=e.hit.place,normal=e.hit.normal} or nil
     local held={mode=session.buildCamera.mode,hit=hit,elapsed=0,nextRepeat=session.selecting and .03 or .3}
@@ -164,7 +171,7 @@ function M:TouchEraseStep(dt)
     local held=self.touchErase;if not held then return end
     local session=self.session;local e=session.editor
     if session.disposed or session.dialog or session.inventoryPanel then self:Cancel();return end
-    local UI=require 'urhox-libs/UI';local w,h=UI.GetViewportSize()
+    local UI=ImportedUI;local w,h=UI.GetViewportSize()
     self.x,self.y=w/2,h/2;self.inside=true;session:Trace(self.x,self.y)
     held.elapsed=held.elapsed+dt
     if held.mode~='fp' or held.single or e.pasting then return end
@@ -175,7 +182,7 @@ function M:TouchEraseStep(dt)
     end
 end
 function M:TouchEdit(dt,initial)
-    local UI=require 'urhox-libs/UI';local w,h=UI.GetViewportSize();local e=self.session.editor
+    local UI=ImportedUI;local w,h=UI.GetViewportSize();local e=self.session.editor
     self.x,self.y=w/2,h/2;self.inside=true;self.session:Trace(self.x,self.y)
     if not self.touchPrimary then return end
     local selecting=self.session.selecting and not e.pasting

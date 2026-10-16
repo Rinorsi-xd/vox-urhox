@@ -2,6 +2,8 @@
 -- target ---- ray ---- [camera] .35m | solid wall
 -- Keep the look direction, shorten only at opaque architecture; ignore vehicle,
 -- transparent FX and moving machinery. Room planes also cover mesh seams.
+local HangarConfig=require("scene.HangarConfig")
+
 local M={};M.__index=M
 function M.New(scene,sceneRoot,roomLimit)
     local root=sceneRoot or assert(scene:GetChild('OrbitalHangar'))
@@ -15,7 +17,7 @@ function M.New(scene,sceneRoot,roomLimit)
         local shader=model.material and model.material:GetSurfaceShader()
         if not moving and shader and (shader.name:match('/Surface%.shader$') or shader.name:match('/Deck%.shader$')) then solids[model]=true end
     end
-    return setmetatable({root=root,octree=scene:GetComponent('Octree'),solids=solids,limit=roomLimit or require('scene.HangarConfig').layout.cameraLimit},M)
+    return setmetatable({root=root,octree=scene:GetComponent('Octree'),solids=solids,limit=roomLimit or HangarConfig.layout.cameraLimit},M)
 end
 function M:Resolve(target,position)
     if not self.root.enabled then return position end

@@ -57,7 +57,7 @@ local function Prepare(parts,part,owner,checkpoint)
         end
         if checkpoint then checkpoint() end
     end
-    return {def=def,samples=samples,pv=pv,occ=occ,rot=part.rot,bounds=bounded and {lo=lo,hi=hi} or nil,
+    return {def=def,samples=samples,pv=pv,reach=reach,owner=mine,occ=occ,rot=part.rot,bounds=bounded and {lo=lo,hi=hi} or nil,
         key=part.type..':'..part.rot..':'..table.concat(part.pos,',')}
 end
 local function MissesBounds(context,m,cp,sp,cy,sy)
@@ -162,20 +162,33 @@ local function SameContext(a,b)
 end
 function M.For(bp,owner,checkpoint)
     local parts=bp:List();local old=cached[bp];local signatures={};local changed=not old
-    local deletionOnly=old~=nil;local removed={}
+    local changedParts,invalidated={},{}
     for _,p in ipairs(parts) do
         local key=p.type..':'..p.rot..':'..table.concat(p.pos,',')..':'..tostring(owner and owner[p.id])
         signatures[p.id]=key
-        if not old or old.signatures[p.id]~=key then changed=true;deletionOnly=false end
+        if not old or old.signatures[p.id]~=key then changed=true;changedParts[#changedParts+1]=p;invalidated[p.id]=true end
     end
-    if old then for id in pairs(old.signatures) do if not signatures[id] then changed=true;removed[id]=true end end end
+    if old then for id in pairs(old.signatures) do if not signatures[id] then changed=true;invalidated[id]=true end end end
     local entries,result={},{}
     for _,p in ipairs(parts) do if Defs[p.type].weapon then
         local previous=old and old.entries[p.id]
-        -- A deletion outside this barrel's local occupancy cannot change its
-        -- clearance. Rebuild affected contexts to preserve overlapping cells.
-        local unaffected=deletionOnly and previous and previous.context
-        if unaffected then for _,id in pairs(previous.context.occ) do if removed[id] then unaffected=false;break end end end
+        -- Damage and repair outside the barrel's local occupancy cannot alter
+        -- clearance. Check both old occupants and newly added/moved cells;
+        -- owner changes and overlapping occupants still rebuild the context.
+        local context=previous and previous.context
+        local unaffected=old and context and old.signatures[p.id]==signatures[p.id]
+        if unaffected then for _,id in pairs(context.occ) do if invalidated[id] then unaffected=false;break end end end
+        if unaffected then
+            for _,part in ipairs(changedParts) do
+                if part.id~=p.id and not Defs[part.type].weapon and (not owner or owner[part.id]==context.owner) then
+                    for _,cell in ipairs(part._cells) do
+                        local x,y,z=cell[1]-context.pv[1],cell[2]+.5-context.pv[2],cell[3]-context.pv[3]
+                        if math.sqrt(x*x+y*y+z*z)<context.reach then unaffected=false;break end
+                    end
+                end
+                if not unaffected then break end
+            end
+        end
         if not changed or unaffected then
             entries[p.id]=previous;result[p.id]=previous.range or nil
             if checkpoint then checkpoint() end

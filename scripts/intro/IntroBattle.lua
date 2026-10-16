@@ -1,4 +1,9 @@
 -- Source opening actors run through the shared damage, weapons and rigid bodies.
+local IntroShots=require("intro.IntroShots")
+local DriverActions=require("combat.DriverActions")
+local RotorMotion=require("drive.RotorMotion")
+local PlayerViewSync=require("combat.PlayerViewSync")
+
 local Unit=require 'combat.CarUnit'
 local Driver=require 'combat.EnemyDriver'
 local M={};M.__index=M
@@ -23,7 +28,7 @@ function M.New(session,data,playerSource,checkpoint)
  end
  self.player=Add(playerSource,'坠舰陨坑 · 实机演示',62,-176,0,'blue',nil,true)
  w.feedbackPlayer=self.player
- for _,cfg in ipairs(require('intro.IntroShots').Cast(data,function(x,z)return w:GroundAt(x,z) end)) do
+ for _,cfg in ipairs(IntroShots.Cast(data,function(x,z)return w:GroundAt(x,z) end)) do
   Add(cfg.source,cfg.name,cfg.spawn.pos[1],cfg.spawn.pos[3],cfg.spawn.yaw,'red',data.actors.invaders[#self.entries].role,false)
  end
  self.cart=Add(data.actors.cart,'星际前途 · 贵重矿车',30,-170,math.pi/2,'blue',nil,false)
@@ -80,8 +85,8 @@ function M:BeforeStep(dt,command,aim)
      u.vehicle:Step(cmd,dt)
      u.vehicle:StepRotors(nil,false,dt)
     else
-     require('combat.DriverActions').Apply(u,driverInfo)
-     local v=u.vehicle;v:StepRotors(target,cmd.rotorStep,dt);require('drive.RotorMotion').Weapons(v.rotors,u.weapons);v:Step(cmd,dt)
+     DriverActions.Apply(u,driverInfo)
+     local v=u.vehicle;v:StepRotors(target,cmd.rotorStep,dt);RotorMotion.Weapons(v.rotors,u.weapons);v:Step(cmd,dt)
      local p,vel=v.body.translation(),v.body.linvel();local eye=u==self.player and self.session.camera:GetNode().worldPosition
      u.weapons:Step(dt,{firing=firing,aim=target,salvo=driverInfo and driverInfo.salvo,pos={p.x,p.y,p.z},quat=v.body.rotation(),vel={vel.x,vel.y,vel.z},body=v.body,team=u.team,eye=eye and {-eye.x,eye.y,eye.z}},e.env)
      self.session.effects:Consume(u.weapons.fx);self.session.weaponAudio:Consume(u.weapons.fx,u~=self.player)
@@ -94,7 +99,7 @@ function M:AfterStep()
  local overlay=self.session.openingOverlay
  if overlay then overlay:Consume(self.world.viewEvents) end
 end
-function M:SyncPlayer() require('combat.PlayerViewSync').Update(self) end
+function M:SyncPlayer() PlayerViewSync.Update(self) end
 function M:Kill(u)
  if not u or not u.alive then return end
  local p=u:Position();u.bodyHp=0;u.kill='intro';u.dirty=true;u:Flush()

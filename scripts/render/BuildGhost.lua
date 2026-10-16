@@ -1,5 +1,9 @@
 -- Whole authored models, bounded detailed preview pool, one shared cell-line
 -- buffer and one subcell face. Nothing here participates in picking/collision.
+local ResourceGate=require("app.ResourceGate")
+local Rotations=require("core.Rotations")
+local Dependencies=require("parts.Dependencies")
+
 local Config=require 'Config'
 local Coord=require 'core.Coord'
 local Assets=require 'parts.PartAssets'
@@ -12,7 +16,7 @@ local function NewMaterial(shader)
     local m=Material:new();assert(m:SetSurfaceShader('Shaders/BLGL/'..shader..'.shader'));return m
 end
 function M.New(parent)
-    local self=setmetatable({pool={},limit=Quality.current.name=='mobile' and 16 or 48,maxCells=4096,gate=require('app.ResourceGate').New()},M)
+    local self=setmetatable({pool={},limit=Quality.current.name=='mobile' and 16 or 48,maxCells=4096,gate=ResourceGate.New()},M)
     self.root=parent:CreateChild('BuildPreview');self.root:SetScale(Config.CELL)
     self.lines=self.root:CreateChild('Cells'):CreateComponent('CustomGeometry')
     self.lineMaterial=NewMaterial('BuildLines');self.lines:SetMaterial(self.lineMaterial)
@@ -28,7 +32,7 @@ function M:Warm(editor,retry,selectionParts)
     elseif pv then
         parts[1]={type=pv.type,rot=pv.rot}
         if pv.mirror then parts[2]={type=pv.type,rot=pv.mirror.rot} end
-    elseif not editor.emptySlot then parts[1]={type=editor.type,rot=editor.sampledRot or require('core.Rotations').IDENTITY} end
+    elseif not editor.emptySlot then parts[1]={type=editor.type,rot=editor.sampledRot or Rotations.IDENTITY} end
     -- Detailed drawing is bounded, but confirmation can add every source item.
     -- Warm all distinct type/orientation resources so omitted preview models
     -- cannot become missing resources when the complete batch is committed.
@@ -38,7 +42,7 @@ function M:Warm(editor,retry,selectionParts)
             if not seen[key] then parts[#parts+1]=part;seen[key]=true end
         end
     end
-    local paths=require('parts.Dependencies').For(parts);local key=table.concat(paths,'|')
+    local paths=Dependencies.For(parts);local key=table.concat(paths,'|')
     if self.warmKey~=key or retry and self.gate.state=='failed' then
         self.warmKey=key;self.ready=false;self.signature=nil
         self.gate:Start(paths,function(ok)

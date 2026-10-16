@@ -1,3 +1,13 @@
+local EnemyDriver=require("combat.EnemyDriver")
+local ObjectiveView=require("render.ObjectiveView")
+local ConquestRules=require("combat.ConquestRules")
+local EscortRules=require("combat.EscortRules")
+local EliminationRules=require("combat.EliminationRules")
+local Blueprint=require("construction.Blueprint")
+local VehicleSpec=require("drive.VehicleSpec")
+local VehicleView=require("render.VehicleView")
+local Defs=require("parts.Defs")
+
 local Data=require 'combat.ArenaData'
 local V=require 'core.Math3'
 local Coord=require 'core.Coord'
@@ -23,7 +33,7 @@ function M.New(battle,id)
         end
     elseif id=='escort' then
         self.tuning=Data.escort;local proxy={spec={bounds={min={0,0,0},max={7,1,1}}}}
-        local driver=require('combat.EnemyDriver').New(self.world,proxy,'assault',0)
+        local driver=EnemyDriver.New(self.world,proxy,'assault',0)
         local ids=driver:Path(L.nav.nodes.sA,L.nav.nodes.nA);assert(#ids>1,'Source escort route is unreachable')
         self.path={};self.cum={0}
         for i=1,#ids-1 do local a,b=L.nav.nodes[ids[i]],L.nav.nodes[ids[i+1]];local n=math.max(1,math.ceil(Flat(a,b)/2))
@@ -36,13 +46,13 @@ function M.New(battle,id)
         for i=2,#self.path do self.cum[i]=self.cum[i-1]+Flat(self.path[i-1],self.path[i]) end
         self.length=self.cum[#self.cum];self:CreatePayload()
     end
-    if id~='elimination' then self.view=require('render.ObjectiveView').New(self.world,self) end
+    if id~='elimination' then self.view=ObjectiveView.New(self.world,self) end
     return self
 end
 function M:Rules()
-    if self.id=='conquest' then return require('combat.ConquestRules').New(Data.modes.conquest,Data.conquest)
-    elseif self.id=='escort' then return require('combat.EscortRules').New(Data.modes.escort,Data.escort,self.length) end
-    return require('combat.EliminationRules').New(Data.modes.elimination)
+    if self.id=='conquest' then return ConquestRules.New(Data.modes.conquest,Data.conquest)
+    elseif self.id=='escort' then return EscortRules.New(Data.modes.escort,Data.escort,self.length) end
+    return EliminationRules.New(Data.modes.elimination)
 end
 function M:At(distance)
     local d=math.max(0,math.min(self.length,distance));local i=2
@@ -51,8 +61,8 @@ function M:At(distance)
     return {pos=V.Add(a,V.Scale(V.Sub(b,a),k)),yaw=math.atan(b[1]-a[1],b[3]-a[3])}
 end
 function M:CreatePayload()
-    local bp=require('construction.Blueprint').New():Load(Data.payload);local bounds=require('drive.VehicleSpec').Build(bp).bounds
-    self.cart=require('render.VehicleView').New(self.world.scene,'Payload');self.cart:Rebuild(bp);self.bottom=bounds.min[2]
+    local bp=Blueprint.New():Load(Data.payload);local bounds=VehicleSpec.Build(bp).bounds
+    self.cart=VehicleView.New(self.world.scene,'Payload');self.cart:Rebuild(bp);self.bottom=bounds.min[2]
     self.cargo=self.world.scene:CreateChild('PayloadCargo');self.cargoMaterials={}
     local function CargoMaterial(color)
         local m=Material:new();m:SetTechnique(0,cache:GetResource('Technique','Techniques/PBR/PBRNoTexture.xml'))
@@ -150,7 +160,7 @@ function M:UnitTick(entry,dt)
         u.repairing=u.repairing or home and (u:Health()<.995 or u:Integrity()<.995)
         if home then u:Heal(.15*dt);entry.repair=(entry.repair or 0)+dt;if entry.repair>=.4 then entry.repair=0;u:RestoreMissing(1) end end
         if rule.shield[Other(u.team)] and Shield.Contains(self.bases[Other(u.team)].zone,u:Position()) then
-            local core=u.bp:CoreParts()[1];if core then u:Damage(core.id,require('parts.Defs').PARTS.core.hp*u.partScale*.04*dt,u:Position()) end
+            local core=u.bp:CoreParts()[1];if core then u:Damage(core.id,Defs.PARTS.core.hp*u.partScale*.04*dt,u:Position()) end
         end
     elseif self.id=='escort' and u.team==rule.attack and M.InPoint(u,{pos=self:At(rule.s).pos,radius=Data.escort.push}) then u:Heal(Data.escort.heal*dt) end
 end

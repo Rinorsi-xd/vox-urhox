@@ -1,9 +1,11 @@
 -- Modal content/footer live outside its regular Widget children. Release these
 -- explicitly, including detached virtual-list rows, before destroying the shell.
+local ImportedUI=require("urhox-libs/UI")
+
 local Base=require 'urhox-libs/UI/Widgets/Modal'
 local Modal=Base:Extend('VoxOwnedModal')
 function Modal:Destroy()
-    local UI=require 'urhox-libs/UI'
+    local UI=ImportedUI
     local focused=UI.GetFocus()
     while focused do
         if focused==self then UI.ClearFocus();break end

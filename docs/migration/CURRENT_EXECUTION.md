@@ -1,5 +1,93 @@
 # 当前迁移执行位置
 
+## 2026-10-16 当前交接：1016 协作基线（以下旧包记录只作历史）
+
+- 用户要求本批优化与问题验证后整合 Git，提供 Web 同步基线。当前工作分支为 `1016`，H5 对照仍为实核 `2026-10-15@b276064942ae09c0227ec28d4cfda1d5ff006455`；不重启 G0，不把本批范围冒称全迁移完成。
+- 本批包括已有 require 提取/地形采样/出生预建等候选，新增玩家损伤修复增量显示、射线与螺旋采样分配优化、炮管范围缓存、巨型车两次蓝图解析分帧、扫描线移除、ESC 统一暂停入口、打捞同价顺序，以及用户最后追加的高分辨率剧情/片尾通讯尺寸问题。
+- 三组 Native CPU/等价探针在整合后重新运行 PASS；全 533 Lua 语法门禁 PASS。原始记录与可重跑脚本显式入库，见 `PERF_1016_HANDOFF.md`。桌面 Native mobile 画质两段 60 秒实战 P95 为 74/88ms，仍不稳定；骁龙845/TapTap长期30FPS未验收。
+- 4453 仍是旧 `8b6203a3` 包，不能验证新改动。Web 同步应重新构建 `1016` 并记录提交与 manifest；不自动发布/推送。
+- 新本地候选已构建 `manifest-c66ba2e1.json`，533Lua/指纹 `fbcd24baa69cf166534ff3d648d7b816966d4f3d75ce8c6907a6678656e30b59`；普通4461、QA4462。全Lua工作区/冻结源/包字节一致及真实HTTP载荷PASS。预提交构建identity父SHA仍48ef，详见handoff解释，不能当远端已同步或Web实战通过。
+- 已合并本地10/13、10/14、10/15分支清理；孤立历史引擎快照保存在 `archive/engine-handoff-2026-10-15-706d` 标签，禁止把其465 Lua旧树合并回生产。
+- 此处与 `PERF_1016_HANDOFF.md` 是当前接续入口；下文“当前”“本次”等标题均为历史过程，不覆盖本节。
+
+## 本次交接：固定优化验收包，不扩大范围
+
+- 用户当前要求仍为“先把我说的优化合并我去验收一下”。重新实际请求普通4453：HTML、identity、manifest与main载荷均200；manifest/main与冻结8b6203a3包实际字节一致，529 Lua、非QA。验收地址保持4453，不以新功能候选替换。
+- 固定包已包含线性采样/anisotropy1、地形FLOW_CONTROL及导出器、敌车显示预建、导航距离缓存和此前换车分帧。已有Web短刷敌功能证据；长加载、OOM和持续性能仍OPEN，没有本轮新增commit/push。
+- 下节f9状态已过期：统一审计为151报告；建造第二轮Web已结束，71项PASS_WITH_OPEN、运行错误0。数量Web已结束，21项后发现鼠标移出数字框仍触发滚轮，原FAIL保留；SalvageQuantity局部修正已冻结，200项离线检查通过，尚待新包Web复验。
+- MissionRules死亡安装进度窄修已冻结，相关检查实际重跑通过；受击表现子线仍在离线验证。两者均不属于8b验收包。当前没有测试GPU进程，旧S3的RUNNING存盘已用interruption.json注明中断，勿据此重启或误签。
+
+## 当前 goal 接续：f9b98d5f 三线功能合包实测
+
+- 上一轮优化验收交接属于进展：实际HTTP再次核验、固定8b入口、终止后台GPU并保留中断边界。不是重启G0。当前继续10/15全G0-G6目标，不同步main、不推送。
+- 新候选 `.tmp/outgame-cached-1792142468868` / `manifest-f9b98d5f.json` / fingerprint `610b70d42e72a44cec092b93f7491825d7a2de85b749df956fbdb78ec8675182`：531 Lua。普通4457/session18507，QA4458/session36280；实际HTTP身份/manifest/main字节PASS。8b/4453继续固定供用户验收。
+- 只比8b新增/修改7份生产Lua：BuildSession、BuildInput、SalvagePage、SalvagePaint、新SalvageQuantity、MissionHud、新MissionPrompt；资源内容0变化。实际统一审计PASS、148份注册报告关联无漂移；新功能结果不能借8b旧Web签收。
+- G2输入523源消费/2旧包负控；G5数量与检视184项/23源场景/6负控；G4提示771项/60源场景/9死亡边界/6负控及独立Chrome CSS真实采样。提示补CSS反向淡出缩时，并按源死亡期间保留prompt快照；不改任务规则。报告分别G2_BUILD_INPUT_CONSUMER、G5_QUANTITY_INSPECT、G4_STORY_FEEDBACK_2026_10_16.md。
+- 实际建造首轮Web session4317已exit1/CLOSED：30项操作断言通过后，第二次拉伸入口超时，运行错误0、截断探针JSON1；原失败完整保留 `evidence/build-input-web-manifest-f9b98d5f-2026-10-16T09-22-25-443Z/`，root实看entered/failure图。子线正在区分工具与生产状态，不签整条通过。
+- 当前唯一agent GPU为quantity实测 session71657，证据 `evidence/salvage-quantity-web-manifest-f9b98d5f-2026-10-16T09-24-47-762Z/`；公开匿名独立会话，仅使用源testFill库存，不用真实账号。未回结果不得签交易、布局、长按或性能通过。
+- 下一批只读核实受击镜头震、水平受击箭头、反应堆命中反馈及死亡任务时序，现阶段不改生产，避免当前同包实测漂移。仍保留完整自然剧情/搜撤/无尽、长冻结/OOM、真实账号和真机性能OPEN。
+
+## 最新用户验收交接：优化包保持 8b6203a3
+
+- 最新请求是“先把我说的优化合并我去验收一下”。本轮重新实核普通4453返回200，普通4453与QA4456的HTTP身份、manifest、main实际字节检查PASS；线性过滤、anisotropy1、terrain FLOW_CONTROL及导出器保留再次独立核对通过。用户验收入口仍为4453，不重复构建、提交或推送。
+- 为释放用户验收时的GPU，主动Ctrl+C结束第三关长测runner session57663（exit1）。该次测试未完成，不签通关、内存稳定或性能通过；原result.json中RUNNING为中断前存盘，详见同目录interruption.json，禁止恢复后误认仍运行。
+- G2输入和G5数量/检视的新生产改动不属于8b包；G5已冻结，G3/G4提示仍在开发。后续另行整合，不让同一验收URL内容漂移。
+
+## 当前接续：验收版保持，继续 G2 / G3-G4 / G5 三线功能
+
+- 上一轮已完成用户“先合优化验收”：8b6203a3 / 普通4453继续有效。当前是active goal继续全部G0-G6，**没有新同步main请求**；历史“同步更新main”为已执行旧请求，不能在恢复后当作最新指令、停止开发或重复推送。
+- 源10/15分支当前实核仍b276064942ae09c0227ec28d4cfda1d5ff006455。G2 BuildSession/BuildInput滚轮与鼠标源行为修正已冻结，523实际源消费/旧8b两组负控及124/541/607关联检查通过，尚未加入8b不可变包。
+- G5独占SalvagePage/SalvagePaint/新SalvageQuantity，补商人数值输入/滚轮/400ms后70ms加速重复及整备检查页售卖；实际源182检查/23场景/6负控通过，待最终交叉审冻结。G3/G4独占MissionHud/新MissionPrompt，补源install/capture/dead提示，正在实现，不为同步main擅停。
+- 长局调查未证实渲染Lua所有权泄漏：当前/旧2797各30轮3车生命周期回基线，旧末230秒缓存稳定；QA全状态累计68.4MB占日志99.27%，是已确认的观测负担但不是OOM唯一根因。详见G3_LONG_BATTLE_MEMORY_2026_10_16.md。
+- root仅QA新增显式--story-route投影，完整story/驾驶/相机/目标/内存不变，只保留启用的battle计时子集并停自动重复输出。192实际状态Lua投影14216断言/2负控通过，序列字节减少48.9%；不进入普通游戏包，不签OOM解决。旧完整模式与F8/F13/F14仍保留。
+- 当前唯一agent GPU为8b第三关自然长测：QA4456/server session36964，runner session57663，证据 `evidence/story-natural-s3-manifest-8b6203a3-2026-10-16T09-04-35-981Z/`，600秒自然命令，未开启F15，无跳过/改血/改时/代杀。共享用户机器，不能拿它签隔离性能。未回结果不得签通关或内存稳定。
+
+## 当前验收版：8b6203a3，按用户要求先合优化
+
+- 用户最新要求“先把我说的优化合并我去验收一下”。已整合当前工作区并生成不可变包 `.tmp/outgame-cached-1792140646894` / `manifest-8b6203a3.json`，529 Lua，fingerprint `093567d5747f4e2a4e121ff4cbadd4e992e1a0da1c79d880b43c10d2ec5f5bfb`。普通4453/session86618，QA4454/session34070；HTTP实际身份/manifest/main字节检查PASS。没有新增commit/push，也未变更main提交。
+- 包含线性过滤/anisotropy1、terrain FLOW_CONTROL及导出器保留、敌车最多8台纯显示预建和原时点消费、AI导航纯距离缓存；同时包含此前换车分帧、打捞加载/库存反馈/Debug候选。后者不是此次新增目标，已完成工作一并保留。
+- 原生小地图已真实重烘，1147输入，6项渲染功能断言PASS、Lua/资源错误0；完整validation因长帧仍FAIL，最大2094.46ms，不签性能改善。与旧2797长测尾段有GPU重叠，且编辑器runtime同时在用户环境运行，不用这次烘焙帧时间比较优化收益。检查器仅新增FLOW_CONTROL精确差异及EOL归一化断言，实际再跑PASS。
+- 敌车预建3780断言/9生命周期/5真实Mission场景/5负控PASS，相关21报告实际重跑；导航36436检查/3负控及实际EnemyDriver序列一致性PASS。GPU首用shader、内存及持续帧率仍待实测。
+- 旧2797第四关自然长测session49828已exit1/CLOSED：6阶段，最终Aborted(OOM)、F8超时，不能签完整关卡或稳定；保留 `evidence/story-natural-s4-manifest-279727d3-2026-10-16T08-35-25-117Z/result.json`。这是旧包，不能推断新包已修复OOM。
+- 新包短首刷检查session73171已exit0/CLOSED，证据 `evidence/story-natural-s4-manifest-8b6203a3-2026-10-16T08-52-36-826Z/`：3检查PASS、错误0，真实0→3敌及12123ms观察、正常返厅arrayBytes0。root实看entered/first-spawn-window两图；Web日志实际编译FLOW_CONTROL地形PS。F15测首刷VehicleView.Rebuild为0次，DriveView.New3次合计2ms、CombatView.Consume最高8ms；Tick全窗口峰94ms，不签整局不卡、GPU提速或内存稳定。首次场地下载63.5s、scene9.8s、collision6.6s，长加载仍保留。
+- 最终统一审计PASS：529Lua、146报告，关联freshness零漂移；实际HTTP身份及载荷PASS。普通4453已打开供用户验收，本地候选整合完成，不再重启G0或扩大本轮范围。
+
+## 当前接续：地形 FLOW_CONTROL、出生预建、导航与库存反馈并线
+
+- 上一轮是有效进展：279727d3线性采样/打捞加载/Debug真实Web验证完成，不重开G0。最新用户要求在`assets/Crater/material-1.xml`第3行加`<shader psdefines="FLOW_CONTROL" />`，已精确加入；导出器同步terrain分支，XML与Python AST检查通过。详见`G6_TERRAIN_FLOW_CONTROL_2026_10_16.md`。尚不属于2797旧冻结包，未以旧包签shader/GPU性能或更新旧小地图捕获签名。
+- 当前唯一GPU为2797/QA4452第四关自然完整路线，root exec session49828，证据`evidence/story-natural-s4-manifest-279727d3-2026-10-16T08-35-25-117Z/`；780秒驾驶命令时限，F15计时真实启用。尚在运行，不能签完成。
+- G3出生预建线独占SpawnViewCache/CombatView/DriveView/VehicleView/PartRig；root接Mission/TrialSession：加载阶段有限8台纯显示预建，按源事件原时点取出绑定，缺失/耗尽回退原路径；物理/伤害/武器系统不提前。候选待真实模块等价与生命周期检查及新包测量。
+- G1/G3持续开销线独占EnemyDriverNav：每次查询缓存纯距离/heuristic，不改jitter次数顺序/寻路tie/碰撞结果。G5独占SalvagePage/SalvageItem补全车库缺口红边、真实loose道具及原数量格式；各线尚未统一冻结/构建，不能套2797结果。
+- 找到并实核此前bb6e第五关结果为PASS：真实射击Boss死亡、四次跪地、S评价、自然片尾出现及回厅arrayBytes0、0运行错误。文件`evidence/story-natural-s5-manifest-bb6e7933-2026-10-16T05-40-34-475Z/result.json`；仍需实看其画面及逐页片尾证据，不借此签新片尾动效或全视觉/音频/性能。
+
+## 当前接续：打捞入口、换车、库存与 Debug，并改线性采样
+
+- 用户最新追加：显式各向异性改普通线性。陨坑 albedo/nra 数组 XML 改 trilinear，标牌/贴花 shader 改 filter_linear_mipmap，导出器同步；全局默认 FILTER_TRILINEAR、anisotropy=1，并在 Stop 恢复引擎原值。像素输入改变，必须真实重烘小地图，禁止只更新输入签名。
+- root 补 app.LobbyLoading：大厅→打捞仓库独立源加载页、六项实际准备、逐项呈现帧门槛；不是实际出击地图加载，也不覆盖改装返回。仓库分批搭建并延迟激活，shader 预热只做一次；取消与迟到回调有代际隔离。等待新包 Web 验证。
+- HomeVehicleSwitch 改台下协程装配，保存/回滚完成才升起；逐零件检查点可让帧，单零件和最终表面提交仍不可切，不能许诺每帧硬 3ms。实际 CPU 事务与旧实现负控通过，Web待测。
+- 打捞库存：缺 draft 不再覆盖 slot1，按已有 active/有效车位恢复；新旧仓库赠品区分。出发前恢复原版超库存禁用提示，保留真实总库存限制。已知1120轻方块大车超过999是合法缺口，不得直接绕过。用户旧会话具体库存尚未取证。
+- Debug 整套原来未迁移，新增用户调试面板/动作由独立子线实现，local Web 显式 -vox-debug=1；引擎保留的 -debug 参数会在 Lua 前触发启动错误，已避开。QA F8继续只读探针，非发布默认全开，不能说原版全部Debug能力已闭环。
+- 当前仍为 main@48ef15f2 后未提交候选，不重复同步/推送。此前 188b 证据仅历史包；下一包冻结、审计、真实点击/截图后再给入口。
+
+- 最新冻结 `.tmp/outgame-cached-1792139145715` / `manifest-279727d3.json` / fingerprint `0a623324f52c2694050d3bc8a19110970b0feea9fcb498f814cdc7e7e80789e8`：528 Lua、HTTP及统一审计PASS。普通4451、QA4452。真实Web打捞入口/六项准备/新会话起步车出击/Debug初始化8检查PASS、运行及资源错误0；入口耗时17,244ms，不能称加载提速或流畅度通过。证据 `evidence/lobby-loading-manifest-279727d3-2026-10-16T08-27-38-171Z/`，root已实看tablet加载页与Debug打开截图；PC首次截图落在黑色转场，修正工具为reveal后再拍，待补证。
+- 线性过滤已独立只读复核，scripts/assets显式各向异性覆盖无残留。实际小地图重烘及限制见 `G3_MINIMAP_LINEAR_BAKE_2026_10_16.md`，native捕获功能6检查通过，但仍有3次>100ms长帧，最大164.48ms，不签性能通过。用户旧账号库存与自然完整流程继续OPEN。
+- PC转场截图已补证：`evidence/lobby-loading-manifest-279727d3-2026-10-16T08-31-18-690Z/`，工具等待真实loading阶段且pageFrames>=2后截图，7检查PASS、错误0、16,794ms。root实看loading-pc.png为完整六行加载页，前一轮黑图是reveal前截帧，不能作为加载页视觉故障证据。最新用户采样改动已合入4451候选；没有提交或推送。
+
+## 当前接续：188b 首刷归因完成；下一包补反馈与地图缓存
+
+- 新包 `manifest-188b9f11.json` / `.tmp/outgame-cached-1792137130284` / fingerprint `559ce27637b23d125c678d8f56b4265baf52a3e2292a7440f5abca94d183e180` 已合入 CarUnit 等价减少排序/空修复；普通4447/session78841、QA4448/session64570，HTTP身份和实际main字节审计通过。后续候选已继续改动工作区，因此该包不能称与当前工作区全部一致。
+- S4首刷短诊断 session6922 已exit0/CLOSED：6检查、运行错误0、真实F15/0→3敌/12,409ms窗口/正常返厅arrayBytes0。root实看首刷截图；Tick峰151ms，其中同一嵌套装配窗口122ms、三次VehicleView.Rebuild共120ms，定位到显示装配。后续415Tick平均14.45ms、固定步1.89/Tick；非完整关卡或真机性能验收。详见 `G3_FIRST_SPAWN_WEB_2026_10_16.md`。
+- 下一包：击杀积分原CSS缓动/连破色/阴影与bump实际浏览器优先级；小地图缓存生命周期签名分类修正（1146真实像素输入和原图不变）；打捞超时原文与演出统计计时。各子线独占文件，完成后再统一构建，不能借188b签新功能。
+- 修正上一节候选描述：打捞“源已关闭旧引导”的初判被校验SHA后的实际JS执行推翻，已撤回生产和旧检查改动，保留正确原目标算法。新报告 `G5_EXIT_CONTRACT_2026_10_16.md` 记录误判与反证。共享回归工具的历史负控已固定真实9541修复前代码，不再依赖移动HEAD。
+
+## 当前接续：main 已同步；战斗开销与 G5 恢复并行收尾
+
+- GitHub `backup/main` 与本地 `main` 已实际同步到 `48ef15f2c9c95c400f91ee6e34309399d02b3733`，提交时间 `2026-10-16 15:35:59 +0800`；最新 `git ls-remote` 再次确认相同 SHA。下方同步前状态为历史，不再代表待推送。后续尚在验证的优化不自动推送。
+- eb4f 首次匹配真实流程已 exit0/CLOSED：15 检查、144 样本、运行错误0，公开匹配入口、首次 DSP voice SoundSource 播放、prep→live、设置音量修改/恢复、正常返厅通过。证据 `evidence/match-radio-web-manifest-eb4f7ad2-post-main-2026-10-16T07-46-08-324Z/`；root 已看 live 实图。没有声部跨过设置操作，故在播增益即时变化仍未观测；不签可闻连续性或性能稳定。
+- QA 首刷敌计时已冻结：实际 `ConsumeWorldEvents→CombatView.Consume→DriveView.New→VehicleView.Rebuild`，附最多五单位 driver/rotor/weapon，默认关闭；45 检查/8 负控及关联回归通过。新观测须新 QA 服务与 HTTP 身份审计，不借旧153ms运行签归因。报告 `G3_FIRST_SPAWN_CPU_TIMING_2026_10_16.md`。
+- G5 实际模块云恢复离线链61检查/5负控通过，覆盖无尽检查点、清文件新会话恢复、打捞结算幂等/失败回滚、在途版本、坏记录、墓碑和账号切换。受控 SDK 不等于真实账号，后者及自然成功撤离仍 OPEN。报告 `G5_CLOUD_RECOVERY_2026_10_16.md`。
+- 当前并线：CarUnit 等价减少预算/核心重复排序与满车空修复；QA 首刷敌短诊断正常返厅；修正部分回归工具负控依赖 HEAD 的过期边界。冻结后统一合包，再实测首刷与持续负载。G0–G6 总目标保留，不重开 G0、不把局部测试当完整1:1交付。
+
 ## 当前接续：按用户明确要求同步 main
 
 - 用户最新明确要求“同步更新一下main分支”，取代下文等待稳定才同步的条件；本轮整理最新迁移集成内容提交到本地main并推送GitHub backup/main。此同步不代表稳定版、完整1:1迁移或性能验收通过。

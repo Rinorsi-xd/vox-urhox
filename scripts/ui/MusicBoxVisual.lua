@@ -1,3 +1,5 @@
+local SourceRelief=require("ui.SourceRelief")
+
 local Panel=require 'urhox-libs/UI/Widgets/Panel'
 local D=require 'ui.SourceDraw';local MD=require 'ui.MusicDraw'
 local Frame=Panel:Extend('VoxMusicFrame')
@@ -80,7 +82,7 @@ local Console=require('ui.ActionButton'):Extend('VoxMusicConsole')
 function Console:Render(vg)
     MD.Begin(vg);local r=self:GetAbsoluteLayout();local p=self.player;local small=self.small;local k=small and self.consoleScale or 1
     nvgSave(vg);nvgTranslate(vg,r.x,r.y);nvgScale(vg,k,k);local w,h=r.w/k,r.h/k
-    require('ui.SourceRelief').Draw(vg,0,0,w,h,false,false,{0,0,w-14,0,w,14,w,h,0,h},true)
+    SourceRelief.Draw(vg,0,0,w,h,false,false,{0,0,w-14,0,w,14,w,h,0,h},true)
     if self.state.hovered then D.Rect(vg,0,0,w,h,{255,255,255,30}) end
     MD.Stroke(vg,0,0,w,h,{142,185,204,128});D.Rect(vg,0,0,3,h,D.orange)
     local art=small and 50 or 74;local ax=small and 11 or 13;local tx=ax+art+(small and 10 or 14)

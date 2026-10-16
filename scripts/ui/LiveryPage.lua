@@ -1,3 +1,11 @@
+local Config=require("Config")
+local LiveryThumbnails=require("ui.LiveryThumbnails")
+local ResourceGate=require("app.ResourceGate")
+local LiverySession=require("construction.LiverySession")
+local UiSound=require("audio.UiSound")
+local LiveryControls=require("controls.LiveryControls")
+local ImageCache=require("urhox-libs/UI/Core/ImageCache")
+
 local UI=require 'urhox-libs/UI'
 local Widgets=require 'ui.LiveryWidgets'
 local Visual=require 'ui.LiveryVisual'
@@ -35,7 +43,7 @@ local function Props(s)
     if st and st.kind=='shape' then
         local side=(268-32)/9
         for channel=1,#st.colors do
-            for i,c in ipairs(require('Config').PALETTE) do
+            for i,c in ipairs(Config.PALETTE) do
                 local b=Button(s,s.propControls,{kind='swatch',channel=channel,hex=c.hex,text='',tooltip=c.name},function() session:Edit(function(q) q.c[channel]=c.hex end,true) end)
                 Place(b,((i-1)%9)*(side+4),y+17+math.floor((i-1)/9)*(side+4),side,side);s.colorButtons[#s.colorButtons+1]=b
             end
@@ -69,8 +77,8 @@ function M.Layout(s)
     Place(s.hint,0,h-120.6875,w,32.6875)
 end
 function M.Create(owner)
-    local s={owner=owner,app=owner.app,active=true,group='角色',groups={},barButtons={},revision=-1,propHeight=133.96875,thumbnails=require('ui.LiveryThumbnails').New(),gate=require('app.ResourceGate').New()}
-    s.session=require('construction.LiverySession').New(s.app,require('audio.UiSound').Play);s.controls=require('controls.LiveryControls').New(s.session);owner.livery=s
+    local s={owner=owner,app=owner.app,active=true,group='角色',groups={},barButtons={},revision=-1,propHeight=133.96875,thumbnails=LiveryThumbnails.New(),gate=ResourceGate.New()}
+    s.session=LiverySession.New(s.app,UiSound.Play);s.controls=LiveryControls.New(s.session);owner.livery=s
     s.root=UI.Panel{position='absolute',width='100%',height='100%',pointerEvents='box-none'};s.root.session=s.session
     s.surface=Widgets.Surface{position='absolute',width='100%',height='100%'};s.surface.owner=s;s.root:AddChild(s.surface)
     s.lib=Visual.Panel{position='absolute',side='left'};s.lib.owner=s;s.root:AddChild(s.lib)
@@ -115,7 +123,7 @@ end
 function M.Leave(owner)
     local s=owner.livery;if not s then return end;s.active=false;s.controls:Cancel();s.session:Dispose();s.gate:Cancel()
     for _,picker in ipairs(s.pickers or {}) do if picker.isOpen_ then picker:Close() end end
-    s.thumbnails:Dispose();local images=require('urhox-libs/UI/Core/ImageCache')
+    s.thumbnails:Dispose();local images=ImageCache
     for _,st in ipairs(Data.Catalog().list) do images.Release(st.texture);cache:ReleaseResource('Image',st.texture,false) end
     for _,name in ipairs({'custom-color','bar-undo','bar-redo','bar-clear','bar-done'}) do images.Release('Livery/'..name..'.png');cache:ReleaseResource('Image','Livery/'..name..'.png',false) end
     owner.livery=nil

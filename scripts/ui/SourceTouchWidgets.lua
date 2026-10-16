@@ -1,4 +1,6 @@
 -- Source touch-controls.css relief; rendered inside the UI-owned VG frame.
+local SourceFonts=require("ui.SourceFonts")
+
 local UI=require 'urhox-libs/UI'
 local D=require 'ui.SourceDraw'
 local Button=require('ui.ActionButton'):Extend('VoxSourceTouchButton')
@@ -7,7 +9,7 @@ local contexts=setmetatable({},{__mode='k'})
 local function Font(vg)
     D.Begin(vg)
     if not contexts[vg] then
-        local face=nvgCreateFont(vg,'vox-touch',require('ui.SourceFonts').Resolve().bold)
+        local face=nvgCreateFont(vg,'vox-touch',SourceFonts.Resolve().bold)
         assert(face>=0,'Source touch font failed to load')
         contexts[vg]=true
     end

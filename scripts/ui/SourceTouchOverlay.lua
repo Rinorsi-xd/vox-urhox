@@ -1,3 +1,6 @@
+local SourceTouchDriveWidgets=require("ui.SourceTouchDriveWidgets")
+local TouchEditorWidgets=require("ui.TouchEditorWidgets")
+
 local UI=require 'urhox-libs/UI'
 local Widgets=require 'ui.SourceTouchWidgets'
 local Gestures=require 'controls.TouchGestures'
@@ -15,7 +18,7 @@ function M.Create(root,playfield,adapter,actions,options,extras)
     local width,height=UI.GetViewportSize();local dpr=graphics:GetDPR()
     local cssWidth,cssHeight=graphics:GetWidth()/dpr,graphics:GetHeight()/dpr
     local layout=adapter.mode=='drive' and Layout.Drive(width,height,cssWidth,cssHeight,UI.GetSafeAreaInsets(),false,adapter.prefs and adapter.prefs.size) or Layout.Calculate(width,height,cssWidth,cssHeight,UI.GetSafeAreaInsets(),adapter.mode,actions)
-    local drive=adapter.mode=='drive';local DriveWidgets=drive and require('ui.SourceTouchDriveWidgets')
+    local drive=adapter.mode=='drive';local DriveWidgets=drive and SourceTouchDriveWidgets
     local k=layout.k;adapter.width=cssWidth;adapter.height=cssHeight
     local layer={playfield=playfield,buttons={},menuButtons={},menu=false,blocked=false,disposed=false,layout=layout,aux='boost',prefs=adapter.prefs}
     local container=UI.Panel{position='absolute',width='100%',height='100%',pointerEvents='box-none'}
@@ -58,7 +61,7 @@ function M.Create(root,playfield,adapter,actions,options,extras)
     local function Button(parent,id,text,props)
         props=props or {};props.touchScale=k;props.text=text;props.padding=0;props.minWidth=0;props.minHeight=0
         if drive then props.sourceScale=k;props.kind='segment' end
-        local b=(drive and require('ui.TouchEditorWidgets').Button or Widgets.Button)(props);parent:AddChild(b);return b
+        local b=(drive and TouchEditorWidgets.Button or Widgets.Button)(props);parent:AddChild(b);return b
     end
     for _,id in ipairs(actions) do if layout.actions[id] then
         local b

@@ -1,3 +1,7 @@
+local InventoryShadows=require("ui.InventoryShadows")
+local SourceBuildLayout=require("ui.SourceBuildLayout")
+local TouchMode=require("controls.TouchMode")
+
 local UI=require 'urhox-libs/UI'
 local Panel=require 'urhox-libs/UI/Widgets/Panel'
 local Defs=require 'parts.Defs'
@@ -23,7 +27,7 @@ function Slot:Render(vg)
             if p.dropTarget and not focused then D.Rect(vg,r.x,r.y+r.h-4,r.w,4,{230,187,112,255}) end end
         D.Text(vg,tostring(p.index%10),r.x+5,r.y+2,14,Feedback.Color(p.active and D.ink or {153,182,208,255},focused),'vox-display')
         if def then
-            local size=p.thumbnailSize;require('ui.InventoryShadows').Image(self,vg,p.partType,'slot',{x=r.x+(r.w-size)/2,y=r.y+8,w=size,h=size})
+            local size=p.thumbnailSize;InventoryShadows.Image(self,vg,p.partType,'slot',{x=r.x+(r.w-size)/2,y=r.y+8,w=size,h=size})
             Feedback.Image(self,vg,Theme.Thumbnail(p.partType),{x=r.x+(r.w-size)/2,y=r.y+8,w=size,h=size},focused)
             nvgSave(vg);nvgIntersectScissor(vg,r.x+2,r.y+r.h-18,r.w-4,16)
             D.Text(vg,def.name,r.x+r.w/2,r.y+r.h-17,p.compactInventory and 10 or 11,p.active and D.ink or D.white,'vox-body',NVG_ALIGN_CENTER);nvgRestore(vg)
@@ -45,7 +49,7 @@ local M={}
 function M.Create(session,compact,onHover)
     local inventory=session.inventory;local slots={};local children={}
     local sourceMain=not onHover
-    local layout=require('ui.SourceBuildLayout').ForWidth(sourceMain and UI.GetWidth() or 1920)
+    local layout=SourceBuildLayout.ForWidth(sourceMain and UI.GetWidth() or 1920)
     local sw,sh=UI.GetViewportSize();local compactInventory=not sourceMain and sh<=600 and sw>sh
     if not sourceMain then layout.slot=compactInventory and 54 or 64;layout.thumbnail=compactInventory and 29 or 43;layout.hotbar=layout.slot*10+(compactInventory and 5 or 8)*9 end
     for i=1,10 do
@@ -53,7 +57,7 @@ function M.Create(session,compact,onHover)
             onClick=function(_,e) if not e or e:IsTouch() or e:IsPrimaryButton() then session:SelectHotbar(i) end end,
             onPointerUp=function(e) if e:IsSecondaryButton() then session:ClearHotbar(i) end end,
             onLongPressStart=function()
-                if sourceMain and require('controls.TouchMode').Enabled() then session:OpenInventory()
+                if sourceMain and TouchMode.Enabled() then session:OpenInventory()
                 else session:ClearHotbar(i) end
             end,
             onPointerEnter=function() if onHover and inventory.hotbar[i] then onHover(inventory.hotbar[i]) end end}

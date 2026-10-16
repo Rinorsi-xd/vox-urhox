@@ -1,3 +1,5 @@
+local ImportedImageCache=require("urhox-libs/UI/Core/ImageCache")
+
 local D=require 'ui.SourceDraw'
 local R=require 'ui.ReticleDraw'
 local State=require 'ui.ReticleState'
@@ -20,7 +22,7 @@ local function Chip(vg,points,fill,edge,width,fix,k)
     R.Poly(vg,points,fill,edge,width)
 end
 function M.Render(vg,v,l)
-    local ImageCache=require 'urhox-libs/UI/Core/ImageCache'
+    local ImageCache=ImportedImageCache
     local k=l.k;local s=v.session
     local key=l.width..'/'..l.height..'/'..s.weapons.current..'/'..#s.weapons.groups
     if v.chipLayoutKey~=key then v.chipLayoutKey=key;v.chipLayout=State.Chips(l,s.weapons.groups,s.weapons.current) end

@@ -1,6 +1,11 @@
 -- Source: three/src/drive/{weaponFx,effects}.js. Rendering consumes events only;
 -- damage remains in WeaponSystem. Bounded transient lists, five base batches,
 -- a lazy non-noisy arc batch and one scene-owned transient point light.
+local CombatLight=require("render.CombatLight")
+local MissileEffects=require("render.MissileEffects")
+local MissileView=require("render.MissileView")
+local DrillEffects=require("render.DrillEffects")
+
 local V=require "core.Math3"
 local Batch=require "render.EffectBatch"
 local Quality=require "render.Quality"
@@ -26,7 +31,7 @@ end
 function M.New(scene,groundAt)
     local self=setmetatable({},M)
     self.root=scene:CreateChild("CombatEffects");self.time=0;self.events=0;self.disposed=false
-    self.light=require('render.CombatLight').New(self.root)
+    self.light=CombatLight.New(self.root)
     local mobile=Quality.current.name=="mobile"
     self.groundAt=groundAt or function() return 0 end
     self.chips=Chips.New(self.root,mobile and 96 or 360,self.groundAt)
@@ -34,7 +39,7 @@ function M.New(scene,groundAt)
     self.batches={Ribbon=Batch.New(self.root,"Ribbon",mobile and 640 or 2400),
         Streak=Batch.New(self.root,"Streak",mobile and 240 or 1000),Glow=Batch.New(self.root,"Glow",mobile and 640 or 2200),
         Ring=Batch.New(self.root,"Ring",40),Smoke=Batch.New(self.root,"Smoke",self.maxSmoke)}
-    self.missiles=require('render.MissileEffects').New(self)
+    self.missiles=MissileEffects.New(self)
     self:Clear();return self
 end
 function M:Reserve(options)
@@ -45,7 +50,7 @@ function M:Reserve(options)
     if (options.chips or 0)>0 then self.chips:Reserve(options.chips) end
     if (options.missiles or 0)>0 then
         if not self.missiles.view then
-            self.missiles.view=require('render.MissileView').New(self.root,Quality.current.name=='mobile' and 64 or 128)
+            self.missiles.view=MissileView.New(self.root,Quality.current.name=='mobile' and 64 or 128)
         end
         self.missiles.view:Reserve(options.missiles)
     end
@@ -168,7 +173,7 @@ function M:Consume(events,remote)
     for _,e in ipairs(events) do
         if self.onEvent then self.onEvent(e,remote) end
         self.events=self.events+1
-        if e.type=='drill' then require('render.DrillEffects').Event(self,e)
+        if e.type=='drill' then DrillEffects.Event(self,e)
         elseif e.type=="shot" then self:Shot(e)
         elseif e.type=='blast' and e.kind=='missile' then self.missiles:Blast(e)
         elseif e.type=="beam" then self:Beam(e)
@@ -197,7 +202,7 @@ function M:Consume(events,remote)
         end
     end
 end
-function M:Path(points,width,color,alpha,core,arc)
+function M:Path(points,width,color,alpha,core,arc,segments)
     local batch=self.batches.Ribbon
     if arc then
         if not self.batches.Arc then
@@ -206,17 +211,25 @@ function M:Path(points,width,color,alpha,core,arc)
         end
         batch=self.batches.Arc
     end
-    local n=#points-1
+    local n=segments or #points-1
     for i=1,n do batch:Segment(points[i],points[i+1],width,color,alpha,core,(i-1)/n,i/n) end
 end
 function M:Helix(b,tip,len,radius,width,color,alpha,spin)
     local u,v=Basis(b.dir);local turns=len/1.1;local n=math.max(1,math.min(self.maxHelix,math.ceil(turns*14)))
-    local pts={}
+    -- Reuse the sampled path. Each sample previously allocated the subtraction
+    -- plus six temporary vectors before the batch copied it into its buffer.
+    local pts=self.helixPoints or {};self.helixPoints=pts
+    local dx,dy,dz=tip[1]-b.from[1],tip[2]-b.from[2],tip[3]-b.from[3]
     for i=0,n do
         local s=i/n;local a=s*turns*math.pi*2+b.phase+spin;local r=radius*math.min(1,s*len/.6)
-        pts[#pts+1]=At(At(At(b.from,V.Sub(tip,b.from),s),u,math.cos(a)*r),v,math.sin(a)*r)
+        local cr,sr=math.cos(a)*r,math.sin(a)*r
+        local p=pts[i+1] or {};pts[i+1]=p
+        p[1]=((b.from[1]+dx*s)+u[1]*cr)+v[1]*sr
+        p[2]=((b.from[2]+dy*s)+u[2]*cr)+v[2]*sr
+        p[3]=((b.from[3]+dz*s)+u[3]*cr)+v[3]*sr
     end
-    self:Path(pts,width,color,alpha,.3,true)
+    -- The cache can contain a longer previous path; submit only this sample count.
+    self:Path(pts,width,color,alpha,.3,true,n)
 end
 function M:Update(dt,projectiles,camera)
     if self.disposed then return end

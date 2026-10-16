@@ -1,5 +1,7 @@
 -- testDrive._syncPlayer -> VehicleView.paintFlash: restored parts get the
 -- original additive cyan shell (.34s) and non-joined parts pop for .2s.
+local NodeVisibility=require("render.NodeVisibility")
+
 local Coord=require 'core.Coord'
 local Surface=require 'render.JoinedSurface'
 local M={};M.__index=M
@@ -52,7 +54,7 @@ function M:Destroy(item)
 end
 function M:Drop(item)
     if self.poolSize>0 and not self.clearing and self.view.visuals[item.id]==item.vis then
-        require('render.NodeVisibility').Set(item.node,false,true)
+        NodeVisibility.Set(item.node,false,true)
         if #self.pool>=self.poolSize then self:Destroy(table.remove(self.pool,1)) end
         self.pool[#self.pool+1]=item
     else self:Destroy(item) end
@@ -69,7 +71,7 @@ end
 function M:Activate(item,options)
     item.t0=self.time;item.color=options.color or {1,1,1};item.pop=options.pop~=false and not item.vis.joined
     item.node.position=item.vis.node.position;item.node.rotation=item.vis.node.rotation
-    require('render.NodeVisibility').Set(item.node,true)
+    NodeVisibility.Set(item.node,true)
     if item.sources then
         local localFromWorld=item.vis.node.worldTransform:Inverse()
         for _,entry in ipairs(item.sources) do entry.node:SetTransform(localFromWorld*entry.source.node.worldTransform) end
@@ -162,7 +164,7 @@ function M:Update(dt)
     self.time=self.time+math.max(0,dt or 0)
     if #self.items==0 then return end
     self.root:SetTransform(self.view.root.worldPosition,self.view.root.worldRotation,self.view.root.worldScale)
-    require('render.NodeVisibility').Set(self.root,self.view.root.enabled,true)
+    NodeVisibility.Set(self.root,self.view.root.enabled,true)
     for i=#self.items,1,-1 do local item=self.items[i]
         if self.time-item.t0>=.34 or self.view.visuals[item.id]~=item.vis then self:Drop(item);table.remove(self.items,i)
         else self:Apply(item) end

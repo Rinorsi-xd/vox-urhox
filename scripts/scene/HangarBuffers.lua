@@ -1,4 +1,8 @@
 -- Transient half-resolution reflection; environment meshes are stored in assets.
+local WindowViewports=require("render.WindowViewports")
+local ReflectionFilter=require("render.ReflectionFilter")
+local RenderTargetLifetime=require("render.RenderTargetLifetime")
+
 local REFLECTOR_MASK=2
 local Quality=require "render.Quality"
 local Garage={}
@@ -22,7 +26,7 @@ end
 function Garage:ResizeReflection(cam)
     local quality=Quality.current
     local width,height=graphics:GetWidth(),graphics:GetHeight()
-    local viewport=require('render.WindowViewports').Get(0)
+    local viewport=WindowViewports.Get(0)
     if self.renderSize then width,height=self.renderSize[1],self.renderSize[2]
     elseif cam and viewport and viewport.camera==cam then
         local rect=viewport.rect
@@ -47,8 +51,8 @@ function Garage:ResizeReflection(cam)
     surface.updateMode = SURFACE_MANUALUPDATE
     surface:QueueUpdate()
     self.nextReflection=0
-    local ok,filtered=pcall(require('render.ReflectionFilter').New,tex)
-    if not ok then require('render.RenderTargetLifetime').Retire(tex);error(filtered) end
+    local ok,filtered=pcall(ReflectionFilter.New,tex)
+    if not ok then RenderTargetLifetime.Retire(tex);error(filtered) end
     local previous,previousFilter=self.reflTex,self.reflFilter
     self.reflTex = tex
     self.reflFilter=filtered
@@ -56,7 +60,7 @@ function Garage:ResizeReflection(cam)
     for _, m in ipairs(self.reflMats) do filtered:Bind(m) end
     filtered:Queue()
     if previousFilter then previousFilter:Dispose() end
-    if previous then require('render.RenderTargetLifetime').Retire(previous) end
+    if previous then RenderTargetLifetime.Retire(previous) end
 end
 
 

@@ -1,3 +1,5 @@
+local WorkshopPaint=require("ui.WorkshopPaint")
+
 local UI=require 'urhox-libs/UI'
 local D=require 'ui.SourceDraw'
 local Ease=require('ui.SourceButtonMotion').Ease
@@ -43,7 +45,7 @@ function Layer:Render(vg)
         nvgSave(vg);nvgGlobalAlpha(vg,Ease(math.min(1,reveal/.5),'ease')*fade)
         local x=w*.06-30*(1-Ease(math.min(1,reveal/.6),false));local y=h*.85-236.59375
         Text(vg,'MOST VALUABLE PLAYER · 本局最佳',x,y,14,{242,193,78,255},8,17)
-        require('ui.WorkshopPaint').Image(vg,'Mvp/title.png',{x=x-60,y=y+17-60,w=420,h=223},1,.5)
+        WorkshopPaint.Image(vg,'Mvp/title.png',{x=x-60,y=y+17-60,w=420,h=223},1,.5)
         local who=show.entry.unit.name;local maxWidth=w*.85-125;local size=30
         while size>16 and Width(vg,who,size,3)>maxWidth do size=size-1 end
         Text(vg,who,x,y+129.59375,size,{255,255,255,255},3,37,{{y=2,color={0,0,0,170}}})

@@ -1,5 +1,7 @@
 -- Four authored surfaces get fixed-resolution, on-demand NanoVG canvases.
 -- Independent offscreen contexts never touch the UI frame or viewport.
+local RenderTargetLifetime=require("render.RenderTargetLifetime")
+
 local Projection=require 'render.HangarBlueprintPanel'
 local Stats=require 'render.HangarStatsPanel'
 local Signs=require 'render.HangarBaySigns'
@@ -71,7 +73,7 @@ function M:Dispose()
         e.material:SetSurfaceTexture(e.sampler,e.fallback)
         e.material:SetSurfaceTexture('canvas_map',e.fallback)
         e.material:SetShaderParameter('canvas_enabled',Variant(0.0))
-        if e.texture then require('render.RenderTargetLifetime').Retire(e.texture);e.texture=nil end
+        if e.texture then RenderTargetLifetime.Retire(e.texture);e.texture=nil end
         e.info=nil
     end
     self.bp=nil;self.info=nil;self.provider=nil

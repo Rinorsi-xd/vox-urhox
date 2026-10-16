@@ -1,3 +1,14 @@
+local ResourceData=require("core.ResourceData")
+local Prefab=require("construction.Prefab")
+local Blueprint=require("construction.Blueprint")
+local Garage=require("construction.Garage")
+-- Load optional/cyclic dependencies once, without changing first-use order.
+local DeferredModules=setmetatable({},{__index=function(modules,name)
+    local module=require(name)
+    rawset(modules,name,module)
+    return module
+end})
+
 local Data=require('core.ResourceData').Read('UI/Outgame.json')
 local Rules=require('core.ResourceData').Read('UI/SalvageRules.json')
 local M={};M.__index=M
@@ -5,9 +16,11 @@ local Stash=require('salvage.StashRules')
 local Valid=Stash.Valid
 M.Valid=Valid
 function M.New(app)
-    local self=setmetatable({app=app,store=require('storage.BlueprintStore').New(app.isValidation and 'vox-validation-salvage' or 'vox-salvage')},M)
-    self.data=self.store:Read('stash',Valid) or {v=1,credits=8000,items={scrap=36,wire=8,alloy=3,repair=2,smokePack=2,ration=3,drive=1},op=1}
-    if Rules.testFill>0 then for id in pairs(Data.items) do self.data.items[id]=math.max(Rules.testFill,self.data.items[id] or 0) end;self:Save() end
+    local self=setmetatable({app=app,store=DeferredModules['storage.BlueprintStore'].New(app.isValidation and 'vox-validation-salvage' or 'vox-salvage')},M)
+    local saved=self.store:Read('stash',Valid);self.fresh=not saved
+    self.data=saved or Stash.Initial()
+    if Rules.testFill>0 then for id in pairs(Data.items) do self.data.items[id]=math.max(Rules.testFill,self.data.items[id] or 0) end end
+    if self.fresh or Rules.testFill>0 then self:Save() end
     return self
 end
 function M:Owned(id) return self.data.items[id] or 0 end
@@ -71,12 +84,21 @@ function M:Trade(id,qty,sell)
     if not ok then self.data.credits=previous.credits;self.data.items[id]=previous.count end
     return ok,err
 end
+local function StoredVehicle(store)
+    local state=store:LoadGarageState();local active=state and state.active
+    local saved=active and store:LoadSlot(active)
+    if saved then return saved,active end
+    for i=1,20 do local data=store:LoadSlot(i);if data then return data,i end end
+end
 function M.VehicleData(app,mode)
     if (app.lobby or 'arena')==mode then return app.blueprint:ToTable() end
     local context=app.lobbies and app.lobbies[mode]
     if context then return context.data end
     app.salvageLobby=app.salvageLobby or M.New(app)
-    return app.salvageLobby.store:Read('draft') or require('core.ResourceData').Read('Warehouse/Manifest.json').starter
+    local saved=StoredVehicle(app.salvageLobby.store)
+    if saved then return saved end
+    if app.salvageLobby.fresh then return ResourceData.Read('Warehouse/Manifest.json').starter end
+    return Prefab.BuildEmpty(Blueprint.New()):ToTable()
 end
 function M.Switch(app,mode)
     if (app.lobby or 'arena')==mode then return true end
@@ -87,23 +109,21 @@ function M.Switch(app,mode)
     local context=app.lobbies[mode]
     if not context then
         local store=app.salvageLobby.store
-        local data=store:Read('draft')
+        -- Source enters the selected saved bay; a missing draft is not a new garage.
+        local data,slot=StoredVehicle(store)
         if not data then
-            local bp=require('construction.Blueprint').New():Load(require('core.ResourceData').Read('Warehouse/Manifest.json').starter)
+            local bp=Blueprint.New()
+            if app.salvageLobby.fresh then bp:Load(ResourceData.Read('Warehouse/Manifest.json').starter)
+            else Prefab.BuildEmpty(bp) end
             data=bp:ToTable()
-            if Rules.testFill==0 then
-                for _,p in ipairs(data.parts) do if p[1]~='core' then local id='part:'..p[1];app.salvageLobby.data.items[id]=(app.salvageLobby.data.items[id] or 0)+1 end end
-                for _,id in ipairs({'cube','slope','corner','inner','half','plate'}) do app.salvageLobby.data.items['part:'..id]=(app.salvageLobby.data.items['part:'..id] or 0)+40 end
-                for _,id in ipairs({'drive1','steer1'}) do app.salvageLobby.data.items['part:'..id]=(app.salvageLobby.data.items['part:'..id] or 0)+2 end
-                app.salvageLobby.data.items['part:laser1']=(app.salvageLobby.data.items['part:laser1'] or 0)+1
-            end
-            app.salvageLobby:Save();store:SaveSlot(1,bp);store:SaveGarageState(1)
+            slot=1;ok,err=store:SaveSlot(slot,bp);if not ok then return false,err end
         end
+        ok,err=store:SaveGarageState(slot);if not ok then return false,err end
         context={store=store,data=data};app.lobbies[mode]=context
     end
     local oldStore,oldBays,oldMode=app.store,app.bays,app.lobby
     app.store=context.store;app.lobby=mode
-    if not context.bays then context.bays=require('construction.Garage').New(app.blueprint,context.store,function(data) return app:LoadBlueprint(data) end,true) end
+    if not context.bays then context.bays=Garage.New(app.blueprint,context.store,function(data) return app:LoadBlueprint(data) end,true) end
     app.bays=context.bays
     ok,err=app:LoadBlueprint(context.data)
     if not ok then app.store=oldStore;app.bays=oldBays;app.lobby=oldMode;return false,err end

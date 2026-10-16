@@ -1,5 +1,9 @@
 -- Read the exported native mesh, reversing the exporter's X/winding conversion.
 -- Projection shares exactly the triangles displayed by PartRig, not cell boxes.
+local Defs=require("parts.Defs")
+local JoinedSurface=require("render.JoinedSurface")
+local PartAssets=require("parts.PartAssets")
+
 local M={};local meshes={};local tick=0;local cachedVertices=0
 function M.Read(layer)
     tick=tick+1;local old=meshes[layer.model];if old then old.tick=tick;return old.data end
@@ -48,10 +52,10 @@ function M.Skip(slot)
         or slot:find('flag') or slot:find('flame') or slot:find('lamp') or slot:find('Fx') or slot:find('fx')
 end
 function M.Fixed(part)
-    local def=require('parts.Defs').PARTS[part.type]
+    local def=Defs.PARTS[part.type]
     if not def or def.weapon or def.wheel or def.leg or def.mech then return false end
-    if require('render.JoinedSurface').IsJoined(part) then return true end
-    local data=require('parts.PartAssets').Get(part.type,part.rot)
+    if JoinedSurface.IsJoined(part) then return true end
+    local data=PartAssets.Get(part.type,part.rot)
     return not data.segments or data.segments==cjson.null
 end
 return M

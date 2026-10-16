@@ -1,4 +1,10 @@
 -- Port of frozen shared/ui/workshop.js and its final workshop.css rules.
+local Config=require("Config")
+local Defs=require("parts.Defs")
+local VoxTheme=require("ui.VoxTheme")
+local WorkshopPreview=require("render.WorkshopPreview")
+local GarageDialogs=require("ui.GarageDialogs")
+
 local UI=require 'urhox-libs/UI'
 local D=require 'ui.SourceDraw'
 local Paint=require 'ui.WorkshopPaint'
@@ -181,7 +187,7 @@ function Page:Render(vg)
         nvgRestore(vg)
         EntranceBegin(vg,ws,4)
         local factsY=barsY+144;D.Rect(vg,x+pad,y+factsY,width,1,{122,216,255,38})
-        local b=a.blueprint.bb;local cell=require('Config').CELL
+        local b=a.blueprint.bb;local cell=Config.CELL
         local dims=string.format('%.1f × %.1f × %.1f m',(b.maxX-b.minX+1)*cell,(b.maxY-b.minY+1)*cell,(b.maxZ-b.minZ+1)*cell)
         local facts={{'零件',D.Number(a.stats.parts or 0)},{'质量',string.format('%.1f t',(a.stats.mass or 0)/1000)},{'尺寸',dims}}
         if self.shop then local price=Shop.Price(p.id);facts[#facts+1]={'整车价格',price>0 and D.Number(price) or '免费'} end
@@ -208,11 +214,11 @@ function Page:Render(vg)
         for i=1,math.min(7,#a.items) do
             local it=a.items[i];local px=x+pad+(i-1)*62;local py=y+loadY+24
             D.Panel(vg,px,py,56,56,0,{30,60,95,179},{10,22,38,217})
-            local category=require('parts.Defs').PARTS[it.id].cat
+            local category=Defs.PARTS[it.id].cat
             local edge=category=='weapon' and {255,138,76,255} or category=='function' and {95,211,138,255} or category=='shield' and {255,180,60,255} or D.orange
             D.Rect(vg,px,py+53,56,3,edge)
             D.Rect(vg,px,py,1,56,{122,216,255,56});D.Rect(vg,px+55,py,1,56,{122,216,255,56})
-            self:RenderBackgroundImage(vg,require('ui.VoxTheme').Thumbnail(it.id),{x=px+6,y=py+6,w=44,h=44},'contain',nil)
+            self:RenderBackgroundImage(vg,VoxTheme.Thumbnail(it.id),{x=px+6,y=py+6,w=44,h=44},'contain',nil)
             D.Text(vg,'×'..it.count,px+53,py+40,12,nil,'vox-tabular',NVG_ALIGN_RIGHT,nil,nil,nil,Paint.textShadows.count)
         end
         if #a.items==0 then D.Text(vg,'只有核心驾驶舱',x+pad,y+loadY+24,13,{219,238,255,128},'vox-body') end
@@ -315,7 +321,7 @@ function M.Create(s)
         if ws.view=='feature' and view~='feature' then Carousel.Leave(ws) end
         ws.view=view;ws.selected=view=='feature' and FeaturedSelection(ws) or id or ws.selected;ws.from=from or ws.from;s.revision=-1;ws.elapsed=0
         if view=='detail' then
-            s.workshopPreview=s.workshopPreview or require('render.WorkshopPreview').New(s.app);s.workshopPreview:Show(ws.selected)
+            s.workshopPreview=s.workshopPreview or WorkshopPreview.New(s.app);s.workshopPreview:Show(ws.selected)
         else M.Leave(s);s.app:HomeView('workshop') end
         if view~='feature' then Entrance.Start(ws,view) end
     end
@@ -352,8 +358,8 @@ function M.Create(s)
         end
         page.shelfWidgets={}
         if not page.shop then
-            page.shelfWidgets[#page.shelfWidgets+1]=Add('导入蓝图','download',w-pad-439.140625,page.shelfY+2,113,40,function() require('ui.GarageDialogs').Code(s,true) end,'ghost')
-            page.shelfWidgets[#page.shelfWidgets+1]=Add('分享当前战车','share',w-pad-318.140625,page.shelfY+2,143,40,function() require('ui.GarageDialogs').Code(s,false) end,'ghost')
+            page.shelfWidgets[#page.shelfWidgets+1]=Add('导入蓝图','download',w-pad-439.140625,page.shelfY+2,113,40,function() GarageDialogs.Code(s,true) end,'ghost')
+            page.shelfWidgets[#page.shelfWidgets+1]=Add('分享当前战车','share',w-pad-318.140625,page.shelfY+2,143,40,function() GarageDialogs.Code(s,false) end,'ghost')
         end
         page.shelfWidgets[#page.shelfWidgets+1]=Add('查看全部',nil,w-pad-161.140625,page.shelfY,161.140625,44,function() Change('browse') end,'all',{count=#Data.prefabs})
         local unit=(w-pad*2-60)/5.85;local moreWidth=math.max(200,unit*.85);unit=(w-pad*2-60-moreWidth)/5

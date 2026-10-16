@@ -3,6 +3,14 @@
 -- Materials 的共享材质，涂装颜色走 StaticModel.instanceColor，引擎自动把同类零件合成一批绘制。
 -- root 节点缩放为 CELL：子节点坐标就是格坐标（与 H5 的 root.scale = CELL 相同）。
 
+local JoinedMesh=require("render.JoinedMesh")
+local LiveryLayer=require("render.LiveryLayer")
+local WingRig=require("render.WingRig")
+local WeaponPresentation=require("render.WeaponPresentation")
+local ShellMaterials=require("render.ShellMaterials")
+local BuildXray=require("render.BuildXray")
+local WeaponEffects=require("render.WeaponEffects")
+
 local Config = require "Config"
 local Defs = require "parts.Defs"
 local Coord = require "core.Coord"
@@ -41,8 +49,8 @@ function VehicleView:init(parent, name)
     self.root = parent:CreateChild(name or "Vehicle")
     self.root:SetScale(Config.CELL)
     self.visuals = {}
-    self.joined=require('render.JoinedMesh').New(self.root)
-    self.livery=require('render.LiveryLayer').New(self)
+    self.joined=JoinedMesh.New(self.root)
+    self.livery=LiveryLayer.New(self)
 end
 
 -- 每个零件稳定的小色差（写进实例色的 alpha，shader 里用作随机数）
@@ -81,13 +89,14 @@ function VehicleView:AddPart(part)
     local node = self.root:CreateChild("P" .. part.id)
     node.position = VehicleView.PartLocalPos(part)
     node.rotation = Coord.RotQuat(part.rot)
-    local vis = {node=node,models={},resources={},variation=Variation(part.id),instanced=def.instanced==true}
+    local vis = {node=node,models={},resources={},rig={},shellSlots={},materialSlots={},data={},
+        variation=Variation(part.id),instanced=def.instanced==true,part=part}
+    -- Retain partial rig ownership before native model/material construction.
+    self.visuals[part.id] = vis
     vis.joined=JoinedSurface.IsJoined(part)==true
     if vis.joined then
         vis.rig={};vis.shellSlots={};vis.materialSlots={};vis.data={};self.joined:Add(part)
     else Rig.Build(node,Assets.Get(part.type,part.rot),part,vis) end
-    self.visuals[part.id] = vis
-    vis.part=part
     self.livery:PartsChanged()
     self:Repaint(part)
     if self.xray then self.xray:Attach(vis) end
@@ -99,11 +108,11 @@ function VehicleView:RemovePart(id)
     local vis = self.visuals[id]
     if not vis then return end
     self.joined:Remove(id)
-    if vis.rig.wing then require('render.WingRig').Dispose(vis) end
+    if vis.rig.wing then WingRig.Dispose(vis) end
     vis.node:Dispose()
     vis.xrayOriginals=nil;vis.materialSlots={}
-    if vis.weaponMotion then require('render.WeaponPresentation').Dispose(vis) end
-    require('render.ShellMaterials').Release(vis)
+    if vis.weaponMotion then WeaponPresentation.Dispose(vis) end
+    ShellMaterials.Release(vis)
     vis.shellSlots={}
     vis.models={}
     Assets.Release(vis.resources)
@@ -128,7 +137,7 @@ function VehicleView:Repaint(part)
     if #vis.shellSlots>0 then
         local shell=part.shellColor
         if shell==cjson.null then shell=nil end
-        require('render.ShellMaterials').Apply(vis,shell)
+        ShellMaterials.Apply(vis,shell)
     end
 end
 
@@ -179,25 +188,42 @@ function VehicleView:SetXray(on)
     self.joined:SetXray(on)
     for _,mesh in pairs(self.rotorJoined or {}) do mesh:SetXray(on) end
     if on and not self.xray then
-        self.xray=require('render.BuildXray').New()
+        self.xray=BuildXray.New()
         for _,vis in pairs(self.visuals) do self.xray:Attach(vis) end
     elseif not on and self.xray then
-        for _,vis in pairs(self.visuals) do require('render.BuildXray').Restore(vis) end
+        for _,vis in pairs(self.visuals) do BuildXray.Restore(vis) end
         self.xray:Dispose();self.xray=nil
     end
 end
 
 ---@param bp Blueprint
-function VehicleView:Rebuild(bp,checkpoint)
+function VehicleView:Rebuild(bp,checkpoint,deferSurfaces)
     self:Clear()
     local parts=bp:List()
     for i, part in ipairs(parts) do
         self:AddPart(part)
         if checkpoint then checkpoint(.9*i/math.max(1,#parts)) end
     end
-    self.joined:Update()
-    self.livery:Set(bp.livery);self.livery:Update()
+    -- DriveView binds rotor ownership before committing these same surfaces.
+    if deferSurfaces then self.livery:Set(bp.livery)
+    else self.joined:Update();self.livery:Set(bp.livery);self.livery:Update() end
     if checkpoint then checkpoint(1) end
+end
+
+-- Damage/repair replaces the physics vehicle, not every surviving visual.
+-- Reconcile against the final blueprint once, even when several events share
+-- a fixed step. Spawn/editor rebuilds retain the full Rebuild path.
+function VehicleView:SyncBlueprint(bp)
+    local removed={}
+    for id,vis in pairs(self.visuals) do
+        if bp.parts[id]~=vis.part then removed[#removed+1]=id end
+    end
+    for _,id in ipairs(removed) do self:RemovePart(id) end
+    for _,part in ipairs(bp:List()) do
+        if not self.visuals[part.id] then self:AddPart(part) end
+    end
+    -- DriveView:Bind partitions joined surfaces and uploads decals afterwards.
+    self.livery:Set(bp.livery)
 end
 
 ---@param visible boolean
@@ -211,8 +237,8 @@ function VehicleView:UpdateIdle(dt,time,skipWings)
     for _,mesh in pairs(self.rotorJoined or {}) do mesh:Update() end
     self.livery:Update()
     for _,vis in pairs(self.visuals) do
-        if vis.weaponMotion then require('render.WeaponPresentation').Update(vis,dt,time) end
-        if vis.rig.wing and not skipWings then require('render.WingRig').Update(vis,nil,time,dt) end
+        if vis.weaponMotion then WeaponPresentation.Update(vis,dt,time) end
+        if vis.rig.wing and not skipWings then WingRig.Update(vis,nil,time,dt) end
     end
 end
 
@@ -230,14 +256,14 @@ end
 function VehicleView:UpdateWeaponEffects(dt,context,emitter)
     if not self.weaponEffects then
         for _,vis in pairs(self.visuals) do if vis.weaponMotion then
-            self.weaponEffects=require('render.WeaponEffects').New(self);break
+            self.weaponEffects=WeaponEffects.New(self);break
         end end
     end
     if self.weaponEffects then self.weaponEffects:Update(dt,context,emitter) end
 end
 
 function VehicleView:ResetWeaponPresentation()
-    for _,vis in pairs(self.visuals) do if vis.weaponMotion then require('render.WeaponPresentation').Reset(vis) end end
+    for _,vis in pairs(self.visuals) do if vis.weaponMotion then WeaponPresentation.Reset(vis) end end
     if self.weaponEffects then self.weaponEffects:Reset() end
 end
 

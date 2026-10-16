@@ -1,3 +1,8 @@
+local BlueprintLibrary=require("ui.BlueprintLibrary")
+local SourceBlueprintDialog=require("ui.SourceBlueprintDialog")
+local SourceHelp=require("ui.SourceHelp")
+local GraphicsPanel=require("ui.GraphicsPanel")
+
 local Code=require 'storage.BlueprintCode'
 local Host=require 'ui.DialogHost'
 local M={}
@@ -8,7 +13,7 @@ function M.Save(s)
     local ok,err,reason=s.app.bays:Save()
     if ok then Host.Notify(s,s.app.store:SaveMessage('已保存'));return end
     if reason~='full' then Host.Notify(s,err);return end
-    return require('ui.BlueprintLibrary').Open(s,'save')
+    return BlueprintLibrary.Open(s,'save')
 end
 function M.Delete(s)
     if s.app.vehicleSwitch:IsBusy() then return end
@@ -43,11 +48,11 @@ function M.Code(s,importing)
             end,nil,data)
         end
     end
-    return require('ui.SourceBlueprintDialog').Open(s,{importing=importing,name=s.app.blueprint.name,
+    return SourceBlueprintDialog.Open(s,{importing=importing,name=s.app.blueprint.name,
         code=not importing and Code.Encode(s.app.blueprint:ToTable()) or '',onImport=Import})
 end
-function M.Help(s) return require('ui.SourceHelp').Open(s) end
+function M.Help(s) return SourceHelp.Open(s) end
 function M.Settings(s)
-    return require('ui.GraphicsPanel').Open(s)
+    return GraphicsPanel.Open(s)
 end
 return M

@@ -1,4 +1,42 @@
 -- Same app, separate scene lifetime. Loaded only when entering the trial.
+local DriveMaps=require("app.DriveMaps")
+local TouchPreferences=require("controls.TouchPreferences")
+local TouchMode=require("controls.TouchMode")
+local DrivePointer=require("controls.DrivePointer")
+local Run=require("salvage.Run")
+local Mission=require("story.Mission")
+local BattleController=require("combat.BattleController")
+local PracticeSession=require("app.PracticeSession")
+local CameraFeedback=require("controls.CameraFeedback")
+local SoundPreparation=require("audio.SoundPreparation")
+local WeaponAudio=require("audio.WeaponAudio")
+local DrivingAudio=require("audio.DrivingAudio")
+local CombatFeedbackAudio=require("audio.CombatFeedbackAudio")
+local CollisionAudio=require("audio.CollisionAudio")
+local RestoreFlash=require("render.RestoreFlash")
+local SpeedFov=require("controls.SpeedFov")
+local BoundaryFx=require("render.BoundaryFx")
+local AimLines=require("render.AimLines")
+local DrillSpeed=require("render.DrillSpeed")
+local SafeReset=require("controls.SafeReset")
+local MatchMapShot=require("render.MatchMapShot")
+local MatchIntro=require("app.MatchIntro")
+local CameraObstacles=require("controls.CameraObstacles")
+local Wheel=require("controls.Wheel")
+local KillImpact=require("combat.KillImpact")
+local MatchActions=require("combat.MatchActions")
+local DriveAim=require("controls.DriveAim")
+local RotorMotion=require("drive.RotorMotion")
+local ReticleState=require("ui.ReticleState")
+local NodeVisibility=require("render.NodeVisibility")
+local StoryStomp=require("render.StoryStomp")
+-- Load optional/cyclic dependencies once, without changing first-use order.
+local DeferredModules=setmetatable({},{__index=function(modules,name)
+    local module=require(name)
+    rawset(modules,name,module)
+    return module
+end})
+
 local ChaseCamera=require 'controls.ChaseCamera'
 local ChaseState=require 'controls.ChaseState'
 local DriveView=require "render.DriveView"
@@ -13,19 +51,19 @@ local Host=require 'ui.DialogHost'
 local TargetFeedback=require 'render.TargetFeedback'
 local M={};M.__index=M
 function M.New(scene,bp,app,map,preparedWorld,checkpoint,retain,combatFactory)
-    local self=setmetatable({disposed=false,app=app,name=bp.name,follow=false,lookIdle=0,scope=false,details=false,map=map or require('app.DriveMaps').trial},M)
+    local self=setmetatable({disposed=false,app=app,name=bp.name,follow=false,lookIdle=0,scope=false,details=false,map=map or DriveMaps.trial},M)
     if retain then retain(self) end
     local ok,err=pcall(self.init,self,scene,bp,preparedWorld,checkpoint,combatFactory)
     if not ok then self:Dispose();error(err) end
     return self
 end
 function M:init(scene,bp,preparedWorld,checkpoint,combatFactory)
-    require('controls.TouchPreferences').Get(self.app)
+    TouchPreferences.Get(self.app)
     local function Progress(p,stage) if checkpoint then checkpoint(p,stage) end end
-    self.touch=require('controls.TouchMode').Enabled()
+    self.touch=TouchMode.Enabled()
     self.scene=scene;self.controls=Input.New();self.accumulator=0;self.fixedSteps=0;self.droppedTime=0
-    self.pointer=require('controls.DrivePointer').New(self)
-    self.world=preparedWorld or require(self.map.world).New(scene)
+    self.pointer=DrivePointer.New(self)
+    self.world=preparedWorld or DeferredModules[self.map.world].New(scene)
     Progress(.05,'world')
     -- Cinematic actors must exist before shared views are built; constructing
     -- a practice car first duplicates its rigid body and every part visual.
@@ -33,61 +71,61 @@ function M:init(scene,bp,preparedWorld,checkpoint,combatFactory)
         self.combat=combatFactory(self,bp,function(p,stage) Progress(.05+p*.4,stage or 'units') end)
         self.vehicle=self.combat.player.vehicle
     elseif self.map.endless then
-        self.endless=require('app.EndlessSession').New(self,bp,self.map.endlessSaved);self.vehicle=self.endless.player.vehicle
+        self.endless=DeferredModules['app.EndlessSession'].New(self,bp,self.map.endlessSaved);self.vehicle=self.endless.player.vehicle
     elseif self.map.salvage then
-        self.salvage=require('salvage.Run').New(self,bp);self.vehicle=self.salvage.player.vehicle
+        self.salvage=Run.New(self,bp);self.vehicle=self.salvage.player.vehicle
     elseif self.map.storyLevel then
-        self.story=require('story.Mission').New(self,bp,{retain=function(story) self.story=story;self.combat=story end,
+        self.story=Mission.New(self,bp,{prepareViews=true,retain=function(story) self.story=story;self.combat=story end,
             checkpoint=function(p) Progress(.05+p*.4,'story-effects') end});self.vehicle=self.story.player.vehicle
     elseif self.map.battleMode then
-        self.battle=require('combat.BattleController').New(self,bp,function(p) Progress(.05+p*.4,'units') end);self.vehicle=self.battle.player.vehicle
+        self.battle=BattleController.New(self,bp,function(p) Progress(.05+p*.4,'units') end);self.vehicle=self.battle.player.vehicle
     else
-        self.practice=require('app.PracticeSession').New(self,bp);self.vehicle=self.practice.player.vehicle
+        self.practice=PracticeSession.New(self,bp);self.vehicle=self.practice.player.vehicle
     end
     self.combat=self.combat or self.battle or self.story or self.salvage or self.endless or self.practice
     Progress(.45,'units')
     self.world.feedbackPlayer=self.combat and self.combat.player
-    if self.map.environment then self.environment=require(self.map.environment).New(scene,self.world.layout) end
+    if self.map.environment then self.environment=DeferredModules[self.map.environment].New(scene,self.world.layout) end
     Progress(.5,'environment')
-    self.ReleaseAssets=require(self.map.assets).Release
+    self.ReleaseAssets=DeferredModules[self.map.assets].Release
     if #self.world.targets>0 then self.targetFeedback=TargetFeedback.New(self.world.root,self.world.targets) end
     self.weapons=self.combat.player.weapons;self.vehicle.drill=self.weapons.drill
     self.effects=Effects.New(scene,function(x,z) return self.world:GroundAt(x,z) end)
-    self.cameraFeedback=require('controls.CameraFeedback').New(self)
+    self.cameraFeedback=CameraFeedback.New(self)
     self.effects.onEvent=function(e,remote)
         if not self.combat or self.combat.player.alive then self.cameraFeedback:Queue(e,remote) end
     end
-    require('audio.SoundPreparation').Prepare(function(p,stage) Progress(.5+p*.09,stage) end)
-    self.weaponAudio=require('audio.WeaponAudio').New(scene)
-    self.drivingAudio=require('audio.DrivingAudio').New(scene)
-    self.feedbackAudio=require('audio.CombatFeedbackAudio').New(scene)
-    self.collisionAudio=require('audio.CollisionAudio').New()
+    SoundPreparation.Prepare(function(p,stage) Progress(.5+p*.09,stage) end)
+    self.weaponAudio=WeaponAudio.New(scene)
+    self.drivingAudio=DrivingAudio.New(scene)
+    self.feedbackAudio=CombatFeedbackAudio.New(scene)
+    self.collisionAudio=CollisionAudio.New()
     Progress(.6,'audio')
-    self.combatView=CombatView.New(scene)
+    self.combatView=CombatView.New(scene,self.combat.spawnViewCache)
     self.combatView:Consume(self.world,function(p) Progress(.6+p*.25,'unit-views') end)
     Progress(.85,'player-view')
     self.view=DriveView.New(scene,self.combat.player.bp,self.vehicle,function(p) Progress(.85+p*.1,'player-view') end,
         function(view) self.view=view end);self.target=scene:CreateChild("FollowTarget")
-    self.restoreFlash=require('render.RestoreFlash').New(scene)
+    self.restoreFlash=RestoreFlash.New(scene)
     Progress(.95,'camera')
     self.chase=ChaseState.New();self.chase.minY=self.map.id=='trial' and .35 or -math.huge
-    self.speedFov=require('controls.SpeedFov').New();self.currentFov=48
+    self.speedFov=SpeedFov.New();self.currentFov=48
     self.camera=ChaseCamera.Create(scene,2600)
-    local boundary=require('render.BoundaryFx')
+    local boundary=BoundaryFx
     local boundaryMap=self.map.world=='drive.CraterWorld' and 'crater' or self.map.id
     local boundarySpec=boundary.ForWorld(self.world,boundaryMap)
     if boundarySpec then self.boundary=boundary.New(scene,boundarySpec,function(x,z) return self.world:GroundAt(x,z) end) end
-    if self.combat then self.aimLines=require('render.AimLines').New(scene) end
+    if self.combat then self.aimLines=AimLines.New(scene) end
     self.fxContext={camera=self.camera:GetNode(),time=0,fov=60}
-    self.drillSpeed=require('render.DrillSpeed').New()
-    self.safeReset=require('controls.SafeReset').New(self)
+    self.drillSpeed=DrillSpeed.New()
+    self.safeReset=SafeReset.New(self)
     self.yaw=0;self.pitch=0;self.teleport=1;self.wantsReturn=false;self.disposed=false;self.hud=nil
     if self.combat then self.yaw=-self.combat.player.spawnAt.yaw*180/math.pi;self.view:ResetPose();self.view:Update(1);self:ResetCamera()
     else self:Reset() end
     if self.battle then self.battle.objectives:Update(0) end
     self:PostUpdate(1)
     if self.battle then
-        self.mapCapture=require('render.MatchMapShot').New(scene,self.map)
+        self.mapCapture=MatchMapShot.New(scene,self.map)
         if checkpoint and coroutine.isyieldable() then
             while not self.mapCapture.ready do
                 self.mapCapture:Update()
@@ -115,7 +153,7 @@ function M:StartIntro()
         self.drivingAudio:SetActive(false)
         self.feedbackAudio:SetActive(false)
         if self.intro then self.intro:Dispose() end
-        self.intro=require('app.MatchIntro').New(self)
+        self.intro=MatchIntro.New(self)
     end
 end
 function M:Reset()
@@ -147,7 +185,7 @@ function M:CameraObstacle(origin,direction,distance)
     local hit=self.world:CastRay(origin,direction,distance,self.vehicle.body)
     local nearest=hit and hit.dist or distance
     local surface=self.world.space.world:RaycastSingle(Ray(Coord.Vec(table.unpack(origin)),Coord.Vec(table.unpack(direction))),
-        nearest,require('controls.CameraObstacles').LAYER)
+        nearest,CameraObstacles.LAYER)
     if surface.body then return math.min(nearest,surface.distance) end
     return hit and hit.dist or nil
 end
@@ -155,15 +193,15 @@ function M:HasFocus() return input.focus and not input.minimized end
 function M:Resume() if self.battle and self.battle.rules.state=='over' or (self.story or self.salvage) and self.combat.rules.finished or self.endless and (self.endless.run.state=='editing' or self.endless.rules.finished) then return false end;return self.pointer:Capture() end
 function M:Zoom(wheel)
     if self.details and self.hud and self.hud.readouts then
-        self.hud.readouts:ScrollDetails(require('controls.Wheel').Pixels(wheel));return
+        self.hud.readouts:ScrollDetails(Wheel.Pixels(wheel));return
     end
-    self:ZoomPixels(require('controls.Wheel').Pixels(wheel))
+    self:ZoomPixels(Wheel.Pixels(wheel))
 end
 function M:ZoomPixels(delta)
     if delta==0 then return end
     self.chase:Zoom(delta);self.cameraDistance=self.chase.dist*self.chase.zoom
 end
-function M:ConfirmKill(target) require('combat.KillImpact').Confirm(self,target) end
+function M:ConfirmKill(target) KillImpact.Confirm(self,target) end
 function M:Pause()
     if self.safeReset then self.safeReset:Clear() end
     if self.weapons then self.weapons.drill:Cancel() end
@@ -172,11 +210,22 @@ function M:Pause()
     if self.salvage and self.salvage.audio then self.salvage.audio:SetActive(false) end
 end
 function M:Escape()
-    if self.dialog then Host.Close(self);self:Pause()
-    elseif self.pointer.captured then
-        self:Pause()
-        if self.battle then self.battle:Banner('点击画面继续','PAUSED','要退出请点右上角「退出对局」','prep',1500,true) end
-    else require('ui.GameSettings').Open(self) end
+    if self.dialog and self.dialog.unifiedSettings then
+        Host.Close(self);self:Resume()
+    else
+        -- One Escape opens the same menu as the HUD settings button. Child
+        -- settings return here instead of exposing the old click-to-drive layer.
+        DeferredModules['ui.GameSettings'].Open(self)
+    end
+end
+function M:PollPointer(dt)
+    local controlling=self.pointer.captured or self.pointer.pending
+    self.pointer:Poll(dt)
+    -- Browsers may consume Escape themselves and only report lock loss.
+    -- Explicit Pause/Release already cleared controlling before this poll.
+    if controlling and not self.pointer.captured and not self.pointer.pending and not self.dialog and self:HasFocus() then
+        DeferredModules['ui.GameSettings'].Open(self)
+    end
 end
 function M:GoTo(name)
     for i,spot in ipairs(self.world.layout.teleports) do if spot.name==name then self.teleport=i;self:Reset();return true end end
@@ -216,7 +265,7 @@ function M:HandleKey(key)
         return
     end
     if self.salvage and self.salvage:Key(key) then return end
-    if self.battle and require('combat.MatchActions').Key(self.battle,key) then return end
+    if self.battle and MatchActions.Key(self.battle,key) then return end
     if self.story and self.story.rules.finished then
         if key==KEY_R then self.app.restartStory=self.map.id;self.wantsReturn=true
         elseif key==KEY_ESCAPE or key==KEY_RETURN or key==KEY_T then self.wantsReturn=true end
@@ -253,7 +302,10 @@ function M:PollKeys(typing)
         if self:KeyPressed(KEY_ESCAPE) then self:Escape() end
         return
     end
-    for _,key in ipairs(actionKeys) do if self:KeyPressed(key) then self:HandleKey(key) end end
+    for _,key in ipairs(actionKeys) do if self:KeyPressed(key) then
+        self:HandleKey(key)
+        if key==KEY_ESCAPE or self.dialog then return end
+    end end
     for _,key in ipairs(digitKeys) do if self:KeyPressed(key) then self:HandleKey(key) end end
 end
 function M:Aim()
@@ -263,7 +315,7 @@ function M:Aim()
     local origin,direction={-p.x,p.y,p.z},{-d.x,d.y,d.z}
     local hit=self.world:CastRay(origin,direction,500,self.vehicle.body)
     self.aimHit=hit
-    return require('controls.DriveAim').Resolve(self,origin,direction,hit) or (hit and hit.point or {origin[1]+direction[1]*500,origin[2]+direction[2]*500,origin[3]+direction[3]*500})
+    return DriveAim.Resolve(self,origin,direction,hit) or (hit and hit.point or {origin[1]+direction[1]*500,origin[2]+direction[2]*500,origin[3]+direction[3]*500})
 end
 function M:ConsumeWorldEvents()
     self.feedbackAudio:Consume(self.world.viewEvents,self.combat and self.combat.player)
@@ -294,7 +346,7 @@ function M:Tick(dt,command)
     self.pendingRotorStep=self.pendingRotorStep or command.rotorStep==true
     command.rotorStep=self.pendingRotorStep
     local aim=command.aim or self:Aim()
-    command.firing=command.firing==true or require('controls.DriveAim').AutoFire(self)
+    command.firing=command.firing==true or DriveAim.AutoFire(self)
     self.aimPoint=aim;self.firing=command.firing==true
     local rotorStepped=false
     while self.accumulator>=1/60 do
@@ -302,7 +354,7 @@ function M:Tick(dt,command)
         else
             self.vehicle:StepRotors(aim,command.rotorStep and not rotorStepped,1/60)
             rotorStepped=true
-            require('drive.RotorMotion').Weapons(self.vehicle.rotors,self.weapons)
+            RotorMotion.Weapons(self.vehicle.rotors,self.weapons)
             self.vehicle:Step(command,1/60)
             local body=self.vehicle.body;local p,v=body.translation(),body.linvel()
             local eye=self.camera:GetNode().worldPosition
@@ -369,7 +421,7 @@ function M:Update(dt)
         return
     end
     if not (self.endless and self.endless.run.state=='editing') and not (self.intro and not self.intro.done) then
-        self.frameDt=require('combat.KillImpact').Step(self,dt);dt=self.frameDt
+        self.frameDt=KillImpact.Step(self,dt);dt=self.frameDt
     end
     if self.story then
         self.story:Update(dt)
@@ -419,7 +471,7 @@ function M:Update(dt)
         if self.hud then self.hud.Update(self,dt) end
         return
     end
-    self.pointer:Poll(dt)
+    self:PollPointer(dt)
     if self.salvage then
         self.salvage.cine:Update(dt)
         local shot=self.salvage.cine.current
@@ -444,7 +496,7 @@ function M:Update(dt)
     end
     local command=self.controls:Read();local dx,dy=self.controls:TakeLook()
     local group=self.weapons:Group()
-    local sensitivity=(self.scope and require('ui.ReticleState').ScopeFov(48,group and group.kind)/48 or 1)*require('controls.DriveAim').Look(self,dt)
+    local sensitivity=(self.scope and ReticleState.ScopeFov(48,group and group.kind)/48 or 1)*DriveAim.Look(self,dt)
     self.yaw,self.pitch=ChaseState.Look(self.yaw,self.pitch,dx,dy,sensitivity,self.vehicle.spec.wings~=nil and #self.vehicle.spec.wings>0)
     if not self.combat or self.combat.player.alive then self.controls:Command(command,self.vehicle,-math.rad(self.yaw),-math.rad(self.pitch)) end
     self.lookIdle=(dx~=0 or dy~=0) and 0 or self.lookIdle+dt
@@ -469,10 +521,10 @@ function M:PostUpdate(dt)
     if self.combat and not self.combat.player.alive then
         self.cameraFeedback:Discard()
         self.drillSpeed:Clear()
-        require('render.NodeVisibility').Set(self.restoreFlash.root,false,true)
+        NodeVisibility.Set(self.restoreFlash.root,false,true)
         if self.battle then
             local node=self.camera:GetNode();local eye=node.worldPosition
-            local pose=require('combat.MatchActions').Pose(self.battle,{-eye.x,eye.y,eye.z},dt)
+            local pose=MatchActions.Pose(self.battle,{-eye.x,eye.y,eye.z},dt)
             if pose then ChaseCamera.Watch(self.camera,pose) end
             if self.aimLines then
                 self.sniperWarnings=self.aimLines:Update(self.world.units,self.combat.player,function(...) return self.world:CastRay(...) end,self.camera:GetCamera(),self.world.time)
@@ -498,11 +550,11 @@ function M:PostUpdate(dt)
         return self:CameraObstacle(origin,dir,distance)
     end,eye and {-eye.x,eye.y,eye.z})
     ChaseCamera.Apply(self.camera,self.target,dt,pose,self.yaw,self.pitch)
-    self.firstPerson=eye~=nil and eye~=false;require('render.NodeVisibility').Set(root,not self.firstPerson,true);self.weapons.aimed=self.scope and group~=nil
-    require('render.NodeVisibility').Set(self.restoreFlash.root,root.enabled,true)
+    self.firstPerson=eye~=nil and eye~=false;NodeVisibility.Set(root,not self.firstPerson,true);self.weapons.aimed=self.scope and group~=nil
+    NodeVisibility.Set(self.restoreFlash.root,root.enabled,true)
     self.drillSpeed:Update(dt,self.camera:GetCamera(),self.weapons,self.pointer.captured and (not self.combat or self.combat.player.alive))
     local c=self.camera:GetCamera()
-    self.currentFov=self.speedFov:Step(self.vehicle,dt,48,self.currentFov,{scope=self.scope and require('ui.ReticleState').ScopeFov(48,group and group.kind) or nil,
+    self.currentFov=self.speedFov:Step(self.vehicle,dt,48,self.currentFov,{scope=self.scope and ReticleState.ScopeFov(48,group and group.kind) or nil,
         rush=self.drillSpeed.rush,charge=self.weapons.drill.held and self.weapons.drill.held.windup or 0,punch=self.fovPunch or 0})
     self.fovPunch=(self.fovPunch or 0)*math.exp(-dt*5)
     c.fov=self.currentFov;self.fxContext.fov=c.fov
@@ -511,7 +563,7 @@ function M:PostUpdate(dt)
         local land=f.kind=='land'
         if f.kind~='launch' then
             local p={f.pos[1],f.pos[2]-(land and mech.standAvg or .4),f.pos[3]}
-            require('render.StoryStomp').Emit(self.effects,p,land and math.min(1,f.strength*1.3) or f.strength)
+            StoryStomp.Emit(self.effects,p,land and math.min(1,f.strength*1.3) or f.strength)
         end
         self.drivingAudio:Play(f.kind=='launch' and 'mech_push' or land and 'mech_land' or 'mech_step',f.strength)
     end)

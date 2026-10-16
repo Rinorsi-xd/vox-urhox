@@ -1,3 +1,5 @@
+local PartHitFlash=require("render.PartHitFlash")
+
 local DriveView=require "render.DriveView"
 local View=require "render.VehicleView"
 local Coord=require "core.Coord"
@@ -6,7 +8,7 @@ local CELL=require("Config").CELL
 local M={};M.__index=M
 local function Vec(p) return Coord.Vec(table.unpack(p)) end
 local function Quat(q) return Quaternion(q.w,q.x,-q.y,-q.z) end
-function M.New(scene) return setmetatable({scene=scene,units={},pieces={},hitFlash=require('render.PartHitFlash').New(scene)},M) end
+function M.New(scene,spawnCache) return setmetatable({scene=scene,spawnCache=spawnCache,units={},pieces={},hitFlash=PartHitFlash.New(scene)},M) end
 function M:Consume(world,checkpoint)
     -- Capture matching live visuals before kill/removal events retire their
     -- owning drive view. Part table identity disambiguates IDs across cars.
@@ -32,7 +34,7 @@ function M:Consume(world,checkpoint)
             if v then v:Dispose() end
             self.units[e.unit]=DriveView.New(self.scene,e.unit.bp,e.unit.vehicle,
                 checkpoint and function(p) checkpoint((i-1+p)/math.max(1,#world.viewEvents)) end,
-                function(view) self.units[e.unit]=view end)
+                function(view) self.units[e.unit]=view end,self.spawnCache and self.spawnCache:Take(e.unit.bp))
         elseif e.type=="partRemoved" then if v then v.view:RemovePart(e.id) end
         elseif e.type=='partRestored' then if v then v.view:AddPart(e.unit.bp.parts[e.id]) end
         -- A later damage event may kill the unit before this batch is read.

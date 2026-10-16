@@ -1,11 +1,14 @@
 -- Fractional CSS display advances from original font tables. Glyphs still use
 -- NanoVG's atlas; contiguous equal-width characters stay in one text draw.
+local ResourceData=require("core.ResourceData")
+local SourceFonts=require("ui.SourceFonts")
+
 local M={}
 local faces={};local ready=false
 local cache={};local count=0
 local function Init()
     if ready then return end
-    local data=require('core.ResourceData').Read('UI/SourceFontMetrics.json')
+    local data=ResourceData.Read('UI/SourceFontMetrics.json')
     for name,source in pairs(data) do
         local face={advances={},kern={},units=source.units,ascent=source.ascent/source.units,descent=source.descent/source.units};faces[name]=face
         for _,group in ipairs(source.advances) do
@@ -15,7 +18,7 @@ local function Init()
             for _,cp in utf8.codes(group[1]) do face.kern[utf8.char(cp)]=group[2] end
         end
     end
-    local body=require('ui.SourceFonts').GetBodyFace()
+    local body=SourceFonts.GetBodyFace()
     if body and body.fractional then faces['vox-body']=body end
     ready=true
 end

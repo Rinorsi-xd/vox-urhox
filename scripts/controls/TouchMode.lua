@@ -1,4 +1,6 @@
 -- Device policy is shared by the home, builder and driving UI.
+local ImportedUI=require("urhox-libs/UI")
+
 local Platform=require 'urhox-libs.Platform.PlatformUtils'
 local M={}
 function M.Compact()
@@ -33,7 +35,7 @@ function M.Enabled()
     return false
 end
 function M.Scale(surface)
-    local UI=require 'urhox-libs/UI'
+    local UI=ImportedUI
     if surface=='home' or surface=='build' then
         local height=M.Compact() and 600 or 1080
         return UI.Scale.DESIGN_RESOLUTION(height*16/9,height)
@@ -43,7 +45,7 @@ function M.Scale(surface)
 end
 function M.Apply(surface)
     M.surface=surface;M.width=graphics:GetWidth();M.height=graphics:GetHeight();M.enabled=M.Enabled()
-    require('urhox-libs/UI').SetScale(M.Scale(surface))
+    ImportedUI.SetScale(M.Scale(surface))
 end
 function M.Update(surface)
     if M.surface~=surface or M.width~=graphics:GetWidth() or M.height~=graphics:GetHeight() or M.enabled~=M.Enabled() then M.Apply(surface) end

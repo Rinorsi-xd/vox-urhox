@@ -72,7 +72,7 @@ check('Only explicit F8 enables table sample', 'if input:GetKeyPress(KEY_F8) the
 check('Only independent F14 enables scene traversal', 'if input:GetKeyPress(KEY_F14) then pendingBattleObjects=true;pendingSceneObjects=true end' in source and source.count('pendingSceneObjects=true') == 1)
 check('Sample request consumed once', 'pendingBattleObjects=false;local sceneRequested=pendingSceneObjects;pendingSceneObjects=false' in source)
 check('Counters execute only when explicitly pending', 'if pendingBattleObjects then' in source and source.count('BattleObjectState(s,sceneRequested)') == 1)
-check('Automatic and F13 history behavior preserved', 'frames%30==0 or input:GetKeyPress(KEY_F8) or pendingPresentationHistory or pendingSceneObjects' in source and "historyMode=full and 'full' or 'last'" in source)
+check('Default automatic and explicit F13 history behavior preserved; route mode suppresses duplicates', 'frames%30==0 and not G0_StoryRouteState or input:GetKeyPress(KEY_F8) or pendingPresentationHistory or pendingSceneObjects' in source and "historyMode=full and 'full' or 'last'" in source)
 mutations = [
  ('F8 starts native traversal', 'if sceneRequested then', 'if true then', lambda value, recorded: recorded.children == 0),
  ('Player system double counts', 'if not system or seen[system] then return end', 'if not system then return end', lambda value, recorded: value.world.projectiles.total == 8),

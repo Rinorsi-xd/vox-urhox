@@ -1,11 +1,14 @@
 -- Original H5 graphics values. Never publish a setting that only changes Lua.
+local Quality=require("render.Quality")
+local CraterPostProcess=require("render.CraterPostProcess")
+
 local Exposure=require 'render.FixedExposure'
 local CraterTonemap=require 'render.CraterTonemap'
 local Viewports=require 'render.WindowViewports'
 local M={};M.__index=M
 local ranges={bloom={0,.8},mist={0,.2},exposure={.6,1.4},vignette={0,.6},grain={0,.06}}
 local supported={bloom=true,exposure=true,vignette=true,quality=true}
-function M.Defaults() return {v=2,quality=require('render.Quality').current.name=='mobile' and 'medium' or 'high',bloom=.18,mist=.04,exposure=1.1,vignette=.3,grain=0,ao=true} end
+function M.Defaults() return {v=2,quality=Quality.current.name=='mobile' and 'medium' or 'high',bloom=.18,mist=.04,exposure=1.1,vignette=.3,grain=0,ao=true} end
 function M.Valid(data)
     if type(data)~='table' or data.v~=2 or type(data.ao)~='boolean' then return false end
     if data.quality~='high' and data.quality~='medium' and data.quality~='low' then return false end
@@ -57,7 +60,7 @@ function M:Apply(scene)
     if not self.app.ownsScene or not scene then return end
     local zone=scene:GetComponent('Zone',true);if not zone then return end
     local d=self.data
-    if not scene:GetVar('VoxPreview'):GetBool() then require('render.Quality').Apply(d.quality) end
+    if not scene:GetVar('VoxPreview'):GetBool() then Quality.Apply(d.quality) end
     if self.post and self.post.scene~=scene then self:ParkPost() end
     if self.post then self.post:Set(d);return end
     zone:SetAttribute('Bloom Enable',Variant(true)) -- Keep tonemap even at zero bloom.
@@ -78,7 +81,7 @@ function M:Show(scene,camera)
         local retained=self.retainedPost
         local post=self.post or (retained and retained.scene==scene and retained.camera==camera and retained.post)
         if post then post:Set(self.data)
-        else post=require('render.CraterPostProcess').New(scene,camera,self.data,{fixedResolution=self.app.isValidation}) end
+        else post=CraterPostProcess.New(scene,camera,self.data,{fixedResolution=self.app.isValidation}) end
         if retained and retained.scene==scene and retained.camera==camera then retained.post=post end
         if self.tonemap then self.tonemap:Dispose();self.tonemap=nil end
         self.post=post;post.graph:Queue();Viewports.Set(0,post.graph.output)

@@ -1,5 +1,8 @@
 -- Runtime behavior for the SAME authored scene opened by UrhoXEditor.
 -- No environment geometry or lights are reconstructed here.
+local HangarPanels=require("scene.HangarPanels")
+local RenderTargetLifetime=require("render.RenderTargetLifetime")
+
 local Data = require "scene.HangarConfig"
 local Mat = require "scene.HangarMaterials"
 local Config = require "Config"
@@ -64,7 +67,7 @@ function Hangar:SetTier(tier)
 end
 function Hangar:SetInfoSource(provider)
     if self.panels then self.panels:Dispose() end
-    self.panels=require('scene.HangarPanels').New(self,provider,self.canvasScale)
+    self.panels=HangarPanels.New(self,provider,self.canvasScale)
 end
 function Hangar:SetGrid(on,frame)
     -- Boolean callers select the original homepage/editing presets.
@@ -83,21 +86,18 @@ function Hangar:UpdateGrid(dt)
     self.boundary.enabled=visible;self.guides.enabled=visible
 end
 function Hangar:Welcome(bp)
-    local bb=bp and bp:Stats().bb or {minX=-4,maxX=4,minZ=-6,maxZ=6,maxY=4}
-    self.scanBox={x0=(bb.minX-0.5)*Config.CELL-0.8,x1=(bb.maxX+0.5)*Config.CELL+0.8,
-        z0=(bb.minZ-0.5)*Config.CELL-1,z1=(bb.maxZ+0.5)*Config.CELL+1,h=(bb.maxY+1)*Config.CELL+1.2}
-    self.greet=3.2;self.scanTime=0
+    self.greet=3.2
 end
 function Hangar:Dispose()
     if self.disposed then return end;self.disposed=true
     if self.panels then self.panels:Dispose();self.panels=nil end
     if self.reflFilter then self.reflFilter:Dispose();self.reflFilter=nil end
-    if self.reflTex then require('render.RenderTargetLifetime').Retire(self.reflTex); self.reflTex=nil end
+    if self.reflTex then RenderTargetLifetime.Retire(self.reflTex); self.reflTex=nil end
     if self.reflNode then self.reflNode:Dispose(); self.reflNode=nil end
     for _,material in ipairs(self.materials) do material:Dispose() end
     self.materials={}
     self.animatedMaterials={}
-    self.padMat=nil;self.guideMat=nil;self.scanMat=nil
+    self.padMat=nil;self.guideMat=nil
     self.reflMats={};self.planeMats={};self.holos={};self.niches={}
     self.arms={};self.drones={};self.boundary=nil;self.guides=nil
     self.bridge=nil;self.trolley=nil;self.scan=nil;self.reflCam=nil
@@ -111,7 +111,7 @@ function Hangar:Update(camNode,cam,dt)
     self.time=self.time+dt
     local dbg=rawget(_G,"VOX_DEBUG")
     local t=type(dbg)=="table" and dbg.time or self.time
-    if type(dbg)=="table" and dbg.time then self.greet=0;self.scanTime=10 end
+    if type(dbg)=="table" and dbg.time then self.greet=0 end
     Mat.Update(self.animatedMaterials,t)
     self:UpdateGrid(dt)
     self.motion.Update(self,dt,t)

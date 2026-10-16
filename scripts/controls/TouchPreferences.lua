@@ -1,3 +1,5 @@
+local RecordNumbers=require("storage.RecordNumbers")
+
 local M={}
 M.defaults={sens=1,size=1,assist=true,autoFire=false,plane='point',build='tap',fullscreen=true}
 M.options={sens={.6,1,1.5,2.2},size={.85,1,1.15},plane={'point','keys'},build={'tap','aim'}}
@@ -6,7 +8,7 @@ function M.Valid(p)
     for key,default in pairs(M.defaults) do
         local value=p[key]
         if type(value)~=type(default) then return false end
-        if type(value)=='number' and not require('storage.RecordNumbers').NonNegative(value) then return false end
+        if type(value)=='number' and not RecordNumbers.NonNegative(value) then return false end
         local choices=M.options[key]
         if choices then local found=false;for _,choice in ipairs(choices) do if value==choice then found=true end end;if not found then return false end end
     end

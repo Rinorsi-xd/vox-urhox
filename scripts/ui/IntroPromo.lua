@@ -1,4 +1,21 @@
 -- The comic artwork is original 2D art; live shots remain the host's 3D viewport.
+local ImageCache=require("urhox-libs/UI/Core/ImageCache")
+local IntroTitleCard=require("ui.IntroTitleCard")
+local IntroRecruitTitles=require("ui.IntroRecruitTitles")
+local IntroBrand=require("ui.IntroBrand")
+local IntroComic=require("ui.IntroComic")
+local IntroComicBurst=require("ui.IntroComicBurst")
+local IntroComicText=require("ui.IntroComicText")
+local IntroFamiliar=require("ui.IntroFamiliar")
+local IntroGalaxyText=require("ui.IntroGalaxyText")
+local IntroSortieUi=require("ui.IntroSortieUi")
+-- Load optional/cyclic dependencies once, without changing first-use order.
+local DeferredModules=setmetatable({},{__index=function(modules,name)
+    local module=require(name)
+    rawset(modules,name,module)
+    return module
+end})
+
 local D=require 'ui.SourceDraw'
 local P=require 'ui.SourceParagraph'
 local Typography=require 'ui.IntroTypography'
@@ -7,7 +24,7 @@ local Fx=require 'ui.IntroPromoFx'
 local Opacity=require 'ui.IntroOpacity'
 local nvgGlobalAlpha=Opacity.Set
 local M={};local white={255,255,255,255};local red={255,59,48,255};local gold={255,211,106,255}
-local function Image(page,vg,name,x,y,w,h,cover) require('ui.IntroPage').Image(vg,page.owner,name,x,y,w,h,1,cover) end
+local function Image(page,vg,name,x,y,w,h,cover) DeferredModules['ui.IntroPage'].Image(vg,page.owner,name,x,y,w,h,1,cover) end
 local function Big(vg,text,x,y,size,time,color)
  Typography.Begin(vg)
  local amount=math.min(1,time/.24);local scale=2.8-1.8*(1-(1-amount)^3)
@@ -19,7 +36,7 @@ end
 local function Panel(page,vg,points,name,x,y,w,h,age)
  D.Path(vg,points);nvgFillColor(vg,nvgRGBA(255,247,227,255));nvgFill(vg)
  local dx=(1-math.min(1,age/.28))*w
- local path=page.owner.data.images[name];local images=require('urhox-libs/UI/Core/ImageCache');local handle=images.Get(path)
+ local path=page.owner.data.images[name];local images=ImageCache;local handle=images.Get(path)
  if handle and handle>0 then
   local iw,ih=images.GetSize(path);local s=math.max(w/iw,h/ih)
   D.Path(vg,points);nvgFillPaint(vg,nvgImagePattern(vg,x+(w-iw*s)/2+dx,y+(h-ih*s)/2,iw*s,ih*s,0,handle,1));nvgFill(vg)
@@ -27,7 +44,7 @@ local function Panel(page,vg,points,name,x,y,w,h,age)
  D.Path(vg,points);nvgStrokeColor(vg,nvgRGBA(8,12,20,255));nvgStrokeWidth(vg,7);nvgStroke(vg)
 end
 local function Title(vg,I,w,h,u,id,text,age,exitAge)
- local module=require 'ui.IntroTitleCard';local plan=module.Plan(id,text)
+ local module=IntroTitleCard;local plan=module.Plan(id,text)
  if plan then module.Draw(vg,w,h,u,age or I.age,plan,exitAge) end
 end
 local function Salvage(page,vg,w,h,t,offsetX,offsetY)
@@ -41,7 +58,7 @@ local function Salvage(page,vg,w,h,t,offsetX,offsetY)
   D.Line(vg,x+width*.15,sy,x+width,sy-height*.18,{122,216,255,stripe%3==0 and 90 or 35},stripe%3==0 and 3 or 1)
  end
  nvgRestore(vg)
- local images=require('urhox-libs/UI/Core/ImageCache');local path=I.data.images.machinist_hero;local handle=images.Get(path)
+ local images=ImageCache;local path=I.data.images.machinist_hero;local handle=images.Get(path)
  if handle and handle>0 then
   local iw,ih=images.GetSize(path);local scale=math.min(width*.925/iw,height*1.16/ih)
   local dw,dh=iw*scale,ih*scale
@@ -51,10 +68,10 @@ local function Salvage(page,vg,w,h,t,offsetX,offsetY)
 end
 function M.Draw(page,vg,w,h,u)
  local I=page.owner;local id=I.shot;local t=I.age
- local film=require 'ui.IntroFilm';film.Under(vg,I,w,h,u,page.k)
+ local film=DeferredModules['ui.IntroFilm'];film.Under(vg,I,w,h,u,page.k)
  local showSalvage,offsetX,offsetY,salvageAge=Motion.Salvage(I,w,h)
  if showSalvage then Salvage(page,vg,w,h,salvageAge,offsetX,offsetY) end
- local recruit=require 'ui.IntroRecruitTitles';recruit.Draw(vg,I,w,h,u)
+ local recruit=IntroRecruitTitles;recruit.Draw(vg,I,w,h,u)
  if id=='crt' then
   local tall=t<.23 and .004 or math.min(1,(t-.23)/.26);D.Rect(vg,0,h*(1-tall)/2,w,h*tall,{255,255,255,math.floor(255*(1-math.max(0,(t-.49)/.16)))})
  elseif id=='tvcut' then
@@ -66,11 +83,11 @@ function M.Draw(page,vg,w,h,u)
   end end
   local y=-h*.2+t/.45*h*.8;D.Rect(vg,0,y,w,h*.055,{255,255,255,130});D.Rect(vg,0,y+h*.065,w,h*.025,{0,0,0,190})
  elseif id=='logo' then
-  require('ui.IntroBrand').Draw(vg,I,w,h,u,t)
+  IntroBrand.Draw(vg,I,w,h,u,t)
  elseif id=='prosper' or id=='order' or id=='leave' or id=='no' then
-  local comic=require('ui.IntroComic');comic.BeginPanels(page,vg,w,h,u)
+  local comic=IntroComic;comic.BeginPanels(page,vg,w,h,u)
   comic.Draw(page,vg,w,h,u)
-  if id=='no' and t>=.5 then require('ui.IntroComicBurst').Draw(page,vg,w,h) end
+  if id=='no' and t>=.5 then IntroComicBurst.Draw(page,vg,w,h) end
   if id~='no' then
    comic.EndPanels(vg)
    -- Original comic titles accumulate until the laser wipes the whole page.
@@ -96,7 +113,7 @@ function M.Draw(page,vg,w,h,u)
    if t>=.4 and t<.6 then D.Rect(vg,0,0,w,h,{255,90,58,math.floor((.6-t)/.2*178)}) end
    if t>=.5 then
     local flash=math.max(0,1-(t-.5)/.36);D.Rect(vg,0,0,w,h,{255,255,255,math.floor(flash*255)})
-    D.Rect(vg,0,0,w,h,{255,30,15,48});require('ui.IntroComicText').Bang(vg,tx-h*.2,ty+h*.08,u,t-.5)
+    D.Rect(vg,0,0,w,h,{255,30,15,48});IntroComicText.Bang(vg,tx-h*.2,ty+h*.08,u,t-.5)
    end
    comic.EndPanels(vg)
    if t<.15 then
@@ -104,10 +121,10 @@ function M.Draw(page,vg,w,h,u)
      if entry.shot=='prosper' or entry.shot=='order' or entry.shot=='leave' then Title(vg,I,w,h,u,entry.shot,nil,I.time-entry.t,t) end
     end
    end
-   if t>=.5 then require('ui.IntroComicText').No(vg,w,h,u,t-.5) end
+   if t>=.5 then IntroComicText.No(vg,w,h,u,t-.5) end
   end
  elseif id=='familiar' then
-  require('ui.IntroFamiliar').Draw(page,vg,w,h,u)
+  IntroFamiliar.Draw(page,vg,w,h,u)
  elseif id=='galaxy' then
   D.Rect(vg,0,0,w,h,{5,7,13,255});local k=math.min(1,t/((I.voiceDuration or 4.84)*.95));local cx=w*.56;local cy=h*.54;local R=math.min(w,h)*(.62+k*.12)
   nvgBeginPath(vg);nvgRect(vg,0,0,w,h);nvgFillPaint(vg,nvgRadialGradient(vg,cx,cy,0,R*.5,nvgRGBA(255,220,180,89),nvgRGBA(0,0,0,0)));nvgFill(vg)
@@ -121,9 +138,9 @@ function M.Draw(page,vg,w,h,u)
    nvgBeginPath(vg);nvgCircle(vg,x,y,4+age*26);nvgStrokeColor(vg,nvgRGBA(255,59,48,math.floor((1-age)*255)));nvgStrokeWidth(vg,2);nvgStroke(vg)
    nvgBeginPath(vg);nvgCircle(vg,x,y,2.6+(math.sin(t*9+hit.id)>0 and 1.2 or 0));nvgFillColor(vg,D.Color(red));nvgFill(vg)
   end end
-  require('ui.IntroGalaxyText').Draw(page,vg,I,w,h,u,count,last)
+  IntroGalaxyText.Draw(page,vg,I,w,h,u,count,last)
  elseif id=='payslip' then
-  require('ui.IntroPayslip').Draw(vg,I,w,h,u,page,true)
+  DeferredModules['ui.IntroPayslip'].Draw(vg,I,w,h,u,page,true)
  elseif id=='decide' or id=='decided' then
   D.Rect(vg,0,0,w,h,{0,0,0,255});local q=id=='decided' and 1 or I.holdProgress or 0
   nvgSave(vg);nvgGlobalAlpha(vg,id=='decided' and 1 or .18+q*.8)
@@ -137,23 +154,23 @@ function M.Draw(page,vg,w,h,u)
   end
  elseif id=='sortie-countdown' then Big(vg,I.countdown or '',w/2,h*.4,12*u,t,white)
  elseif id=='sortie-brief' or I.playing then
-  require('ui.IntroSortieUi').Chrome(vg,w,h,u,I.time,I.sortie and I.sortie.step or 0)
+  IntroSortieUi.Chrome(vg,w,h,u,I.time,I.sortie and I.sortie.step or 0)
   if id=='sortie-brief' and t<2.2 then
    D.Rect(vg,0,h*.36,w,h*.14,{255,59,48,235});D.Text(vg,'财产受损警告 · PROPERTY DAMAGE ALERT',w/2,h*.39,3.8*u,white,'vox-title',NVG_ALIGN_CENTER)
    D.Text(vg,'请注意，敌军正在拆解公司的贵重矿车！（矿车价值约等于你 40 年工资）',w/2,h*.54,1.8*u,white,'vox-title',NVG_ALIGN_CENTER)
   elseif id=='sortie-brief' and not I.playing then
-   require('ui.IntroSortieUi').Brief(vg,w,h,u,t)
+   IntroSortieUi.Brief(vg,w,h,u,t)
   elseif I.sortie then
    local s=I.sortie
    local visual=I.host.state and I.host.state.sortieUi;if visual then visual:Draw(vg,I,w,h,u) end
    if s.step==5 then
-    require('ui.IntroSortieUi').Stamp(vg,w,h,u,s)
+    IntroSortieUi.Stamp(vg,w,h,u,s)
    end
   end
  elseif id=='motto' or id=='disclaimer' then
   local alpha,first,second=Motion.Motto(I)
    D.Rect(vg,0,0,w,h,{0,0,0,math.floor(255*Fx.MottoBlack(I))})
-   require('ui.IntroMotto').Draw(page,vg,w,h,u,alpha,first,second)
+   DeferredModules['ui.IntroMotto'].Draw(page,vg,w,h,u,alpha,first,second)
  elseif I.big and I.big~='' and not recruit.Handles(id) then Title(vg,I,w,h,u,id,I.big,t-(I.wordAt or 0))
  end
  if I.caption and I.caption~='' then
@@ -163,7 +180,7 @@ function M.Draw(page,vg,w,h,u)
   page.caption:Draw(vg,text,(w-width)/2,h*.9-m.height,width,white,true)
  end
  film.Over(vg,I,w,h,u)
- if id=='payslip' then require('ui.IntroPayslip').DrawForeground(vg,I,w,h,u) end
+ if id=='payslip' then DeferredModules['ui.IntroPayslip'].DrawForeground(vg,I,w,h,u) end
  Fx.Draw(vg,I,w,h)
 end
 return M

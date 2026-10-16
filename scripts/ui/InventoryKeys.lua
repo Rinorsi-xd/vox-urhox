@@ -1,11 +1,13 @@
 -- Source HTML button activation and Tab order, including offscreen virtual rows.
+local Inventory=require("construction.Inventory")
+
 local UI=require 'urhox-libs/UI'
 local M={}
 function M.Stops(owner)
     local stops={{widget=owner.search},{widget=owner.closeButton}}
     for _,widget in ipairs(owner.categoryBar.children) do stops[#stops+1]={widget=widget} end
     if owner.materialBar:IsVisible() then
-        for _,material in ipairs(require('construction.Inventory').materials) do stops[#stops+1]={widget=owner.matButtons[material.id]} end
+        for _,material in ipairs(Inventory.materials) do stops[#stops+1]={widget=owner.matButtons[material.id]} end
     end
     for index,def in ipairs(owner.results) do stops[#stops+1]={part=def.id,index=index} end
     if owner.detail.more then stops[#stops+1]={widget=owner.detail.more} end

@@ -1,3 +1,5 @@
+local SourceRelief=require("ui.SourceRelief")
+
 local D=require 'ui.SourceDraw';local MD=require 'ui.MusicDraw'
 local Button=require('ui.ActionButton'):Extend('VoxMusicButton')
 function Button:Render(vg)
@@ -6,7 +8,7 @@ function Button:Render(vg)
     local color=p.pressed and {255,188,101,255} or {182,200,208,255}
     if p.kind=='filter' then
         local backgroundH=h-2;local points={0,0,w,0,w,backgroundH-14,w-14,backgroundH,0,backgroundH}
-        if p.pressed then require('ui.SourceRelief').Draw(vg,0,0,w,backgroundH,false,true,points,true);D.Rect(vg,0,backgroundH-2,w-12,2,D.orange)
+        if p.pressed then SourceRelief.Draw(vg,0,0,w,backgroundH,false,true,points,true);D.Rect(vg,0,backgroundH-2,w-12,2,D.orange)
         else D.Path(vg,points);nvgFillColor(vg,D.Color(hover and {64,83,94,255} or {47,58,64,255}));nvgFill(vg) end
         D.Rect(vg,0,0,w,1.5,{142,198,249,128});D.Rect(vg,0,backgroundH-1.5,w-12.5,1.5,{11,36,75,128})
         MD.Text(vg,p.text,w/2,(h-16.5)/2,11,p.pressed and {219,238,255,255} or {174,191,199,255},nil,NVG_ALIGN_CENTER,16.5)

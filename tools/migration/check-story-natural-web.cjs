@@ -9,10 +9,12 @@ const ambienceCheck=process.env.VOX_STORY_AMBIENCE==='1';
 const logOnly=process.env.VOX_STORY_LOG_ONLY==='1';
 const convoyCheck=process.env.VOX_STORY_CONVOY==='1';
 const battleTimingCheck=process.env.VOX_STORY_BATTLE_TIMING==='1';
+const spawnDiagnostic=process.env.VOX_STORY_SPAWN_DIAGNOSTIC==='1';
 const convoyAcceptance=require('./story-convoy-acceptance.cjs');
 const {findRoadConnector,evaluateTerrainConnector}=require('./story-road-connector.cjs');
 assert(!logOnly||levelNo===1&&!entryOnly,'Log acceptance requires level1 and full natural entry');
 assert(!convoyCheck||levelNo===2&&!entryOnly&&!logOnly,'Convoy acceptance requires full natural S2');
+assert(!spawnDiagnostic||battleTimingCheck&&!entryOnly&&!logOnly&&!convoyCheck,'Spawn diagnostic requires explicit F15 timing and full natural entry without other acceptance modes');
 const base=process.env.VOX_QA_BASE||'http://127.0.0.1:'+Number(process.env.VOX_QA_PORT||4283);
 const level=require('../../assets/Story/Mission/Level'+levelNo+'.json').level;
 const layout=require('../../assets/'+(levelNo===5?'EnginePit':'Crater')+'/Layout.json');
@@ -102,6 +104,23 @@ async function configureBattleTiming(enabled,dispatch,observe,record){
  assert.equal(observed.performance.battleTiming.enabled,true,'Actual probe acknowledged F15 CPU timing');
  record({requested:true,result:'OBSERVED',keyRequests:1,observed:structuredClone(observed.performance.battleTiming)});
 }
+function observeSpawnDiagnostic(run,observed,wall,timingAcknowledgement){
+ assert.equal(timingAcknowledgement.result,'OBSERVED','Spawn diagnostic requires actual F15 acknowledgement');
+ assert.equal(observed.performance?.battleTiming?.enabled,true,'Detailed timing must remain enabled throughout diagnostic');
+ const enemies=observed.story?.enemies;
+ assert(Number.isInteger(enemies)&&enemies>=0,'Actual nonnegative enemy count required');
+ const snapshot=()=>structuredClone({wall,story:observed.story,
+  state:observed.performance.battleTiming,timings:Object.fromEntries(Object.entries(observed.performance.updateTiming||{}).filter(([label])=>label.startsWith('battle.')))});
+ if(!run.zero&&enemies===0){run.zero=snapshot();run.result='WAITING_SPAWN';}
+ if(!run.firstSpawn&&run.previousEnemies===0&&enemies>0){
+  run.firstSpawn=snapshot();run.result='SAMPLING';
+ }
+ run.previousEnemies=enemies;
+ if(run.firstSpawn&&wall-run.firstSpawn.wall>=12000){
+  run.end=snapshot();run.elapsedWallMs=wall-run.firstSpawn.wall;run.result='CAPTURED';return true;
+ }
+ return false;
+}
 function captureBattleObjects(request,observed,sequence){
  if(!request||request.snapshot||sequence<=request.afterSequence||observed.mode!=='trial'||observed.story?.id!==request.storyId)return null;
  const objects=observed.performance?.battleObjects;if(!objects?.scene?.sampled)return null;
@@ -121,14 +140,17 @@ async function main(){
   const sha=crypto.createHash('sha256').update(fs.readFileSync(path.join(referenceRoot,name))).digest('hex');
   assert.equal(identity.identity.scripts[name],sha,'Frozen actual mission payload '+name);production[name]=sha;
  }
- const probeSha=crypto.createHash('sha256').update(fs.readFileSync(path.join(__dirname,'probe-outgame-web.lua'))).digest('hex');
+ const observerPrefix=identity.storyRoute?fs.readFileSync(path.join(__dirname,'story-route-observer.lua'),'utf8')+'\n':'';
+ const probeSha=crypto.createHash('sha256').update(observerPrefix).update(fs.readFileSync(path.join(__dirname,'probe-outgame-web.lua'))).digest('hex');
  assert.equal(identity.probeSha256,probeSha,'Actual server uses current read-only observer');
  const out=path.resolve('docs/migration/evidence/story-natural-s'+levelNo+'-'+path.basename(identity.manifest_path,'.json')+'-'+new Date().toISOString().replace(/[:.]/g,'-'));
  fs.mkdirSync(out,{recursive:true});console.log('Evidence: '+out);
  const report={identity,production,referenceRoot,toolSha256:crypto.createHash('sha256').update(fs.readFileSync(__filename)).digest('hex'),inputHelperSha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(__dirname,'story-natural-input.cjs'))).digest('hex'),level:level.id,entryOnly,logOnly,sharedGpu:process.env.VOX_QA_SHARED_GPU==='1',result:'RUNNING',checks:[],errors:[],probeErrors:[],samples:[],objectSamples:[],transitions:[],routes:[],battleTiming:{requested:battleTimingCheck,result:battleTimingCheck?'PENDING':'NOT_REQUESTED',keyRequests:0,samples:[]},startedAt:new Date().toISOString(),
   boundary:'Actual source story selection and keyboard/mouse operation. F8 reads compact state; F14 reads scene counts once at trial/story screenshots and immediately freezes the actual sample. No teleport, phase/clock/HP changes, enemy destruction, voice skipping or synthetic completion. Automated road following may fail; that alone is not proof of a gameplay defect. Functional run, not isolated performance or physical mobile evidence.'};
  if(report.sharedGpu)report.boundary+=' Shared-machine concurrent GPU functional route: frame rate and loading duration are not isolated measurements and must not be used for performance comparison.';
+ if(identity.storyRoute)report.boundary+=' Explicit story-route QA projection preserves complete story, controls, camera, targets, route and memory counters; unrelated UI/weapon diagnostic fields are omitted. Not a complete UI/HUD audit.';
  if(battleTimingCheck)report.boundary+=' VOX_STORY_BATTLE_TIMING=1 requests real F15 CPU instrumentation. Inclusive nested wall milliseconds include instrumentation and scheduling; do not sum or use as GPU, isolated benchmark or mobile performance evidence. At most five units are sampled; combat vehicle views are wrapped without scanning parts. New/rebuilt objects bind on the next QA update.';
+ if(spawnDiagnostic){report.spawnDiagnostic={result:'WAITING_ZERO',durationWallMs:12000};report.boundary+=' First-spawn diagnostic only: requires an actual zero-to-positive enemy observation after F15 acknowledgement, then at least 12 wall-clock seconds of normal commands and normal return. PASS is diagnostic capture and terrain release, never whole-mission completion or performance acceptance.';}
  if(logOnly){report.logAcceptance={result:'NOT_REACHED'};report.boundary+=' Log-only route checks natural three kills, visible target state and actual pickup. It cannot observe exact within-frame last-death ordering or prove pixel appearance; the offline death-order oracle and screenshot review remain separate. No filesystem memory scan. Does not claim complete mission.';}
  if(convoyCheck){report.convoyAcceptance=convoyAcceptance.create(level);report.boundary+=' S2 functional acceptance requires both real non-default dialogue choices, two checkpoint states and complete transport delivery. Enemy counts in progress windows are diagnostic only: a surviving enemy can cross windows. Three-wave identity and presentation remain OPEN even when this functional run passes.';}
  report.bossInputHelperSha256=crypto.createHash('sha256').update(fs.readFileSync(path.join(__dirname,'story-boss-natural-input.cjs'))).digest('hex');
@@ -202,10 +224,17 @@ async function main(){
    await dump();const s=state.story;if(!s)throw Error('Story session disappeared');
    const current=s.step+':'+s.phase+':'+(s.cap?.phase||'')+':'+(s.boss?.flow||'');
    if(current!==transition){transition=current;route=[];progress={};routeAnchor=undefined;aimTracking={};report.transitions.push({at:Date.now()-begun,story:structuredClone(s),vehicle:structuredClone(state.vehicle)});persist();await shot('stage-'+report.transitions.length);}
-   const sample={at:Date.now()-begun,story:structuredClone(s),vehicle:structuredClone(state.vehicle),keys:[...held],firing};report.samples.push(sample);
+   const sample={at:Date.now()-begun,story:structuredClone(s),vehicle:structuredClone(state.vehicle),keys:[...held],firing,
+    resources:Object.fromEntries(Object.entries(state.performance||{}).filter(([key])=>['luaKiB','resourceBytes','modelBytes','arrayBytes','texture2DBytes','imageBytes','materialBytes','soundBytes','retiredTargets'].includes(key)))};report.samples.push(sample);
+   if(spawnDiagnostic){
+    const previousResult=report.spawnDiagnostic.result;
+    const captured=observeSpawnDiagnostic(report.spawnDiagnostic,state,Date.now(),report.battleTiming);
+    if(report.spawnDiagnostic.result!==previousResult)persist();
+    if(captured){check(true,'Diagnostic captured actual first enemy spawn and at least 12 wall-clock seconds of detailed timing');await keys();await fire(false);await shot('first-spawn-window');report.result='PASS';break;}
+   }
    if(convoyCheck)convoyAcceptance.observe(report.convoyAcceptance,s,sample.at,check);
    if(logOnly&&observeLog(report.logAcceptance,s,check)){report.result='PASS';await keys();await fire(false);await shot('log-picked');break;}
-   if(s.finished){check(!logOnly,'Log acceptance cannot be replaced by whole-mission completion');check(true,'complete mission reached through natural commands and original rules');completedCampaign=levelNo===5;report.result='PASS';await shot('result');break;}
+   if(s.finished){check(!spawnDiagnostic,'Diagnostic window cannot be replaced by whole-mission completion');check(!logOnly,'Log acceptance cannot be replaced by whole-mission completion');check(true,'complete mission reached through natural commands and original rules');completedCampaign=levelNo===5;report.result='PASS';await shot('result');break;}
    if(s.choice){await keys();await fire(false);const choiceKey=convoyCheck?convoyAcceptance.option(report.convoyAcceptance,s.choice,Date.now()-begun):'1';await page.keyboard.press(choiceKey);await sleep(500);continue;}
    if(!s.alive||!state.vehicle){await keys();await fire(false);await sleep(500);continue;}
    if(!state.pointer.captured){await page.mouse.click(800,450);await sleep(400);continue;}
@@ -265,5 +294,5 @@ async function main(){
  finally{report.finishedAt=new Date().toISOString();persist();await Promise.race([browser.close().catch(()=>{}),sleep(5000)]);}
  console.log(JSON.stringify({result:report.result,checks:report.checks.length,errors:report.errors.length,transitions:report.transitions.length,out}));if(report.result!=='PASS')process.exitCode=1;
 }
-module.exports={observeLog,loadRoadTerrain,roadRoute,advanceRoute,navigationProgress,routeHeightError,navigationCommand,needsRoad,configureBattleTiming};
+module.exports={observeLog,loadRoadTerrain,roadRoute,advanceRoute,navigationProgress,routeHeightError,navigationCommand,needsRoad,configureBattleTiming,observeSpawnDiagnostic};
 if(require.main===module)main().catch(e=>{console.error(e);process.exitCode=1;});

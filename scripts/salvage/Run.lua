@@ -1,3 +1,17 @@
+local ImportedDependencies=require("parts.Dependencies")
+local SalvageFx=require("render.SalvageFx")
+local SalvageExplosion=require("render.SalvageExplosion")
+local RunRules=require("salvage.RunRules")
+local Director=require("salvage.Director")
+local SalvageView=require("render.SalvageView")
+local SalvageAudio=require("audio.SalvageAudio")
+local Cinematics=require("salvage.Cinematics")
+local DriverActions=require("combat.DriverActions")
+local RotorMotion=require("drive.RotorMotion")
+local SalvageLootMotion=require("ui.SalvageLootMotion")
+local ResourceData=require("core.ResourceData")
+local PlayerViewSync=require("combat.PlayerViewSync")
+
 local Data=require('core.ResourceData').Read('Salvage/RunData.json')
 local Loot=require 'salvage.Loot'
 local Unit=require 'combat.CarUnit'
@@ -12,10 +26,10 @@ function M.Dependencies()
             if not seen[key] then seen[key]=true;parts[#parts+1]=row end
         end
     end end
-    local paths=require('parts.Dependencies').FromBlueprint({parts=parts})
+    local paths=ImportedDependencies.FromBlueprint({parts=parts})
     paths[#paths+1]='Shaders/BLGL/Salvage/Signal.shader'
-    for _,path in ipairs(require('render.SalvageFx').Dependencies()) do paths[#paths+1]=path end
-    for _,path in ipairs(require('render.SalvageExplosion').Dependencies()) do paths[#paths+1]=path end;return paths
+    for _,path in ipairs(SalvageFx.Dependencies()) do paths[#paths+1]=path end
+    for _,path in ipairs(SalvageExplosion.Dependencies()) do paths[#paths+1]=path end;return paths
 end
 function M.New(session,bp)
     local self=setmetatable({},M);self:init(session,bp);return self
@@ -23,16 +37,16 @@ end
 function M:init(session,bp)
     self.session=session;self.world=session.world;self.entries={};self.voice={card=nil};self.original=bp:ToTable();self.begun=false
     self.runId=tostring(os.time())..':'..tostring(math.random(1,2147483647));self.feed={}
-    self.rules=require('salvage.RunRules').New(self.world.layout.salvage.gameplay,Data.ops[session.app.salvageLobby.data.op or 1])
+    self.rules=RunRules.New(self.world.layout.salvage.gameplay,Data.ops[session.app.salvageLobby.data.op or 1])
     self.spawn=self.world.layout.salvage.spawns[math.random(#self.world.layout.salvage.spawns)]
     self.player=Unit.New(self.world,self.original,{name=bp.name,spawn=self.spawn,team='blue',externalView=true,externalControl=true,autoRespawn=false,combat=true})
     assert(self.player.alive,'Invalid salvage vehicle');self:Center(self.player,self.spawn)
     self.world.units={self.player};self.entries[1]={unit=self.player,env=self:Environment(self.player)}
-    self.director=require('salvage.Director').New(self);self.view=require('render.SalvageView').New(self)
-    self.fx=require('render.SalvageFx').New(session.scene)
-    self.explosion=require('render.SalvageExplosion').New(session.scene)
-    self.audio=require('audio.SalvageAudio').New(session.scene)
-    self.cine=require('salvage.Cinematics').New(self)
+    self.director=Director.New(self);self.view=SalvageView.New(self)
+    self.fx=SalvageFx.New(session.scene)
+    self.explosion=SalvageExplosion.New(session.scene)
+    self.audio=SalvageAudio.New(session.scene)
+    self.cine=Cinematics.New(self)
 end
 function M:Center(u,at)
     local a,b=u.spec.bounds.min,u.spec.bounds.max;local x,z=(a[1]+b[1])/2,(a[3]+b[3])/2;local yaw=at.yaw or 0
@@ -75,6 +89,10 @@ function M:UpdateFeedback()
         if now>=cue.at then self:Feed('全频道广播',cue.text,'#ff3b3b');table.remove(self.pendingBroadcasts,i) else i=i+1 end
     end
 end
+function M:AdvancePresentationTime(dt)
+    if self.disposed or not self.begun or not self.landed then return end
+    self.rules.time=self.rules.time+math.max(0,dt)
+end
 function M:TouchContext()
     local r=self.rules;local prompt=not r.finished and r.prompt
     self.touchPrompt=prompt and not prompt.blocked and prompt or nil
@@ -97,8 +115,8 @@ function M:BeforeStep(dt,command,aim)
             end
             if u.alive then
                 if u==self.player then cmd.strafe=0 end -- E belongs to source salvage interaction.
-                require('combat.DriverActions').Apply(u,driverInfo)
-                local v=u.vehicle;v:StepRotors(target,cmd.rotorStep,dt);require('drive.RotorMotion').Weapons(v.rotors,u.weapons)
+                DriverActions.Apply(u,driverInfo)
+                local v=u.vehicle;v:StepRotors(target,cmd.rotorStep,dt);RotorMotion.Weapons(v.rotors,u.weapons)
                 v:Step(cmd,dt);local p,velocity=v.body.translation(),v.body.linvel()
                 u.weapons:Step(dt,{firing=firing,aim=target,pos={p.x,p.y,p.z},quat=v.body.rotation(),vel={velocity.x,velocity.y,velocity.z},body=v.body,team=u.team,salvo=driverInfo and driverInfo.salvo},entry.env)
                 self.session.effects:Consume(u.weapons.fx,u~=self.player);self.session.weaponAudio:Consume(u.weapons.fx,u~=self.player)
@@ -151,7 +169,7 @@ function M:AfterStep(dt)
 end
 function M:Events()
     for _,e in ipairs(self.rules:Drain()) do
-        require('ui.SalvageLootMotion').Event(self,e)
+        SalvageLootMotion.Event(self,e)
         self.audio:Event(e)
         if e.type=='noise' then self.director:Noise(e.at,e.r)
         elseif e.type=='hunt' then self.director:Hunt(e.n,e.at)
@@ -163,16 +181,16 @@ function M:Events()
                 self.session.trauma=math.max(self.session.trauma or 0,e.item.r>=5 and .55 or .32)
                 if e.item.r>=5 then
                     local o=self.rules.search and self.rules.search.o or {}
-                    local item=require('core.ResourceData').Read('UI/Outgame.json').items[e.item.id]
+                    local item=ResourceData.Read('UI/Outgame.json').items[e.item.id]
                     self.pendingBroadcasts=self.pendingBroadcasts or {}
                     self.pendingBroadcasts[#self.pendingBroadcasts+1]={at=Time:GetSystemTime()+1200,
                         text='有人在'..(o.poi or '附近')..'开出了「'..item.name..'」！各帮派都在往这边赶'}
                 end
             end
             self.revealed=self.revealed or {};self.revealed[e.item.id]=self.rules.time
-            if not e.worldBatch then self:Feed(self.rules.search and self.rules.search.title or '搜刮',require('core.ResourceData').Read('UI/Outgame.json').items[e.item.id].name..' × '..e.item.n) end
+            if not e.worldBatch then self:Feed(self.rules.search and self.rules.search.title or '搜刮',ResourceData.Read('UI/Outgame.json').items[e.item.id].name..' × '..e.item.n) end
         elseif e.type=='wreckLoot' then
-            local items=require('core.ResourceData').Read('UI/Outgame.json').items
+            local items=ResourceData.Read('UI/Outgame.json').items
             local function Names(list)
                 local out={};for _,row in ipairs(list) do out[#out+1]=items[row[1]].name..'×'..row[2] end;return table.concat(out,'、')
             end
@@ -180,18 +198,18 @@ function M:Events()
             elseif e.empty then self:Feed(e.title,'空的，被人搜过了','#8a8f98') end
             if #e.left>0 then self:Feed('货舱满了',Names(e.left)..' 装不下，丢在原地','#ff6a4d') end
         elseif e.type=='cargoPickup' then
-            local mass=0;local items=require('core.ResourceData').Read('UI/Outgame.json').items
+            local mass=0;local items=ResourceData.Read('UI/Outgame.json').items
             for _,row in ipairs(e.items) do mass=mass+(items[row[1]].mass or 1)*row[2] end
             if self.session.stompV~=nil then self.session.stompV=self.session.stompV-math.min(1.6,.25+mass/40) end
         elseif e.type=='cargoDropped' then
-            local names={};local items=require('core.ResourceData').Read('UI/Outgame.json').items
+            local names={};local items=ResourceData.Read('UI/Outgame.json').items
             for _,row in ipairs(e.items) do names[#names+1]=items[row[1]].name..' × '..row[2] end
             self:Feed('丢掉',table.concat(names,'、')..' 丢在了原地')
         elseif e.type=='worldLoot' then if self.fx then self.fx:Loot(e.at,e.color,e.n) end
         elseif e.type=='airdrop' then self:Airdrop()
         elseif e.type=='vaultStart' then self.cine:NameCard('舰载保险库 · 破解中','整片区域都收到了信号 · 清道夫正在赶来',3)
         elseif e.type=='vaultOpened' then
-            local color=require('core.ResourceData').Read('UI/Outgame.json').rarity[e.rarity+1].color
+            local color=ResourceData.Read('UI/Outgame.json').rarity[e.rarity+1].color
             self.fx:Loot(e.at,tonumber(color:sub(2),16),1);self.cine:Flash(.2,.4)
             self.session.trauma=math.max(self.session.trauma or 0,.3)
         elseif e.type=='core' then self.cine:Flash(.3,.6);self.cine:NameCard('核心件已拆下','动静太大 · 附近的清道夫都听见了',2.4)
@@ -230,7 +248,7 @@ function M:Finish(ok,title,keepCar,exit)
     if exit and exit.needs then cargo[exit.needs]=cargo[exit.needs]-1;if cargo[exit.needs]==0 then cargo[exit.needs]=nil end end
     local lostCar=0
     if not ok and not keepCar then
-        local items=require('core.ResourceData').Read('UI/Outgame.json').items;local need={}
+        local items=ResourceData.Read('UI/Outgame.json').items;local need={}
         for _,p in ipairs(self.original.parts) do if p[1]~='core' then local id='part:'..p[1];need[id]=(need[id] or 0)+1 end end
         for id,n in pairs(need) do lostCar=lostCar+(items[id] and items[id].price or 0)*math.min(n,self.session.app.salvageLobby:Owned(id)) end
     end
@@ -261,7 +279,7 @@ function M:Key(key)
     if key==KEY_F then self.tapF=true;return true end
     return key==KEY_N or key==KEY_BACKSPACE
 end
-function M:SyncPlayer() require('combat.PlayerViewSync').Update(self) end
+function M:SyncPlayer() PlayerViewSync.Update(self) end
 function M:Snapshot() return {time=self.rules.time,heat=self.rules.heat,cargo=self.rules.cargo,used=Loot.Used(self.rules.cargo),mass=Loot.Mass(self.rules.cargo),value=Loot.Value(self.rules.cargo),
     opened=self.rules.openedCount,kills=self.rules.kills,enemies=#self.entries-1,prompt=self.rules.prompt,search=self.rules.search and {title=self.rules.search.title,crack=self.rules.search.crack,done=self.rules.search.done,items=self.rules.search.items},
     extracts=self.rules.extracts,objective=self.hudObjective,threat=self.threat,lootPulse=self.lootPulse,flights=#(self.lootFlights or {}),audio=self.audio:Snapshot(),cine=self.cine:Snapshot(),result=self.result,committed=self.committed,saveError=self.saveError} end

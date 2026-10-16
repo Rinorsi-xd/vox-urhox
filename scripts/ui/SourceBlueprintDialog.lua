@@ -1,5 +1,8 @@
 -- shared/ui/ui.js openImport/openExport, shared by home and build owners.
 -- Callers own storage policy; this module only owns the source PC dialog.
+local SourceHint=require("ui.SourceHint")
+local SourceCodeField=require("ui.SourceCodeField")
+
 local UI=require 'urhox-libs/UI'
 local Host=require 'ui.DialogHost'
 local Button=require 'ui.SourceButton'
@@ -12,8 +15,8 @@ function M.Open(owner,options)
         or '把这段文字发给朋友，对方点「导入蓝图码」粘贴即可得到同一辆车。'
     local segments=importing and {{text='粘贴以 '},{text='FKZC1:',font='vox-inline-code'},
         {text=' 开头的蓝图码。当前车辆会被替换，需要的话先保存到蓝图库。'}} or nil
-    local status=require('ui.SourceHint'){text=hint,segments=segments,width='100%',height=29.25,marginTop=12.5,marginBottom=12.5,flexShrink=0}
-    local field=require('ui.SourceCodeField'){value=options.code or '',placeholder='FKZC1:...',maxLength=4*1024*1024,
+    local status=SourceHint{text=hint,segments=segments,width='100%',height=29.25,marginTop=12.5,marginBottom=12.5,flexShrink=0}
+    local field=SourceCodeField{value=options.code or '',placeholder='FKZC1:...',maxLength=4*1024*1024,
         width='100%',height=130,flexShrink=0,readOnly=not importing}
     modal:AddContent(status);modal:AddContent(field);modal.field=field;modal.status=status
     local function Submit()

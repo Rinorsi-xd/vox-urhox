@@ -1,4 +1,10 @@
 -- shared/ui/nonoComms.js: one retained card, with ownership-safe client handles.
+local ResourceGate=require("app.ResourceGate")
+local MissionData=require("story.MissionData")
+local CommsPortrait=require("ui.CommsPortrait")
+local StoryCommsCues=require("audio.StoryCommsCues")
+local CommsCard=require("ui.CommsCard")
+
 local Levels=require 'audio.AudioLevels'
 local M={}
 local shared=nil ---@type table|nil
@@ -31,7 +37,7 @@ local function Preload(path)
     local function Ready(sound) if shared==state and sound and sound.length>0 then state.loaded[path]=sound end end
     if cache.GetResourceAsync then cache:GetResourceAsync('Sound',path,Ready)
     else
-        local gate=require('app.ResourceGate').New();state.gates[gate]=true
+        local gate=ResourceGate.New();state.gates[gate]=true
         gate:Start({path},function(ok)
             state.gates[gate]=nil
             if not ok or shared~=state then return end
@@ -40,7 +46,7 @@ local function Preload(path)
     end
 end
 function M.Dependencies(level)
-    local Data=require 'story.MissionData'
+    local Data=MissionData
     local texts=nil ---@type table<string, boolean>|nil
     if type(level)=='table' then
         texts={}
@@ -63,20 +69,20 @@ function M.Dependencies(level)
         end
     end
     for _,name in ipairs({'nono_talk','nono_deadpan','nono_smile','nono_stamp','huhu_talk','huhu_smug','huhu_angry','huhu_flustered'}) do
-        out[#out+1]=require('ui.CommsPortrait').Path(name:match('^([^_]+)_'),name)
+        out[#out+1]=CommsPortrait.Path(name:match('^([^_]+)_'),name)
     end
     out[#out+1]='Story/Boss/chairman_cut.png'
-    for _,path in ipairs(require('audio.StoryCommsCues').Dependencies()) do out[#out+1]=path end
+    for _,path in ipairs(StoryCommsCues.Dependencies()) do out[#out+1]=path end
     return out
 end
 function M.New(scene,data,keepOpen)
     if not shared then
         local audioScene=Scene();local root=audioScene:CreateChild('SharedStoryComms')
         shared={scene=audioScene,root=root,slots={},active=0,index={},voices={},loaded={},gates={},downloaded={},decoding={},decodeCursor=1,queue={},time=0}
-        shared.cues=require('audio.StoryCommsCues').New()
+        shared.cues=StoryCommsCues.New()
         for i=1,2 do local source=root:CreateComponent('SoundSource');source:SetSoundType('VoxStoryVoice');shared.slots[i]={source=source} end
     end
-    local self=setmetatable({data=data or require('story.MissionData'),log={},source=shared.slots[1].source},M)
+    local self=setmetatable({data=data or MissionData,log={},source=shared.slots[1].source},M)
     self:Use(keepOpen);return self
 end
 function M:Owns() return shared~=nil and shared.owner==self and not self.disposed end
@@ -146,7 +152,7 @@ function M:SkipLine()
 end
 -- App clock owns fades even while the card's owning page is hidden.
 function M.Tick(dt)
-    require('ui.CommsCard').Tick()
+    CommsCard.Tick()
     if not shared then return end
     shared.cues:Update(dt,input.focus and not input.minimized)
     -- Download completion may hold an engine lock; prepare one voice on Update.
@@ -225,7 +231,7 @@ end
 function M.Shutdown()
     local state=shared
     -- Opening can hand off a portrait before the first tutorial voice exists.
-    if not state then require('ui.CommsCard').Dispose();return end
+    if not state then CommsCard.Dispose();return end
     shared=nil
     Levels.SetSpeaking(state,false)
     state.cues:Dispose()
@@ -233,6 +239,6 @@ function M.Shutdown()
     for _,slot in ipairs(state.slots) do slot.source:StopImmediate() end
     state.scene:Dispose();state.card=nil;state.owner=nil
     state.loaded={};state.downloaded={};state.decoding={};state.gates={};state.queue={};state.slots={};state.voices={};state.index={}
-    require('ui.CommsCard').Dispose()
+    CommsCard.Dispose()
 end
 return M

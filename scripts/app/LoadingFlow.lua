@@ -1,4 +1,16 @@
 -- Scene preparation and UI lifetime are separate: the overlay survives SetRoot.
+local ResourceGate=require("app.ResourceGate")
+local LoadingPage=require("ui.LoadingPage")
+local ImageCache=require("urhox-libs/UI/Core/ImageCache")
+local ArenaData=require("combat.ArenaData")
+local Matchmaker=require("combat.Matchmaker")
+local DriveMaps=require("app.DriveMaps")
+local BattleFlow=require("audio.BattleFlow")
+local MatchLobby=require("ui.MatchLobby")
+local PlatformUtils=require("urhox-libs.Platform.PlatformUtils")
+local SceneWarmup=require("render.SceneWarmup")
+local CombatWarmup=require("render.CombatWarmup")
+
 local UI=require 'urhox-libs/UI'
 local M={};M.__index=M
 local phases={'download','resources','scene','prepare','environment','activate'}
@@ -9,42 +21,45 @@ end
 function M:init(app)
     self.app=app;self.active=false;self.pageVisible=false;self.time=0;self.phase='closed'
     self.generation=0;self.steps={};self.disposed=false
-    self.artGate=require('app.ResourceGate').New();self.artReady=false
-    self.page=require('ui.LoadingPage').New(self)
+    self.artGate=ResourceGate.New();self.artReady=false
+    self.page=LoadingPage.New(self)
 end
 function M:Open(map,onBack)
     self:Close()
     self.generation=self.generation+1;self.active=true;self.phase='cover';self.time=0;self.elapsed=0
     self.map=map;self.onBack=onBack;self.finished=false;self.failed=false;self.error=''
-    self.artReady=false;self.cancelled=false
+    self.artReady=false;self.cancelled=false;self.scenePrepared=false;self.keepSceneVisible=false
     local generation=self.generation
     if not map.boot then self.artGate:Start({map.loadingArt or 'UI/Modes/crater.jpg'},function(ok)
         if not self.active or self.generation~=generation then return end
         self.artReady=ok
-        if ok then require('urhox-libs/UI/Core/ImageCache').Release(map.loadingArt or 'UI/Modes/crater.jpg') end
+        if ok then ImageCache.Release(map.loadingArt or 'UI/Modes/crater.jpg') end
     end) end
     self.steps={};self.current=1;self.progress=0;self.warmFrames=0;self.readyTime=0;self.pageFrames=0;self.pageDrawn=false
     self.warmupTimes={};self.worldRestoredAt=nil
-    for i,id in ipairs(phases) do self.steps[i]={id=id,label=labels[i],state=i==1 and 'run' or 'wait',elapsed=0,note=''} end
+    for i,item in ipairs(map.loadingSteps or phases) do
+        local id=type(item)=='table' and item[1] or item
+        self.steps[i]={id=id,label=type(item)=='table' and item[2] or labels[i],state=i==1 and 'run' or 'wait',elapsed=0,note=''}
+    end
     self.page:Open();print('[LoadingFlow] Open '..map.id)
     if map.boot then self.pageVisible=true;self.phase='loading' end
 end
 function M:QueueBattle(mode,bp)
-    local cfg=require('combat.ArenaData').modes[mode]
+    local cfg=ArenaData.modes[mode]
     local tier=bp:Stats().fitTier
     if not tier then self.app.toasts:Push('这辆车超出了 T5 的限制，改装后才能出战','bad');return false end
-    local roster=require('combat.Matchmaker').Find(self.app.store,cfg.size,tier.id)
-    local map={};for key,value in pairs(require('app.DriveMaps').crater) do map[key]=value end
+    local roster=Matchmaker.Find(self.app.store,cfg.size,tier.id)
+    local map={};for key,value in pairs(DriveMaps.crater) do map[key]=value end
     map.loadingBrand=cfg.name;map.loadingSub=cfg.size..'V'..cfg.size;map.loadingTips=cfg.rules
     self:Open(map,function() self.app:CancelMapLoad(true) end)
     self.match={cfg=cfg,roster=roster,tier=tier.id,wait=roster.wait,carName=bp.name,stage='queue',age=0}
-    self.sounds=require('audio.BattleFlow').New();self.sounds:Prepare(true);self.sounds:Queue(true)
-    local paths=require('ui.MatchLobby').Dependencies(roster);local generation=self.generation
+    self.sounds=BattleFlow.New();self.sounds:Prepare(true);self.sounds:Queue(true)
+    local paths=MatchLobby.Dependencies(roster);local generation=self.generation
     self.artGate:Start(paths,function(ok)
         if not self.active or self.generation~=generation then return end
         self.artReady=ok
         if ok then
-            local images=require 'urhox-libs/UI/Core/ImageCache'
+            local images=ImageCache
             for _,path in ipairs(paths) do images.Release(path) end
         end
     end)
@@ -52,6 +67,7 @@ function M:QueueBattle(mode,bp)
 end
 function M:Observe(loader,dt)
     if not self.active or self.failed then return end
+    if self.map.loadingSteps then return end
     for _,step in ipairs(self.steps) do
         if loader.phaseTimes and loader.phaseTimes[step.id] then
             local measured=loader.phaseTimes[step.id]
@@ -83,18 +99,22 @@ function M:Finish()
     for i,step in ipairs(self.steps) do
         if i<#self.steps then step.state='done';step.note=string.format('%.1fs',step.elapsed) end
     end
-    if self.app.scene and require('urhox-libs.Platform.PlatformUtils').IsWebPlatform() then
+    if not self.scenePrepared then self:PrepareScene() end
+    print('[LoadingFlow] Scene installed; awaiting rendered frames')
+end
+function M:PrepareScene()
+    self.scenePrepared=true
+    if self.app.scene and PlatformUtils.IsWebPlatform() then
         if self.renderWarmup then self.renderWarmup:Restore() end
         local viewport=renderer:GetViewport(0)
         self.sceneWarmupAt=Time:GetSystemTime()
-        self.renderWarmup=require('render.SceneWarmup').New(self.app.scene,nil,viewport and viewport.camera)
+        self.renderWarmup=SceneWarmup.New(self.app.scene,nil,viewport and viewport.camera)
         self.warmupTimes.drawables=#self.renderWarmup.items
         self.warmupTimes.outside=self.renderWarmup.skipped
         self.warmupTimes.disabled=self.renderWarmup.disabled or 0
         print('[LoadingFlow] Render warm-up drawables='..#self.renderWarmup.items..' outside='..self.renderWarmup.skipped..' disabled='..self.warmupTimes.disabled)
         self.combatWarmupPending=self.app.trial~=nil
     end
-    print('[LoadingFlow] Scene installed; awaiting rendered frames')
 end
 function M:Rendered()
     if not self.active or self.failed then return end
@@ -114,7 +134,7 @@ function M:Rendered()
         self.warmupTimes.restoredWorldMs=self.worldRestoredAt and math.max(0,started-self.worldRestoredAt) or 0
         local trial=self.app.trial
         if trial and not trial.disposed then
-            local ok,warmup=pcall(function() return require('render.CombatWarmup').New(trial) end)
+            local ok,warmup=pcall(function() return CombatWarmup.New(trial) end)
             if not ok then self:Fail(warmup);return end
             self.combatWarmup=warmup
             self.combatWarmupAt=Time:GetSystemTime()

@@ -1,4 +1,7 @@
 -- A bounded page is built incrementally; closing it releases all instances.
+local ResourceGate=require("app.ResourceGate")
+local Dependencies=require("parts.Dependencies")
+
 ---@class PartsGallery
 local Gallery={}
 Gallery.__index=Gallery
@@ -14,7 +17,7 @@ end
 function Gallery:init(scene,page)
     self.root=scene:CreateChild("Gallery")
     self.view=VehicleView.New(self.root,"GalleryParts")
-    self.labels={};self.pending={};self.page=1;self.gate=require('app.ResourceGate').New()
+    self.labels={};self.pending={};self.page=1;self.gate=ResourceGate.New()
     self:Page(page)
 end
 function Gallery:Page(page)
@@ -33,7 +36,7 @@ function Gallery:Page(page)
         for _,c in ipairs(d.cells) do low=math.min(low,Rot.ApplyRot(rot,c)[2]) end
         self.pending[#self.pending+1]={id=i,type=d.id,pos={(index%4-1.5)*9,1-low,-12-(index//4)*9},rot=rot,color=d.color}
     end
-    self.gate:Start(require('parts.Dependencies').For(self.pending),function(ok,message)
+    self.gate:Start(Dependencies.For(self.pending),function(ok,message)
         self.ready=ok;if not ok then print('[PartsGallery] '..message) end
     end)
 end

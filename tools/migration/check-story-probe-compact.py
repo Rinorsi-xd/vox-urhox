@@ -41,7 +41,7 @@ for count in [0, 1, 17, 179, 180]:
 check('Default and full requests are explicitly distinguished', "historyMode=full and 'full' or 'last'" in source and 'historyCount=#history,historyAvailable=presentationCount,historyLimit=180' in source)
 check('Explicit history request is consumed exactly once', 'local full=pendingPresentationHistory;pendingPresentationHistory=false' in source)
 check('F13 requests a real post-update dump without gameplay action', 'app.trial and app.trial.story and input:GetKeyPress(KEY_F13)' in source and "or pendingPresentationHistory or pendingSceneObjects then previous=key;pendingTrialDump=app" in source)
-check('Ordinary F8 and automatic sampling remain available', 'frames%30==0 or input:GetKeyPress(KEY_F8) or pendingPresentationHistory' in source)
+check('Default automatic sampling and explicit F8 remain available; route mode suppresses automatic duplicates', 'frames%30==0 and not G0_StoryRouteState or input:GetKeyPress(KEY_F8) or pendingPresentationHistory' in source)
 runner_source = runner.read_text(encoding='utf-8')
 check('Presentation runner explicitly requires full mode only in a presentation', "full=!!state?.story?.presentation" in runner_source and "await key(full?'F13':'F8')" in runner_source and "(!full||state.story?.presentation?.historyMode==='full')" in runner_source)
 runtime = subprocess.check_output(['node', '-e', r'''

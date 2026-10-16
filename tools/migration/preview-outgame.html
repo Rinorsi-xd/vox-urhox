@@ -5,6 +5,10 @@
 <div id="loading"><div class="ld-core"><div class="logo big"><span></span><span></span><span></span><span></span></div><b>方块战车</b><div class="ld-row"><span class="msg">正在启动</span><span class="ld-pct">0</span></div><div class="ld-bar"><i></i></div><div class="ld-tip"><em>提示</em><span>按 M 开启镜像建造，左右两边一起搭</span></div></div></div>
 <script>
 (async()=>{
+ if(['localhost','127.0.0.1','[::1]'].includes(location.hostname)){
+  const url=new URL(location.href);
+  if(!url.searchParams.has('-vox-debug'))history.replaceState(null,'',location.pathname+location.search+(location.search?'&':'?')+'-vox-debug=1'+location.hash);
+ }
  if(new URLSearchParams(location.search).get('cached')==='1'){
   const prefix='https://tapcode-sce.spark.xd.com/';
   const local=url=>String(url).startsWith(prefix)?new URL('/cached-engine-source/'+String(url).slice(prefix.length),location.href).href:url;

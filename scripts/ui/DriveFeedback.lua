@@ -1,4 +1,8 @@
 -- One NanoVG layer for pooled damage, projected unit tags and actual muzzle aim.
+local ReticleState=require("ui.ReticleState")
+local CombatFeedbackDraw=require("ui.CombatFeedbackDraw")
+local ReticleTarget=require("ui.ReticleTarget")
+
 local Panel=require 'urhox-libs/UI/Widgets/Panel'
 local D=require 'ui.SourceDraw'
 local Layer=Panel:Extend('VoxDriveFeedback')
@@ -69,13 +73,13 @@ end
 function Layer:Render(vg)
     D.HudFont(vg);local o=self.owner
     if o.session.pointer.captured then
-        local rect=self:GetAbsoluteLayout();local layout=require('ui.ReticleState').Layout(rect.w,rect.h)
-        require('ui.CombatFeedbackDraw').Render(vg,o.feedback,layout)
+        local rect=self:GetAbsoluteLayout();local layout=ReticleState.Layout(rect.w,rect.h)
+        CombatFeedbackDraw.Render(vg,o.feedback,layout)
         local now=Time:GetSystemTime()
         for _,t in ipairs(o.tags) do if t.visible and t.unit.alive and (not o.focus or o.focus.ref~=t.unit) then
             UnitMark(vg,o,t,layout,now)
         end end
-        require('ui.ReticleTarget').Render(vg,o,layout)
+        ReticleTarget.Render(vg,o,layout)
         local aim=o.aim
         if aim.visible then
             local x,y=aim.x,aim.y;nvgSave(vg);nvgTranslate(vg,x,y);nvgStrokeWidth(vg,2)

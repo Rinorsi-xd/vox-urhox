@@ -1,4 +1,8 @@
 -- Frozen loadingPage.js + salvage.css; drawn inside the existing UI frame.
+local LoadingFx=require("ui.LoadingFx")
+local BootLoading=require("ui.BootLoading")
+local MatchLobby=require("ui.MatchLobby")
+
 local UI=require 'urhox-libs/UI'
 local D=require 'ui.SourceDraw'
 local Motion=require 'ui.SourceButtonMotion'
@@ -17,7 +21,7 @@ function Page:HitTest(x,y)
 end
 function Page:Open()
     UI.ClearFocus();self.owner.cancelled=false;self.backRect=nil
-    self.fx=require('ui.LoadingFx').New()
+    self.fx=LoadingFx.New()
     UI.RegisterGlobalComponent('vox-loading-page',self);UI.PushOverlay(self)
 end
 function Page:Close()
@@ -41,7 +45,7 @@ local function Fade(vg,x,y,w,h,a,b,horizontal)
 end
 local function Stroke(vg,color,width) nvgStrokeColor(vg,D.Color(color));nvgStrokeWidth(vg,width);nvgStroke(vg) end
 function Page:DrawPage(vg,w,h)
-    local flow=self.owner;local map=flow.map;local t=flow.elapsed;local accent=D.orange
+    local flow=self.owner;local map=flow.map;local t=flow.elapsed;local accent=map.loadingColor or D.orange
     D.Rect(vg,0,0,w,h,{11,12,15,255})
     local entry=Motion.Ease(math.min(1,t/2.4),false);local zoom=1.12-.08*entry
     if t>2.4 then zoom=1.04+.04*(.5-.5*math.cos((t-2.4)*math.pi/34)) end
@@ -54,7 +58,7 @@ function Page:DrawPage(vg,w,h)
     Paint.Radial(vg,{0,0,w,0,w,h,0,h},w*.92,h*.78,w*.5,h*.6,{9,10,12,209},1)
     self.fx:Draw(vg,w,h,t,accent)
     local x=w*.052;local badge=42
-    D.Rect(vg,x,h*.05,badge,badge,accent);D.Icon(vg,'flag',x+8,h*.05+8,26,{11,41,70,255})
+    D.Rect(vg,x,h*.05,badge,badge,accent);D.Icon(vg,map.loadingIcon or 'flag',x+8,h*.05+8,26,{11,41,70,255})
     D.Text(vg,map.loadingBrand or map.name,x+badge+14,h*.05+7,28,D.white,'vox-title',nil,3)
     local base=h*.83;local title=104;local sub=20
     D.Text(vg,map.loadingKicker or '第 7 边境星区',x,base-title*1.35-sub-29,18,{154,160,170,255},'vox-body',nil,2)
@@ -98,6 +102,7 @@ local function Ease(x)
 end
 function Page:DrawTransition(vg,w,h)
     local flow=self.owner;local phase=flow.phase;local cover=phase=='cover' or phase=='exit-cover'
+    local accent=flow.map.loadingColor or D.orange
     local reveal=phase=='reveal' or phase=='exit-reveal'
     if not cover and not reveal then return end
     local bw=w*1.6;local bh=h*1.2;local skew=math.tan(math.rad(-18))*bh*.5
@@ -107,9 +112,9 @@ function Page:DrawTransition(vg,w,h)
         local shift=cover and 1.15*(1-progress) or -1.3*progress
         local x=-w*.3+bw*shift;local y=-h*.1
         D.Path(vg,{x-skew,y,x+bw-skew,y,x+bw+skew,y+bh,x+skew,y+bh})
-        nvgFillColor(vg,D.Color(i==1 and D.orange or {11,12,15,255}));nvgFill(vg)
+        nvgFillColor(vg,D.Color(i==1 and accent or {11,12,15,255}));nvgFill(vg)
         if i==2 then
-            D.Path(vg,{x-skew,y,x+28-skew,y,x+28+skew,y+bh,x+skew,y+bh});nvgFillColor(vg,D.Color(D.orange));nvgFill(vg)
+            D.Path(vg,{x-skew,y,x+28-skew,y,x+28+skew,y+bh,x+skew,y+bh});nvgFillColor(vg,D.Color(accent));nvgFill(vg)
         end
     end
 end
@@ -123,8 +128,8 @@ function Page:Render(vg)
     if self.owner.pageVisible then
         if self.owner.map.boot then
             if self.owner.phase=='boot-exit' then nvgGlobalAlpha(vg,math.max(0,1-self.owner.time/.8)) end
-            require('ui.BootLoading').Draw(self,vg,logicalW,logicalH)
-        elseif self.owner.match then require('ui.MatchLobby').Draw(self,vg,logicalW,logicalH) else self:DrawPage(vg,logicalW,logicalH) end
+            BootLoading.Draw(self,vg,logicalW,logicalH)
+        elseif self.owner.match then MatchLobby.Draw(self,vg,logicalW,logicalH) else self:DrawPage(vg,logicalW,logicalH) end
         self.owner:PageRendered()
     end
     self:DrawTransition(vg,logicalW,logicalH);nvgRestore(vg)

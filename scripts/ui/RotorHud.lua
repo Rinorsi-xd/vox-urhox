@@ -1,4 +1,9 @@
 -- Source #rotorHud and showRotorHud, rendered inside the UI-owned NanoVG frame.
+local Defs=require("parts.Defs")
+local Math3=require("core.Math3")
+local Coord=require("core.Coord")
+local Config=require("Config")
+
 local Panel=require 'urhox-libs/UI/Widgets/Panel'
 local D=require 'ui.SourceDraw'
 local Rich=require 'ui.SourceRichText'
@@ -18,7 +23,7 @@ function Hud:Sync()
             self.mode=1;for i,m in ipairs(R.MODES) do if m.type==p.type then self.mode=i end end
             local function Names(ids)
                 local counts,order={},{};for _,id in ipairs(ids) do local part=e.bp.parts[id]
-                    if part then local name=require('parts.Defs').PARTS[part.type].name;if not counts[name] then order[#order+1]=name;counts[name]=0 end;counts[name]=counts[name]+1 end
+                    if part then local name=Defs.PARTS[part.type].name;if not counts[name] then order[#order+1]=name;counts[name]=0 end;counts[name]=counts[name]+1 end
                 end
                 local names={};for _,name in ipairs(order) do names[#names+1]=name..(counts[name]>1 and ' ×'..counts[name] or '') end;return table.concat(names,'、')
             end
@@ -45,7 +50,7 @@ function Hud:Sync()
 end
 function Hud:Update(dt)
     local target=self.info and 1 or 0
-    self.alpha=require('core.Math3').Approach(self.alpha or 0,target,dt/.12)
+    self.alpha=Math3.Approach(self.alpha or 0,target,dt/.12)
 end
 local function Icon(vg,x,y,mode,color)
     nvgSave(vg);nvgTranslate(vg,x,y);nvgBeginPath(vg);nvgStrokeColor(vg,D.Color(color));nvgStrokeWidth(vg,1.8)
@@ -66,7 +71,7 @@ function Hud:Render(vg)
     local info=self.info;local r=self:GetAbsoluteLayout();local w=math.min(380,r.w-24);local h=157+self.foot.height
     local camera=self.session.app.camera.camera;local f=R.Frame(self.part);local dir=self.session.editor.forward
     local len=math.sqrt(dir[1]^2+dir[3]^2);if len<1e-5 then len=1 end
-    local point=camera:WorldToScreenPoint(require('core.Coord').Vec((f.pivot[1]-dir[3]/len*2)*require('Config').CELL,f.pivot[2]*require('Config').CELL,(f.pivot[3]+dir[1]/len*2)*require('Config').CELL))
+    local point=camera:WorldToScreenPoint(Coord.Vec((f.pivot[1]-dir[3]/len*2)*Config.CELL,f.pivot[2]*Config.CELL,(f.pivot[3]+dir[1]/len*2)*Config.CELL))
     local x=math.min(r.w-w-12,math.max(r.w/2+40,point.x*r.w));local y=math.min(r.h-h-12,math.max(12,point.y*r.h-h/2))
     self.bounds={x=x,y=y,w=w,h=h}
     nvgSave(vg);nvgGlobalAlpha(vg,self.alpha or 0)

@@ -1,4 +1,7 @@
 -- Source reticle is drawn in the shared UI frame, never a second VG context.
+local ReticleGauges=require("ui.ReticleGauges")
+local ReticleWeapons=require("ui.ReticleWeapons")
+
 local Panel=require 'urhox-libs/UI/Widgets/Panel'
 local D=require 'ui.SourceDraw'
 local R=require 'ui.ReticleDraw'
@@ -11,9 +14,9 @@ function M:Render(vg)
     l.cx=l.cx+rect.x;l.cy=l.cy+rect.y;R.SetTextScale(l.k)
     -- The source places svg.scope before svg.frame in the same stacking layer.
     if s.scope then self:Scope(vg,l) end
-    require('ui.ReticleGauges').Render(vg,self,l)
-    require('ui.ReticleGauges').Compass(vg,self,l)
-    if not s.touch then require('ui.ReticleWeapons').Render(vg,self,l) end
+    ReticleGauges.Render(vg,self,l)
+    ReticleGauges.Compass(vg,self,l)
+    if not s.touch then ReticleWeapons.Render(vg,self,l) end
     self:Center(vg,l)
 end
 function M:Center(vg,l)

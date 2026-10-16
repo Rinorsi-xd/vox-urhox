@@ -1,3 +1,6 @@
+local Defs=require("parts.Defs")
+local VoxTheme=require("ui.VoxTheme")
+
 local UI=require('urhox-libs/UI')
 local D=require('ui.SourceDraw')
 local W=require('ui.EndlessWidgets')
@@ -43,9 +46,9 @@ function M.Shop(edit)
     body:AddChild(UI.Label{text='买一张图纸，本局仓库多一件，马上能装。T1–T5 都能买，越高阶越贵。',fontFamily='vox-title',fontSize=14,color='#9fb6c4',height=28})
     for _,cat in ipairs({{'weapon','武器'},{'movement','移动'},{'function','功能'}}) do
         body:AddChild(UI.Label{text=cat[2],fontFamily='vox-title',fontSize=14,color='#8fd8ff',height=24});local grid=UI.Panel{width='100%',flexDirection='row',flexWrap='wrap',gap=6};body:AddChild(grid)
-        local parts={};for _,p in ipairs(require('parts.Defs').LIST) do if p.cat==cat[1] and not p.hidden then parts[#parts+1]=p end end
+        local parts={};for _,p in ipairs(Defs.LIST) do if p.cat==cat[1] and not p.hidden then parts[#parts+1]=p end end
         table.sort(parts,function(a,b) local ta,tb=Inv.Tier(a.id),Inv.Tier(b.id);return ta==tb and Inv.Price(a.id)<Inv.Price(b.id) or ta<tb end)
-        for _,p in ipairs(parts) do local id=p.id;local button=W.Button{text=p.name,shop=true,thumb=require('ui.VoxTheme').Thumbnail(id),subtitle='◆ '..Inv.Price(id)..' · 仓库 '..(edit.controller.run.inventory[id] or 0),width=cardWidth,height=74,disabled=edit.controller.run.credits<Inv.Price(id)}
+        for _,p in ipairs(parts) do local id=p.id;local button=W.Button{text=p.name,shop=true,thumb=VoxTheme.Thumbnail(id),subtitle='◆ '..Inv.Price(id)..' · 仓库 '..(edit.controller.run.inventory[id] or 0),width=cardWidth,height=74,disabled=edit.controller.run.credits<Inv.Price(id)}
             button.props.onClick=function() local result=edit:Buy(id);if result.ok then edit.build:Notify('买到 '..p.name..' · 剩 ◆ '..D.Number(edit.controller.run.credits),'ok');modal:Close();edit.shop=nil;M.Shop(edit) else edit.build:Notify(result.reason,'bad') end end;grid:AddChild(button)
         end
     end

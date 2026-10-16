@@ -1,5 +1,6 @@
 local D=require 'ui.SourceDraw'
 local R=require 'ui.ReticleDraw'
+local Presentation=require 'ui.CombatFeedbackPresentation'
 local M={}
 local STREAK={'击毁','双连破','三连破','四连破','无人能挡'}
 local COLORS={{255,59,48,255},{255,59,48,255},{232,237,240,255},{154,164,172,255},{255,106,90,255}}
@@ -22,20 +23,21 @@ function M.Render(vg,state,l)
         R.Arc(vg,l.cx,l.cy,118*k,a-span,a+span,R.red,(7+h.s*9)*k,3*k)
         R.Arc(vg,l.cx,l.cy,(123+h.s*4)*k,a-span*.8,a+span*.8,{255,106,90,255},1.6*k);nvgRestore(vg)
     end
-    local s=state.score;if not s or s.age>=2 then return end
-    nvgSave(vg);nvgGlobalAlpha(vg,s.age<.12 and s.age/.12 or s.age>1.64 and (2-s.age)/.36 or 1)
-    local top=l.cy+70*k;local scale=s.age<.192 and 2.2+( .92-2.2)*s.age/.192 or s.age<.32 and .92+.08*(s.age-.192)/.128 or 1
-    if s.bump>0 then scale=scale*1.12 end
-    local lift=s.age>1.64 and -12*k*(s.age-1.64)/.36 or 0
-    nvgSave(vg);nvgTranslate(vg,l.cx,top+s.size*.5+lift);nvgScale(vg,scale,scale)
-    D.Text(vg,'+'..math.floor(s.shown+.5),0,-s.size*.5,s.size,{255,210,74,255},'vox-display',NVG_ALIGN_CENTER);nvgRestore(vg)
+    local s=state.score;if not s then return end
+    local motion=Presentation.Plan(s.age);if not motion.visible then return end
+    local style=Presentation.Style(s.n,l.pixel)
+    nvgSave(vg);nvgGlobalAlpha(vg,motion.alpha)
+    local top=l.cy+70*k;local scale=motion.scale
+    local lift=motion.lift*(l.pixel or 1)
+    nvgSave(vg);nvgTranslate(vg,l.cx,top+s.size*.5+lift);nvgScale(vg,scale,scale);nvgGlobalAlpha(vg,motion.alpha*motion.pointsAlpha)
+    D.Text(vg,'+'..math.floor(s.shown+.5),0,-s.size*.5,s.size,style.color,'vox-display',NVG_ALIGN_CENTER,nil,nil,nil,style.points);nvgRestore(vg)
     local label=STREAK[s.n];local labelSize=(s.n>1 and 24 or 16)*k;local nameSize=16*k
     local labelWidth=D.Width(vg,label,labelSize,'vox-title',labelSize*.25)
     local nameWidth=D.Width(vg,s.name,nameSize,'vox-title',nameSize*.12)
     local x=l.cx-(labelWidth+labelSize*.5+nameWidth)/2;local y=top+s.size+nameSize*.3+lift
     local labelAscent=D.FontMetrics(vg,labelSize,'vox-title');local nameAscent=D.FontMetrics(vg,nameSize,'vox-title')
-    D.Text(vg,label,x,y,labelSize,R.red,'vox-title',NVG_ALIGN_LEFT,labelSize*.25)
-    D.Text(vg,s.name,x+labelWidth+labelSize*.5,y+labelAscent-nameAscent,nameSize,R.white,'vox-title',NVG_ALIGN_LEFT,nameSize*.12)
+    D.Text(vg,label,x,y,labelSize,R.red,'vox-title',NVG_ALIGN_LEFT,labelSize*.25,nil,nil,style.who)
+    D.Text(vg,s.name,x+labelWidth+labelSize*.5,y+labelAscent-nameAscent,nameSize,R.white,'vox-title',NVG_ALIGN_LEFT,nameSize*.12,nil,nil,style.who)
     nvgRestore(vg)
     for _,c in ipairs(state.cubes) do
         local scale=c.t<c.fly and 1 or math.max(.35,1-(c.t-c.fly)*1.4);local size=c.size*scale

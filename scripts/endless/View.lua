@@ -1,10 +1,16 @@
+local ObjectiveView=require("render.ObjectiveView")
+local Blueprint=require("construction.Blueprint")
+local VehicleView=require("render.VehicleView")
+local Coin=require("endless.Coin")
+local Defs=require("parts.Defs")
+
 local Coord=require('core.Coord')
 local D=require('endless.Data')
 local M={};M.__index=M
 local colors={weapon={1,.64,.27},movement={.30,.73,1},['function']={.38,.93,.69},credits={1,.76,.1}}
 function M.New(scene,shield)
     local self=setmetatable({drops={},warnings={},time=0},M)
-    self.root=scene:CreateChild('EndlessEffects');self.geometry=require('render.ObjectiveView').Geometry(scene)
+    self.root=scene:CreateChild('EndlessEffects');self.geometry=ObjectiveView.Geometry(scene)
     self.geometry:Begin('Endless',{0,0,0},false);self.geometry.mesh.enabled=false
     return self
 end
@@ -17,8 +23,8 @@ end
 function M:Add(drop)
     local root=self.root:CreateChild(drop.id);local pivot=root:CreateChild('Model');root.position=Coord.Vec(table.unpack(drop.pos));local visual
     if drop.type then
-        local bp=require('construction.Blueprint').New();bp:Add({type=drop.type,pos={0,0,0}})
-        visual=require('render.VehicleView').New(pivot);visual:Rebuild(bp)
+        local bp=Blueprint.New();bp:Add({type=drop.type,pos={0,0,0}})
+        visual=VehicleView.New(pivot);visual:Rebuild(bp)
         local size=0;local min,max=Vector3(math.huge,math.huge,math.huge),Vector3(-math.huge,-math.huge,-math.huge)
         for _,v in pairs(visual.visuals) do for _,model in ipairs(v.models) do local b=model.worldBoundingBox
             min=Vector3(math.min(min.x,b.min.x),math.min(min.y,b.min.y),math.min(min.z,b.min.z));max=Vector3(math.max(max.x,b.max.x),math.max(max.y,b.max.y),math.max(max.z,b.max.z))
@@ -26,7 +32,7 @@ function M:Add(drop)
         if min.x<max.x then local span=max-min;size=math.max(span.x,span.y,span.z);local k=1.2/math.max(.001,size);pivot:SetScale(k);visual.root.position=((min+max)*.5-root.worldPosition)*(-1) end
     else
         self.coinMaterial=self.coinMaterial or Material:new();self.coinMaterial:SetTechnique(0,cache:GetResource('Technique','Techniques/PBR/PBRNoTexture.xml'));self.coinMaterial:SetShaderParameter('MatDiffColor',Variant(Color(1,.76,.1)));self.coinMaterial:SetShaderParameter('MatEmissiveColor',Variant(Color(.35,.266,.035)));self.coinMaterial:SetShaderParameter('Roughness',Variant(.25));self.coinMaterial:SetShaderParameter('Metallic',Variant(.9))
-        for i=0,2 do require('endless.Coin').Add(pivot,self.coinMaterial,i) end
+        for i=0,2 do Coin.Add(pivot,self.coinMaterial,i) end
     end
     self.drops[drop.id]={root=root,pivot=pivot,visual=visual,drop=drop}
 end
@@ -34,7 +40,7 @@ function M:Update(session,dt)
     self.time=session.world.time;local now=self.time;local geom=self.geometry;geom:Begin('Endless',{0,0,0},false)
     for _,p in pairs(self.warnings) do geom:Beam(p,3,2,40,{1,.61,.27},.22) end
     for id,item in pairs(self.drops) do
-        local drop=item.drop;local cat=drop.type and require('parts.Defs').PARTS[drop.type].cat or 'credits';local color=colors[cat] or colors['function']
+        local drop=item.drop;local cat=drop.type and Defs.PARTS[drop.type].cat or 'credits';local color=colors[cat] or colors['function']
         item.pivot.rotation=Quaternion(math.deg(now*.9),Vector3.UP)
         if not item.collectedAt then
             local ground=session.world:GroundAt(drop.pos[1],drop.pos[3]);local y=type(ground)=='table' and ground.h or ground or drop.pos[2];item.root.position=Coord.Vec(drop.pos[1],y+.1,drop.pos[3]);item.pivot.position=Vector3(0,1.1+math.sin(now*2)*.12,0)

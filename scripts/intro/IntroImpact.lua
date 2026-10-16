@@ -1,4 +1,7 @@
 -- Payslip's root translation and own camera trauma share the actual hit cue.
+local IntroGateMotion=require("ui.IntroGateMotion")
+local SourceDraw=require("ui.SourceDraw")
+
 local Coord=require 'core.Coord'
 local M={}
 function M.Terminal(I,kind,random)
@@ -24,8 +27,8 @@ end
 function M.Flash(vg,I,w,h)
  local age=TerminalAge(I)
  if not age or I.terminalImpact.kind~='stamp' or age>=.2 then return end
- local alpha=.25*(1-require('ui.IntroGateMotion').Ease(age/.2,0,0,.58,1))
- require('ui.SourceDraw').Rect(vg,0,0,w,h,{255,58,42,255*alpha})
+ local alpha=.25*(1-IntroGateMotion.Ease(age/.2,0,0,.58,1))
+ SourceDraw.Rect(vg,0,0,w,h,{255,58,42,255*alpha})
 end
 function M.Payslip(I,random)
  random=random or math.random

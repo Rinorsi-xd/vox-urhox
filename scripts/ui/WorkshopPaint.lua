@@ -1,3 +1,7 @@
+local Prefab=require("construction.Prefab")
+local Blueprint=require("construction.Blueprint")
+local Config=require("Config")
+
 local D=require 'ui.SourceDraw'
 local Images=require 'urhox-libs/UI/Core/ImageCache'
 local Data=require('core.ResourceData').Read('UI/Workshop.json')
@@ -20,7 +24,7 @@ local rarityShadows={}
 local meta={};local bars={};local maxHp=0
 function M.Meta(id)
     if meta[id] then return meta[id] end
-    local st=Data.stats[id] or {};local bp=require('construction.Prefab').Create(require('construction.Blueprint').New(),id)
+    local st=Data.stats[id] or {};local bp=Prefab.Create(Blueprint.New(),id)
     local counts,hp={},0
     for _,p in ipairs(bp:List()) do
         local d=Defs[p.type];hp=hp+d.hp
@@ -97,7 +101,7 @@ function M.Tier(vg,id,x,y)
     local st=Data.stats[id] or {};local t=st.tier or 1;local p
     for _,v in ipairs(Data.prefabs) do if v.id==id then p=v end end
     local c=M.colors[t];M.Glow(vg,x,y+7,34,4,12,c,.9);D.Rect(vg,x,y+7,34,4,c)
-    local tier=require('Config').TIERS[t].name
+    local tier=Config.TIERS[t].name
     rarityShadows[t]=rarityShadows[t] or {{blur=14,color={c[1],c[2],c[3],128}}}
     D.Text(vg,tier,x+44,y,14,c,nil,nil,2,nil,nil,rarityShadows[t]);D.Text(vg,'/  '..p.kind,x+44+D.Width(vg,tier,14,nil,2)+10,y,14,{219,238,255,140},nil,nil,2)
 end

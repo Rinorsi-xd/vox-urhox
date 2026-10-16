@@ -1,6 +1,9 @@
 -- Frozen H5 editor.js rectangle/height and selectionTools.extrusionPlan.
 -- Ray coordinates are blueprint world metres; integer cells are centred at
 -- (x, y + .5, z). Preview plans never mutate the real blueprint.
+local SelectionTools=require("construction.SelectionTools")
+local BuildGroups=require("construction.BuildGroups")
+
 local Blueprint=require 'construction.Blueprint'
 local Placement=require 'construction.Placement'
 local History=require 'construction.EditHistory'
@@ -36,7 +39,7 @@ function M.HeightAlong(s,origin,direction)
     return (A*E-B*D)/den
 end
 function M.Cells(s)
-    local lo,hi=require('construction.SelectionTools').Bounds(s.anchor,s.cur);local cells={}
+    local lo,hi=SelectionTools.Bounds(s.anchor,s.cur);local cells={}
     for layer=0,s.h-1 do for x=lo[1],hi[1] do for y=lo[2],hi[2] do for z=lo[3],hi[3] do
         cells[#cells+1]={x+s.hd[1]*layer,y+s.hd[2]*layer,z+s.hd[3]*layer}
     end end end end
@@ -153,7 +156,7 @@ function M.Commit(editor)
     for _,it in ipairs(items) do local data=History.Snapshot({id=id,type=it.type,pos=it.pos,rot=it.rot,color=it.color,shellColor=it.shellColor,g=it.g})
         ops[#ops+1]={op='add',data=data};id=id+1
     end
-    local selection=s.phase=='selection';local ok=editor.history:Commit(ops,not selection and editor.joinNew and require('construction.BuildGroups').JoinAdded or nil)
+    local selection=s.phase=='selection';local ok=editor.history:Commit(ops,not selection and editor.joinNew and BuildGroups.JoinAdded or nil)
     if selection and ok then for _,op in ipairs(ops) do editor.selection[op.data.id]=true end;editor:SelectionChanged() end
     M.Cancel(editor);if selection then editor.tool='build';editor.stretchSelected=true end
     if ok then editor:Cue('place') end

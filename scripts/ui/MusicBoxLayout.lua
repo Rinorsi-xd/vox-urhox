@@ -1,4 +1,6 @@
 -- music-box.css uses CSS viewport pixels, outside the scaled home ui-surface.
+local ImportedUI=require("urhox-libs/UI")
+
 local M={}
 function M.Measure(cw,ch,logicalW)
     local medium=cw<=1000;local short=ch<=650;local compact=ch<=450
@@ -42,7 +44,7 @@ function M.Measure(cw,ch,logicalW)
         sceneColumn=medium and 48 or 60,timeColumn=medium and 38 or 46,numberColumn=medium and 24 or 26,row=57}
 end
 function M.Apply(s)
-    local UI=require 'urhox-libs/UI';local logicalW,logicalH=UI.GetViewportSize()
+    local UI=ImportedUI;local logicalW,logicalH=UI.GetViewportSize()
     local cw=graphics:GetWidth()/graphics:GetDPR();local ch=graphics:GetHeight()/graphics:GetDPR()
     s.layout=M.Measure(cw,ch,logicalW);local l=s.layout;local k=l.k
     s.root:SetStyle({position='absolute',left=0,top=0,width=logicalW,height=logicalH})

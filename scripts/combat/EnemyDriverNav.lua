@@ -37,19 +37,30 @@ function M.HasFlatEdge(nav,id)
     return entry.flat[id]==true
 end
 function M.Nearest(nav,p,width,available)
-    local g=M.Graph(nav,width);local ids={table.unpack(g.ids)};local rank={};for i,id in ipairs(g.ids) do rank[id]=i end
-    table.sort(ids,function(a,b) local x,y=A.Spatial(g.nodes[a],p),A.Spatial(g.nodes[b],p);return x<y or x==y and rank[a]<rank[b] end)
+    local g=M.Graph(nav,width);local ids={table.unpack(g.ids)};local rank,distances={},{}
+    for i,id in ipairs(g.ids) do rank[id]=i;distances[id]=A.Spatial(g.nodes[id],p) end
+    table.sort(ids,function(a,b) local x,y=distances[a],distances[b];return x<y or x==y and rank[a]<rank[b] end)
     for _,id in ipairs(ids) do if not available or available(g.nodes[id],id) then return id end end
 end
 function M.Path(nav,from,to,width,jitter)
     local g=M.Graph(nav,width);if #g.ids==0 then return {} end
-    local function nearest(p) local best=g.ids[1];for _,id in ipairs(g.ids) do if A.Spatial(g.nodes[id],p)<A.Spatial(g.nodes[best],p) then best=id end end;return best end
+    local function nearest(p)
+        local best=g.ids[1];local distance=A.Spatial(g.nodes[best],p)
+        for i=2,#g.ids do local id=g.ids[i];local nextDistance=A.Spatial(g.nodes[id],p)
+            if nextDistance<distance then best=id;distance=nextDistance end
+        end;return best
+    end
     local start=type(from)=='string' and from or nearest(from);local goal=type(to)=='string' and to or nearest(to)
     if not g.adj[start] or not g.adj[goal] then return {} end
-    local open={start};local pending={[start]=true};local costs={[start]=0};local previous={}
+    local open={start};local pending={[start]=true};local costs={[start]=0};local previous={};local heuristics={}
     while #open>0 do
         local cur,idx,score=nil,0,math.huge
-        for i,id in ipairs(open) do local s=costs[id]+A.Distance(g.nodes[id],g.nodes[goal]);if s<score then cur,idx,score=id,i,s end end
+        for i,id in ipairs(open) do
+            -- Positions are immutable; only the accumulated cost changes while
+            -- a node remains open. Keep the original scan/tie and jitter order.
+            local h=heuristics[id];if h==nil then h=A.Distance(g.nodes[id],g.nodes[goal]);heuristics[id]=h end
+            local s=costs[id]+h;if s<score then cur,idx,score=id,i,s end
+        end
         if cur==goal then local out={cur};while previous[out[1]] do table.insert(out,1,previous[out[1]]) end;return out end
         table.remove(open,idx);pending[cur]=nil
         for _,edge in ipairs(g.adj[cur]) do local id=edge[1];local alt=costs[cur]+edge[2]*(jitter and jitter(cur,id) or 1)

@@ -1,3 +1,6 @@
+local DialogHost=require("ui.DialogHost")
+local SourceButtonMotion=require("ui.SourceButtonMotion")
+
 local UI=require 'urhox-libs/UI';local Widgets=require 'ui.MusicWidgets';local Visual=require 'ui.MusicBoxVisual'
 local Layout=require 'ui.MusicBoxLayout';local MD=require 'ui.MusicDraw'
 local M={}
@@ -50,7 +53,7 @@ end
 function M.Open(owner)
     if owner.musicBox then return owner.musicBox end
     local player=owner.app.music;local s={owner=owner,player=player,filter='all',query='',buttons={},filters={},rows={},tracks={},alpha=0,time=0,pointers={}}
-    s.previousFocus=UI.GetFocus();owner.CancelInput();require('ui.DialogHost').Close(owner);owner.SetNew(false)
+    s.previousFocus=UI.GetFocus();owner.CancelInput();DialogHost.Close(owner);owner.SetNew(false)
     player:SetLibraryPlaylist(player.catalog.tracks);player:SetLibraryMode(true);player:Unlock()
     s.root=UI.Panel{position='absolute',width='100%',height='100%',onPointerDown=function(_,e)
         if e.pointerId then s.pointers[e.pointerId]=e.pointerType end;s.keyboardFocus=false;return true
@@ -113,7 +116,7 @@ function M.Update(owner,dt)
     local s=owner.musicBox;if not s then return end
     local cw=graphics:GetWidth()/graphics:GetDPR();local ch=graphics:GetHeight()/graphics:GetDPR()
     if cw~=s.cssWidth or ch~=s.cssHeight then Layout.Apply(s) end
-    s.time=math.min(.2,s.time+dt);s.alpha=require('ui.SourceButtonMotion').Ease(s.time/.2,'css-ease-out')
+    s.time=math.min(.2,s.time+dt);s.alpha=SourceButtonMotion.Ease(s.time/.2,'css-ease-out')
     local p=s.player;local current=p:Track()
     s.buttons.play.props.icon=p:CanPlay() and 'pause' or 'play';s.buttons.mode.props.icon=p.playMode=='sequence' and 'list' or p.playMode
     s.buttons.mute.props.icon=p.volume>0 and p.enabled and 'volume' or 'volumeOff'

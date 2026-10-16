@@ -5,6 +5,8 @@
 -- legs can grip walls. Fewer legs/overload use <=40 degree slopes. Missing-side
 -- support must create real torque, not a pose correction. Jump suppresses rays
 -- for .35 s, then casts toward nearby terrain for landing/wall attachment.
+local TerrainObstacles=require("drive.TerrainObstacles")
+
 local V=require "core.Math3"
 local Rot=require "core.Rotations"
 local Assets=require "parts.PartAssets"
@@ -52,7 +54,7 @@ function M.New(v)
     self.inertiaPR=math.max(ip,v.mass*.5);Gait.Setup(self);self:Reset();return self
 end
 function M:Cast(p,d,distance)
-    local h=self.v.space:Raycast(p,d,distance,self.v.body,nil,true,require('drive.TerrainObstacles').SUPPORT_MASK)
+    local h=self.v.space:Raycast(p,d,distance,self.v.body,nil,true,TerrainObstacles.SUPPORT_MASK)
     return h and {point=h.point,normal=h.normal,distance=h.dist,collider=h.collider} or nil
 end
 function M:Reset()

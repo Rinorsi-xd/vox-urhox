@@ -1,4 +1,64 @@
 -- Application lifecycle follows scaffold-3d-scene; scene content is authored data.
+local WebMapTransition=require("app.WebMapTransition")
+local ResourceGate=require("app.ResourceGate")
+local ResourceData=require("core.ResourceData")
+local BlueprintStore=require("storage.BlueprintStore")
+local AudioLevels=require("audio.AudioLevels")
+local MusicPlayer=require("audio.MusicPlayer")
+local GameAmbience=require("audio.GameAmbience")
+local GraphicsSettings=require("render.GraphicsSettings")
+local HangarPreview=require("render.HangarPreview")
+local BlueprintCode=require("storage.BlueprintCode")
+local BuildEditor=require("construction.BuildEditor")
+local UiSound=require("audio.UiSound")
+local Garage=require("construction.Garage")
+local BuildSession=require("app.BuildSession")
+local Rotations=require("core.Rotations")
+local MechView=require("render.MechView")
+local ImportedDependencies=require("parts.Dependencies")
+local HomeStations=require("controls.HomeStations")
+local SourceFonts=require("ui.SourceFonts")
+local TouchMode=require("controls.TouchMode")
+local LoadingFlow=require("app.LoadingFlow")
+local SourceToasts=require("ui.SourceToasts")
+local Tutorial=require("story.Tutorial")
+local HangarResources=require("scene.HangarResources")
+local ArenaData=require("combat.ArenaData")
+local EndlessSelect=require("ui.EndlessSelect")
+local IntroSession=require("intro.IntroSession")
+local OpeningHost=require("app.OpeningHost")
+local DriveMaps=require("app.DriveMaps")
+local VehicleSpec=require("drive.VehicleSpec")
+local PlatformUtils=require("urhox-libs.Platform.PlatformUtils")
+local WeaponIconResources=require("ui.WeaponIconResources")
+local MissileView=require("render.MissileView")
+local WeaponAudio=require("audio.WeaponAudio")
+local DrivingAudio=require("audio.DrivingAudio")
+local CombatFeedbackAudio=require("audio.CombatFeedbackAudio")
+local BattleController=require("combat.BattleController")
+local Mission=require("story.Mission")
+local EndlessSession=require("app.EndlessSession")
+local TrialSession=require("app.TrialSession")
+local MapPreview=require("app.MapPreview")
+local HangarConfig=require("scene.HangarConfig")
+local PreviewRoom=require("controls.PreviewRoom")
+local LiveryPage=require("ui.LiveryPage")
+local HomeVehicleSwitch=require("app.HomeVehicleSwitch")
+local PartsGallery=require("render.PartsGallery")
+local OpeningRetirement=require("app.OpeningRetirement")
+local WindowViewports=require("render.WindowViewports")
+local RenderTargetLifetime=require("render.RenderTargetLifetime")
+local StoryComms=require("audio.StoryComms")
+local IntroAudioTail=require("audio.IntroAudioTail")
+local GameMusicState=require("audio.GameMusicState")
+local Warehouse=require("scene.Warehouse")
+-- Load optional/cyclic dependencies once, without changing first-use order.
+local DeferredModules=setmetatable({},{__index=function(modules,name)
+    local module=require(name)
+    rawset(modules,name,module)
+    return module
+end})
+
 local UI=require "urhox-libs/UI"
 local Config=require "Config"
 local Blueprint=require "construction.Blueprint"
@@ -41,6 +101,7 @@ function App:init()
     self.ownsScene=true
     self.stopped=false
     self.development=false
+    self.debugEnabled=false
     self.view=""
     self.mode="hangar"
     self.trial=nil ---@type table|nil
@@ -50,8 +111,8 @@ function App:init()
     self.build=nil ---@type table|nil
     self.isValidation=false
     self.loader=Loader.New()
-    self.mapTransition=require('app.WebMapTransition').New(function() self:ReleaseMapHangar() end,function() return self:ReleaseSettledAssets() end)
-    self.vehicleGate=require('app.ResourceGate').New()
+    self.mapTransition=WebMapTransition.New(function() self:ReleaseMapHangar() end,function() return self:ReleaseSettledAssets() end)
+    self.vehicleGate=ResourceGate.New()
     self.motionModule=nil ---@type table|nil
     self.hotReload=HotReload.New(function() self:Reload() end,function(module)
         self.motionModule=module
@@ -60,21 +121,22 @@ function App:init()
     for _,arg in ipairs(GetArguments()) do
         if arg=='-validate' or arg:match('^%-screenshot=') then self.isValidation=true end
         if arg=='-build' then self.buildWanted=true end
-        if arg=="-dev" then self.development=true end
+        if arg=="-dev" then self.development=true;self.debugEnabled=true end
+        if arg=='-debug' or arg=='-debug=1' or arg=='-vox-debug' or arg=='-vox-debug=1' then self.debugEnabled=true end
         if arg=="-trial" then self.startTrial=true end
         if arg=='-crater' then self.startTrial=true;self.startMap='crater';self.selectedMap='crater' end
         local blueprint=arg:match("^%-blueprint=(Blueprints/[%w_%-]+%.json)$")
-        if blueprint then self.blueprint=Blueprint.New():Load(require("core.ResourceData").Read(blueprint));self.explicitBlueprint=true end
+        if blueprint then self.blueprint=Blueprint.New():Load(ResourceData.Read(blueprint));self.explicitBlueprint=true end
         local view=arg:match("^%-hangar%-view=(.+)$")
         if view and VIEWS[view] then self.view=view;_G.VOX_DEBUG={hideUI=true,time=10} end
         self.partsPage=tonumber(arg:match("^%-parts%-page=(%d+)$")) or self.partsPage
     end
-    self.store=require('storage.BlueprintStore').New(self.isValidation and 'vox-validation' or nil)
-    require('audio.AudioLevels').Init(self.store)
-    self.music=require('audio.MusicPlayer').New(self.store)
-    self.ambience=require('audio.GameAmbience').New()
-    self.graphicsSettings=require('render.GraphicsSettings').New(self)
-    self.previews=require('render.HangarPreview').New(self)
+    self.store=BlueprintStore.New(self.isValidation and 'vox-validation' or nil)
+    AudioLevels.Init(self.store)
+    self.music=MusicPlayer.New(self.store)
+    self.ambience=GameAmbience.New()
+    self.graphicsSettings=GraphicsSettings.New(self)
+    self.previews=HangarPreview.New(self)
     self.store.captureContext=function()
         return {tier=self.tier,aspect=math.max(1,graphics:GetWidth())/math.max(1,graphics:GetHeight()),
             grid=self.hangar and self.hangar.gridOn or false,time=self.hangar and self.hangar.time or 10,
@@ -83,15 +145,15 @@ function App:init()
     if not self.isValidation and not self.explicitBlueprint then
         local draft=self.store:Read('draft')
         if draft then
-            local ok,bp=pcall(function() return Blueprint.New():Load(require('storage.BlueprintCode').Validate(draft)) end)
+            local ok,bp=pcall(function() return Blueprint.New():Load(BlueprintCode.Validate(draft)) end)
             if ok then self.blueprint=bp else print('[HangarApp] Invalid draft; keeping starter vehicle') end
         end
     end
-    self.editor=require('construction.BuildEditor').New(self.blueprint,function(ops)
+    self.editor=BuildEditor.New(self.blueprint,function(ops)
         if self.car then self.car:ApplyEdits(ops,self.blueprint) end
         if self.bays then self.bays:Changed() else self.store:Queue(self.blueprint) end
-    end,require('audio.UiSound').Play)
-    self.bays=require('construction.Garage').New(self.blueprint,self.store,function(data) return self:LoadBlueprint(data) end,not self.isValidation and not self.explicitBlueprint)
+    end,UiSound.Play)
+    self.bays=Garage.New(self.blueprint,self.store,function(data) return self:LoadBlueprint(data) end,not self.isValidation and not self.explicitBlueprint)
 end
 function App:EnterBuild()
     if not self.ownsScene or self.mode=='trial' or self.loader.state=='loading' then return false end
@@ -105,7 +167,7 @@ function App:EnterBuild()
     self.buildWanted=true
     self:View(VIEWS.car);self.camera.target=Vector3(0,3,0);self.camera.cur.target=self.camera.target;self.camera:Apply()
     self.hangar:SetGrid(true)
-    self.build=require('app.BuildSession').New(self)
+    self.build=BuildSession.New(self)
     return true
 end
 function App:ExitBuild()
@@ -126,7 +188,7 @@ function App:DisplayHeight()
         for _,c in ipairs(p._cells) do minY=math.min(minY,c[2]) end
         local vis=self.car.visuals[p.id];local segments=vis and vis.data.segments
         if type(segments)=='table' and segments.leg then
-            local toe=require('core.Rotations').ApplyRot(p.rot,segments.info.origins.toe)
+            local toe=Rotations.ApplyRot(p.rot,segments.info.origins.toe)
             minY=math.min(minY,p.pos[2]+.5+toe[2])
         end
     end
@@ -135,24 +197,25 @@ end
 function App:GroundDisplay()
     self.car.root.position=Vector3(0,self:DisplayHeight(),0)
     for _,vis in pairs(self.car.visuals) do
-        if vis.rig and vis.rig.mech then require('render.MechView').StandOn(vis,0) end
+        if vis.rig and vis.rig.mech then MechView.StandOn(vis,0) end
     end
 end
 function App:LoadBlueprint(data)
     -- Parse into a candidate first; a malformed save cannot clear the active car.
-    local ok,candidate=pcall(function() return Blueprint.New():Load(require('storage.BlueprintCode').Validate(data)) end)
+    local checkpoint=self.vehicleSwitch and self.vehicleSwitch:AssemblyCheckpoint()
+    local ok,candidate=pcall(function() return Blueprint.New():Load(BlueprintCode.Validate(data),checkpoint) end)
     if not ok then return false,'无效的蓝图' end
-    if not require('parts.Dependencies').Ready(candidate:List()) then return false,'战车零件尚未下载完成' end
+    if not ImportedDependencies.Ready(candidate:List()) then return false,'战车零件尚未下载完成' end
     if self.build then self.build:Dispose();self.build=nil end
-    self.blueprint:Load(candidate:ToTable());self.editor.history.undoStack={};self.editor.history.redoStack={}
+    self.blueprint:Load(candidate:ToTable(),checkpoint);self.editor.history.undoStack={};self.editor.history.redoStack={}
     self.blueprint.dropped=candidate.dropped;self.blueprint.migrationWarnings=candidate.migrationWarnings
     self.editor.selection={};self.editor.preview=nil;self.editor.pasting=false
-    self.car:Rebuild(self.blueprint);self.store:Queue(self.blueprint)
+    self.car:Rebuild(self.blueprint,self.vehicleSwitch and self.vehicleSwitch:AssemblyCheckpoint());self.store:Queue(self.blueprint)
     if self.bays then self.bays:Changed() end
-    if self.buildWanted then self.build=require('app.BuildSession').New(self) end
+    if self.buildWanted then self.build=BuildSession.New(self) end
     if not self.buildWanted then
         self:GroundDisplay()
-        local pose=require('controls.HomeStations').Get(self.blueprint:Stats(),'hangar',self.camera.maxDist)
+        local pose=HomeStations.Get(self.blueprint:Stats(),'hangar',self.camera.maxDist)
         self.camera:Focus(Vector3(table.unpack(pose.target)),pose.dist)
     end
     if self.vehicleSwitch then self.vehicleSwitch:Replaced() end
@@ -161,7 +224,7 @@ end
 function App:WithVehicle(data,action,done)
     if self.stopped or self.vehicleGate.state=='loading' then return false end
     local scene,build,home=self.scene,self.build,Hud.GetState()
-    self.vehicleGate:Start(require('parts.Dependencies').FromBlueprint(data),function(ok,message)
+    self.vehicleGate:Start(ImportedDependencies.FromBlueprint(data),function(ok,message)
         if self.stopped or self.scene~=scene or self.build~=build or Hud.GetState()~=home then return end
         local result,err,reason=false,message,nil
         if ok then
@@ -176,25 +239,27 @@ end
 function App:Start(existingScene)
     self.previousState={autoReload=cache.autoReloadResources,hdr=renderer.hdrRendering,
         shadowSize=renderer.shadowMapSize,shadows=renderer.drawShadows,mouseMode=input.mouseMode,
-        maxFps=engine.maxFps,inactiveFps=engine.maxInactiveFps}
+        maxFps=engine.maxFps,inactiveFps=engine.maxInactiveFps,
+        textureFilterMode=renderer.textureFilterMode,textureAnisotropy=renderer.textureAnisotropy}
     if not existingScene then graphics.windowTitle="构装纪元 CONSTRUCT ERA" end
     input.mouseMode=MM_ABSOLUTE
-    local fonts=require('ui.SourceFonts').Resolve()
-    UI.Init({theme="default-dark",scale=require('controls.TouchMode').Scale('home'),
+    local fonts=SourceFonts.Resolve()
+    UI.Init({theme="default-dark",scale=TouchMode.Scale('home'),
         fonts={{family="sans",weights={normal=fonts.body,bold=fonts.bold}}}})
-    require('audio.UiSound').Start()
-    self.loadingFlow=require('app.LoadingFlow').New(self)
+    UiSound.Start()
+    self.loadingFlow=LoadingFlow.New(self)
     self.loader.canStart=function()
         local ready,message=self.mapTransition:CanStart(self.loadingFlow:CanStartLoad(),self.loadingFlow.pageFrames,
             cache:GetNumBackgroundLoadResources()==0)
         if message then self.loader:Fail(message) end
         return ready
     end
-    self.toasts=require('ui.SourceToasts').New()
+    self.toasts=SourceToasts.New()
     self.toasts:Attach()
-    self.tutorial=require('story.Tutorial').New(self)
+    self.tutorial=Tutorial.New(self)
     if not existingScene then cache.autoReloadResources=self.development end
     renderer.hdrRendering=true
+    renderer.textureFilterMode=FILTER_TRILINEAR;renderer.textureAnisotropy=1
     renderer.shadowMapSize=Quality.current.shadowMapSize
     if not existingScene then engine.maxFps=Quality.FrameLimit();engine.maxInactiveFps=10 end
     if not existingScene then self.graphicsSettings:Apply() end
@@ -231,17 +296,17 @@ function App:Reload()
         print("[HangarApp] Load failed; keeping previous scene: "..message)
         if self.scene then Hud.SetMode("场景更新失败，保留当前画面 · F5 重试")
         elseif not self.loadingFlow.active then self.loadingLabel:SetText("机库加载失败 · 按 F5 重试") end
-    end,{resources=require('scene.HangarResources').For(self.blueprint:List())})
+    end,{resources=HangarResources.For(self.blueprint:List())})
 end
 function App:EnterBattle(mode)
-    if not require('combat.ArenaData').modes[mode] then return false end
+    if not ArenaData.modes[mode] then return false end
     if self.loadingFlow.active or self.mode=='trial' or self.loader.state=='loading' then return false end
     return self.loadingFlow:QueueBattle(mode,self.blueprint)
 end
 function App:SelectEndless()
     if self.mode=='trial' or self.loader.state=='loading' or self.loadingFlow.active or self.opening and self.opening.active then return false end
     if self.endlessSelect then return false end
-    self.endlessSelect=require('ui.EndlessSelect').Open(self,function(source,saved)
+    self.endlessSelect=EndlessSelect.Open(self,function(source,saved)
         self.endlessSelect=nil;self.pendingEndless={source=source,saved=saved};self:EnterTrial('endless')
     end,function() self.endlessSelect=nil end)
     return true
@@ -249,7 +314,7 @@ end
 function App:StartOpening(part)
     if self.mode=='trial' or self.loader.state=='loading' or self.loadingFlow.active or self.opening and self.opening.active then return false end
     if self.build then self:ExitBuild() end
-    self.opening=require('intro.IntroSession').New(self,require('app.OpeningHost').New(self))
+    self.opening=IntroSession.New(self,OpeningHost.New(self))
     return self.opening:Start(part)
 end
 function App:EnterTrial(mapId,battleMode,roster,reuseLoading)
@@ -261,7 +326,7 @@ function App:EnterTrial(mapId,battleMode,roster,reuseLoading)
     if self.vehicleSwitch and self.vehicleSwitch:Finish()==false then return false end
     self.vehicleGate:Cancel()
     if self.build then self.build.buildCamera:Release() end
-    local map=assert(require('app.DriveMaps')[mapId or 'trial'],'Unknown drive map')
+    local map=assert(DriveMaps[mapId or 'trial'],'Unknown drive map')
     local entryBlueprint=self.blueprint
     if map.endless and self.pendingEndless then
         local copy={};for key,value in pairs(map) do copy[key]=value end;map=copy
@@ -269,9 +334,9 @@ function App:EnterTrial(mapId,battleMode,roster,reuseLoading)
     end
     if map.salvage then
         if self.lobby~='salvage' then return false end
-        local spec=require('drive.VehicleSpec').Build(self.blueprint)
+        local spec=VehicleSpec.Build(self.blueprint)
         if not spec.ok then self.toasts:Push(spec.reason or '战车无法出发，请先整备','bad');return false end
-        local items=require('core.ResourceData').Read('UI/Outgame.json')
+        local items=ResourceData.Read('UI/Outgame.json')
         local value=0
         for _,p in ipairs(self.blueprint:List()) do local it=items.items['part:'..p.type];if it then value=value+it.price end end
         local op=items.ops[self.salvageLobby.data.op or 1]
@@ -282,13 +347,13 @@ function App:EnterTrial(mapId,battleMode,roster,reuseLoading)
     end
     if battleMode then
         local copy={};for key,value in pairs(map) do copy[key]=value end;map=copy
-        local cfg=require('combat.ArenaData').modes[battleMode]
+        local cfg=ArenaData.modes[battleMode]
         map.battleMode=battleMode;map.battleRoster=roster;map.loadingBrand=cfg.name;map.loadingSub=cfg.size..'V'..cfg.size
         map.loadingTips=cfg.rules
     end
     if not reuseLoading then self.loadingFlow:Open(map,function() self:CancelMapLoad(true) end) end
     self.pendingMap=map
-    local transition=self.mapTransition:Begin(require('urhox-libs.Platform.PlatformUtils').IsWebPlatform()
+    local transition=self.mapTransition:Begin(PlatformUtils.IsWebPlatform()
         and map.prepareWorld~=nil and self.scene~=nil and self.hangar~=nil)
     local preparedWorld=nil ---@type table|nil
     local preparedSession=nil ---@type table|nil
@@ -307,7 +372,7 @@ function App:EnterTrial(mapId,battleMode,roster,reuseLoading)
             if preparedWorld then preparedWorld:Dispose();preparedWorld=nil end
         end}
     options.resources=function()
-    local resources=map.resources and require('core.ResourceData').Read(map.resources) or {map.scene}
+    local resources=map.resources and ResourceData.Read(map.resources) or {map.scene}
     resources[#resources+1]='Shaders/BLGL/Boundary.shader'
     resources[#resources+1]='Shaders/BLGL/AimLine.shader'
     resources[#resources+1]='Shaders/BLGL/RestoreFlash.shader'
@@ -318,33 +383,33 @@ function App:EnterTrial(mapId,battleMode,roster,reuseLoading)
         end
     end
     local parts=entryBlueprint:List()
-    for _,path in ipairs(require('ui.WeaponIconResources').For(parts)) do resources[#resources+1]=path end
+    for _,path in ipairs(WeaponIconResources.For(parts)) do resources[#resources+1]=path end
     for _,part in ipairs(Prefab.BuildRaceCar(Blueprint.New()):List()) do parts[#parts+1]=part end
-    for _,path in ipairs(require('parts.Dependencies').For(parts)) do resources[#resources+1]=path end
-    for _,path in ipairs(require('render.MissileView').Dependencies()) do resources[#resources+1]=path end
-    for _,path in ipairs(require('audio.WeaponAudio').Dependencies()) do resources[#resources+1]=path end
-    for _,path in ipairs(require('audio.DrivingAudio').Dependencies()) do resources[#resources+1]=path end
-    for _,path in ipairs(require('audio.CombatFeedbackAudio').Dependencies()) do resources[#resources+1]=path end
+    for _,path in ipairs(ImportedDependencies.For(parts)) do resources[#resources+1]=path end
+    for _,path in ipairs(MissileView.Dependencies()) do resources[#resources+1]=path end
+    for _,path in ipairs(WeaponAudio.Dependencies()) do resources[#resources+1]=path end
+    for _,path in ipairs(DrivingAudio.Dependencies()) do resources[#resources+1]=path end
+    for _,path in ipairs(CombatFeedbackAudio.Dependencies()) do resources[#resources+1]=path end
     if map.salvage then
         for _,module in ipairs({'salvage.Run','audio.SalvageAudio','render.SalvageCinematics'}) do
-            for _,path in ipairs(require(module).Dependencies()) do resources[#resources+1]=path end
+            for _,path in ipairs(DeferredModules[module].Dependencies()) do resources[#resources+1]=path end
         end
     end
-    if battleMode then for _,path in ipairs(require('combat.BattleController').Dependencies(self.blueprint,roster,battleMode)) do resources[#resources+1]=path end end
-    if map.storyLevel then for _,path in ipairs(require('story.Mission').Dependencies(self.blueprint,map.storyLevel)) do resources[#resources+1]=path end end
-    if map.endless then for _,path in ipairs(require('app.EndlessSession').Dependencies(entryBlueprint)) do resources[#resources+1]=path end end
+    if battleMode then for _,path in ipairs(BattleController.Dependencies(self.blueprint,roster,battleMode)) do resources[#resources+1]=path end end
+    if map.storyLevel then for _,path in ipairs(Mission.Dependencies(self.blueprint,map.storyLevel)) do resources[#resources+1]=path end end
+    if map.endless then for _,path in ipairs(EndlessSession.Dependencies(entryBlueprint)) do resources[#resources+1]=path end end
     return resources
     end
     options.prepare=function(scene,checkpoint)
         if map.prepareWorld then
-            preparedWorld=require(map.world).New(scene,true)
-            require(map.prepareWorld).Build(preparedWorld,function(progress,stage) checkpoint(progress*.6,stage) end)
+            preparedWorld=DeferredModules[map.world].New(scene,true)
+            DeferredModules[map.prepareWorld].Build(preparedWorld,function(progress,stage) checkpoint(progress*.6,stage) end)
         end
         checkpoint(.6,'session')
         -- Retain the partially built session so cancellation can release it
         -- even when coroutine.close bypasses the constructor's pcall cleanup.
         local world=preparedWorld;preparedWorld=nil
-        preparedSession=require('app.TrialSession').New(scene,entryBlueprint,self,map,world,
+        preparedSession=TrialSession.New(scene,entryBlueprint,self,map,world,
             function(progress,stage) checkpoint(.6+.4*progress,stage) end,
             function(candidate) preparedSession=candidate end)
     end
@@ -386,15 +451,15 @@ function App:EnterTrial(mapId,battleMode,roster,reuseLoading)
 end
 function App:PreviewMap(id)
     if not self.ownsScene or self.loader.state=='loading' or self.mapPreview then return false end
-    local map=assert(require('app.DriveMaps')[id],'Unknown map preview')
+    local map=assert(DriveMaps[id],'Unknown map preview')
     self.loadingFlow:Open(map,function() self:CancelMapLoad(true) end)
     self.pendingMap=map
     local function Clear() self.pendingMap=nil end
     self.loader:Load(map.scene,function(scene)
         local home=Hud.GetState();home.CancelInput();home.root:SetVisible(false)
-        self.mapPreview=require('app.MapPreview').New(self,scene,map);Clear();self.loadingFlow:Finish()
+        self.mapPreview=MapPreview.New(self,scene,map);Clear();self.loadingFlow:Finish()
     end,function(message) Clear();self.loadingFlow:Fail(message);self.toasts:Push(map.name..'加载失败','bad');print('[MapPreview] '..message) end,
-        {resources=require('core.ResourceData').Read(map.resources),webWarmup=map.webWarmup,cancel=Clear})
+        {resources=ResourceData.Read(map.resources),webWarmup=map.webWarmup,cancel=Clear})
     return true
 end
 function App:Install(scene)
@@ -404,8 +469,8 @@ function App:Install(scene)
     if self.motionModule then h.motion=self.motionModule end
     local authoredCamera=scene:GetChild("Camera")
     local camera=OrbitCamera.New(scene,authoredCamera)
-    camera.roomLimit=require('scene.HangarConfig').layout.cameraLimit
-    camera.safety=require('controls.PreviewRoom').New(scene)
+    camera.roomLimit=HangarConfig.layout.cameraLimit
+    camera.safety=PreviewRoom.New(scene)
     local car=VehicleView.New(scene,"Car")
     car:Rebuild(self.blueprint) -- only the vehicle's actual part types are loaded
     if self.camera then
@@ -432,11 +497,11 @@ function App:Install(scene)
         oldTrial.endless.edit:Leave();oldTrial.endless.edit=nil
     end
     local oldHome=Hud.GetState()
-    if oldHome and oldHome.livery then require('ui.LiveryPage').Leave(oldHome) end
+    if oldHome and oldHome.livery then LiveryPage.Leave(oldHome) end
     if self.build then self.build:Dispose();self.build=nil end
     if self.gallery then self.gallery:Dispose() end
     self.scene,self.hangar,self.camera,self.car=scene,h,camera,car
-    self.vehicleSwitch=require('app.HomeVehicleSwitch').New(self,car.root)
+    self.vehicleSwitch=HomeVehicleSwitch.New(self,car.root)
     self.graphicsSettings:Apply(scene)
     if self.ownsScene then self.graphicsSettings:Show(scene,camera.camera) end
     self.gallery=nil;self.galleryOn=false
@@ -470,7 +535,7 @@ function App:Install(scene)
             if minY<4 then self.editor:Lift(4-minY) end
             self:View(VIEWS.car);self.camera.target=Vector3(0,3,0);self.camera.cur.target=self.camera.target;self.camera:Apply()
         end
-        self.build=require('app.BuildSession').New(self)
+        self.build=BuildSession.New(self)
         self.hangar:SetGrid(true)
     else self:GroundDisplay() end
     print("[HangarApp] Ready generation="..self.generation..", parts="..self.blueprint:Size())
@@ -488,7 +553,7 @@ function App:HomeView(tab)
         local home=Hud.GetState();local sv=home and home.salvage
         tab=sv and ({loadout=sv.stash and 'svLoadout' or 'svLoadoutC',ops='svOps',market='svMarket',garage='svGarage',workshop='svGarage'})[sv.tab] or 'svLoadoutC'
     end
-    local pose=require('controls.HomeStations').Get(self.blueprint:Stats(),tab,self.camera.maxDist)
+    local pose=HomeStations.Get(self.blueprint:Stats(),tab,self.camera.maxDist)
     if pose then self.camera:FlyTo(pose,.65) end
 end
 function App:ToggleGallery(page)
@@ -498,7 +563,7 @@ function App:ToggleGallery(page)
         self.car:SetVisible(true)
         Hud.SetMode("")
     else
-        self.gallery=require("render.PartsGallery").New(self.scene,page or 1)
+        self.gallery=PartsGallery.New(self.scene,page or 1)
         self.galleryOn=true
         self.car:SetVisible(false)
         self:View({target={0,1,-10.5},dist=24,yaw=180,pitch=48,fov=48})
@@ -507,13 +572,13 @@ function App:ToggleGallery(page)
 end
 function App:RetireOpening(work,done)
     self.openingRetirements=self.openingRetirements or {}
-    self.openingRetirements[#self.openingRetirements+1]=require('app.OpeningRetirement').New(work,done)
+    self.openingRetirements[#self.openingRetirements+1]=OpeningRetirement.New(work,done)
 end
 function App:AdvanceOpeningRetirements(flush)
     local jobs=self.openingRetirements
     if not jobs then return end
     while jobs[1] do
-        if not require('app.OpeningRetirement').Step(jobs[1],flush) then return end
+        if not OpeningRetirement.Step(jobs[1],flush) then return end
         table.remove(jobs,1)
         if not flush then break end
     end
@@ -532,7 +597,7 @@ end
 function App:DetachSceneRender()
     local settings=self.graphicsSettings
     settings:SetSceneVisible(false);settings.suspendedViewport=nil
-    require('render.WindowViewports').Set(0,nil)
+    WindowViewports.Set(0,nil)
     settings:ParkPost()
     if settings.retainedPost then settings:ReleasePost(settings.retainedPost.scene) end
     if settings.tonemap then settings.tonemap:Dispose();settings.tonemap=nil end
@@ -543,7 +608,7 @@ function App:ReleaseMapHangar()
     self:DetachSceneRender()
     if self.tutorial then self.tutorial:DetachVoice() end
     local home=Hud.GetState()
-    if home and home.livery then require('ui.LiveryPage').Leave(home) end
+    if home and home.livery then LiveryPage.Leave(home) end
     Hud.Dispose()
     -- UI.Render requires a root even for independent global loading overlays.
     UI.SetRoot(UI.Panel{width='100%',height='100%',pointerEvents='none'})
@@ -567,7 +632,7 @@ function App:ReleaseSettledAssets()
     if self.pendingAssetRelease~=pending then return false end
     local release=self.pendingAssetRelease;self.pendingAssetRelease=nil
     self.assetReleaseIncremental=nil;self.assetReleaseEpoch=nil
-    if not incremental then require('render.RenderTargetLifetime').Flush() end
+    if not incremental then RenderTargetLifetime.Flush() end
     -- Active Zones retain their applied SH/IBL. Drop reusable source HDRs only
     -- after scene disposal and the renderer retirement fence.
     environmentBakeCache:ClearCache()
@@ -575,20 +640,20 @@ function App:ReleaseSettledAssets()
     return true
 end
 function App:Update(dt)
-    require('audio.StoryComms').Tick(dt)
+    StoryComms.Tick(dt)
     if self.loadingFlow and not self.stopped then self.loadingFlow:Advance(dt) end
     if self.stopped then return end
-    require('audio.IntroAudioTail').Update(dt,input.focus and not input.minimized)
+    IntroAudioTail.Update(dt,input.focus and not input.minimized)
     self:AdvanceOpeningRetirements(false)
-    require('storage.BlueprintStore').UpdateAll(dt)
-    require('app.ResourceGate').UpdatePending(dt)
-    require('audio.UiSound').Update()
+    BlueprintStore.UpdateAll(dt)
+    ResourceGate.UpdatePending(dt)
+    UiSound.Update()
     if input:GetMouseButtonPress(MOUSEB_LEFT) or input:GetKeyPress(KEY_RETURN) or input:GetKeyPress(KEY_SPACE) then self.music:Unlock() end
-    local musicState=require('audio.GameMusicState').FromApp(self,Hud.GetState())
-    require('audio.AudioLevels').MixContext(dt,musicState.introActive or musicState.briefing)
+    local musicState=GameMusicState.FromApp(self,Hud.GetState())
+    AudioLevels.MixContext(dt,musicState.introActive or musicState.briefing)
     self.music:Update(dt,musicState.scene,not input.focus or input.minimized,musicState)
-    self.ambience:Update(dt,require('audio.GameAmbience').FromApp(self,Hud.GetState()),input.focus and not input.minimized)
-    require('render.RenderTargetLifetime').Update()
+    self.ambience:Update(dt,GameAmbience.FromApp(self,Hud.GetState()),input.focus and not input.minimized)
+    RenderTargetLifetime.Update()
     if self.pendingAssetRelease and not self.openingRetirements and self.loader.state~='loading' and cache:GetNumBackgroundLoadResources()==0 then
         self.assetReleaseFrames=self.assetReleaseFrames-1
         if self.assetReleaseFrames<=0 then
@@ -606,6 +671,7 @@ function App:Update(dt)
         self.toasts:Push('已取消换车');return
     end
     self.loader:Update(dt)
+    if self.lobbyLoading then self.lobbyLoading:Update(dt) end
     if self.loadingFlow then self.loadingFlow:Observe(self.loader,dt) end
     self.previews:Update(dt)
     if self.opening and self.opening.active then
@@ -615,16 +681,17 @@ function App:Update(dt)
         self.graphicsSettings:Update(dt);return
     end
     self.graphicsSettings:Update(dt)
+    if self.debugPanel and self.debugPanel.open then return end
     if self.tutorial and self.tutorial:Keys() then return end
     if self.loadingFlow and self.loadingFlow.active then
         -- Keep downloads, saves and renderer retirement alive under the overlay.
         -- The old scene is fully covered; candidate rendering warms only after commit.
-        if self.loadingFlow.pageVisible and not self.loadingFlow.finished then self.graphicsSettings:SetSceneVisible(false) end
+        if self.loadingFlow.pageVisible and not self.loadingFlow.finished and not self.loadingFlow.keepSceneVisible then self.graphicsSettings:SetSceneVisible(false) end
         return
     end
     if self.mode~='trial' and self.scene and self.hangar then
         if self.lobby=='salvage' then
-            self.warehouse=self.warehouse or require('scene.Warehouse').New(self);self.warehouse:Update()
+            self.warehouse=self.warehouse or Warehouse.New(self);self.warehouse:Update()
         elseif self.warehouse then self.warehouse:Dispose();self.warehouse=nil end
     end
     if self.reloadQueued and self.loader.state~="loading" then
@@ -644,6 +711,9 @@ function App:Update(dt)
     if self.trial then self.trial:Update(dt);return end
     if self.mapPreview then self.mapPreview:Update(dt);return end
     if self.vehicleSwitch then self.vehicleSwitch:Update(dt) end
+    if self.vehicleSwitch and self.vehicleSwitch:IsAssembling() then
+        self.hangar:Update(self.camera.node,self.camera.camera,dt);return
+    end
     local focus=UI.GetFocus();local typing=focus and focus.OnTextInput~=nil
     local homeBlocked=Hud.IsBlocked()
     local homePage=Hud.GetState();local storyOpen=homePage and homePage.tab=='story';local liveryOpen=homePage and homePage.tab=='livery'
@@ -718,13 +788,14 @@ end
 function App:Stop()
     if self.stopped then return end
     self.stopped=true
-    require('audio.IntroAudioTail').CancelAll()
-    require('audio.UiSound').Dispose()
+    IntroAudioTail.CancelAll()
+    UiSound.Dispose()
     self.mapTransition:Stop()
     if self.opening then self.opening:Dispose();self.opening=nil end
     self:AdvanceOpeningRetirements(true)
     if self.endlessSelect then self.endlessSelect.Close();self.endlessSelect=nil end
     self.vehicleGate:Cancel()
+    if self.lobbyLoading then self.lobbyLoading:Dispose();self.lobbyLoading=nil end
     if self.loadingFlow then self.loadingFlow:Dispose();self.loadingFlow=nil end
     if self.tutorial then self.tutorial:Dispose();self.tutorial=nil end
     if self.warehouse then self.warehouse:Dispose();self.warehouse=nil end
@@ -747,19 +818,20 @@ function App:Stop()
     if self.gallery then self.gallery:Dispose();self.gallery=nil end
     if self.car then self.car:Dispose();self.car=nil end
     if self.hangar then self.hangar:Dispose() end
-    if self.ownsScene then require('render.WindowViewports').Stop() end
+    if self.ownsScene then WindowViewports.Stop() end
     if self.scene and self.ownsScene then self.scene:Dispose() end
     local previous=self.previousState
     cache.autoReloadResources=previous.autoReload
     renderer.hdrRendering=previous.hdr;renderer.shadowMapSize=previous.shadowSize
     renderer.drawShadows=previous.shadows
+    renderer.textureFilterMode=previous.textureFilterMode;renderer.textureAnisotropy=previous.textureAnisotropy
     input.mouseMode=previous.mouseMode
     if self.ownsScene then engine.maxFps=previous.maxFps;engine.maxInactiveFps=previous.inactiveFps end
     self.scene=nil
     _G.VOX_HANGAR=nil
     _G.VOX_TRIAL=nil
-    require('audio.StoryComms').Shutdown()
+    StoryComms.Shutdown()
     UI.Shutdown()
-    require('render.RenderTargetLifetime').Flush()
+    RenderTargetLifetime.Flush()
 end
 return App

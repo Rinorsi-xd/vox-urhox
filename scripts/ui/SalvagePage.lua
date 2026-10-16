@@ -1,4 +1,19 @@
 -- Final frozen salvage.css/new-ui-salvage.css; same coordinates and page flow.
+local Workshop=require("ui.Workshop")
+local UiSound=require("audio.UiSound")
+local BayPreviews=require("ui.BayPreviews")
+local Prefab=require("construction.Prefab")
+local Blueprint=require("construction.Blueprint")
+local GarageDialogs=require("ui.GarageDialogs")
+local InventorySearch=require("ui.InventorySearch")
+local SalvageQuantity=require("ui.SalvageQuantity")
+-- Load optional/cyclic dependencies once, without changing first-use order.
+local DeferredModules=setmetatable({},{__index=function(modules,name)
+    local module=require(name)
+    rawset(modules,name,module)
+    return module
+end})
+
 local UI=require 'urhox-libs/UI'
 local D=require 'ui.SourceDraw'
 local Button=require 'ui.SalvageButton'
@@ -9,23 +24,40 @@ local Data=require('core.ResourceData').Read('UI/Outgame.json')
 local Rules=require('core.ResourceData').Read('UI/SalvageRules.json')
 local marketRank={};for i,id in ipairs(Rules.marketOrder) do marketRank[id]=i end
 local Theme=require 'ui.VoxTheme'
+local Stash=require 'salvage.StashRules'
 local M={}
 local tabs={{'loadout','整备',86},{'ops','行动',86},{'market','商人',86},{'garage','车库',86},{'workshop','创意工坊',154}}
-function M.Deploy(s) return s.app:EnterTrial('salvage') end
+function M.Deploy(s)
+    local shortage=Stash.ShortfallInfo(s.app.salvageLobby:Shortfall())
+    if shortage.kinds>0 then
+        s.app.toasts:Push(shortage.tip..'（'..shortage.details..'）','bad');s.revision=-1;return false
+    end
+    return s.app:EnterTrial('salvage')
+end
 function M.Tab(s,id,options)
-    local sv=s.salvage;if sv.tab=='workshop' then require('ui.Workshop').Leave(s) end
+    local sv=s.salvage;if sv.tab=='workshop' then Workshop.Leave(s) end
     sv.tab=id;sv.selected=false;sv.qty=1;s.revision=-1;s.app:HomeView('salvage')
-    if not (options and options.quiet) then require('audio.UiSound').Play('whoosh') end
+    if not (options and options.quiet) then UiSound.Play('whoosh') end
 end
 function M.Toggle(s) s.salvage.stash=not s.salvage.stash;s.salvage.selected=false;s.revision=-1;s.app:HomeView('salvage') end
-function M.Trade(s)
+function M.Trade(s,sell)
     local sv=s.salvage;if not sv.selected then return end
-    local ok,err=s.app.salvageLobby:Trade(sv.selected,sv.qty,sv.market=='sell')
-    if not ok then s.app.toasts:Push(err,'bad') end;s.revision=-1
+    local selling=sell==true or sell==nil and sv.market=='sell'
+    local item=Data.items[sv.selected];local quantity=sv.qty
+    local ok,err=s.app.salvageLobby:Trade(sv.selected,sv.qty,selling)
+    if not ok then s.app.toasts:Push(err,'bad') else
+        UiSound.Play(selling and 'remove' or 'place')
+        s.app.toasts:Push(selling and ('卖了 '..quantity..' 个「'..item.name..'」，得 '..D.Number(math.max(1,math.floor(item.price*Rules.sellRate))*quantity)) or ('买了 '..quantity..' 个「'..item.name..'」'),'ok')
+        sv.qty=1
+    end;s.revision=-1
 end
 function M.Key(s)
     local sv=s.salvage
-    if sv.tab=='workshop' and require('ui.Workshop').Key(s) then return end
+    if sv.quantityEnterGuard then
+        if input:GetKeyPress(KEY_RETURN) or input:GetKeyPress(KEY_KP_ENTER) then return end
+        sv.quantityEnterGuard=nil
+    end
+    if sv.tab=='workshop' and Workshop.Key(s) then return end
     if input:GetKeyPress(KEY_ESCAPE) then
         if sv.gearPop then sv.gearPop=false;s.revision=-1
         elseif sv.selected then sv.selected=false;s.revision=-1
@@ -47,7 +79,8 @@ function M.Create(s)
     local sv=s.salvage;sv.shopCategory=sv.shopCategory or 'part';sv.sort=sv.sort or 'rarity';sv.query=sv.query or '';sv.gear=sv.gear or {}
     local lobby=s.app.salvageLobby;local w,h=s.width,s.height
     M.Leave(s)
-    local usage=lobby:Usage();sv.loose={};for id in pairs(Data.items) do sv.loose[id]=lobby:Loose(id,usage) end
+    local usage=lobby:Usage();local short=lobby:Shortfall(usage);local shortage=Stash.ShortfallInfo(short);sv.loose={};for id in pairs(Data.items) do sv.loose[id]=lobby:Loose(id,usage) end
+    local gear={};for _,id in ipairs(sv.gear) do if (sv.loose[id] or 0)>0 then gear[#gear+1]=id end end;sv.gear=gear
     local nameSize=utf8.len(s.app.blueprint.name)>8 and 48 or utf8.len(s.app.blueprint.name)>5 and 60 or 72
     local sectionTop=150+nameSize*1.05+10+26+26
     local page=Paint.Page{position='absolute',width=w,height=h,pointerEvents='box-none'};page.owner=s;page.paragraph=Paragraph.New(18,30)
@@ -61,7 +94,7 @@ function M.Create(s)
         local b=Paint.Surface(p);b.owner=s;b.paragraph=Paragraph.New(15,24);page:AddChild(b);return b
     end
     local tx=295;for _,t in ipairs(tabs) do Add(t[2],'tab',tx,0,t[3],88,function() M.Tab(s,t[1]) end,{selected=sv.tab==t[1]});tx=tx+t[3]+16 end
-    Add('','button',w-100,22,44,44,function() require('ui.PauseMenu').Open(s) end,{icon='gear'})
+    Add('','button',w-100,22,44,44,function() DeferredModules['ui.PauseMenu'].Open(s) end,{icon='gear'})
     if sv.tab~='market' and sv.tab~='workshop' then
         Add('竞技对战','mode',w-492,h-212,214,50,function() s.SetLobby('arena') end,{icon='battle',subtitle='3v3 / 4v4 匹配'})
         Add('打捞行动','mode',w-274,h-212,214,50,function() end,{icon='hook',subtitle='搜打撤 · 独立仓库',selected=true})
@@ -74,9 +107,10 @@ function M.Create(s)
         for _,it in ipairs(list) do if query=='' or it.name:find(query,1,true) then
             local span=(it.size or 1)>=2 and 2 or 1
             if col+span>columns then row=row+1;col=0 end
-            local tile=s.Track(Item{text=it.name,item=it,price=showPrice and (sv.market=='sell' and math.max(1,math.floor(it.price*Rules.sellRate)) or it.price) or nil,count=(not showPrice or sv.market=='sell') and sv.loose[it.id] or nil,selected=sv.selected==it.id,position='absolute',left=col*(cell+gap),top=row*(cell+gap),width=span*(cell+gap)-gap,height=cell,onClick=function() if sv.selected~=it.id then sv.qty=1 end;sv.selected=it.id;s.revision=-1 end})
+            local tile=s.Track(Item{text=it.name,item=it,price=showPrice and (sv.market=='sell' and math.max(1,math.floor(it.price*Rules.sellRate)) or it.price) or nil,count=(not showPrice or sv.market=='sell') and sv.loose[it.id] or nil,selected=sv.selected==it.id,position='absolute',left=col*(cell+gap),top=row*(cell+gap),width=span*(cell+gap)-gap,height=cell,onClick=function() if sv.tab=='loadout' and sv.selected==it.id then sv.selected=false else if sv.selected~=it.id then sv.qty=1 end;sv.selected=it.id end;s.revision=-1 end})
             function tile:OnPointerDown(e)
                 if e.button==MOUSEB_RIGHT and sv.tab=='market' then sv.qty=sv.selected==it.id and sv.qty+1 or 1;sv.selected=it.id;s.revision=-1;return true end
+                if e.button==MOUSEB_RIGHT and sv.tab=='loadout' then local previous=sv.selected;sv.selected=it.id;sv.qty=1;M.Trade(s,true);sv.selected=previous;return true end
                 return Item.OnPointerDown(self,e)
             end
             grid:AddChild(tile)
@@ -91,23 +125,23 @@ function M.Create(s)
         for i,op in ipairs(Data.ops) do Add(op.name,'operation',56,174+(i-1)*103,380,99,function() lobby.data.op=i;lobby:Save();s.revision=-1 end,{subtitle=op.en,description=op.desc,selected=(lobby.data.op or 1)==i,disabled=Paint.Value(s)<op.minValue,stripe=({D.orange,{255,194,26,255},{255,77,66,255}})[i]}) end
         Box('legend',56,501,380,225);Box('opcard',w-496,108,440,660)
         Add('整备','primary',w-496,h-150,440,80,function() M.Tab(s,'loadout') end,{subtitle='选好车和道具再出发',key='Enter'})
-    elseif sv.tab=='workshop' then page:AddChild(require('ui.Workshop').Create(s))
+    elseif sv.tab=='workshop' then page:AddChild(Workshop.Create(s))
     elseif sv.tab=='garage' then
         local slots=s.app.bays:Slots();local used=0;for _,data in ipairs(slots) do if data then used=used+1 end end
         local strip=UI.Panel{width=(used+1)*228-8,height=150,flexShrink=0,flexDirection='row',gap=8}
         local scroll=UI.ScrollView{position='absolute',left=56,top=h-270,width=w-636,height=150,scrollX=true,scrollY=false,children={strip}}
-        s.salvagePreviews=require('ui.BayPreviews').New(scroll,s.app.previews)
+        s.salvagePreviews=BayPreviews.New(scroll,s.app.previews)
         for i,data in ipairs(slots) do if data then
             local tile=s.Track(UI.Panel{width=220,height=150,flexShrink=0,backgroundColor='#18324d',onClick=function() s.Run(function(discard) return s.app.bays:Open(i,discard) end,nil,data) end})
             local picture=s.salvagePreviews:Add(data);picture:SetStyle({position='absolute',width=220,height=108});tile:AddChild(picture)
             tile:AddChild(Paint.Text{text=string.format('%02d  ',i)..data.name,fontSize=18,position='absolute',left=14,top=120,width=192,height=28});strip:AddChild(tile)
         end end
         strip:AddChild(Button{text='新建底盘',kind='slot',width=220,height=150,flexShrink=0,onClick=function()
-            local data=require('construction.Prefab').Create(require('construction.Blueprint').New(),'empty'):ToTable()
+            local data=Prefab.Create(Blueprint.New(),'empty'):ToTable()
             s.Run(function(discard) return s.app.bays:CreateVehicle('empty',nil,discard) end,nil,data)
         end})
         page:AddChild(scroll)
-        Add('拆掉这辆车','ghost',w-234,h-270,178,44,function() local slot=s.app.bays.active;require('ui.GarageDialogs').Confirm(s,'拆掉这辆车？','零件退回仓库。',function() s.Run(function() return s.app.bays:Delete(slot) end,nil,s.app.bays:ReplacementAfterDelete(slot)) end) end,{icon='trash',disabled=used<=1 or not s.app.bays.active})
+        Add('拆掉这辆车','ghost',w-234,h-270,178,44,function() local slot=s.app.bays.active;GarageDialogs.Confirm(s,'拆掉这辆车？','零件退回仓库。',function() s.Run(function() return s.app.bays:Delete(slot) end,nil,s.app.bays:ReplacementAfterDelete(slot)) end) end,{icon='trash',disabled=used<=1 or not s.app.bays.active})
         Add('改装','primary',w-496,h-150,440,80,function() s.app:EnterBuild() end,{subtitle='零件优先用仓库里的',key='E'})
     elseif sv.tab=='loadout' then
         local sections=UI.Panel{width=456,height=600,flexShrink=0};local yy=0
@@ -117,9 +151,10 @@ function M.Create(s)
             if cat~='function' or #list>0 then
             sections:AddChild(Paint.Text{text=({weapon='武器',movement='移动部件',['function']='功能部件'})[cat],position='absolute',left=0,top=yy,width=456,height=33,fontSize=20,rule=true})
             sections:AddChild(Paint.Text{text=tostring(total),position='absolute',right=0,top=yy,width=30,height=32,fontSize=18,font='vox-tabular',color=D.muted,alignRight=true});yy=yy+43
-            for i,it in ipairs(list) do sections:AddChild(s.Track(Item{text=it.name,item=it,count=counts[it.part],compact=true,position='absolute',left=((i-1)%6)*76,top=yy+math.floor((i-1)/6)*76,width=72,height=72,onClick=function() s.app:EnterBuild() end})) end
-            for i=#list+1,math.max(4,#list) do Add('','slot',((i-1)%6)*76,yy+math.floor((i-1)/6)*76,72,72,function() s.app:EnterBuild() end,nil,sections) end
-            yy=yy+math.max(1,math.ceil(math.max(4,#list)/6))*76-4+18
+            local slots=math.max(cat=='function' and 0 or 4,#list)
+            for i,it in ipairs(list) do sections:AddChild(s.Track(Item{text=it.name,item=it,count=counts[it.part],bad=(short[it.id] or 0)>0,compact=true,position='absolute',left=((i-1)%6)*76,top=yy+math.floor((i-1)/6)*76,width=72,height=72,onClick=function() s.app:EnterBuild() end})) end
+            for i=#list+1,slots do Add('','slot',((i-1)%6)*76,yy+math.floor((i-1)/6)*76,72,72,function() s.app:EnterBuild() end,nil,sections) end
+            yy=yy+math.max(1,math.ceil(slots/6))*76-4+18
             end
         end
         sections:AddChild(Paint.Text{text='货舱',position='absolute',left=0,top=yy,width=456,height=33,fontSize=20,rule=true})
@@ -143,16 +178,23 @@ function M.Create(s)
             local list={};for _,it in pairs(Data.items) do if sv.loose[it.id]>0 and (sv.category=='all' or sv.category==it.cat) then list[#list+1]=it end end
             table.sort(list,function(a,b) if sv.sort=='count' then return sv.loose[a.id]>sv.loose[b.id] elseif sv.sort=='value' then return a.price*sv.loose[a.id]>b.price*sv.loose[b.id] else return a.rarity==b.rarity and a.price>b.price or a.rarity>b.rarity end end)
             local fill=Tiles(page,list,6,dx+22,300,84,6,h-580,false,'query')
-            page:AddChild(require('ui.InventorySearch'){value=sv.query,placeholder='搜索物品',position='absolute',left=dx+22,top=248,width=240,height=38,onChange=function(_,q) sv.query=q;fill() end})
+            page:AddChild(InventorySearch{value=sv.query,placeholder='搜索物品',position='absolute',left=dx+22,top=248,width=240,height=38,onChange=function(_,q) sv.query=q;fill() end})
             for i,sort in ipairs({{'rarity','稀有度'},{'value','价值'},{'count','数量'}}) do Add(sort[2],'button',dx+274+(i-1)*92,248,92,38,function() sv.sort=sort[1];s.revision=-1 end,{selected=sv.sort==sort[1]}) end
-            if sv.selected then Box('inspect',w-994,108,400,h-278) end
+            if sv.selected and (sv.loose[sv.selected] or 0)<=0 then sv.selected=false end
+            if sv.selected then
+                local ix,iy,iw,ih=w-994,108,400,h-278
+                sv.qty=math.max(1,math.min(sv.qty,sv.loose[sv.selected]));Box('inspect',ix,iy,iw,ih)
+                Add('','button',ix+iw-54,iy+16,40,40,function() sv.selected=false;s.revision=-1 end,{icon='close'})
+                page:AddChild(SalvageQuantity.Create(s,function() return lobby:MaxQuantity(sv.selected,true) end,ix+28,iy+ih-130,iw-56))
+                Add('卖给后勤处','button',ix+28,iy+ih-68,iw-56,44,function() M.Trade(s,true) end,{icon='shop'})
+            end
         end
-        Add('出发','primary',w-496,h-150,440,80,function() M.Deploy(s) end,{subtitle='断坝峡谷 · '..Data.ops[lobby.data.op or 1].name..' · 带入价值 '..D.Number(Paint.Value(s)),key='Enter'})
+        Add('出发','primary',w-496,h-150,440,80,function() M.Deploy(s) end,{subtitle=shortage.kinds>0 and (shortage.kinds..' 种零件超出库存') or ('断坝峡谷 · '..Data.ops[lobby.data.op or 1].name..' · 带入价值 '..D.Number(Paint.Value(s))),key='Enter',disabled=shortage.kinds>0,tooltip=shortage.tip})
         if sv.gearPop then
             local list={};for _,it in pairs(Data.items) do if it.cat=='gear' then local equipped=false;for _,id in ipairs(sv.gear) do if id==it.id then equipped=true end end;if not equipped then list[#list+1]=it end end end
             local rank={};for i,id in ipairs(Rules.itemOrder) do rank[id]=i end;table.sort(list,function(a,b) return rank[a.id]<rank[b.id] end)
             local ph=#list*68+12;Box('popup',56,math.max(262,262+yy-ph-8),360,ph)
-            for i,it in ipairs(list) do Add(it.name,'gear',62,math.max(262,262+yy-ph-8)+6+(i-1)*68,348,68,function() if #sv.gear<4 then sv.gear[#sv.gear+1]=it.id end;sv.gearPop=false;s.revision=-1 end,{icon=it.icon,subtitle=lobby:Owned(it.id)>0 and ('仓库里 '..lobby:Owned(it.id)..' 个') or '仓库里没有，去商人那里买',disabled=lobby:Owned(it.id)<1}) end
+            for i,it in ipairs(list) do local loose=sv.loose[it.id] or 0;Add(it.name,'gear',62,math.max(262,262+yy-ph-8)+6+(i-1)*68,348,68,function() if #sv.gear<4 and loose>0 then sv.gear[#sv.gear+1]=it.id end;sv.gearPop=false;s.revision=-1 end,{icon=it.icon,subtitle=loose>0 and ('仓库里 '..loose..' 个 · '..it.desc) or '仓库里没有，去商人那里买',disabled=loose<1}) end
         end
     elseif sv.tab=='market' then
         Add('后勤处 · 诺瓦','trader',56,108,210,64,function() end,{icon='shop',subtitle='收购 · 补给 · 改装件',selected=true})
@@ -165,14 +207,12 @@ function M.Create(s)
         local list={};for _,id in ipairs(Rules.itemOrder) do local it=Data.items[id];local hidden=it.partCat=='structure' and (it.part:match('^glass%u') or it.part:match('^neon%u') or it.part:match('^conc%u') or it.part:match('^heavy%u') or it.part:find('Panel') or it.part:find('panel'));if (sv.shopCategory=='all' or it.cat==sv.shopCategory) and (sv.market=='buy' and not hidden or sv.market=='sell' and sv.loose[it.id]>0) then list[#list+1]=it end end
         table.sort(list,function(a,b) if sv.market=='sell' then return math.max(1,math.floor(a.price*Rules.sellRate))*sv.loose[a.id]>math.max(1,math.floor(b.price*Rules.sellRate))*sv.loose[b.id] end;return marketRank[a.id]<marketRank[b.id] end)
         local fill=Tiles(page,list,8,78,266,84,4,h-336,true,'shopQuery')
-        page:AddChild(require('ui.InventorySearch'){value=sv.shopQuery or '',placeholder='搜索',solid=true,position='absolute',left=538,top=195,width=240,height=40,onChange=function(_,q) sv.shopQuery=q;fill() end})
+        page:AddChild(InventorySearch{value=sv.shopQuery or '',placeholder='搜索',solid=true,position='absolute',left=538,top=195,width=240,height=40,onChange=function(_,q) sv.shopQuery=q;fill() end})
         if sv.selected then
-            sv.qty=math.min(sv.qty,lobby:MaxQuantity(sv.selected,sv.market=='sell'))
+            sv.qty=math.max(1,math.min(sv.qty,lobby:MaxQuantity(sv.selected,sv.market=='sell')))
             local price=Data.items[sv.selected].price;if sv.market=='sell' then price=math.max(1,math.floor(price*.6)) end
-            Add('-','quantity',w-470,h-332,52,52,function() sv.qty=math.max(1,sv.qty-1);s.revision=-1 end);Add(tostring(sv.qty),'quantity',w-414,h-332,200,52,function() end)
-            Add('+','quantity',w-210,h-332,52,52,function() sv.qty=math.min(lobby:MaxQuantity(sv.selected,sv.market=='sell'),sv.qty+1);s.revision=-1 end)
-            Add('最大','quantity',w-154,h-332,72,52,function() sv.qty=lobby:MaxQuantity(sv.selected,sv.market=='sell');s.revision=-1 end)
-            Add(sv.market=='sell' and '出 售' or '购 买','primary',w-470,h-170,388,76,function() M.Trade(s) end,{subtitle=sv.market=='sell' and '换成信用点' or '放进仓库',key='Enter',disabled=sv.market=='buy' and price*sv.qty>lobby.data.credits})
+            local buy=Add(sv.market=='sell' and '出 售' or '购 买','primary',w-470,h-170,388,76,function() M.Trade(s) end,{subtitle=sv.market=='sell' and '换成信用点' or '放进仓库',key='Enter',disabled=sv.market=='buy' and price*sv.qty>lobby.data.credits})
+            page:AddChild(SalvageQuantity.Create(s,function() return lobby:MaxQuantity(sv.selected,sv.market=='sell') end,w-470,h-332,388,function(qty) buy:SetDisabled(sv.market=='buy' and price*qty>lobby.data.credits) end))
         end
     end
     return page

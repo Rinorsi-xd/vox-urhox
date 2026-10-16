@@ -1,3 +1,5 @@
+local DrivingEvents=require("audio.DrivingEvents")
+
 local Data=require('core.ResourceData').Read('Combat/DrivingSounds.json')
 local Mix=require 'audio.DrivingMix'
 local V=require 'core.Math3'
@@ -10,7 +12,7 @@ end
 function M.New(scene) local self=setmetatable({},M);self:init(scene);return self end
 function M:init(scene)
     self.root=scene:CreateChild('DrivingAudio');self.sounds={};self.loops={};self.loopSources={};self.loopTails={};self.voices={};self.last={};self.counts={}
-    self.localMix=Mix.New();self.remoteMix=Mix.New();self.best=Mix.New();self.events=require('audio.DrivingEvents').New()
+    self.localMix=Mix.New();self.remoteMix=Mix.New();self.best=Mix.New();self.events=DrivingEvents.New()
     self.time=0;self.cursor=0;self.volume=.65;self.duck=1;self.active=false;self.disposed=false;self.stepPitch=1;self.silent=true
     self.listener={0,0,0};self.right={1,0,0}
     self.focus=function() return input.focus and not input.minimized end

@@ -1,11 +1,16 @@
+local SourceDraw=require("ui.SourceDraw")
+local SourceModal=require("ui.SourceModal")
+local BayPreviews=require("ui.BayPreviews")
+local UiSound=require("audio.UiSound")
+
 local UI=require 'urhox-libs/UI'
 local Host=require 'ui.DialogHost'
 local Button=require 'ui.SourceButton'
 local Card=require 'ui.SourceLibraryCard'
 local Heading=UI.Panel:Extend('VoxLibraryHeading')
 function Heading:Render(vg)
-    require('ui.SourceDraw').Begin(vg);local r=self:GetAbsoluteLayout()
-    require('ui.SourceModal').DrawHeading(vg,r.x,r.y,r.w,'蓝图库',self.props.subtitle)
+    SourceDraw.Begin(vg);local r=self:GetAbsoluteLayout()
+    SourceModal.DrawHeading(vg,r.x,r.y,r.w,'蓝图库',self.props.subtitle)
 end
 local M={}
 local function Layout(slots,width,height)
@@ -41,7 +46,7 @@ function M.Open(owner,mode)
     -- #modal .card scrolls as a whole, including its title and bottom actions.
     -- Windows Chromium reserves 15 CSS px for its vertical scrollbar.
     local scroll=UI.ScrollView{width='100%',height=math.min(natural,height*.86),paddingRight=gutter,flexShrink=0,showScrollbar=true,scrollbarInteractive=true,sourceNaturalHeight=natural}
-    previews=require('ui.BayPreviews').New(scroll,app.previews)
+    previews=BayPreviews.New(scroll,app.previews)
     modal.cards={};modal.mode=mode;modal.tabs={}
     scroll:AddChild(Heading{width='100%',height=94,flexShrink=0,subtitle=string.format('%d / 20 已使用',used)})
     local body=UI.Panel{width='100%',paddingHorizontal=28,paddingBottom=24,flexShrink=0}
@@ -55,7 +60,7 @@ function M.Open(owner,mode)
     local grid=UI.Panel{width='100%',gap=10,flexShrink=0};body:AddChild(grid)
     local function Save(slot)
         Host.Close(owner);local ok,err=app.bays:Save(slot);Host.Notify(owner,ok and app.store:SaveMessage('已保存到车位 '..slot) or err)
-        if ok then require('audio.UiSound').Play('stamp') end
+        if ok then UiSound.Play('stamp') end
     end
     local function Load(slot)
         Host.Close(owner)

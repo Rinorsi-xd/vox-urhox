@@ -1,0 +1,20 @@
+{
+  "status": "PASS",
+  "checks": 204,
+  "modePlatformScenarios": 10,
+  "baseline": "2026-10-15/b276064942ae09c0227ec28d4cfda1d5ff006455",
+  "negativeControl": {
+    "detected": true,
+    "error": "[string \"<python>\"]:3: first Escape opens unified menu: battle"
+  },
+  "sha256": {
+    "app/TrialSession": "9619951cccb9f4aa8a4f95e9aff9cf0de733344f5e5495762a16aa09be67d846",
+    "controls/DrivePointer": "8e5914f990c31a92beef6c38938ce274cdb60db225a3d9ee0b6b55914fca2466",
+    "controls/MouseDeltaFilter": "04e4aa70a63078a382a30dd5009a98de2a1e7835824874f92e24766d0170e235",
+    "ui/GameSettings": "047f732bb03634f9cccd6873266cb1a1cca9ae2bf7c6e9ceca93bea28ab01fc1",
+    "ui/PauseMenu": "951ff94bd1bdf65e5fb0a8a436c59902c99523151ed53e63f7d93179825604da",
+    "ui/DialogHost": "cb8229672623a7371418886cc35151c1fa41ce1b909d0b5a3d74effc1e3347f9",
+    "combat/MatchActions": "c4cd2a72ffb016307a884d067fa05c6984119a2c8dcc25c127091f9e75a6b97e"
+  },
+  "boundary": "Actual Lua Update/PollKeys/Pointer events/Host/PauseMenu executed; CPU engine/UI adapters, no browser lock API, rendering, audio, GPU or mobile performance acceptance."
+}

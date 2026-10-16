@@ -1,4 +1,6 @@
 -- shared/build/livery.js; keep the H5 grid-space interchange contract.
+local ResourceData=require("core.ResourceData")
+
 local M={MAX=48,MIN_SIZE=1,MAX_SIZE=30}
 local function Number(v,default)
     local n=tonumber(v);return n and n==n and math.abs(n)<math.huge and n or default or 0
@@ -37,7 +39,7 @@ end
 function M.OnCenter(d) return math.abs(d.p[1])<.3 and math.abs(d.n[1])<.2 end
 function M.Catalog()
     if not M.catalog then
-        local data=require('core.ResourceData').Read('Livery/Catalog.json');M.catalog={list=data.stickers,byId={}}
+        local data=ResourceData.Read('Livery/Catalog.json');M.catalog={list=data.stickers,byId={}}
         for _,s in ipairs(data.stickers) do M.catalog.byId[s.id]=s end
     end;return M.catalog
 end

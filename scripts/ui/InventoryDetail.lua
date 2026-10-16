@@ -1,3 +1,9 @@
+local WeaponDefs=require("combat.WeaponDefs")
+local InventoryDetailRows=require("ui.InventoryDetailRows")
+local SourceButtonMotion=require("ui.SourceButtonMotion")
+local InventoryShadows=require("ui.InventoryShadows")
+local InventoryChrome=require("ui.InventoryChrome")
+
 local Panel=require 'urhox-libs/UI/Widgets/Panel'
 local D=require 'ui.SourceDraw'
 local Theme=require 'ui.VoxTheme'
@@ -10,8 +16,8 @@ for _,d in ipairs(Defs.LIST) do for k,v in pairs(maximum) do maximum[k]=math.max
 for _,c in ipairs(Defs.CATEGORIES) do category[c.id]=c.name end
 function Detail:SetPart(id)
     self.partType=id;self.imageEntry=0;local d=Defs.PARTS[id];if not d then return end
-    local ws=d.weapon and require('combat.WeaponDefs').Stats(id)
-    self.rows=require('ui.InventoryDetailRows').Build(d,ws)
+    local ws=d.weapon and WeaponDefs.Stats(id)
+    self.rows=InventoryDetailRows.Build(d,ws)
     self.layoutKey=nil
 end
 function Detail:Update(dt) self.imageEntry=math.min(.24,(self.imageEntry or 0)+math.max(0,dt)) end
@@ -21,9 +27,9 @@ function Detail:Render(vg)
     local compact=self.props.compact
     local imageSize=compact and 76 or math.min(200,self.props.viewportHeight*.23)
     local imageHeight=compact and 76 or math.min(250,math.max(160,self.props.viewportHeight*.22))
-    local entry=require('ui.SourceButtonMotion').Ease((self.imageEntry or .24)/.24,'css-ease-out')
+    local entry=SourceButtonMotion.Ease((self.imageEntry or .24)/.24,'css-ease-out')
     nvgSave(vg);nvgGlobalAlpha(vg,entry);nvgTranslate(vg,7*(1-entry),0)
-    require('ui.InventoryShadows').Image(self,vg,d.id,'detail',{x=x+(w-imageSize)/2,y=y+(imageHeight-imageSize)/2,w=imageSize,h=imageSize})
+    InventoryShadows.Image(self,vg,d.id,'detail',{x=x+(w-imageSize)/2,y=y+(imageHeight-imageSize)/2,w=imageSize,h=imageSize})
     self:RenderBackgroundImage(vg,Theme.Thumbnail(d.id),{x=x+(w-imageSize)/2,y=y+(imageHeight-imageSize)/2,w=imageSize,h=imageSize},'contain',nil);nvgRestore(vg)
     local tagY=y+imageHeight+8
     D.Icon(vg,Icons[d.cat] or 'cube',x,tagY,18,D.orange);D.Text(vg,category[d.cat] or '',x+24,tagY,12,D.orange,'vox-body')
@@ -42,7 +48,7 @@ function Detail:Render(vg)
         if i==4 then
             cy=cy+16
             if not self.more then
-                self.more=require('ui.InventoryChrome').Button{kind='more',text='更多参数',width=w,height=compact and 44 or 38,position='absolute',left=0,top=0,onClick=function(b)
+                self.more=InventoryChrome.Button{kind='more',text='更多参数',width=w,height=compact and 44 or 38,position='absolute',left=0,top=0,onClick=function(b)
                     self.expanded=not self.expanded;b.props.selected=self.expanded
                 end};self:AddChild(self.more)
             end

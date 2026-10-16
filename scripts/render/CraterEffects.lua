@@ -1,5 +1,8 @@
 -- Original crater smoke origins, wind, lifetime and dust-devil motion.
 -- Fixed billboard pools: no per-frame node/material allocation.
+local CraterDust=require("render.CraterDust")
+local CraterShield=require("render.CraterShield")
+
 local Coord=require 'core.Coord'
 local M={};M.__index=M
 local windX,windZ=.9161573349,.400818834
@@ -23,10 +26,10 @@ function M.New(scene,layout,options)
     local self=setmetatable({root=scene:CreateChild('CraterAtmosphere'),parts={},acc={0,0,0},layout=layout,devils={},shields={},options=options,origins=options.origins or origins,area=options.area or 270,limit=options.limit or 300},M)
     self.smoke=Batch(self.root,'ShipSmoke',420,{.042,.033,.027})
     self.dust=Batch(self.root,'DustDevils',104,{.522,.417,.288})
-    self.air=require('render.CraterDust').New(self.root,self)
+    self.air=CraterDust.New(self.root,self)
     for i=1,4 do local d={seed=math.random()};self:SpawnDevil(d);d.age=math.random()*d.life;self.devils[i]=d end
     for i,b in ipairs(options.noShields and {} or {layout.base,layout.enemyBase}) do
-        self.shields[i]=require('render.CraterShield').New(self.root,b.shield,i==1 and 'own' or 'enemy')
+        self.shields[i]=CraterShield.New(self.root,b.shield,i==1 and 'own' or 'enemy')
     end
     for _,p in ipairs(options.noLamps and {} or lamps) do
         local n=self.root:CreateChild('InteriorLamp');n.position=Coord.Vec(p[1],p[2],p[3])

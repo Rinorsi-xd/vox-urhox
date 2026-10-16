@@ -1,4 +1,6 @@
 -- Frozen approved samples; ten reusable voices, one queue loop, one radio.
+local ResourceGate=require("app.ResourceGate")
+
 local Data=require('core.ResourceData').Read('Combat/FlowSounds.json')
 local Levels=require 'audio.AudioLevels'
 local M={};M.__index=M
@@ -13,7 +15,7 @@ function M.New()
 end
 function M:init()
     self.scene=Scene();self.root=self.scene:CreateChild('BattleFlowAudio');self.time=0;self.cursor=0;self.last={};self.slots={};self.ready=false;self.disposed=false
-    self.gate=require('app.ResourceGate').New()
+    self.gate=ResourceGate.New()
     self.sounds={};self.preparation={};self.preparationIndex=1;self.decoding={};self.decodeCursor=1;self.failure=nil;self.downloadReady=false
 end
 function M:Prepare(queue,checkpoint)

@@ -2,6 +2,9 @@
 -- spring/damping model; rigid collision integration remains native Bullet.
 -- Origin -> suspension rest + tire radius; no ground hit means zero support.
 -- Tire impulses share one friction ellipse, so braking/side grip cannot exceed load.
+local TerrainObstacles=require("drive.TerrainObstacles")
+local Rotors=require("construction.Rotors")
+
 local Math=require "core.Math3"
 local M={}
 M.__index=M
@@ -37,7 +40,7 @@ function M:Sample()
         local down=Math.Rotate(q,w.down or {0,-1,0})
         local s=self.states[i]
         s.hard=Math.Add(position,Math.Rotate(q,w.conn))
-        local hit=v.space:Raycast(s.hard,down,w.rest+w.radius,body,nil,false,require('drive.TerrainObstacles').SUPPORT_MASK)
+        local hit=v.space:Raycast(s.hard,down,w.rest+w.radius,body,nil,false,TerrainObstacles.SUPPORT_MASK)
         s.grounded=hit~=nil;s.groundBody=hit and hit.body or nil
         if hit then
             s.point=hit.point;s.normal=hit.normal;s.length=Math.Clamp(hit.dist-w.radius,w.rest-w.maxTravel,w.rest+w.maxTravel)
@@ -68,7 +71,7 @@ function M:Apply(dt)
     for i,w in ipairs(v.wheels) do
         local s=self.states[i];s.forwardImpulse=0;s.sideImpulse=0;s.skid=1
         local cy,sy=math.cos(s.steer),math.sin(s.steer);local a=w.contactAxle
-        local turned=w.rotor and Math.Rotate(require('construction.Rotors').AxisQuat(Math.Scale(w.down,-1),s.steer),a) or {a[1]*cy+a[3]*sy,a[2],-a[1]*sy+a[3]*cy}
+        local turned=w.rotor and Math.Rotate(Rotors.AxisQuat(Math.Scale(w.down,-1),s.steer),a) or {a[1]*cy+a[3]*sy,a[2],-a[1]*sy+a[3]*cy}
         local axle=Math.Rotate(q,turned)
         s.axle=Math.Normalize(Math.Sub(axle,Math.Scale(s.normal,Math.Dot(axle,s.normal))))
         s.forward=Math.Normalize(Math.Cross(s.normal,s.axle))

@@ -1,4 +1,6 @@
 -- Retained GPU portrait; only the visible speaker queues its two small targets.
+local RenderTargetLifetime=require("render.RenderTargetLifetime")
+
 local Layout=require 'ui.CommsPortraitLayout'
 local Platform=require 'urhox-libs.Platform.PlatformUtils'
 ---@class CommsPortrait
@@ -89,7 +91,7 @@ function M:Dispose()
     for _,texture in ipairs(self.textures) do texture:GetRenderSurface():SetNumViewports(0) end
     for _,scene in ipairs(self.scenes) do scene:Dispose() end
     for _,material in ipairs(self.materials) do material:Dispose() end
-    for _,texture in ipairs(self.textures) do require('render.RenderTargetLifetime').Retire(texture) end
+    for _,texture in ipairs(self.textures) do RenderTargetLifetime.Retire(texture) end
     self.textures={};self.scenes={};self.materials={};self.faces={}
 end
 return M

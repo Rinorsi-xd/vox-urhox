@@ -1,3 +1,5 @@
+local VehicleSpec=require("drive.VehicleSpec")
+
 local Defs=require('parts.Defs')
 local BP=require('construction.Blueprint')
 local Config=require('Config')
@@ -18,7 +20,7 @@ function M.Initial(source)
     local out=M.Count(source);out.laser1=(out.laser1 or 0)+1;out.steer1=(out.steer1 or 0)+2;out.drive1=(out.drive1 or 0)+2;return out
 end
 function M.Validate(source,tier,owned)
-    local bp=M.Blueprint(source);local diagnosis=bp:Diagnose(M.Limits(tier));local spec=require('drive.VehicleSpec').Build(bp);local errors={};local seen={}
+    local bp=M.Blueprint(source);local diagnosis=bp:Diagnose(M.Limits(tier));local spec=VehicleSpec.Build(bp);local errors={};local seen={}
     local function Add(s) if not seen[s] then errors[#errors+1]=s;seen[s]=true end end
     for _,d in ipairs(diagnosis.list) do if d.level=='error' or d.level=='block' then Add(d.text) end end
     if not spec.ok then Add(spec.reason) else

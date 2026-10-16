@@ -1,3 +1,5 @@
+local UI=require("urhox-libs/UI")
+
 local D=require 'ui.SourceDraw'
 local R=require 'ui.ReticleDraw'
 local State=require 'ui.ReticleState'
@@ -6,7 +8,7 @@ local M={}
 local function Ease(t) return 1-(1-State.Clamp(t))^3 end
 function M.Update(o,dt)
     local s=o.session;local camera=s.camera:GetCamera()
-    local w,h=require('urhox-libs/UI').GetViewportSize();local l=State.Layout(w,h)
+    local w,h=UI.GetViewportSize();local l=State.Layout(w,h)
     local ref=Focus.Resolve(o,dt,camera,w,h)
     local lock=s.weapons:LockInfo();local missile=lock~=nil
     if missile then ref=lock.progress>0 and lock.ref or nil end

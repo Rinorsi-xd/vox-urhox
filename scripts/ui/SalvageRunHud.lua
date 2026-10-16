@@ -1,4 +1,9 @@
 -- Frozen srh CSS/CSS2 composition, rendered within the UI-owned NVG frame.
+local SourceButtonMotion=require("ui.SourceButtonMotion")
+local SalvageLootMotion=require("ui.SalvageLootMotion")
+local SalvagePaint=require("ui.SalvagePaint")
+local SourceButton=require("ui.SourceButton")
+
 local UI=require 'urhox-libs/UI'
 local D=require 'ui.SourceDraw'
 local Loot=require 'salvage.Loot'
@@ -88,7 +93,7 @@ function Panel:Render(vg)
     if search then
         local sx,sy=w-336,h*.22;local sh=74+#search.items*49;local color=search.o.ctype=='vault' and gold or cyan
         local elapsed=r.time-(self.searchAt or r.time);local fade=math.min(1,elapsed/.2)
-        nvgSave(vg);nvgGlobalAlpha(vg,fade);nvgTranslate(vg,24*(1-require('ui.SourceButtonMotion').Ease(math.min(1,elapsed/.25),false)),0)
+        nvgSave(vg);nvgGlobalAlpha(vg,fade);nvgTranslate(vg,24*(1-SourceButtonMotion.Ease(math.min(1,elapsed/.25),false)),0)
         Frame(vg,sx,sy,318,sh,color);Text(vg,search.title,sx+14,sy+11,18,color)
         Text(vg,D.Number(search.value),sx+304,sy+15,12,gold,NVG_ALIGN_RIGHT)
         for i,it in ipairs(search.items) do local y=sy+43+(i-1)*49;local item=Data.items[it.id];local c=Color(item);local known=it.state=='shown' or it.state=='full'
@@ -133,7 +138,7 @@ function Panel:Render(vg)
             shown=shown+1;if shown>=feedLimit then break end
         end
     end
-    require('ui.SalvageLootMotion').Draw(run,vg,w,h,Icon,slotPositions)
+    SalvageLootMotion.Draw(run,vg,w,h,Icon,slotPositions)
     nvgRestore(vg)
 end
 function M.Result(session)
@@ -144,7 +149,7 @@ function M.Result(session)
         D.Rect(vg,x,y,4,74,color);D.Rect(vg,x,y+73,w,1,{255,255,255,20})
         D.Text(vg,title,x+28,y+20,30,color,nil,nil,1)
     end
-    local T=require('ui.SalvagePaint').Text
+    local T=SalvagePaint.Text
     m:AddContent(T{text=result.title,fontSize=18,width='100%',height=30})
     local sum=UI.Panel{width='100%',flexDirection='row',flexWrap='wrap',gap=22,marginBottom=10}
     for _,stat in ipairs({{'用时',Fmt(result.time)},{'开箱',result.opened},{'击毁',result.kills},{result.ok and '带出价值' or '损失价值',D.Number(result.ok and result.value or result.lost)}}) do
@@ -163,7 +168,7 @@ function M.Result(session)
         m:AddContent(T{text=result.keepCar and '货舱里的东西全丢了，战车开回来了。' or '战车零件和货舱里的东西全丢了。蓝图还在车库里，缺的零件回大厅补买。',fontSize=16,width='100%',height=60,paragraph=true,lineHeight=24})
     end
     local error=T{text=run.saveError or '',fontSize=14,width='100%',height=24,color={255,106,77,255}};m:AddContent(error)
-    local button=require('ui.SourceButton'){text=run.committed and '回大厅' or '重试保存',sourceKind='primary',width=120,height=40,onClick=function()
+    local button=SourceButton{text=run.committed and '回大厅' or '重试保存',sourceKind='primary',width=120,height=40,onClick=function()
         if run:Commit() then session.wantsReturn=true else error.props.text=run.saveError or '保存失败' end
     end}
     m:AddContent(UI.Panel{width='100%',flexDirection='row',justifyContent='flex-end',marginTop=20,children={button}})

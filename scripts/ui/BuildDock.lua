@@ -1,4 +1,6 @@
 -- Frozen 2026-10-12 dock: tools | hotbar | persistent palette | toggles.
+local BuildHotbar=require("ui.BuildHotbar")
+
 local UI=require 'urhox-libs/UI'
 local Panel=require 'urhox-libs/UI/Widgets/Panel'
 local D=require 'ui.SourceDraw'
@@ -43,7 +45,7 @@ function M.Create(session,state,Action,root,layout)
         end,{width=layout.tool,height=52,key=t[4]})
         button.props.tooltip=t[2]
     end
-    Separator();state.hotbar=require('ui.BuildHotbar').Create(session);row:AddChild(state.hotbar.root);Separator()
+    Separator();state.hotbar=BuildHotbar.Create(session);row:AddChild(state.hotbar.root);Separator()
     local palette=UI.Panel{width=layout.paint,height=52,flexDirection='row',gap=8,alignItems='center'};row:AddChild(palette);state.paint=palette
     local now=Action(palette,'color','原色',nil,'dock-color',function() editor:SetTool('paint');session.selecting=false end,{width=width<=1440 and 84 or 99,height=52,hex=editor.color,auto=true})
     local channels=UI.Panel{width=50,height=49,gap=3,visible=false};palette:AddChild(channels);state.paintChannels=channels

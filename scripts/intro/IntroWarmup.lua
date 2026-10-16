@@ -1,5 +1,10 @@
 -- Render original opening poses behind its opaque boot page, without running
 -- narrative, physics or audio. SceneWarmup restores masks on cancel and finish.
+local IntroStrike=require("intro.IntroStrike")
+local CombatEffects=require("render.CombatEffects")
+local IntroEquipmentWarmup=require("intro.IntroEquipmentWarmup")
+local EffectBatch=require("render.EffectBatch")
+
 local Coord=require 'core.Coord'
 local Warm=require 'render.SceneWarmup'
 local M={};M.__index=M
@@ -47,8 +52,8 @@ function M:Next(continueIdyll)
  elseif id=='effects' then
   local p=s.session.combat.player:Position();local y=p[2]+3
   Pose(camera,{p[1]+18,p[2]+12,p[3]-18},{p[1],y,p[3]},50)
-  self.strike=require('intro.IntroStrike').New(s.scene,p);self.strike:Update(.01,1.98)
-  self.effects=require('render.CombatEffects').New(s.scene,function(x,z)return self.host.GroundAt(x,z)end)
+  self.strike=IntroStrike.New(s.scene,p);self.strike:Update(.01,1.98)
+  self.effects=CombatEffects.New(s.scene,function(x,z)return self.host.GroundAt(x,z)end)
   local a={p[1],y,p[3]};local b={p[1],y,p[3]+12}
   self.effects:Consume({{type='shot',kind='laser',tier=5,pos=a,dir={0,0,1}},
    {type='shot',kind='mg',tier=5,pos=a,dir={0,0,1},spin=1},
@@ -62,12 +67,12 @@ function M:Next(continueIdyll)
    {type='explode',pos=b,radius=4}})
   local missiles={};for i=1,4 do missiles[i]={fx='missile',pos={p[1]+i*.3,y,p[3]+6},vel={0,0,20},trail={a,{p[1],y,p[3]+3}},s={tier=3}} end
   self.effects:Update(.04,missiles,camera.node)
-  self.equipment=require('intro.IntroEquipmentWarmup').New(s.scene,p,camera)
+  self.equipment=IntroEquipmentWarmup.New(s.scene,p,camera)
   self.missileSample=missiles[1]
   -- Flash light permutations apply to original nearby model layouts, including
   -- instancing; a private boot-only range covers the full rendered scene.
   self.effects.light.light.range=2000;self.effects.light.light.brightness=1;self.effects.light.light.enabled=true
-  self.weaponBatches={};local Batch=require 'render.EffectBatch'
+  self.weaponBatches={};local Batch=EffectBatch
   for _,kind in ipairs({'Glow','Band','Swirl','Ribbon'}) do
    local batch=Batch.New(s.scene,kind,4,'Shaders/BLGL/WeaponFx/');batch:Begin(a,0)
    batch:Disc(b,1,{1,1,1},1,{1,0,0},{0,1,0});batch:Finish();self.weaponBatches[#self.weaponBatches+1]=batch

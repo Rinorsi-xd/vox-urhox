@@ -1,3 +1,5 @@
+local VehicleView=require("render.VehicleView")
+
 local Coord=require 'core.Coord'
 local BP=require 'construction.Blueprint'
 local M={};M.__index=M
@@ -15,7 +17,7 @@ function M.New(scene,data,checkpoint)
  end end
  geometry:Commit();self.material=Material:new();assert(self.material:SetSurfaceShader('Intro/Shaders/BLGL/Dove.shader'));self.material:SetSurfaceTexture('dove_map',assert(cache:GetResource('Texture2D',data.images.dove)));geometry:SetMaterial(self.material)
  for i,source in ipairs(data.actors.hovers or {}) do
-  local view=require('render.VehicleView').New(self.root,'Flyby'..i);local bp=BP.New():Load(source)
+  local view=VehicleView.New(self.root,'Flyby'..i);local bp=BP.New():Load(source)
   for n,p in ipairs(bp:List()) do view:AddPart(p);if checkpoint then checkpoint((i-1+n/bp:Size())/3,'intro-flyby') end end
   view.joined:Update();view.root:SetScale(1)
   self.hovers[#self.hovers+1]={view=view,index=i-1,seed=math.random()*6.28}

@@ -1,4 +1,7 @@
 -- Help text is imported verbatim from the H5 UI, not a second key map.
+local SourceModal=require("ui.SourceModal")
+local HelpWheelBridge=require("ui.HelpWheelBridge")
+
 local UI=require 'urhox-libs/UI'
 local Panel=require 'urhox-libs/UI/Widgets/Panel'
 local D=require 'ui.SourceDraw'
@@ -17,7 +20,7 @@ local Help=Panel:Extend('VoxSourceHelp')
 local Heading=Panel:Extend('VoxSourceHelpHeading')
 function Heading:Render(vg)
     D.Begin(vg);local r=self:GetAbsoluteLayout()
-    require('ui.SourceModal').DrawHeading(vg,r.x,r.y,r.w,'操作说明','机库、建造、视角和试车的全部按键')
+    SourceModal.DrawHeading(vg,r.x,r.y,r.w,'操作说明','机库、建造、视角和试车的全部按键')
 end
 function Help:Render(vg)
     D.Begin(vg);local r=self:GetAbsoluteLayout();local cw=(r.w-96)/5
@@ -72,7 +75,7 @@ function M.Open(owner)
     body:AddChild(content);scroll:AddChild(body);modal:AddContent(scroll);modal.helpContent=content;modal.scroll=scroll
     -- Overlay hit testing may return the modal shell instead of detached content.
     modal.OnWheel=function(_,dx,dy) scroll:OnWheel(dx,dy) end
-    releaseWheel=require('ui.HelpWheelBridge').Attach(owner,modal,scroll)
+    releaseWheel=HelpWheelBridge.Attach(owner,modal,scroll)
     owner.dialogTick=function()
         if input:GetKeyPress(KEY_H) or input:GetKeyPress(KEY_F1) then Host.Close(owner) end
     end

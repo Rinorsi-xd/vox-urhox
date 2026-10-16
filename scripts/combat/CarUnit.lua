@@ -1,5 +1,10 @@
 -- shared/combat/carUnit.js rules. Scene construction is injected by TrackWorld;
 -- simulation and source fixtures share damage, connectivity and rebuild decisions.
+local ArenaData=require("combat.ArenaData")
+local WeaponSystem=require("combat.WeaponSystem")
+local RotorMotion=require("drive.RotorMotion")
+local Rotors=require("construction.Rotors")
+
 local BP=require "construction.Blueprint"
 local Defs=require("parts.Defs").PARTS
 local Spec=require "drive.VehicleSpec"
@@ -58,7 +63,7 @@ function M:Spawn(checkpoint)
     end
     self.original={};self.repairOrder={};self.hp={};self.shields={};self.rawHpMax=0
     self.cells0=0;self.lostCells=0;self.lostMajor=0
-    local data=self.combat and require('combat.ArenaData') or nil
+    local data=self.combat and ArenaData or nil
     self.hull=data and data.hull or nil;self.structure=data and data.structure or nil
     self.partScale=(self.hull and self.hull.partScale or 1)*self.hpMultiplier
     for _,p in ipairs(self.bp:List()) do
@@ -80,7 +85,7 @@ function M:Spawn(checkpoint)
     self.bodyHpMax=self.bodyHpMax*self.hpMultiplier
     self.bodyHp=self.bodyHpMax;self.structMax=self.structure and self.bodyHpMax*self.structure.base or 0;self.struct=self.structMax
     self.structBrokenAt=-math.huge;self.hullBreachAt=-math.huge
-    self.weapons=self.combat and require('combat.WeaponSystem').New(spec) or nil
+    self.weapons=self.combat and WeaponSystem.New(spec) or nil
     self.budget0=self:Budget();self.alive=spec.ok;self.deadAt=-1;self.dirty=false;self.kill=nil
     self.lastDir={0,0,0};self.hitAt=-1
     if not spec.ok then return end
@@ -88,10 +93,12 @@ function M:Spawn(checkpoint)
     self:Build(spec);self.vehicle:Place(self.spawnAt.pos,self.spawnAt.yaw);self:SavePose();self.previous=self.current
     self:Event("unitSpawn")
 end
-function M:Budget() local b=0;for _,p in ipairs(self.bp:List()) do b=b+Defs[p.type].budget end;return b end
+function M:Budget() local b=0;for _,p in pairs(self.bp.parts) do b=b+Defs[p.type].budget end;return b end
 function M:Integrity() return self.budget0>0 and self:Budget()/self.budget0 or 1 end
 function M:Core()
-    local p=self.bp:CoreParts()[1];return {hp=p and self.hp[p.id] or 0,max=Defs.core.hp*self.partScale}
+    local first=nil ---@type table|nil
+    for _,p in pairs(self.bp.parts) do if p.type=='core' and (not first or p.id<first.id) then first=p end end
+    return {hp=first and self.hp[first.id] or 0,max=Defs.core.hp*self.partScale}
 end
 function M:Health()
     if not self.alive then return 0 end
@@ -143,6 +150,9 @@ function M:RestoreMissing(count)
         local p=self.original[id];local cat=Defs[p.type].cat
         missing[#missing+1]={id=id,order=order,priority=(cat=='weapon' or cat=='movement') and 0 or 1}
     end end
+    if #missing==0 then return {} end
+    -- Source _origHp is lazy and survives respawn; only presentation reads it.
+    self.feedbackOriginalHp=self.feedbackOriginalHp or self.rawHpMax*self.partScale
     table.sort(missing,function(a,b) return a.priority==b.priority and a.order<b.order or a.priority<b.priority end)
     local reached=self.bp:Connectivity(self.bp:Graph()).reached;local restored={};local hp=0;local progress=true
     local want=count*self.rawHpMax*self.partScale*.03
@@ -177,7 +187,7 @@ end
 function M:Step(dt)
     if self.alive then if not self.externalControl then
         self.vehicle:StepRotors(nil,false,dt)
-        require('drive.RotorMotion').Weapons(self.vehicle.rotors,self.weapons)
+        RotorMotion.Weapons(self.vehicle.rotors,self.weapons)
         self.vehicle:Step(PARK,dt)
     end
     elseif self.autoRespawn and self.deadAt>=0 and self.env.time-self.deadAt>=M.RESPAWN_TIME then self:Spawn() end
@@ -193,7 +203,7 @@ end
 function M:PartAt(p)
     local rotors=self.vehicle and self.vehicle.rotors or {}
     for _,r in ipairs(rotors) do if r.moved then
-        local id=self:RestPartAt(require('construction.Rotors').Inverse(r.pose,p))
+        local id=self:RestPartAt(Rotors.Inverse(r.pose,p))
         if id and r.ownSet[id] then return id end
     end end
     local id=self:RestPartAt(p)
@@ -201,7 +211,7 @@ function M:PartAt(p)
     return id
 end
 function M:PartPoint(id,p)
-    for _,r in ipairs(self.vehicle and self.vehicle.rotors or {}) do if r.ownSet[id] then return require('construction.Rotors').Apply(r.pose,p) end end
+    for _,r in ipairs(self.vehicle and self.vehicle.rotors or {}) do if r.ownSet[id] then return Rotors.Apply(r.pose,p) end end
     return p
 end
 function M:DebrisPose(ids,pose)

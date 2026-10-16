@@ -1,3 +1,18 @@
+local IntroImageWarmup=require("ui.IntroImageWarmup")
+local IntroComic=require("ui.IntroComic")
+local CommsPortrait=require("ui.CommsPortrait")
+local SourceRichText=require("ui.SourceRichText")
+local IntroTerminalFx=require("ui.IntroTerminalFx")
+local Theme=require("urhox-libs/UI/Core/Theme")
+local IntroTypography=require("ui.IntroTypography")
+local IntroWipe=require("ui.IntroWipe")
+-- Load optional/cyclic dependencies once, without changing first-use order.
+local DeferredModules=setmetatable({},{__index=function(modules,name)
+    local module=require(name)
+    rawset(modules,name,module)
+    return module
+end})
+
 local UI=require 'urhox-libs/UI'
 local D=require 'ui.SourceDraw'
 local Frame=require 'ui.IntroFrame'
@@ -23,7 +38,7 @@ function M.New(owner)
   onChange=function(_,text) owner.name=text end,onSubmit=function(_,text) owner:Submit(text) end}
  page.inputClip=UI.Panel{position='absolute',left=0,top=0,width=0,height=0,overflow='hidden',pointerEvents='box-none'}
  page.inputClip:AddChild(page.nameField);page:AddChild(page.inputClip);page.termScroll=0;page.pointers={};page.buttons={}
- page.imageWarmup=require('ui.IntroImageWarmup').New(owner.data.images,function()return page:PreparePortrait()end)
+ page.imageWarmup=IntroImageWarmup.New(owner.data.images,function()return page:PreparePortrait()end)
  return page
 end
 function Page:GetAbsoluteLayout() local w,h=UI.GetViewportSize();return {x=0,y=0,w=w,h=h} end
@@ -99,7 +114,7 @@ function Page:Close()
   if take and take(self.owner,self.portrait,Images.GetContext()) then self.portrait=nil
   else self.portrait:Dispose();self.portrait=nil end
  end
- require('ui.IntroComic').Dispose(self)
+ IntroComic.Dispose(self)
  UI.ClearFocus();UI.PopOverlay(self);if UI.GetRoot()==self then UI.SetRoot(nil) end;self:Destroy()
 end
 local function Image(vg,I,name,x,y,w,h,alpha,cover)
@@ -143,7 +158,7 @@ local function SignatureBorder(vg,x,y,w,h,pixel)
 end
 function Page:PreparePortrait()
  if self.portrait then return self.portrait end
- self.portrait=require('ui.CommsPortrait').New('nono')
+ self.portrait=CommsPortrait.New('nono')
  local images=self.owner.data.images
  self.portrait.Texture=function(portrait,pose)
   if portrait.faces[pose] then return portrait.faces[pose] end
@@ -212,7 +227,7 @@ local function DialogLayout(page,vg,I,width,u)
   if take>0 then chunks[#chunks+1]={text=byte and text:sub(1,byte-1) or text,font='vox-title',size=2.6*u,spacing=.078*u,color=emphasized and red or white} end
   offset=offset+n;if not start then break end;emphasized=tag=='em';cursor=stop+1
  end
- local layout=require('ui.SourceRichText').Layout(vg,{chunks},width,4.42*u,{font='vox-title',size=2.6*u})
+ local layout=SourceRichText.Layout(vg,{chunks},width,4.42*u,{font='vox-title',size=2.6*u})
  page.dialogText={context=vg,html=html,shown=shown,width=width,unit=u,layout=layout}
  return layout,count,shown
 end
@@ -227,7 +242,7 @@ function Page:Comms(vg,w,h,u)
  D.Rect(vg,x+2.2*u,y+1.3*u,.8*u,.8*u,cyan)
  D.Text(vg,'战术通讯 · 加密频道',x+3.8*u,y+1.3*u,1.15*u,ice,'vox-display',nil,.2875*u)
  D.Text(vg,'CH-07 · 坠舰陨坑',x+45.8*u,y+1.3*u,1.15*u,ice,'vox-display',NVG_ALIGN_RIGHT,.2875*u)
- require('ui.IntroTerminalFx').Projection(vg,x,y,48*u,84*u,u,I.time)
+ IntroTerminalFx.Projection(vg,x,y,48*u,84*u,u,I.time)
  local face=I.face or 'smile';local path='nono_'..face
  if face=='talk' and I.lineAge and I.lineAge>I.voiceDuration then path='nono_smile' end
  self:PreparePortrait()
@@ -254,7 +269,7 @@ function Page:Comms(vg,w,h,u)
  D.Text(vg,header,hx+1.2*u,hy+.55*u,labelSize,ice,'vox-display',nil,labelSize*.3)
  D.Text(vg,'战术领航员',hx+1.2*u+titleWidth+1.2*u,hy+.45*u,roleSize,cyan,'vox-display',nil,roleSize*.2)
  for i=1,9 do local ph=(.15+.85*math.abs(math.sin(I.time*(11+i*2.3)+i*1.7)))*1.4*u;D.Rect(vg,hx+headerWidth-5.9*u+(i-1)*.55*u,hy+1.95*u-ph,.3*u,ph,cyan) end
- require('ui.SourceRichText').Draw(vg,textLayout,dx+3.8*u,dy+3.6*u)
+ SourceRichText.Draw(vg,textLayout,dx+3.8*u,dy+3.6*u)
   if I.waitingAdvance then D.Text(vg,'▼',dx+dw-2.6*u,dy+dh-3.6*u+math.sin(I.time*7.85)*.25*u,2.2*u,cyan,'vox-title',NVG_ALIGN_RIGHT) end
  ContractMotion.Scan(vg,dialogMotion,u,self.cssPixel);Opacity.Pop(vg)
   if I.choosing and not I.choice then self.choiceExit=nil end
@@ -371,7 +386,7 @@ function Page:Contract(vg,w,h,u)
  D.Rect(vg,sx+3*u,sy0+3.85*u,.6*u,.6*u,cyan)
  D.Text(vg,'机修师代号 / 姓名',sx+4.5*u,sy0+3.4*u,1.5*u,white,'vox-title')
  -- TextField sizes are points; convert the source CSS pixel size locally.
- local pointScale=require('urhox-libs/UI/Core/Theme').FontSize(1)
+ local pointScale=Theme.FontSize(1)
  local field={left=(sx+3*u)*self.k,top=(sy0+6.1*u)*self.k,width=(pw-6*u)*self.k,height=5*u*self.k,fontSize=2.6*u*self.k/pointScale,
   padding=1.2*u*self.k,paddingLeft=1.6*u*self.k,paddingRight=1.6*u*self.k}
  local box={x=field.left,y=field.top,w=field.width,h=field.height}
@@ -479,7 +494,7 @@ function Page:Render(vg)
   end
   local warm=I.host.state and I.host.state.warmup
   if warm and not warm.disposed then
-   require('ui.IntroTypography').Warm(vg)
+   IntroTypography.Warm(vg)
    local visual=I.host.state.sortieUi;if visual then visual:Warm(vg,w,h) end
   end
   D.Rect(vg,0,0,w,h,{3,10,18,255});Image(vg,I,'company-emblem',w/2-45,h*.29,90,90)
@@ -499,7 +514,7 @@ function Page:Render(vg)
   local comms=id~='gate' or I.contractExitAt and exit<.4
   if comms then
    Opacity.Push(vg,id=='gate' and GateMotion.Out(exit,.4) or 1)
-   D.Rect(vg,0,0,w,h,{1,7,14,42});require('ui.IntroTerminalFx').Backdrop(vg,w,h,u,I.time,id=='contract' or id=='stamp' or id=='gate' and I.contractExitAt~=nil)
+   D.Rect(vg,0,0,w,h,{1,7,14,42});IntroTerminalFx.Backdrop(vg,w,h,u,I.time,id=='contract' or id=='stamp' or id=='gate' and I.contractExitAt~=nil)
    Opacity.Pop(vg)
    Opacity.Push(vg,id=='gate' and GateMotion.Out(exit,.3) or 1);self:Comms(vg,w,h,u);Opacity.Pop(vg)
   end
@@ -512,7 +527,7 @@ function Page:Render(vg)
    Image(vg,I,'company-stamp',-18*u,-18*u,36*u,36*u);Opacity.Pop(vg)
   end
   if id=='gate' then self:Gate(vg,w,h,h/100) end
- else require('ui.IntroPromo').Draw(self,vg,w,h,u) end
+ else DeferredModules['ui.IntroPromo'].Draw(self,vg,w,h,u) end
  if I.stage=='ad' then
   local size=1.45*u;local spacing=.06*size;local title='跳过广告';local detail='（扣除 0.5 天绩效）';local small=size*5/6
   local tw=D.Width(vg,title,size,'vox-title',spacing);local dw=D.Width(vg,detail,small,'vox-title',spacing)
@@ -525,7 +540,7 @@ function Page:Render(vg)
   self.skipRect={x=(x+impactX)*k,y=(y+impactY)*k,w=sw*k,h=sh*k};local r=self.skipRect;self.buttons[#self.buttons+1]={id='skip',x=r.x,y=r.y,w=r.w,h=r.h}
  end
  Impact.Flash(vg,I,w,h)
- require('ui.IntroWipe').Draw(vg,I,w,h,u)
+ IntroWipe.Draw(vg,I,w,h,u)
  Opacity.Pop(vg)
 end
 M.Image=Image

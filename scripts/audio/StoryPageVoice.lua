@@ -1,4 +1,6 @@
 -- Selection-page audio owns its sources; it cannot steal the tutorial card.
+local ResourceGate=require("app.ResourceGate")
+
 local Levels=require 'audio.AudioLevels'
 local M={};M.__index=M
 function M.New()
@@ -15,7 +17,7 @@ function M:Load(id)
     self.loaded[id]=false
     local function Ready(sound) if not self.disposed and sound and sound.length>0 then self.loaded[id]=sound end end
     if cache.GetResourceAsync then cache:GetResourceAsync('Sound',path,Ready)
-    else local gate=require('app.ResourceGate').New();self.gates[#self.gates+1]=gate
+    else local gate=ResourceGate.New();self.gates[#self.gates+1]=gate
         gate:Start({path},function(ok)
             if ok and not self.disposed then self.downloaded[#self.downloaded+1]={id=id,path=path} end
         end)

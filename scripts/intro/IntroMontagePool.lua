@@ -1,5 +1,8 @@
 -- Prepare the original montage hero before narration. An inactive native body
 -- stays outside the active roster, analytical ray tests and all driver updates.
+local CarUnit=require("combat.CarUnit")
+local DriveView=require("render.DriveView")
+
 local M={};M.__index=M
 function M.New(session,battle,source,checkpoint)
  local self=setmetatable({},M);self:init(session,battle,source,checkpoint);return self
@@ -7,14 +10,14 @@ end
 function M:init(session,battle,source,checkpoint)
  self.session=session;self.battle=battle;self.activated=false;self.disposed=false;battle.montage=self
  local world=session.world
- self.unit=require('combat.CarUnit').New(world,source,{name='坠舰陨坑 · 实机演示',
+ self.unit=CarUnit.New(world,source,{name='坠舰陨坑 · 实机演示',
   spawn={pos={66,world:GroundAt(66,-174)+1.5,-174},yaw=0},team='blue',
   externalControl=true,externalView=true,autoRespawn=false,combat=true},
   checkpoint and function(p)checkpoint(p*.3)end,function(unit)self.unit=unit end)
  assert(self.unit.alive,'Invalid original montage hero')
  self.unit.vehicle.native.enabled=false
  for i=#world.viewEvents,1,-1 do if world.viewEvents[i].unit==self.unit then table.remove(world.viewEvents,i) end end
- self.view=require('render.DriveView').New(session.scene,self.unit.bp,self.unit.vehicle,
+ self.view=DriveView.New(session.scene,self.unit.bp,self.unit.vehicle,
   checkpoint and function(p)checkpoint(.3+p*.7)end,function(view)self.view=view end)
  self:SetWarmVisible(false)
 end

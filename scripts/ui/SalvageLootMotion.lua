@@ -1,4 +1,6 @@
 -- Frozen srh-fly, srh-jack and srh-jban timelines, inside the existing UI frame.
+local SourceButtonMotion=require("ui.SourceButtonMotion")
+
 local D=require 'ui.SourceDraw'
 local Items=require('core.ResourceData').Read('UI/Outgame.json').items
 local M={}
@@ -24,7 +26,7 @@ function M.Draw(run,vg,w,h,icon,slots)
     for i=#(run.lootFlights or {}),1,-1 do local flight=run.lootFlights[i];local age=now-flight.at
         if age>.42 then table.remove(run.lootFlights,i)
         elseif age>=0 then
-            local t=require('ui.SourceButtonMotion').Ease(age/.42,'fly')
+            local t=SourceButtonMotion.Ease(age/.42,'fly')
             local fromX,fromY=w/2,h*.62
             if flight.row then fromX=w-303;fromY=h*.22+65+(flight.row-1)*49 end
             local target=slots[flight.id] or {x=w-422,y=h-126}
@@ -45,7 +47,7 @@ function M.Draw(run,vg,w,h,icon,slots)
     end
     if not pulse.id or age>=3.2 then return end
     local opacity=math.min(1,age/.32,(3.2-age)/.64)
-    local scale=1+.4*(1-require('ui.SourceButtonMotion').Ease(math.min(1,age/.32),false))
+    local scale=1+.4*(1-SourceButtonMotion.Ease(math.min(1,age/.32),false))
     nvgSave(vg);nvgGlobalAlpha(vg,opacity);nvgTranslate(vg,w/2,h*.17+35);nvgScale(vg,scale,scale)
     D.Rect(vg,-250,-12,500,112,{0,0,0,160})
     D.Text(vg,red and '绝 品 · LEGENDARY' or '传 说',0,-8,14,c,'vox-story',NVG_ALIGN_CENTER)

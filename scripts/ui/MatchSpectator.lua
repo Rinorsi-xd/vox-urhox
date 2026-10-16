@@ -1,7 +1,9 @@
+local MatchActions=require("combat.MatchActions")
+
 local D=require 'ui.SourceDraw'
 local M={}
 function M.Draw(vg,b,w,h)
-    local watched=require('combat.MatchActions').Watched(b)
+    local watched=MatchActions.Watched(b)
     local hint='A / D 切换队友'
     if b.rules.cfg.respawn then
         hint=math.ceil(math.max(0,b.rules.cfg.respawn-(b.world.time-b.player.deadAt)))..' 秒后复活 · '..hint

@@ -1,3 +1,9 @@
+local MechControl=require("drive.MechControl")
+local MechHitboxes=require("drive.MechHitboxes")
+local WingControl=require("drive.WingControl")
+local Rotations=require("core.Rotations")
+local Config=require("Config")
+
 local Math=require "core.Math3"
 local Coord=require "core.Coord"
 local Setup=require "drive.VehicleSetup"
@@ -61,9 +67,9 @@ function Vehicle:init(space,spec)
     self.legControl=#spec.legs>0 and Legs.New(self) or nil
     self.legStates=self.legControl and self.legControl.states or {}
     self.legHitboxes=LegHitboxes.New(self)
-    self.mechControl=#(spec.mechLegs or {})>0 and require('drive.MechControl').New(self) or nil
+    self.mechControl=#(spec.mechLegs or {})>0 and MechControl.New(self) or nil
     self.mechStates=self.mechControl and self.mechControl.states or {}
-    self.mechHitboxes=#(spec.mechLegs or {})>0 and require('drive.MechHitboxes').New(self) or nil
+    self.mechHitboxes=#(spec.mechLegs or {})>0 and MechHitboxes.New(self) or nil
 end
 function Vehicle:Place(pos,yaw)
     if self.drill then self.drill:Cancel() end
@@ -169,7 +175,7 @@ function Vehicle:Step(cmd,dt)
     local previousWingLift=math.max(0,self.wingState and self.wingState.lift or 0)
     local support=math.max(0,ground.wheelSupport+hover.hoverForce+(legs.legVerticalSupport or 0)+(mech.legVerticalSupport or 0)+(mech.mechJetLift or 0)+previousWingLift)
     local flight=Thrusters.Step(self,cmd,dt,ground.contact,support)
-    local wing=require('drive.WingControl').Step(self,cmd,dt,ground.contact,math.max(0,support-previousWingLift))
+    local wing=WingControl.Step(self,cmd,dt,ground.contact,math.max(0,support-previousWingLift))
     local over=self.body.translation().y-200
     if over>0 then
         local x=over/20
@@ -193,7 +199,7 @@ function Vehicle:SyncDrillPose()
     local q=self.body.rotation();local p=Math.Array(self.body.translation());local velocity=Math.Array(self.body.linvel())
     for _,states in ipairs({self.legStates,self.mechStates}) do for _,s in pairs(states) do
         local l=s.leg
-        local point=s.target and Math.Add(l.origin,Math.Scale(require('core.Rotations').ApplyRot(l.rot,s.target),require('Config').CELL)) or l.toeRest or l.toe
+        local point=s.target and Math.Add(l.origin,Math.Scale(Rotations.ApplyRot(l.rot,s.target),Config.CELL)) or l.toeRest or l.toe
         s.previous=s.foot;s.foot=Math.Add(Math.RotateUnit(q,point),p);s.drillDriven=true
         s.grounded=false;s.support=nil;s.contact=nil;s.ground=nil;s.swing=nil;s.sw=nil
         s.mode='free';s.available=false;s.force=0;s.jet=0;s.pulse=0

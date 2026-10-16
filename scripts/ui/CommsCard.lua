@@ -1,4 +1,6 @@
 -- Shared storyHud.css visuals. Parent pages only choose position and controls.
+local CommsPortrait=require("ui.CommsPortrait")
+
 local D=require 'ui.SourceDraw'
 local F=require 'ui.CommsFrame'
 local Paragraph=require 'ui.SourceParagraph'
@@ -88,10 +90,10 @@ function M.Draw(vg,card,x,y,width,height,scale,time,portraitHeight)
                 local face=card.face or (who=='huhu' and 'huhu_talk' or who=='boss' and 'chairman' or 'nono_talk')
                 local r=PortraitLayout.Rect(who)
                 if who=='nono' or who=='huhu' then
-                    if not portraits[who] then portraits[who]=require('ui.CommsPortrait').New(who) end
+                    if not portraits[who] then portraits[who]=CommsPortrait.New(who) end
                     local talking=not card.finishedTyping and card.age<card.typing+(card.lead or 0) or card.speakEnd and card.age<card.speakEnd
                     if portraits[who]:Prepare(time,face,talking) then portraits[who]:Draw(vg,r)
-                    else PortraitImage(vg,require('ui.CommsPortrait').Path(who,face),r,false) end
+                    else PortraitImage(vg,CommsPortrait.Path(who,face),r,false) end
                 else PortraitImage(vg,card.portraitPath or 'Story/Boss/chairman_cut.png',r,true) end
             end
             local offset=who=='huhu' and math.floor(time/.25)*2%6 or who=='boss' and math.floor(time/.5)*2%6 or 0

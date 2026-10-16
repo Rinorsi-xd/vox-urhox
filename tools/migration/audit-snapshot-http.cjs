@@ -17,11 +17,12 @@ async function bytes(port,route){const response=await fetch(`http://127.0.0.1:${
   assert.equal(identity.qa,qa);assert.equal(identity.port,port);assert.equal(identity.servedManifest,path.basename(prepared.manifest_path));
   assert.equal(path.resolve(identity.source_directory),snapshot);assert.deepEqual(identity.identity,prepared.identity);assert.deepEqual(identity.engineSources,prepared.engineSources);
   for(const flag of ['loadProfile','combatProfile','renderExperiment','warmExperiment','warmIntroExperiment'])assert.equal(identity[flag],false,flag);
-  const expected=qa?Buffer.concat([packedMain,Buffer.from('\n'),probe]):packedMain;
+  const servedProbe=identity.storyRoute?Buffer.concat([fs.readFileSync(path.join(__dirname,'story-route-observer.lua')),Buffer.from('\n'),probe]):probe;
+  const expected=qa?Buffer.concat([packedMain,Buffer.from('\n'),servedProbe]):packedMain;
   assert.ok(servedMain.equals(expected),'HTTP main payload bytes');
   const expectedManifest=JSON.parse(manifestBytes);if(qa)expectedManifest.files.find(f=>f.fs_path==='main.lua').size=expected.length;
   assert.deepEqual(JSON.parse(servedManifest),expectedManifest,'only QA main.size may differ');
-  if(qa)assert.equal(identity.probeSha256,sha(probe));else{assert.equal(identity.probeSha256,null);assert.ok(servedManifest.equals(manifestBytes));}
+  if(qa)assert.equal(identity.probeSha256,sha(servedProbe));else{assert.equal(identity.probeSha256,null);assert.ok(servedManifest.equals(manifestBytes));}
   const after=JSON.parse(await bytes(port,'/identity.json'));assert.deepEqual(after,identity,'HTTP identity remains stable');
   observations.push({port,processId:identity.processId,qa,sourceDirectory:identity.source_directory,servedManifest:identity.servedManifest,scriptFingerprint:identity.identity.scriptFingerprint,luaCount:Object.keys(identity.identity.scripts).length,probeSha256:identity.probeSha256,main:{file:payload,bytes:servedMain.length,sha256:sha(servedMain),packedSha256:sha(packedMain),exactExpectedBytes:true},manifest:{sha256:sha(servedManifest),diskSha256:sha(manifestBytes),exactExpectedStructure:true,rawEqualsDisk:servedManifest.equals(manifestBytes)},identitySha256:sha(identityBytes),profilesDisabled:true});
  }

@@ -1,3 +1,6 @@
+local SourceParagraph=require("ui.SourceParagraph")
+local SourceButton=require("ui.SourceButton")
+
 local UI=require 'urhox-libs/UI'
 local D=require 'ui.SourceDraw'
 local Theme=require 'ui.VoxTheme'
@@ -82,9 +85,9 @@ function M.Fill(root,app,s)
     end
     local expanded=s and s.detailsOpen
     local widget=Stats{width='100%',height=expanded and 585 or 333,pointerEvents='none',flexShrink=0}
-    widget.data=data;widget.expanded=expanded;widget.paragraph=require('ui.SourceParagraph').New(13,19);root:AddChild(widget)
+    widget.data=data;widget.expanded=expanded;widget.paragraph=SourceParagraph.New(13,19);root:AddChild(widget)
     if s then
-        root:AddChild(s.Track(require('ui.SourceButton'){text='车辆详情',subtitle=st.parts..' 个零件 · '..st.weapons..' / '..tier.weapons..' 武器',icon=expanded and 'minus' or 'plus',sourceKind='details',
+        root:AddChild(s.Track(SourceButton{text='车辆详情',subtitle=st.parts..' 个零件 · '..st.weapons..' / '..tier.weapons..' 武器',icon=expanded and 'minus' or 'plus',sourceKind='details',
             position='absolute',left=0,top=271.97,width=s.infoWidth-8,height=51,onClick=function() s.detailsOpen=not s.detailsOpen;s.revision=-1 end}))
         local loadoutHeight=0
         for _,group in ipairs(data.groups) do loadoutHeight=loadoutHeight+27+math.max(1,math.ceil(#group.items/5))*50+10 end

@@ -1,4 +1,11 @@
 -- Frozen actPayslip / .slip2, separate from the approved caption renderer.
+-- Load optional/cyclic dependencies once, without changing first-use order.
+local DeferredModules=setmetatable({},{__index=function(modules,name)
+    local module=require(name)
+    rawset(modules,name,module)
+    return module
+end})
+
 local D=require 'ui.SourceDraw'
 local nvgGlobalAlpha=require('ui.IntroOpacity').Set
 local G=require 'ui.IntroGlyphs'
@@ -45,7 +52,7 @@ local function Paper(vg,I,u,plan,age,clip,alpha,owner)
  if not handle then handle=nvgCreateImage(vg,path,NVG_IMAGE_REPEATX|NVG_IMAGE_REPEATY);assert(handle>0,'Original paper texture unavailable');context.comicPatterns[path]=handle;context.comicContext=vg end
  nvgSave(vg);nvgIntersectScissor(vg,0,0,w,h);Sheet(0,0)
  nvgFillPaint(vg,nvgImagePatternTinted(vg,0,0,4,4,0,handle,nvgRGBA(0,0,0,72)));nvgFill(vg);nvgRestore(vg)
- if Visible(3.4*u,5.4*u) then require('ui.IntroPage').Image(vg,I,'company-emblem',3.4*u,3.4*u,5.4*u,5.4*u,1) end
+ if Visible(3.4*u,5.4*u) then DeferredModules['ui.IntroPage'].Image(vg,I,'company-emblem',3.4*u,3.4*u,5.4*u,5.4*u,1) end
  Text('星际前途有限公司',10.2*u,3.76*u,2.6*u,ink,'vox-title',.208*u,false,3.12*u)
  Text('PAYROLL · 薪资结算单',10.2*u,6.88*u,1.3*u,{102,102,102,255},'vox-code',.325*u,false,1.56*u)
  Text('No.2077-1021',46.6*u,3.4*u,1.4*u,{136,136,136,255},'vox-code',0,true,1.4*u)

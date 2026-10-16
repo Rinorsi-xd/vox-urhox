@@ -1,3 +1,23 @@
+local ImportedDependencies=require("parts.Dependencies")
+local Audio=require("endless.Audio")
+local SpawnSpecCache=require("drive.SpawnSpecCache")
+local View=require("endless.View")
+local SpawnPresentation=require("endless.SpawnPresentation")
+local VehicleSpec=require("drive.VehicleSpec")
+local DriverActions=require("combat.DriverActions")
+local RotorMotion=require("drive.RotorMotion")
+local EndlessBanner=require("ui.EndlessBanner")
+local Defs=require("parts.Defs")
+local Records=require("endless.Records")
+local NodeVisibility=require("render.NodeVisibility")
+local PlayerViewSync=require("combat.PlayerViewSync")
+-- Load optional/cyclic dependencies once, without changing first-use order.
+local DeferredModules=setmetatable({},{__index=function(modules,name)
+    local module=require(name)
+    rawset(modules,name,module)
+    return module
+end})
+
 local Data=require('endless.Data')
 local C=Data.config
 local Run=require('endless.Run')
@@ -19,14 +39,14 @@ local function Count(t) local n=0;for _ in pairs(t) do n=n+1 end;return n end
 function M.Dependencies(bp)
     local parts=bp and bp:List() or {};local seen={}
     for _,source in pairs(Data.prefabs) do for _,p in ipairs(BP.New():Load(source):List()) do if not seen[p.type] then parts[#parts+1]=p;seen[p.type]=true end end end
-    local out=require('parts.Dependencies').For(parts);out[#out+1]='Shaders/BLGL/Combat/Objective.shader';for _,path in ipairs(require('endless.Audio').Dependencies()) do out[#out+1]=path end;return out
+    local out=ImportedDependencies.For(parts);out[#out+1]='Shaders/BLGL/Combat/Objective.shader';for _,path in ipairs(Audio.Dependencies()) do out[#out+1]=path end;return out
 end
 function M.New(session,bp,saved)
     local self=setmetatable({},M);self:init(session,bp,saved);return self
 end
 function M:init(session,bp,saved)
     self.session=session;self.world=session.world;self.entries={};self.pending={};self.spawnSerial=0;self.repairClock=0;self.invulnerableUntil=self.world.time+C.spawnInvulnerability
-    self.rules=Run.New(bp,session.map.endlessSeed or os.time(),saved or session.map.endlessSaved);self.run=self.rules;self.spawnRadii={};self.spawnSpecCache=require('drive.SpawnSpecCache').New();self.banner=nil;self.voice={card=nil};self.audio=require('endless.Audio').New(session.scene)
+    self.rules=Run.New(bp,session.map.endlessSeed or os.time(),saved or session.map.endlessSaved);self.run=self.rules;self.spawnRadii={};self.spawnSpecCache=SpawnSpecCache.New();self.banner=nil;self.voice={card=nil};self.audio=Audio.New(session.scene)
     self.shield=assert(self.world.layout.base and self.world.layout.base.shield,'Endless requires crater base shield')
     self.spawn=self.world.layout.spawn or self.world.layout.pads.player
     for _,u in ipairs(self.world.units) do u:Dispose() end;self.world.units={}
@@ -44,8 +64,8 @@ function M:init(session,bp,saved)
             if length<.000001 then return to end
             local hit=Query.Ray(self.shield,from,V.Scale(delta,1/length),length);return hit and hit.point or to
         end}
-    self.view=require('endless.View').New(session.scene,self.shield)
-    self.spawnPresentation=require('endless.SpawnPresentation').New();self.spawnPresentation:Rise(self.world.time);self:Events()
+    self.view=View.New(session.scene,self.shield)
+    self.spawnPresentation=SpawnPresentation.New();self.spawnPresentation:Rise(self.world.time);self:Events()
 end
 function M:Environment(unit)
     local world=self.world;local function EnemyScale() return unit.endless and unit.endless.damageScale or 1 end
@@ -84,7 +104,7 @@ function M:SpawnRadius(key,source)
     local radius=self.spawnRadii[key]
     if not radius then
         self.spawnSpecCache:Prepare(source)
-        local spec=self.spawnSpecCache:Get(source) or require('drive.VehicleSpec').Build(BP.New():Load(source))
+        local spec=self.spawnSpecCache:Get(source) or VehicleSpec.Build(BP.New():Load(source))
         radius=Radius(spec);self.spawnRadii[key]=radius
     end
     return radius
@@ -145,8 +165,8 @@ function M:BeforeStep(dt,command,aim)
     for _,entry in ipairs(self.entries) do local u=entry.unit;u:Flush();if u.alive and not Raider.StepExplosion(u,dt) then
         local cmd,target,fire=command,aim,command.firing==true;local driverInfo
         if u~=p then if p.alive and not u.airdropActive then cmd,target,fire,driverInfo=entry.driver:Step(dt,p,r.charge,self.shieldTarget) else cmd,target,fire=PARK,u:Position(),false end end
-        require('combat.DriverActions').Apply(u,driverInfo)
-        local v=u.vehicle;v:StepRotors(target,cmd.rotorStep,dt);require('drive.RotorMotion').Weapons(v.rotors,u.weapons);v:Step(cmd,dt);self:Airdrop(u,dt)
+        DriverActions.Apply(u,driverInfo)
+        local v=u.vehicle;v:StepRotors(target,cmd.rotorStep,dt);RotorMotion.Weapons(v.rotors,u.weapons);v:Step(cmd,dt);self:Airdrop(u,dt)
         local pos,vel=v.body.translation(),v.body.linvel()
         u.weapons:Step(dt,{firing=fire,aim=target or u:Position(),pos={pos.x,pos.y,pos.z},quat=v.body.rotation(),vel={vel.x,vel.y,vel.z},body=v.body,team=u.team,live=true,salvo=driverInfo and driverInfo.salvo},entry.env)
         for _,fx in ipairs(u.weapons.fx) do Raider.ArmExplosion(u,fx) end
@@ -164,7 +184,7 @@ function M:AfterStep(dt)
     self:Events();self.view:Update(self,dt)
 end
 function M:Events()
-    local banners=require('ui.EndlessBanner');local tierAnnouncement=''
+    local banners=EndlessBanner;local tierAnnouncement=''
     for _,e in ipairs(self.run:Drain()) do
         self.view:Event(e)
         if self.run.state~='editing' then
@@ -174,7 +194,7 @@ function M:Events()
         if shield then if e.type=='shieldHit' and e.point then shield:Hit(e.point) elseif e.type=='shieldRaise' then shield:Raise() elseif e.type=='shieldDown' then shield:Down() end end
         local text;text,tierAnnouncement=banners.Event(e,tierAnnouncement);if text then self:Banner(text) end
         if e.type=='waveClear' then self.session:Pause();self.audio:Play('supply_open')
-        elseif e.type=='pickup' then self.session.app.toasts:Push('获得 '..require('parts.Defs').PARTS[e.partType].name..' ×'..e.count,'ok')
+        elseif e.type=='pickup' then self.session.app.toasts:Push('获得 '..Defs.PARTS[e.partType].name..' ×'..e.count,'ok')
         elseif e.type=='credits' and e.amount>0 then self.session.app.toasts:Push('+'..e.amount..' 金钱 · 共 '..e.total,'ok',1400)
         elseif e.type=='respawn' then self.player:Spawn();self.invulnerableUntil=self.world.time+e.invulnerability;self.spawnPresentation:Rise(self.world.time);self.handledDeath=false;self:SyncPlayer();self.session:ResetCamera()
         elseif e.type=='repair' then self.player:Heal(1);self.player:RestoreMissing(math.huge);self.player:Flush();self:SyncPlayer()
@@ -182,17 +202,17 @@ function M:Events()
         elseif e.type=='gameOver' then self:Finish(e.result) end
     end
 end
-function M:Banner(text) require('ui.EndlessBanner').Push(self,text) end
+function M:Banner(text) EndlessBanner.Push(self,text) end
 function M:Persist()
     if self.run.state~='rest' then return end
-    local ok,err=self.session.app.store:Write(C.runKey,self.run:Save(),require('endless.Records').Run)
+    local ok,err=self.session.app.store:Write(C.runKey,self.run:Save(),Records.Run)
     if not ok then self.session.app.toasts:Push('本局进度未能写入浏览器存储','warn') end
     return ok,err
 end
 function M:Finish(result)
     self.rules.finished=true;self.result=result;self.session:Pause()
     local store=self.session.app.store;local old=store:Read(C.bestKey,function(d) return type(d)=='table' end) or {score=0};self.isBest=result.score>old.score;self.best=self.isBest and result or old
-    if self.isBest then store:Write(C.bestKey,result,require('endless.Records').Best) end;store:Write(C.runKey,nil,require('endless.Records').Run,true)
+    if self.isBest then store:Write(C.bestKey,result,Records.Best) end;store:Write(C.runKey,nil,Records.Run,true)
 end
 function M:WaitForRespawn()
     if self.run.respawnAt==nil then return false end
@@ -209,7 +229,7 @@ function M:EnterEdit()
     if self:WaitForRespawn() then return false end
     if self.run.state=='rest' and not Query.Contains(self.shield,self.player:Position()) then self.session.app.toasts:Push('回到基地护盾里才能改装','warn');return false end
     if not self.run:BeginEdit() then self.session.app.toasts:Push('战斗中不能改装','warn');return false end
-    self.session:Pause();self.session.accumulator=0;self.edit=require('endless.Edit').New(self);self.edit:Enter();self:Events();return true
+    self.session:Pause();self.session.accumulator=0;self.edit=DeferredModules['endless.Edit'].New(self);self.edit:Enter();self:Events();return true
 end
 function M:ResumeEdit(source)
     local result=self.run:ResumeEdit(source);if not result.ok then return result end
@@ -228,12 +248,12 @@ function M:Present()
     if self.disposed or self.edit or not self.player.alive then return end
     local s=self.session;local root=s.view.view.root;local b=self.player.spec.bounds
     local blink=self.spawnPresentation:Apply(root,self.world.time,b.max[2]-b.min[2],self.invulnerableUntil)
-    local visibility=require('render.NodeVisibility')
+    local visibility=NodeVisibility
     visibility.Set(root,not s.firstPerson and blink,true)
     if #s.restoreFlash.items>0 then s.restoreFlash.root:SetTransform(root.worldPosition,root.worldRotation,root.worldScale) end
     visibility.Set(s.restoreFlash.root,root.enabled,true)
 end
-function M:SyncPlayer() require('combat.PlayerViewSync').Update(self) end
+function M:SyncPlayer() PlayerViewSync.Update(self) end
 function M:Snapshot() return {state=self.run.state,wave=self.run.wave,tier=self.run.tier,lives=self.run.lives,score=self.run.score,credits=self.run.credits,enemies=Count(self.run.alive),pending=#self.run.queue,shield=self.run.shield,editing=self.edit~=nil} end
 function M:Dispose()
     if self.disposed then return end;self.disposed=true

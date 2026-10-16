@@ -1,4 +1,6 @@
 -- Shared communications feedback never downloads or decodes on a dialogue frame.
+local ResourceGate=require("app.ResourceGate")
+
 local Radio=require 'audio.StoryRadio'
 local M={};M.__index=M
 function M.Dependencies() return Radio.Dependencies() end
@@ -7,7 +9,7 @@ function M.New()
 end
 function M:init()
     self.disposed=false;self.preparing=false;self.radio=nil ---@type table|nil
-    self.gate=require('app.ResourceGate').New()
+    self.gate=ResourceGate.New()
     self.gate:Start(M.Dependencies(),function(ok,message)
         if self.disposed then return end
         -- Completion can hold the native download-manager lock.

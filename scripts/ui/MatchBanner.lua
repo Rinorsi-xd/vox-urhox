@@ -1,4 +1,8 @@
 -- Frozen matchHud.js banners: source queue, timings, CSS curves and dimensions.
+local SourceButtonMotion=require("ui.SourceButtonMotion")
+local SourceDraw=require("ui.SourceDraw")
+local WorkshopPaint=require("ui.WorkshopPaint")
+
 local M={}
 local colors={win={46,168,255,255},lose={255,74,61,255},warn={255,106,19,255},go={255,211,106,255}}
 local white={255,255,255,255}
@@ -63,7 +67,7 @@ function M.Scale(width,height,touch)
     return math.min(width/(ref*16/9),height/ref)*(touch and .8 or 1)
 end
 function M.State(item,h)
-    local Ease=require('ui.SourceButtonMotion').Ease;local age=math.max(0,item.age or 0)
+    local Ease=SourceButtonMotion.Ease;local age=math.max(0,item.age or 0)
     local out=math.max(0,(age-item.duration)/.3);local fade=Ease(1-math.min(1,out),'css-ease-out')
     local band=Ease(age/.35,false)
     local tx=Ease((age-.08)/.5,false)
@@ -80,14 +84,14 @@ local function FadeSpan(vg,D,x,y,w,h,color)
 end
 function M.Draw(vg,item,w,h)
     if not item then return end
-    local D=require 'ui.SourceDraw';local state=M.State(item,h);local y,bh=state.y,state.height;local cx=w/2;local color=state.color
+    local D=SourceDraw;local state=M.State(item,h);local y,bh=state.y,state.height;local cx=w/2;local color=state.color
     nvgSave(vg);nvgTranslate(vg,0,y+bh/2);nvgScale(vg,1,state.bandScale);nvgGlobalAlpha(vg,state.bandAlpha)
     for _,s in ipairs({{0,.22,0,216},{.22,.5,216,230},{.5,.78,230,216},{.78,1,216,0}}) do
         local x,width=w*s[1],w*(s[2]-s[1]);D.Path(vg,{x,-bh/2,x+width,-bh/2,x+width,bh/2,x,bh/2})
         D.Gradient(vg,x,-bh/2,width,bh,{7,8,10,s[3]},{7,8,10,s[4]},true)
     end
     for _,ly in ipairs({-bh/2,bh/2-2}) do
-        require('ui.WorkshopPaint').Glow(vg,w*.1,ly,w*.8,2,14,color,.55)
+        WorkshopPaint.Glow(vg,w*.1,ly,w*.8,2,14,color,.55)
         FadeSpan(vg,D,w*.1,ly,w*.8,2,color)
     end
     nvgRestore(vg)

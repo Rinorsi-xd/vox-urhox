@@ -1,6 +1,8 @@
 -- Bounded premultiplied NanoVG group. The runtime image bridge treats textures
 -- as straight alpha, so store coverage and opaque premultiplied RGB separately.
 -- Composite coverage first, then RGB additively without changing alpha.
+local RenderTargetLifetime=require("render.RenderTargetLifetime")
+
 local M={};M.__index=M
 function M.New(order,prepare,draw)
     local self=setmetatable({prepare=prepare,draw=draw,images={},renders=0,allocations=0},M)
@@ -16,7 +18,7 @@ function M:ReleaseTexture()
     for context,handles in pairs(self.images) do for _,handle in ipairs(handles) do nvgDeleteVideo(context,handle) end end
     self.images={}
     for _,key in ipairs({'texture','rgbTexture'}) do
-        if self[key] then require('render.RenderTargetLifetime').Retire(self[key]);self[key]=nil end
+        if self[key] then RenderTargetLifetime.Retire(self[key]);self[key]=nil end
     end
     self.ready=false;self.bytes=0
 end

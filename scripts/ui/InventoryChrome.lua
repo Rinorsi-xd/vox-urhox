@@ -1,4 +1,7 @@
 -- Frozen new-ui-inventory.css, including final new-ui-controls.css overrides.
+local InventoryCardMotion=require("ui.InventoryCardMotion")
+local SourceBoxShadow=require("ui.SourceBoxShadow")
+
 local UI=require 'urhox-libs/UI'
 local Panel=require 'urhox-libs/UI/Widgets/Panel'
 local BaseButton=require 'ui.ActionButton'
@@ -82,7 +85,7 @@ function M.Button:Render(vg)
     end
 end
 M.Card=Panel:Extend('VoxInventoryCard')
-function M.Card:Update(dt) require('ui.InventoryCardMotion').Update(self,dt) end
+function M.Card:Update(dt) InventoryCardMotion.Update(self,dt) end
 function M.Card:OnMouseEnter() self:SetState({hovered=true}) end
 function M.Card:OnMouseLeave() self:SetState({hovered=false,pressed=false}) end
 function M.Card:OnMouseDown(_,_,button) if button==MOUSEB_LEFT then self:SetState({pressed=true}) end end
@@ -180,7 +183,7 @@ function M.Footer(compact)
     p.tip=Panel{position='absolute',right=0,bottom=35,width=430,height=198.34375,visible=false,pointerEvents='none'}
     function p.tip:Render(vg)
         D.Begin(vg);local r=self:GetAbsoluteLayout()
-        self.sourceShadow=self.sourceShadow or require('ui.SourceBoxShadow').New()
+        self.sourceShadow=self.sourceShadow or SourceBoxShadow.New()
         self.sourceShadow:Draw(vg,r.x,r.y+3,r.w,r.h,10,nvgRGBA(4,12,22,64))
         D.Rect(vg,r.x,r.y,r.w,r.h,{17,43,69,255})
         for i,row in ipairs(tips) do

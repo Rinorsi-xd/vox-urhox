@@ -9,10 +9,11 @@ const rows=[];
 for(const name of reports){
  const relative='docs/migration/evidence/'+name+'-offline.json',file=path.join(root,relative);
  const data=JSON.parse(fs.readFileSync(file,'utf8')),drift=[];let associations=0;
- for(const field of ['productionHashes','production','scripts','resources','inputs'])for(const [key,expected]of Object.entries(data[field]||{})){
+ for(const field of ['productionHashes','production','scripts','resources','inputs','testInputs','apiReferenceHashes','evidenceReportHashes'])for(const [key,expected]of Object.entries(data[field]||{})){
   if(typeof expected!=='string'||!/^[a-f0-9]{64}$/i.test(expected))continue;
   const normalized=key.replaceAll('\\','/');
-  const target=/^(scripts|assets|tools)\//.test(normalized)?normalized:(field==='resources'?'assets/':'scripts/')+normalized;
+  const standalone=normalized.startsWith('tools/')||normalized.startsWith('docs/migration/evidence/history/')||field==='apiReferenceHashes'||field==='evidenceReportHashes';
+  const target=standalone||/^(scripts|assets)\//.test(normalized)?normalized:(field==='resources'?'assets/':'scripts/')+normalized;
   const full=path.join(root,target),actual=fs.existsSync(full)?hash(full):null;
   associations++;if(actual!==expected)drift.push({path:target,expected,actual});
  }

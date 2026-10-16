@@ -1,4 +1,7 @@
 -- matchHud.js preparation countdown and damage overlay, using the shared UI frame.
+local SourceButtonMotion=require("ui.SourceButtonMotion")
+local SourceDraw=require("ui.SourceDraw")
+
 local M={}
 local function Now() return Time:GetSystemTime()/1000 end
 function M.Consume(b,events,now)
@@ -24,12 +27,12 @@ end
 function M.HurtAlpha(b,now)
     if (b.hurtFrames or 0)>0 then return 1 end
     if not b.hurtFadeAt then return 0 end
-    return 1-require('ui.SourceButtonMotion').Ease(math.max(0,math.min(1,((now or Now())-b.hurtFadeAt)/.5)),'ease')
+    return 1-SourceButtonMotion.Ease(math.max(0,math.min(1,((now or Now())-b.hurtFadeAt)/.5)),'ease')
 end
 function M.CountState(b,now)
     if not b.prepCount or b.prepCount==0 then return nil end
     local phase=((now or Now())-b.prepCountAt)%1
-    local ease=require('ui.SourceButtonMotion').Ease
+    local ease=SourceButtonMotion.Ease
     if phase<.2 then
         local t=ease(phase/.2,'css-ease-out')
         return b.prepCount,1.35-.35*t,t
@@ -40,7 +43,7 @@ function M.RepairDisabled(b)
     return b.mode=='elimination' and b.rules.state=='live' and b.rules.sudden and b.player.alive
 end
 function M.Draw(vg,b,w,h)
-    local D=require 'ui.SourceDraw'
+    local D=SourceDraw
     local alpha=M.HurtAlpha(b)
     if alpha>0 then
         nvgSave(vg);nvgGlobalAlpha(vg,alpha)

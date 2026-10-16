@@ -1,8 +1,13 @@
+local EnginePitDeck=require("scene.EnginePitDeck")
+local EnginePitDust=require("render.EnginePitDust")
+local ResourceData=require("core.ResourceData")
+local CraterEffects=require("render.CraterEffects")
+
 local M={};M.__index=M
 function M.New(scene,layout)
     local self=setmetatable({scene=scene,time=0,glows={}},M)
-    self.deck=require('scene.EnginePitDeck').Get(scene,layout)
-    self.deck.dust=require('render.EnginePitDust').New(scene,self.deck)
+    self.deck=EnginePitDeck.Get(scene,layout)
+    self.deck.dust=EnginePitDust.New(scene,self.deck)
     scene:SetVar('VoxColorGrade',Variant('crater'))
     for _,group in ipairs(scene:GetComponents('StaticModelGroup',true)) do
         if group.numInstanceNodes==0 then for _,node in ipairs(group.node:GetChildren()) do if node.name=='Instance' then group:AddInstanceNode(node) end end end
@@ -11,7 +16,7 @@ function M.New(scene,layout)
     local sun=scene:GetChild('CraterSun',true):GetComponent('Light');sun.node.direction=Vector3(-.5209,-.5009,.6912)
     sun.shadowCascade=CascadeParameters(15,40,75,0,.8);sun.shadowBias=BiasParameters(.0004,.06)
     self.sky=scene:GetChild('CraterSky'):GetComponent('Skybox');self.skyMaterial=self.sky.material:Clone();self.sky.material=self.skyMaterial
-    local mats=require('core.ResourceData').Read('EnginePit/Materials.json')
+    local mats=ResourceData.Read('EnginePit/Materials.json')
     for i,d in ipairs(mats) do if d.kind=='glow' then
         local mat=cache:GetResource('Material','EnginePit/material-'..i..'.xml'):Clone()
         for _,model in ipairs(scene:GetComponents('StaticModel',true)) do if model.material and model.material.name=='EnginePit/material-'..i..'.xml' then model.material=mat end end
@@ -20,7 +25,7 @@ function M.New(scene,layout)
     local engine=layout.enginePit.ceilings[1];local a=14*math.pi/180
     local function At(u,v) return -64+u*math.cos(a)-v*math.sin(a),106-u*math.sin(a)-v*math.cos(a) end
     local nx,nz=At(106,0);local tx,tz=At(-74,8)
-    self.effects=require('render.CraterEffects').New(scene,layout,{noShields=true,noLamps=true,ground='EnginePit/texture-0.bin',groundHalf=500,area=300,limit=320,
+    self.effects=CraterEffects.New(scene,layout,{noShields=true,noLamps=true,ground='EnginePit/texture-0.bin',groundHalf=500,area=300,limit=320,
         origins={{nx,engine.center[2]+12,nz,1.4,6,.85},{tx,engine.center[2]+30,tz,.6,4,.6}},allowed=function(x,z) return x*x+z*z<320*320 end})
     return self
 end

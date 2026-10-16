@@ -1,10 +1,13 @@
 -- Frozen EndlessSession.events and EndlessHud.announce/update semantics.
+local Data=require("endless.Data")
+local Config=require("Config")
+
 local M={}
 local function Now() return Time:GetSystemTime() end
 function M.Event(e,announcement)
     if e.type=='tierUp' then
-        if require('endless.Data').config.tierLimits then
-            local tier=require('Config').TIERS[e.tier]
+        if Data.config.tierLimits then
+            local tier=Config.TIERS[e.tier]
             announcement='阶位提升：'..tier.name..' · 预算 '..tier.budget
         else announcement='敌人升到 T'..e.tier end
         return announcement,announcement

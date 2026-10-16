@@ -1,4 +1,7 @@
 -- Frozen IntroStory _unfold / choose clocks; the narrative still resumes at 260ms.
+local SourceDraw=require("ui.SourceDraw")
+local IntroOpacity=require("ui.IntroOpacity")
+
 local Ease=require('ui.IntroGateMotion').Ease
 local M={}
 local function Clamp(t)return math.max(0,math.min(1,t))end
@@ -28,7 +31,7 @@ function M.Scan(vg,rect,u,pixel)
  local p=Ease(rect.progress,.1,.9,.2,1)
  local wide=math.min(1,p/.22);local travel=Clamp((p-.22)/.48)
  local alpha=p<.7 and 1-p/.7*.1 or .9*(1-(p-.7)/.3)
- local D=require 'ui.SourceDraw'
+ local D=SourceDraw
  for _,edge in ipairs({-1,1})do
   local y=rect.centerY+edge*rect.fullHeight*.5*travel
   local x=rect.centerX-(rect.fullWidth+2*u)*wide/2;local width=(rect.fullWidth+2*u)*wide
@@ -39,7 +42,7 @@ function M.Scan(vg,rect,u,pixel)
  end
 end
 function M.Begin(vg,plan,box)
- require('ui.IntroOpacity').Push(vg,plan.alpha)
+ IntroOpacity.Push(vg,plan.alpha)
  if plan.clipped then nvgIntersectScissor(vg,plan.x,plan.y,plan.w,plan.h)end
  plan.centerX=box.x+box.w/2;plan.centerY=box.y+box.h/2;plan.fullWidth=box.w;plan.fullHeight=box.h
 end

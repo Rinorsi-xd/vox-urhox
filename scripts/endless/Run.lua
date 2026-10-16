@@ -1,3 +1,5 @@
+local Defs=require("parts.Defs")
+
 local Data=require('endless.Data')
 local C=Data.config
 local Roles=Data.roles
@@ -84,7 +86,7 @@ end
 function M:Pickup(kind,count)
     count=math.floor(count or 1);if not Inventory.Limited(kind) or count<=0 then return false end
     self.inventory[kind]=(self.inventory[kind] or 0)+count
-    if require('parts.Defs').PARTS[kind].cat=='weapon' then self.weaponThisWave=true;self.weaponDrought=0 end
+    if Defs.PARTS[kind].cat=='weapon' then self.weaponThisWave=true;self.weaponDrought=0 end
     self:Emit('pickup',{partType=kind,count=count,total=self.inventory[kind]});return true
 end
 function M:PickupDrop(id,reason)

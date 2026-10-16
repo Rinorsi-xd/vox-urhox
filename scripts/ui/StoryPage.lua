@@ -1,4 +1,11 @@
 -- Frozen storyPage.js/story.css composition, rendered over the real 3D holo.
+local ResourceData=require("core.ResourceData")
+local StoryHolo=require("render.StoryHolo")
+local StoryPageVoice=require("audio.StoryPageVoice")
+local ResourceGate=require("app.ResourceGate")
+local AudioLevels=require("audio.AudioLevels")
+local TouchMode=require("controls.TouchMode")
+
 local UI=require 'urhox-libs/UI'
 local Draw=require 'ui.SourceDraw'
 local D=setmetatable({}, {__index=Draw})
@@ -139,7 +146,7 @@ function Labels:Render(vg)
     D.Begin(vg);local s=self.owner;local holo=s.storyHolo;if not holo or not holo.ready then return end
     local r=self:GetAbsoluteLayout();local w,h=r.w,r.h
     local layout=Data.levels[s.storyLevel].holo
-    local marks=require('core.ResourceData').Read('Story/Manifest.json').levels[s.storyLevel].marks
+    local marks=ResourceData.Read('Story/Manifest.json').levels[s.storyLevel].marks
     for _,mark in ipairs(marks) do
         local x,y=holo:Project(mark.position,w,h);local enemy=mark.kind=='enemy' or mark.kind=='boss'
         D.Text(vg,mark.label,r.x+x,r.y+y-40,15,enemy and {255,198,201,255} or ice,nil,NVG_ALIGN_CENTER)
@@ -240,21 +247,21 @@ function M.Key(s)
 end
 function M.Create(s)
     s.storyProgress=s.app.store:Read('story-progress',function(data) return type(data)=='table' end) or {}
-    s.storyLevel=s.storyLevel or 1;s.storyHolo=s.storyHolo or require('render.StoryHolo').New(s.app)
-    s.storyVoice=s.storyVoice or require('audio.StoryPageVoice').New()
+    s.storyLevel=s.storyLevel or 1;s.storyHolo=s.storyHolo or StoryHolo.New(s.app)
+    s.storyVoice=s.storyVoice or StoryPageVoice.New()
     if not s.storyFaceGate then
-        local gate=require('app.ResourceGate').New();s.storyFaceGate=gate
+        local gate=ResourceGate.New();s.storyFaceGate=gate
         local faces={};for _,l in ipairs(Data.levels) do faces[#faces+1]='Story/Page/Faces/'..l.nono[1]..'.png' end
         gate:Start(faces,function(ok) if s.storyFaceGate==gate then s.storyFacesReady=ok end end)
     end
     if s.storyVoiceLevel~=s.storyLevel then
         local voiced=s.app.storyPageVoiced or s.app.store:Read('vox.story.voiced',function(value) return value==true end)
-        local auto=not voiced and not require('audio.AudioLevels').Speaking()
+        local auto=not voiced and not AudioLevels.Speaking()
         if auto then s.app.storyPageVoiced=true;s.app.store:Write('vox.story.voiced',true,function(value) return value==true end) end
         s.storyVoice:Select(s.storyLevel,Data.levels[s.storyLevel].nono[2],auto);s.storyVoiceLevel=s.storyLevel
     end
     if s.storyHolo.level~=s.storyLevel then s.storyHolo:Select(s.storyLevel) end
-    local compact=require('controls.TouchMode').Enabled()
+    local compact=TouchMode.Enabled()
     local pageScale=compact and 1080*.58/600 or 1
     local w,h=s.width/pageScale,s.height/pageScale;s.storyPageHeight=h
     local page=Page{position='absolute',width=w,height=h,scale=pageScale,transformOrigin='top-left',pointerEvents='box-none'};page.owner=s

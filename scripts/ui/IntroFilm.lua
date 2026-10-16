@@ -1,4 +1,12 @@
 -- Source layer order: black > film > panels/slams/captions > cinema bars.
+local IntroBrand=require("ui.IntroBrand")
+-- Load optional/cyclic dependencies once, without changing first-use order.
+local DeferredModules=setmetatable({},{__index=function(modules,name)
+    local module=require(name)
+    rawset(modules,name,module)
+    return module
+end})
+
 local D=require 'ui.SourceDraw'
 local nvgGlobalAlpha=require('ui.IntroOpacity').Set
 local M={}
@@ -38,7 +46,7 @@ function M.Under(vg,I,w,h,u,k)
  local rx,ry=w*.7*math.sqrt(2),h*.7*math.sqrt(2)
  nvgSave(vg);nvgTranslate(vg,w/2,h/2);nvgScale(vg,rx,ry);nvgBeginPath(vg);nvgRect(vg,-w/2/rx,-h/2/ry,w/rx,h/ry)
  nvgFillPaint(vg,nvgRadialGradient(vg,0,0,.45,1,nvgRGBA(40,22,0,0),nvgRGBA(40,22,0,140)));nvgFill(vg);nvgRestore(vg)
- local image=require('ui.IntroPage').Image
+ local image=DeferredModules['ui.IntroPage'].Image
  local size=w*.0105;local small=w*.0062;local x,y=w*.032,h*.095;local emblem=w*.026
  image(vg,I,'company-emblem',x,y,emblem,emblem,1)
  local tx=x+emblem+size*.8;local titleY=y+(emblem-size*1.1-small*1.2)/2
@@ -57,7 +65,7 @@ function M.Over(vg,I,w,h,u)
  local plan=M.Plan(I);if not plan.active then return end
  if plan.logo then
   nvgSave(vg);nvgIntersectScissor(vg,0,h*plan.logoInset,w,h*(1-2*plan.logoInset))
-  require('ui.IntroBrand').Draw(vg,I,w,h,u,2.9+I.age);nvgRestore(vg)
+  IntroBrand.Draw(vg,I,w,h,u,2.9+I.age);nvgRestore(vg)
  end
  local height=h*.085*plan.bars
  if height>0 then D.Rect(vg,0,0,w,height,{0,0,0,255});D.Rect(vg,0,h-height,w,height,{0,0,0,255}) end

@@ -1,5 +1,7 @@
 -- Frozen shared/build/rotor.js. All poses use source coordinates; metres only
 -- at the drive boundary. Joined groups may slide past unrelated block groups.
+local Config=require("Config")
+
 local Defs=require('parts.Defs').PARTS
 local Rot=require 'core.Rotations'
 local V=require 'core.Math3'
@@ -150,7 +152,7 @@ function M.Spec(bp,adj,reached,checkpoint)
     local loads=M.Loads(bp,adj,checkpoint);local tree=M.Tree(loads);local list,owner,index={},{},{}
     for _,id in ipairs(tree.order) do if reached[id] then local p=bp.parts[id];local f=M.Frame(p);local l=loads[id]
         local range=l.stuck and {free=false,lo=0,hi=0} or M.Range(bp,p,l.load,checkpoint)
-        local r={index=#list+1,partId=id,parent=index[tree.parent[id]],mode=Defs[p.type].rotor,pivot=V.Scale(f.pivot,require('Config').CELL),
+        local r={index=#list+1,partId=id,parent=index[tree.parent[id]],mode=Defs[p.type].rotor,pivot=V.Scale(f.pivot,Config.CELL),
             axis=f.spin,sign=f.sign,ref=M.AimRef(p),load=M.Keys(l.load),own=tree.own[id],range=range}
         list[#list+1]=r;index[id]=r.index;for _,partId in ipairs(r.own) do owner[partId]=r.index end
     end end

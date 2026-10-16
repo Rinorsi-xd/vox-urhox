@@ -1,24 +1,28 @@
 -- Free construction camera shares the existing authored viewport; no new scene.
+local TouchMode=require("controls.TouchMode")
+local HangarConfig=require("scene.HangarConfig")
+local PlatformUtils=require("urhox-libs.Platform.PlatformUtils")
+
 local Flight=require 'controls.FreeFlight'
 local Math=require 'core.Math3'
 local Coord=require 'core.Coord'
 local Config=require 'Config'
 local M={};M.__index=M
 function M.New(session)
-    local self=setmetatable({session=session,mode='fp',captured=false,touch=require('controls.TouchMode').Enabled(),held={},dx=0,dy=0},M)
+    local self=setmetatable({session=session,mode='fp',captured=false,touch=TouchMode.Enabled(),held={},dx=0,dy=0},M)
     local state=session.app.buildCameraState
     local p=session.camera.node.position;local f=session.camera.node.rotation*Vector3.FORWARD
-    self.flight=Flight.New(state and state.pos or {-p.x,p.y,p.z},state and state.forward or {-f.x,f.y,f.z},require('scene.HangarConfig').layout.cameraLimit)
+    self.flight=Flight.New(state and state.pos or {-p.x,p.y,p.z},state and state.forward or {-f.x,f.y,f.z},HangarConfig.layout.cameraLimit)
     self:Apply()
     return self
 end
 function M:SetMouseMode(mode) input.mouseMode=mode end
 function M:Capture()
     if self.mode~='fp' or self.session.dialog or self.session.inventoryPanel then return end
-    if not self.touch and require('urhox-libs.Platform.PlatformUtils').IsWebPlatform() and input.mouseLocked and input.mouseMode~=MM_RELATIVE then
+    if not self.touch and PlatformUtils.IsWebPlatform() and input.mouseLocked and input.mouseMode~=MM_RELATIVE then
         self:SetMouseMode(MM_ABSOLUTE);return
     end
-    self.pending=not self.touch and require('urhox-libs.Platform.PlatformUtils').IsWebPlatform()
+    self.pending=not self.touch and PlatformUtils.IsWebPlatform()
     self.session.controls:Cancel();self.captured=not self.pending;self.skipInput=true;self.buttonsReady=false
     self.avgMove=0;self.lastSpike=false;self.lockWait=0
     if not self.touch then self:SetMouseMode(MM_RELATIVE) end
@@ -88,9 +92,9 @@ function M:Update(dt,blocked)
         end
     end
     if self.captured then
-        if not self.touch and require('urhox-libs.Platform.PlatformUtils').IsWebPlatform() and not input.mouseLocked then self:Release();return end
+        if not self.touch and PlatformUtils.IsWebPlatform() and not input.mouseLocked then self:Release();return end
         if self.skipInput then self.skipInput=false else self.flight:Step(math.min(dt,.1),self:Read()) end
-    elseif not self.touch and require('urhox-libs.Platform.PlatformUtils').IsWebPlatform() and input.mouseMode==MM_RELATIVE and input.mouseLocked then
+    elseif not self.touch and PlatformUtils.IsWebPlatform() and input.mouseMode==MM_RELATIVE and input.mouseLocked then
         self:SetMouseMode(MM_ABSOLUTE)
     end
     self:Apply()

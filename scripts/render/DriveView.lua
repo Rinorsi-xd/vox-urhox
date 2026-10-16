@@ -1,4 +1,8 @@
 -- Presentation consumes vehicle state. It never changes the native rigid body.
+local RotorView=require("render.RotorView")
+local MechView=require("render.MechView")
+local WingRig=require("render.WingRig")
+
 local Config=require "Config"
 local Rot=require "core.Rotations"
 local Spec=require "drive.VehicleSpec"
@@ -10,15 +14,20 @@ local Actuators=require "render.ActuatorView"
 local Legs=require "render.LegView"
 local Equipment=require "render.EquipmentEffects"
 local M={};M.__index=M
-function M.New(scene,bp,vehicle,checkpoint,retain)
+function M.New(scene,bp,vehicle,checkpoint,retain,prepared)
     local self=setmetatable({},M)
-    self.equipment=Equipment.New(scene)
-    self.view=View.New(scene,"DrivenCar")
+    self.view=prepared or View.New(scene,"DrivenCar")
     -- The loader can cancel while assembly yields; retain ownership first.
     if retain then retain(self) end
-    self.view:Rebuild(bp,checkpoint and function(p) checkpoint(p*.9) end)
-    self:Bind(bp,vehicle)
-    if checkpoint then checkpoint(1) end
+    local ok,err=pcall(function()
+        self.equipment=Equipment.New(scene)
+        if prepared then self.view.livery:Set(bp.livery)
+        else self.view:Rebuild(bp,checkpoint and function(p) checkpoint(p*.9) end,true) end
+        self:Bind(bp,vehicle)
+        if prepared then self.view.root.enabled=true end
+        if checkpoint then checkpoint(1) end
+    end)
+    if not ok then self:Dispose();error(err,0) end
     return self
 end
 function M:Bind(bp,vehicle)
@@ -27,7 +36,7 @@ function M:Bind(bp,vehicle)
     -- never from their last animated position, before applying saved rotor poses.
     for _,p in ipairs(bp:List()) do
         self.parts[p.id]=p;local vis=self.view.visuals[p.id]
-        if vis then vis.node.position=View.PartLocalPos(p);vis.node.rotation=Coord.RotQuat(p.rot) end
+        if vis then vis.part=p;vis.node.position=View.PartLocalPos(p);vis.node.rotation=Coord.RotQuat(p.rot) end
     end
     local tracks={}
     for i,w in ipairs(vehicle.wheels) do
@@ -41,9 +50,9 @@ function M:Bind(bp,vehicle)
         end
     end
     self.actuators=Actuators.New(self.view,bp,vehicle,self.actuators)
-    self.rotors=require('render.RotorView').New(self.view,vehicle)
+    self.rotors=RotorView.New(self.view,vehicle)
     self.legs=Legs.New(self.view,vehicle)
-    self.mechs=require('render.MechView').New(self.view,vehicle)
+    self.mechs=MechView.New(self.view,vehicle)
     for _,wing in ipairs(vehicle.spec.wings or {}) do
         local vis=self.view.visuals[wing.partId]
         if vis and vis.rig.wing then self.wings[#self.wings+1]={vis=vis,spec=wing} end
@@ -79,13 +88,13 @@ function M:Update(alpha,dt,context)
     self.time=self.time+(dt or 0)
     for _,wing in ipairs(self.wings) do
         local n=wing.spec.n[2];local lifting=wing.spec.kind=='wing' and (n<0 and -1 or 1) or 0
-        require('render.WingRig').Update(wing.vis,{st=self.vehicle.wingState,partId=wing.spec.partId,lifting=lifting},self.time,dt or 0)
+        WingRig.Update(wing.vis,{st=self.vehicle.wingState,partId=wing.spec.partId,lifting=lifting},self.time,dt or 0)
     end
     self.equipment:Update(dt or 0,context)
 end
 function M:Dispose()
     if self.disposed then return end;self.disposed=true
-    self.equipment:Dispose();self.view:Dispose()
+    if self.equipment then self.equipment:Dispose() end;self.view:Dispose()
     self.vehicle=nil;self.parts={};self.wheels={};self.tracks={};self.wings={}
     self.rotors=nil;self.legs=nil;self.mechs=nil;self.actuators=nil
 end

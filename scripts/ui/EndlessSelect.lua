@@ -1,3 +1,5 @@
+local Records=require("endless.Records")
+
 local UI=require('urhox-libs/UI')
 local W=require('ui.EndlessWidgets')
 local D=require('endless.Data')
@@ -20,7 +22,7 @@ function M.Open(app,start,cancel)
             onClick=function() Close();start(choice.source,nil) end})
     end
     local actions=UI.Panel{flexDirection='row',gap=12,width='100%',height=44};frame:AddChild(actions)
-    local saved=app.store:Read(D.config.runKey,require('endless.Records').Run)
+    local saved=app.store:Read(D.config.runKey,Records.Run)
     if saved then actions:AddChild(W.Button{text='继续上次进度',width=154,height=44,onClick=function() Close();start(saved.blueprint,saved) end}) end
     actions:AddChild(W.Button{text='返回机库',width=112,height=44,onClick=function() Close();if cancel then cancel() end end})
     UI.SetRoot(root);return {Close=Close,root=root,rows=rows}

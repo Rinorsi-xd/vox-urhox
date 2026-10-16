@@ -1,5 +1,7 @@
 -- Source CSS/SVG primitives. UI or SourceLayer owns each context's frame/DPR.
 -- These helpers never begin frames or create per-frame fonts.
+local SourceFonts=require("ui.SourceFonts")
+
 local M={white={237,246,255,255},muted={145,172,200,255},dim={83,123,156,255},orange={122,216,255,255},blue={40,121,235,255},green={142,227,208,255},ink={8,15,28,255}}
 local contexts=setmetatable({},{__mode='k'})
 local Typography=require 'ui.SourceTextLayout'
@@ -10,7 +12,7 @@ function M.Begin(vg)
     local display=nvgCreateFont(vg,'vox-display','Fonts/BarlowCondensed-BoldItalic.ttf')
     local tabular=nvgCreateFont(vg,'vox-tabular','Fonts/VoxDisplayTabular-BoldItalic.ttf')
     local story=nvgCreateFont(vg,'vox-story','Fonts/SmileySans-Oblique.ttf')
-    local fonts=require('ui.SourceFonts').Resolve()
+    local fonts=SourceFonts.Resolve()
     local body=nvgCreateFont(vg,'vox-body',fonts.body)
     local code=nvgCreateFont(vg,'vox-code',fonts.code)
     assert(title>=0 and display>=0 and tabular>=0 and story>=0 and body>=0 and code>=0,'Source UI fonts failed to load')
@@ -65,7 +67,7 @@ local function InlineFont(vg,font)
     if font=='vox-repair-symbol' then
         local ctx=contexts[vg]
         if not ctx.repairSymbol then
-            local face=require('ui.SourceFonts').ResolveRepairSymbol()
+            local face=SourceFonts.ResolveRepairSymbol()
             assert(nvgCreateFont(vg,font,face.path)>=0,'Repair symbol font unavailable');ctx.repairSymbol=face
         end
         return
@@ -73,14 +75,14 @@ local function InlineFont(vg,font)
     if font=='vox-help-symbol' then
         local ctx=contexts[vg]
         if not ctx.helpSymbol then
-            local face=require('ui.SourceFonts').ResolveHelpSymbol()
+            local face=SourceFonts.ResolveHelpSymbol()
             assert(nvgCreateFont(vg,font,face.path)>=0,'Help symbol font unavailable');ctx.helpSymbol=face
         end
         return
     end
     if font~='vox-inline-code' then return end
     local ctx=contexts[vg];if ctx.inlineCode then return end
-    local face=require('ui.SourceFonts').ResolveInlineCode()
+    local face=SourceFonts.ResolveInlineCode()
     assert(nvgCreateFont(vg,font,face.path)>=0,'Source inline code font unavailable')
     ctx.inlineCode=face
 end

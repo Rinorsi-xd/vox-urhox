@@ -1,5 +1,18 @@
 -- Original PC inventory composition; model/input, virtual rows and NVG art
 -- have independent ownership. Source directory remains read-only.
+local UiSound=require("audio.UiSound")
+local Input=require("urhox-libs/UI/Core/Input")
+local InventorySearch=require("ui.InventorySearch")
+local InventoryList=require("ui.InventoryList")
+local InventoryDetail=require("ui.InventoryDetail")
+local InventoryDetailScroll=require("ui.InventoryDetailScroll")
+local BuildHotbar=require("ui.BuildHotbar")
+local SceneBackdrop=require("render.SceneBackdrop")
+local TouchMode=require("controls.TouchMode")
+local InventoryCardMotion=require("ui.InventoryCardMotion")
+local InventoryKeys=require("ui.InventoryKeys")
+local InventoryShadows=require("ui.InventoryShadows")
+
 local UI=require 'urhox-libs/UI'
 local Theme=require 'ui.VoxTheme'
 local D=require 'ui.SourceDraw'
@@ -9,7 +22,7 @@ local Art=require 'ui.InventoryChrome'
 local M={};M.__index=M
 function M.Open(session,restore)
     if session.inventoryPanel then return session.inventoryPanel end
-    if not restore then require('audio.UiSound').Play('open') end
+    if not restore then UiSound.Play('open') end
     session.buildCamera:Release()
     local self=setmetatable({session=session,model=session.inventory,hoverType=false,shown=false,closed=false,trimTime=0,motionClock=0,listEpoch=0},M)
     session.inventoryPanel=self;session.controls:Cancel();session.editor.preview=nil;session.ghost:Refresh(session.editor,false)
@@ -32,25 +45,25 @@ function M.Open(session,restore)
     local modal=Art.Modal{title='',headerHeight=0,contentPadding=0,showCloseButton=false,closeOnEscape=false,
         onClose=function(w)
             self.closed=true;session.inventoryPanel=nil
-            if self.pointerTargetListener then require('urhox-libs/UI/Core/Input').Off('PointerDown',self.pointerTargetListener);self.pointerTargetListener=nil end
-            if self.pointerCancelListener then require('urhox-libs/UI/Core/Input').Off('PointerCancel',self.pointerCancelListener);self.pointerCancelListener=nil end
+            if self.pointerTargetListener then Input.Off('PointerDown',self.pointerTargetListener);self.pointerTargetListener=nil end
+            if self.pointerCancelListener then Input.Off('PointerCancel',self.pointerCancelListener);self.pointerCancelListener=nil end
             if self.backdrop then self.backdrop:Dispose();self.backdrop=nil end
             w:Destroy();self:Trim(true);session:Refresh()
         end}
     self.modal=modal
     -- Cached Web adapters dispatch Gesture before UI, so event.target is still
     -- empty at gesture start. Pin the hit widget before the recognizer observes it.
-    self.pointerTargetListener=require('urhox-libs/UI/Core/Input').On('PointerDown',function(event)
+    self.pointerTargetListener=Input.On('PointerDown',function(event)
         if not self.closed and not event.target then event.target=UI.FindWidgetAt(event.x/UI.GetScale(),event.y/UI.GetScale()) end
     end,100)
-    self.pointerCancelListener=require('urhox-libs/UI/Core/Input').On('PointerCancel',function(event)
+    self.pointerCancelListener=Input.On('PointerCancel',function(event)
         if event.pointerId~=self.dragPointer then return end
         if self.dragWidget then self.dragWidget.state.isDragging=false end
         self.dragType=nil;self.dragPoint=nil;self.dragWidget=nil;self.dragPointer=nil
     end,100)
     self.body=UI.Panel{width=width,height=height,pointerEvents='box-none'};modal:AddContent(self.body)
     self.body:AddChild(Art.Title(self))
-    local search=require('ui.InventorySearch'){value=self.model.query,placeholder='搜索零件',sourceSize=13,position='absolute',right=self.narrow and 120 or 132.03125,top=self.narrow and 2 or 18,width=self.narrow and math.min(230,sw*.3) or math.min(350,math.max(190,sw*.23)),height=self.narrow and 44 or 40,
+    local search=InventorySearch{value=self.model.query,placeholder='搜索零件',sourceSize=13,position='absolute',right=self.narrow and 120 or 132.03125,top=self.narrow and 2 or 18,width=self.narrow and math.min(230,sw*.3) or math.min(350,math.max(190,sw*.23)),height=self.narrow and 44 or 40,
         onChange=function(_,value) self.model.query=value;self:Fill() end};self.search=search;self.body:AddChild(search)
     self.closeButton=Art.Button{position='absolute',right=0,top=self.narrow and 2 or 18,width=110.03125,height=self.narrow and 44 or 40,onClick=function() self:Close() end};self.body:AddChild(self.closeButton)
     self.categoryBar=UI.Panel{width=width,height=self.narrow and 44 or 52,flexDirection='row',alignItems='center',gap=4,flexShrink=0}
@@ -64,7 +77,7 @@ function M.Open(session,restore)
         self.categoryButtons[c.id]=button;self.categoryBar:AddChild(button)
     end
     self.center=UI.Panel{position='absolute',left=0,top=centerTop,width='100%',height=centerHeight,flexDirection='row',gap=self.narrow and 12 or 28};self.body:AddChild(self.center)
-    self.list=require('ui.InventoryList'){width=self.gridWidth,height=self.centerHeight,viewportHeight=self.centerHeight,itemHeight=self.itemHeight,itemGap=self.itemGap,poolBuffer=1,bounces=false,data={},
+    self.list=InventoryList{width=self.gridWidth,height=self.centerHeight,viewportHeight=self.centerHeight,itemHeight=self.itemHeight,itemGap=self.itemGap,poolBuffer=1,bounces=false,data={},
         createItem=function() return self:CreateRow() end,bindItem=function(widget,row,index) self:BindRow(widget,row,index) end}
     self.center:AddChild(self.list)
     local materialContent=Art.MaterialHeader(self.narrow);materialContent:SetStyle({position='relative',left=0,top=0,width=math.max(320,self.rowWidth),height=self.narrow and 49 or 38,flexShrink=0})
@@ -80,19 +93,19 @@ function M.Open(session,restore)
     self.empty=UI.Panel{position='absolute',left=0,top=40,width=self.gridWidth,height=50,pointerEvents='none',visible=false}
     function self.empty:Render(vg) D.Begin(vg);local r=self:GetAbsoluteLayout();D.Text(vg,'没有找到零件',r.x+r.w/2,r.y,18,D.muted,nil,NVG_ALIGN_CENTER) end
     self.center:AddChild(self.empty)
-    self.detail=require('ui.InventoryDetail'){width=self.narrow and 201 or 272,height=580,compact=self.narrow,viewportHeight=sh,viewportWidth=sw};self.detail.inventory=self.model
-    self.detailScroll=require('ui.InventoryDetailScroll'){width=self.narrow and 220 or 310,height=self.centerHeight,scrollX=false,scrollY=true,bounces=false,flexShrink=0,
+    self.detail=InventoryDetail{width=self.narrow and 201 or 272,height=580,compact=self.narrow,viewportHeight=sh,viewportWidth=sw};self.detail.inventory=self.model
+    self.detailScroll=InventoryDetailScroll{width=self.narrow and 220 or 310,height=self.centerHeight,scrollX=false,scrollY=true,bounces=false,flexShrink=0,
         paddingLeft=self.narrow and 13 or 25,paddingRight=self.narrow and 6 or 3,paddingTop=self.narrow and 8 or 18,paddingBottom=self.narrow and 12 or 16,borderLeftWidth=1,borderColor={54,86,117,255},children={self.detail}}
     self.center:AddChild(self.detailScroll)
     self.footer=Art.Footer(self.narrow);self.body:AddChild(self.footer)
-    self.hotbar=require('ui.BuildHotbar').Create(session,false,function(id) self:Detail(id) end)
+    self.hotbar=BuildHotbar.Create(session,false,function(id) self:Detail(id) end)
     self.footer:SetHeight(footerHeight)
     self.footer:AddChild(UI.ScrollView{position='absolute',left=self.narrow and 0 or math.max(0,(width-self.hotbar.root.props.width)/2),top=self.narrow and 5 or 17,width=self.narrow and width or math.min(width,self.hotbar.root.props.width),height=self.narrow and 64 or 79,scrollX=true,scrollY=false,showScrollbar=false,bounces=false,paddingLeft=self.narrow and 4 or 0,paddingTop=5,children={self.hotbar.root}})
     self:Fill();self:Detail(restore and restore.shown or self.model:Current());self.restoreScroll=restore;self.pendingAnchor=restore and restore.anchor
     modal:Open();session:Refresh()
-    self.backdrop=require('render.SceneBackdrop').New()
+    self.backdrop=SceneBackdrop.New()
     if self.backdrop then self.backdrop:Update() end
-    self.initialFocus=not require('controls.TouchMode').Enabled()
+    self.initialFocus=not TouchMode.Enabled()
     return self
 end
 function M:CreateRow()
@@ -142,7 +155,7 @@ function M:BindRow(widget,row,index)
             cell.root.props.tooltip=count~=nil and (count<=0 and '仓库里没有，点击购买' or ('仓库里还有 '..count..' 个')) or nil
         end
         if UI.GetFocus()==cell.root then UI.ClearFocus();self.keyboardFocus=nil end
-        require('ui.InventoryCardMotion').Bind(cell.root,((index or 1)-1)*self.columns+i,self.motionClock-self.listEpoch)
+        InventoryCardMotion.Bind(cell.root,((index or 1)-1)*self.columns+i,self.motionClock-self.listEpoch)
         cell.root:SetStyle({visibility=d and 'visible' or 'hidden'})
     end
 end
@@ -183,7 +196,7 @@ function M:Keys()
     if input:GetKeyPress(KEY_ESCAPE) then
         if typing and self.model.query~='' then self.model.query='';self.search:SetValue('');self:Fill() else self:Close() end;return
     end
-    local keys=require('ui.InventoryKeys')
+    local keys=InventoryKeys
     if input:GetKeyPress(KEY_TAB) then keys.Tab(self,input:GetKeyDown(KEY_SHIFT));return end
     if typing then return end
     for _,key in ipairs({KEY_RETURN,KEY_SPACE,KEY_DELETE,KEY_BACKSPACE}) do
@@ -196,7 +209,7 @@ end
 function M:Trim(closing)
     local keep={};for _,id in ipairs(self.model.hotbar) do if id then keep[Theme.Thumbnail(id)]=true end end
     if not closing then
-        local shadows=require 'ui.InventoryShadows'
+        local shadows=InventoryShadows
         for _,kind in ipairs({'rest','hover','press'}) do keep['UI/Parts/Shadows/tile-'..kind..'.png']=true end
         keep[Theme.Thumbnail(self.shown)]=true
         keep[shadows.Path(self.shown,'detail')]=true
@@ -211,7 +224,7 @@ function M:Update(dt)
     if self.backdrop then self.backdrop:Update() end
     if self.initialFocus and self.modal.modalLayout_ then
         self.initialFocus=false
-        local keys=require('ui.InventoryKeys');local current=self.model:Current();local focused=false
+        local keys=InventoryKeys;local current=self.model:Current();local focused=false
         for index,def in ipairs(self.results) do if def.id==current then focused=keys.Focus(self,{part=current,index=index});break end end
         if not focused then keys.Focus(self,{widget=self.closeButton}) end
     end

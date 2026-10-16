@@ -1,13 +1,37 @@
 -- PC source HUD composition; custom VG draws, UI owns pointer routing/lifetime.
+local TouchMode=require("controls.TouchMode")
+local DriveMeter=require("ui.DriveMeter")
+local DriveDetails=require("ui.DriveDetails")
+local MechReticle=require("ui.MechReticle")
+local DriveOverlay=require("ui.DriveOverlay")
+local MissileHud=require("ui.MissileHud")
+local ResetProgress=require("ui.ResetProgress")
+local SniperThreat=require("ui.SniperThreat")
+local MatchHud=require("ui.MatchHud")
+local MvpShow=require("ui.MvpShow")
+local EndlessHud=require("ui.EndlessHud")
+local MissionHud=require("ui.MissionHud")
+local BossHud=require("ui.BossHud")
+local SalvageRunHud=require("ui.SalvageRunHud")
+local SalvageCinematics=require("ui.SalvageCinematics")
+local DriveReadouts=require("ui.DriveReadouts")
+local ReticleState=require("ui.ReticleState")
+-- Load optional/cyclic dependencies once, without changing first-use order.
+local DeferredModules=setmetatable({},{__index=function(modules,name)
+    local module=require(name)
+    rawset(modules,name,module)
+    return module
+end})
+
 local UI=require 'urhox-libs/UI'
 local Chrome=require 'ui.DriveChrome'
 local Theme=require 'ui.VoxTheme'
 local M={}
 function M.Create(session)
-    require('controls.TouchMode').Apply('drive')
+    TouchMode.Apply('drive')
     local width,height=UI.GetViewportSize();local weapons=session.weapons
     local root=UI.Panel{width='100%',height='100%',pointerEvents='box-none'}
-    local controls=require('ui.DriveControls').Create(session,root)
+    local controls=DeferredModules['ui.DriveControls'].Create(session,root)
     local state={root=root,playfield=controls.playfield,touchControls=session.touch and controls or nil,buttons={},cards={},width=width,height=height,refresh=0,readoutUpdates=0,disposed=false}
     local function Add(kind,props)
         props=props or {};props.kind=kind;props.position='absolute';props.pointerEvents=props.onClick and 'auto' or 'none'
@@ -27,14 +51,14 @@ function M.Create(session)
     end
     state.buttons['return']=Add('exit',{right=12,top=top,width=103.03125,height=36,onClick=function() session.wantsReturn=true end})
     state.stats=Add('stats',{right=12,top=top+44,width=206,height=51})
-    state.meter=require('ui.DriveMeter'){position='absolute',left=12,bottom=50,width=400,height=110,pointerEvents='none'};state.meter.session=session;root:AddChild(state.meter)
-    state.detailPanel=require('ui.DriveDetails'){position='absolute',left=12,top=72,width=280,height=260,pointerEvents='none',visible=false};state.detailPanel.session=session;root:AddChild(state.detailPanel)
-    state.vitals=require('ui.MechReticle'){position='absolute',left=0,top=0,width='100%',height='100%',pointerEvents='none'};state.vitals.session=session;root:AddChild(state.vitals)
-    state.overlay=require('ui.DriveOverlay').New(session,root,state.vitals)
-    state.missile=require('ui.MissileHud'){position='absolute',width='100%',height='100%',pointerEvents='none'}
+    state.meter=DriveMeter{position='absolute',left=12,bottom=50,width=400,height=110,pointerEvents='none'};state.meter.session=session;root:AddChild(state.meter)
+    state.detailPanel=DriveDetails{position='absolute',left=12,top=72,width=280,height=260,pointerEvents='none',visible=false};state.detailPanel.session=session;root:AddChild(state.detailPanel)
+    state.vitals=MechReticle{position='absolute',left=0,top=0,width='100%',height='100%',pointerEvents='none'};state.vitals.session=session;root:AddChild(state.vitals)
+    state.overlay=DriveOverlay.New(session,root,state.vitals)
+    state.missile=MissileHud{position='absolute',width='100%',height='100%',pointerEvents='none'}
     state.missile.session=session;state.missile.overlay=state.overlay;root:AddChild(state.missile)
-    state.resetProgress=require('ui.ResetProgress').Attach(session,root)
-    if session.combat then state.sniper=require('ui.SniperThreat').Attach(session,root) end
+    state.resetProgress=ResetProgress.Attach(session,root)
+    if session.combat then state.sniper=SniperThreat.Attach(session,root) end
     local total=math.max(1,#weapons.groups)*50-4
     for i=1,math.max(1,#weapons.groups) do
         local index=i
@@ -45,29 +69,29 @@ function M.Create(session)
     state.pause=Add('pause',{width='100%',height='100%'})
     if session.battle then
         for _,widget in ipairs({state.title,state.timer,state.stats,state.keys,state.buttons['return']}) do widget:SetVisible(false) end
-        state.match=require('ui.MatchHud').Attach(session,root)
-        state.mvp=require('ui.MvpShow'){position='absolute',width='100%',height='100%',pointerEvents='auto',visible=false};state.mvp.session=session;root:AddChild(state.mvp)
+        state.match=MatchHud.Attach(session,root)
+        state.mvp=MvpShow{position='absolute',width='100%',height='100%',pointerEvents='auto',visible=false};state.mvp.session=session;root:AddChild(state.mvp)
     elseif session.endless then
         for _,widget in ipairs({state.title,state.timer,state.stats,state.keys}) do widget:SetVisible(false) end
-        state.endless=require('ui.EndlessHud').Attach(session,root)
+        state.endless=EndlessHud.Attach(session,root)
     elseif session.story then
         for _,widget in ipairs({state.timer,state.stats,state.keys}) do widget:SetVisible(false) end
-        state.story=require('ui.MissionHud').Attach(session,root)
-        if session.map.storyLevel==5 then state.boss=require('ui.BossHud').Attach(session,root) end
+        state.story=MissionHud.Attach(session,root)
+        if session.map.storyLevel==5 then state.boss=BossHud.Attach(session,root) end
     elseif session.salvage then
         for _,widget in ipairs({state.title,state.timer,state.stats,state.keys}) do widget:SetVisible(false) end
         for _,card in ipairs(state.cards) do card.widget:SetStyle({bottom=220+(#state.cards-card.widget.index)*50}) end
-        state.salvage=require('ui.SalvageRunHud').Attach(session,root)
-        state.cinema=require('ui.SalvageCinematics'){position='absolute',left=0,top=0,width='100%',height='100%',pointerEvents='auto'}
+        state.salvage=SalvageRunHud.Attach(session,root)
+        state.cinema=SalvageCinematics{position='absolute',left=0,top=0,width='100%',height='100%',pointerEvents='auto'}
         state.cinema.session=session;root:AddChild(state.cinema)
     end
     if session.touch then
         state.stats:SetVisible(false);state.keys:SetVisible(false);state.timer:SetVisible(false);state.meter:SetVisible(false)
         root:RemoveChild(controls.root);root:AddChild(controls.root)
     end
-    state.buttons.settings=require('ui.GameSettings').Attach(session,root,top)
+    state.buttons.settings=DeferredModules['ui.GameSettings'].Attach(session,root,top)
     state.buttons.audio=state.buttons.settings
-    state.readouts=require('ui.DriveReadouts').New(session,root,state.detailPanel)
+    state.readouts=DriveReadouts.New(session,root,state.detailPanel)
     state.title:SetVisible(session.story~=nil)
     state.keys:SetVisible(false)
     -- The frozen reticle owns weapon slots and speed; retain real touch buttons.
@@ -114,7 +138,7 @@ function M.Create(session)
         if state.sniper then state.sniper.Update(s.pointer.captured and s.sniperWarnings or {},s.combat.player) end
         state.vitals.hit=math.max(0,(state.vitals.hit or 0)-dt)
         state.overlay:Update(dt);state.vitals.aimState=state.overlay.aimState
-        require('ui.ReticleState').Update(state.vitals,dt)
+        ReticleState.Update(state.vitals,dt)
         for i,card in ipairs(state.cards) do card.widget.group=weapons.groups[i];card.widget.readiness=weapons.groups[i] and math.max(0,math.min(1,weapons:Readiness(weapons.groups[i]))) or 0 end
         local group=weapons:Group()
         state.vitals.hint=group and group.weapons[1].stats.drill and weapons.drill:Hint() or group and group.kind=='missile' and '' or s.firing and group and weapons.blocked>=#group.weapons and '目标在射界外' or s.firing and state.overlay.aimState=='blocked' and '炮口被挡住' or ''

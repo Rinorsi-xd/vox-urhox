@@ -27,7 +27,9 @@ function M.Bind(h)
     h.bridgeOrigin=h.bridge.position
     h.trolleyOrigin=h.trolley.position
     h.scan=h:Node("WelcomeScanner")
-    h.scanMat=h.scan:GetComponent("StaticModel").material
+    h.scan.enabled=false
+    Mat.Set(h.padMat,"uScan",Vector3.ZERO)
+    Mat.Set(h.padMat,"uFlash",0)
     h.nicheRotations={}
     for i,n in ipairs(h.niches) do h.nicheRotations[i]=n.rotation end
 end
@@ -74,16 +76,5 @@ function M.Update(h,dt,t)
         v.node.position=p+Vector3(0,(math.sin(t*0.7-p.x)-math.sin(restTime*0.7-p.x))*0.06,0)
     end
     for i,n in ipairs(h.niches) do n.rotation=h.nicheRotations[i]*Quaternion(-math.deg((t-restTime)*0.25),Vector3.UP) end
-    h.scanTime=h.scanTime+dt
-    local st=h.scanTime
-    local fade=math.min(1,st/0.2)*(1-smooth((st-1.8)/0.4))
-    h.scan.enabled=fade>0.001
-    local b=h.scanBox
-    local z=b.z1+(b.z0-b.z1)*smooth(st/1.8)
-    h.scan.position=Vector3(-(b.x0+b.x1)/2,b.h/2,z)
-    h.scan.scale=Vector3(b.x1-b.x0,b.h,1)
-    Mat.Set(h.scanMat,"uStrength",fade)
-    Mat.Set(h.padMat,"uScan",Vector3(z,math.max(math.abs(b.x0),math.abs(b.x1)),fade))
-    Mat.Set(h.padMat,"uFlash",fade)
 end
 return M

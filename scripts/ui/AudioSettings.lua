@@ -1,4 +1,15 @@
 -- Frozen shared/audio/gameMusic.js settings; controls share the source .gfx CSS.
+local TouchMode=require("controls.TouchMode")
+local SourceDraw=require("ui.SourceDraw")
+local SourceModal=require("ui.SourceModal")
+local SourceHint=require("ui.SourceHint")
+-- Load optional/cyclic dependencies once, without changing first-use order.
+local DeferredModules=setmetatable({},{__index=function(modules,name)
+    local module=require(name)
+    rawset(modules,name,module)
+    return module
+end})
+
 local UI=require 'urhox-libs/UI'
 local Host=require 'ui.DialogHost'
 local Button=require 'ui.SourceButton'
@@ -7,16 +18,16 @@ local Levels=require 'audio.AudioLevels'
 local M={}
 local function Metrics()
     local w,h=graphics:GetWidth(),graphics:GetHeight()
-    local compact=require('controls.TouchMode').Enabled() and math.min(w,h)/math.max(1,graphics:GetDPR())<=600
+    local compact=TouchMode.Enabled() and math.min(w,h)/math.max(1,graphics:GetDPR())<=600
     local refH=compact and 600 or 1080
     return math.min(w/(refH*16/9),h/refH)/UI.GetScale(),compact
 end
 local Heading=UI.Panel:Extend('VoxAudioHeading')
 function Heading:Render(vg)
-    require('ui.SourceDraw').Begin(vg);local r=self:GetAbsoluteLayout()
+    SourceDraw.Begin(vg);local r=self:GetAbsoluteLayout()
     local k=self.props.sourceScale
     nvgSave(vg);nvgScale(vg,k,k)
-    require('ui.SourceModal').DrawHeading(vg,r.x/k,r.y/k,r.w/k,'声音与音乐','立即生效，自动保存',self.props.compact)
+    SourceModal.DrawHeading(vg,r.x/k,r.y/k,r.w/k,'声音与音乐','立即生效，自动保存',self.props.compact)
     nvgRestore(vg)
 end
 function M.Open(owner,options)
@@ -55,7 +66,7 @@ function M.Open(owner,options)
             end}
         row:AddChild(slider);modal.controls[key]=slider
     end
-    local hint=require('ui.SourceHint'){text='',width='100%',height=29.25*k,marginTop=12.5*k,marginBottom=12.5*k,sourceScale=k,flexShrink=0}
+    local hint=SourceHint{text='',width='100%',height=29.25*k,marginTop=12.5*k,marginBottom=12.5*k,sourceScale=k,flexShrink=0}
     body:AddChild(hint);modal.status=hint
     local buttonHeight=(compact and 44 or 40)*k
     modal.actions={pause=Button{text='暂停音乐',sourceKind='dialog',width=116*k,height=buttonHeight,sourceScale=k,
@@ -84,6 +95,6 @@ function M.Open(owner,options)
     owner.dialogTick=Refresh;Refresh();return modal
 end
 function M.Attach(session,root,top)
-    return require('ui.GameSettings').Attach(session,root,top)
+    return DeferredModules['ui.GameSettings'].Attach(session,root,top)
 end
 return M

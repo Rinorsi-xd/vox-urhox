@@ -1,19 +1,23 @@
+local TouchMode=require("controls.TouchMode")
+local SourceDraw=require("ui.SourceDraw")
+local SourceModal=require("ui.SourceModal")
+
 local UI=require 'urhox-libs/UI'
 local Host=require 'ui.DialogHost'
 local Button=require 'ui.SourceButton'
 local Controls=require 'ui.SourceGraphicsControls'
 local function Metrics()
     local w,h=graphics:GetWidth(),graphics:GetHeight()
-    local compact=require('controls.TouchMode').Enabled() and math.min(w,h)/math.max(1,graphics:GetDPR())<=600
+    local compact=TouchMode.Enabled() and math.min(w,h)/math.max(1,graphics:GetDPR())<=600
     local refH=compact and 600 or 1080
     return math.min(w/(refH*16/9),h/refH)/UI.GetScale(),compact
 end
 local Heading=UI.Panel:Extend('VoxGraphicsHeading')
 function Heading:Render(vg)
-    require('ui.SourceDraw').Begin(vg);local r=self:GetAbsoluteLayout()
+    SourceDraw.Begin(vg);local r=self:GetAbsoluteLayout()
     local k=self.props.sourceScale
     nvgSave(vg);nvgScale(vg,k,k)
-    require('ui.SourceModal').DrawHeading(vg,r.x/k,r.y/k,r.w/k,'画面设置','调整会立即生效并自动保存',self.props.compact)
+    SourceModal.DrawHeading(vg,r.x/k,r.y/k,r.w/k,'画面设置','调整会立即生效并自动保存',self.props.compact)
     nvgRestore(vg)
 end
 local M={}

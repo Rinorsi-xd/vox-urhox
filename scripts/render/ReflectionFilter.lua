@@ -1,5 +1,7 @@
 -- Three explicit HDR mip equivalents, used by the source deck's LOD 1.52..2.52.
 -- Owned by the hangar reflection; three small GPU draws per reflection refresh.
+local RenderTargetLifetime=require("render.RenderTargetLifetime")
+
 local M={};M.__index=M
 function M.New(source)
     local self=setmetatable({scene=Scene(),textures={},materials={}},M)
@@ -46,6 +48,6 @@ end
 function M:Dispose()
     if self.scene then self.scene:Dispose();self.scene=nil end
     for _,material in ipairs(self.materials) do material:Dispose() end;self.materials={}
-    for _,texture in ipairs(self.textures) do require('render.RenderTargetLifetime').Retire(texture) end;self.textures={}
+    for _,texture in ipairs(self.textures) do RenderTargetLifetime.Retire(texture) end;self.textures={}
 end
 return M

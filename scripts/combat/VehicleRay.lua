@@ -4,17 +4,24 @@
 -- Suspension still uses native Space.Raycast and never collides with sensors.
 local V=require "core.Math3"
 local M={}
-local function Box(origin,dir,half,maxDist)
-    local near,far=0,maxDist;local normal=V.Scale(dir,-1)
+-- Slabs in shape-local space; offset avoids allocating a translated origin
+-- for every axis-aligned part. Inside hits retain the source -direction normal.
+-- Boundary contact is inclusive; parallel rays outside any slab miss.
+local function Box(origin,dir,half,maxDist,offset)
+    local near,far=0,maxDist;local normalAxis,normalSign=0,0
     for axis=1,3 do
-        if math.abs(dir[axis])<1e-9 then if math.abs(origin[axis])>half[axis] then return end
+        local at=origin[axis]-(offset and offset[axis] or 0)
+        if math.abs(dir[axis])<1e-9 then if math.abs(at)>half[axis] then return end
         else
-            local a=(-half[axis]-origin[axis])/dir[axis];local b=(half[axis]-origin[axis])/dir[axis]
+            local a=(-half[axis]-at)/dir[axis];local b=(half[axis]-at)/dir[axis]
             local sign=-1;if a>b then a,b=b,a;sign=1 end
-            if a>near then near=a;normal={0,0,0};normal[axis]=sign end
+            if a>near then near=a;normalAxis=axis;normalSign=sign end
             far=math.min(far,b);if near>far then return end
         end
     end
+    local normal=nil ---@type number[]|nil
+    if normalAxis==0 then normal=V.Scale(dir,-1)
+    else normal={0,0,0};normal[normalAxis]=normalSign end
     return near,normal
 end
 local function Cylinder(origin,dir,axis,radius,halfWidth,maxDist)
@@ -59,16 +66,17 @@ function M.Cast(vehicle,origin,direction,length)
     local o=V.Unrotate(q,V.Sub(origin,{p.x,p.y,p.z}));local d=V.Unrotate(q,direction)
     vehicle.rayBounds=vehicle.rayBounds or Bounds(vehicle)
     local bounds=vehicle.rayBounds
-    if not Box(V.Sub(o,bounds.center),d,bounds.half,length) then return end
+    if not Box(o,d,bounds.half,length,bounds.center) then return end
     local best=nil ---@type table|nil
     local limit=length
     local function Accept(distance,normal,id)
         if distance and distance<=limit then limit=distance;best={dist=distance,normal=V.Rotate(q,normal),partId=id} end
     end
     for _,list in ipairs({vehicle.spec.boxes,vehicle.spec.hulls,vehicle.spec.sensors,vehicle.legHitboxes and vehicle.legHitboxes.items or {},vehicle.mechHitboxes and vehicle.mechHitboxes.items or {}}) do for _,shape in ipairs(list) do
-        local localOrigin=V.Sub(o,shape.center);local localDir=d
-        if shape.quat then localOrigin=V.Unrotate(shape.quat,localOrigin);localDir=V.Unrotate(shape.quat,d) end
-        local distance,normal=Box(localOrigin,localDir,shape.half,limit)
+        local distance,normal
+        if shape.quat then
+            distance,normal=Box(V.Unrotate(shape.quat,V.Sub(o,shape.center)),V.Unrotate(shape.quat,d),shape.half,limit)
+        else distance,normal=Box(o,d,shape.half,limit,shape.center) end
         if normal and shape.quat then normal=V.Rotate(shape.quat,normal) end
         Accept(distance,normal,shape.partId)
     end end

@@ -1,0 +1,61 @@
+{
+  "result": "PASS",
+  "snapshot": "D:\\Rino_Project\\maker\\Vox\\VoxelCraft\\.tmp\\outgame-cached-1792147547196",
+  "manifest": "manifest-c66ba2e1.json",
+  "scriptFingerprint": "fbcd24baa69cf166534ff3d648d7b816966d4f3d75ce8c6907a6678656e30b59",
+  "probeFile": "tools/migration/probe-outgame-web.lua",
+  "probeFileSha256": "96a5efa1a137412b7fec67aa8d4a4dfc50ace8f7e873601ad688f07aac65b94c",
+  "observations": [
+    {
+      "port": 4461,
+      "processId": 70336,
+      "qa": false,
+      "sourceDirectory": "D:\\Rino_Project\\maker\\Vox\\VoxelCraft\\.tmp\\outgame-cached-1792147547196",
+      "servedManifest": "manifest-c66ba2e1.json",
+      "scriptFingerprint": "fbcd24baa69cf166534ff3d648d7b816966d4f3d75ce8c6907a6678656e30b59",
+      "luaCount": 533,
+      "probeSha256": null,
+      "main": {
+        "file": "D30o-dsoVlsYfYL7TxL03VHh-cd12c3aa.lua",
+        "bytes": 2956,
+        "sha256": "9de2978cc3f7ac3fbb09313df2e2a46ae18f207b1bafc195c5806e4db9a0a786",
+        "packedSha256": "9de2978cc3f7ac3fbb09313df2e2a46ae18f207b1bafc195c5806e4db9a0a786",
+        "exactExpectedBytes": true
+      },
+      "manifest": {
+        "sha256": "b8b7f719490795f9e649453c44c491dc3aadb5e4bb9e6f8411cd0e4bd0325532",
+        "diskSha256": "b8b7f719490795f9e649453c44c491dc3aadb5e4bb9e6f8411cd0e4bd0325532",
+        "exactExpectedStructure": true,
+        "rawEqualsDisk": true
+      },
+      "identitySha256": "85f386f448984780d6a0f8f19acab126ff919ec6a0344256ea4ae54e7d44c265",
+      "profilesDisabled": true
+    },
+    {
+      "port": 4462,
+      "processId": 68072,
+      "qa": true,
+      "sourceDirectory": "D:\\Rino_Project\\maker\\Vox\\VoxelCraft\\.tmp\\outgame-cached-1792147547196",
+      "servedManifest": "manifest-c66ba2e1.json",
+      "scriptFingerprint": "fbcd24baa69cf166534ff3d648d7b816966d4f3d75ce8c6907a6678656e30b59",
+      "luaCount": 533,
+      "probeSha256": "96a5efa1a137412b7fec67aa8d4a4dfc50ace8f7e873601ad688f07aac65b94c",
+      "main": {
+        "file": "D30o-dsoVlsYfYL7TxL03VHh-cd12c3aa.lua",
+        "bytes": 106054,
+        "sha256": "fb79b58208b5ae4a4205cd4b08243b28cc193542705e835885439394b661d57b",
+        "packedSha256": "9de2978cc3f7ac3fbb09313df2e2a46ae18f207b1bafc195c5806e4db9a0a786",
+        "exactExpectedBytes": true
+      },
+      "manifest": {
+        "sha256": "ff9e6bd97ec3429c3cfc300d6e2fb37bed2f75c146bb587abf9c9724bc5dd57a",
+        "diskSha256": "b8b7f719490795f9e649453c44c491dc3aadb5e4bb9e6f8411cd0e4bd0325532",
+        "exactExpectedStructure": true,
+        "rawEqualsDisk": false
+      },
+      "identitySha256": "68e2815f35317d2e340786dcc89a615b73f4644581722d8f3f3c87db1a85a82e",
+      "profilesDisabled": true
+    }
+  ],
+  "boundary": "Actual HTTP identity/manifest/main payload bytes and exact QA probe suffix. No browser, GPU, engine startup, natural gameplay, decoded audio, runtime memory or performance acceptance."
+}

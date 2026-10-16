@@ -183,16 +183,21 @@ pool_limit=lua.eval('''function(f)
 end''')
 checks+=pool_limit(factory())
 
-legacy_code=subprocess.check_output(['git','show','HEAD:scripts/combat/CarUnit.lua'],text=True,encoding='utf-8')
+legacy_commit='9541dc59ef2f281cafa5126762a57550189e04dc'
+legacy_path='scripts/combat/CarUnit.lua'
+legacy_sha256='55de1c71f380feb803a0a053f56671708dbdf60e566a33346fd327ed73082712'
+legacy_bytes=subprocess.check_output(['git','show',legacy_commit+':'+legacy_path])
+assert hashlib.sha256(legacy_bytes).hexdigest()==legacy_sha256,'Pinned pre-fix CarUnit identity changed'
+legacy_code=legacy_bytes.decode('utf-8')
 lua.globals().LegacyCarSource=legacy_code
 legacy=lua.execute('''
-local Car=assert(load(LegacyCarSource,'@HEAD:scripts/combat/CarUnit.lua'))()
+local Car=assert(load(LegacyCarSource,'@pre-fix:scripts/combat/CarUnit.lua'))()
 local world={viewEvents={},RecordDamage=function()end}
 local unit=setmetatable({env=world},{__index=Car})
 unit:RecordDamage(1,nil,{partId=7,shield=true})
 return world.viewEvents[1]
 ''')
-check(legacy['partId'] is None and legacy['shield'] is None,'actual old HEAD drops flash event fields')
+check(legacy['partId'] is None and legacy['shield'] is None,'actual pinned pre-fix commit drops flash event fields')
 
 # Execute production draw module, recording the actual selected fonts and sizes.
 draw=LuaRuntime(unpack_returned_tuples=True)
@@ -234,7 +239,8 @@ report={'pass':True,'checks':checks,'sourceCases':len(reference['cases']),'sourc
     'production':{p:hashlib.sha256((ROOT/p).read_bytes()).hexdigest() for p in paths},
     'resources':{'assets/Shaders/BLGL/RestoreFlash.shader':hashlib.sha256((ROOT/'assets/Shaders/BLGL/RestoreFlash.shader').read_bytes()).hexdigest()},
     'restoreRegressionScenarios':10,
-    'reproducedBeforeFix':{'actualHeadCarUnitPartId':legacy['partId'],'actualHeadCarUnitShield':legacy['shield']},
+    'reproducedBeforeFix':{'commit':legacy_commit,'path':legacy_path,'sha256':legacy_sha256,
+        'partId':legacy['partId'],'shield':legacy['shield']},
     'boundary':'Actual complete frozen H5 TestDrive._hud/CombatFeedback.kill and actual Lua CarUnit.RecordDamage, CombatView.Consume/Update, PartHitFlash, RestoreFlash, CombatFeedbackDraw. Native nodes/materials/models, driving and draw primitives are adapters. New hits snapshot current articulated pose; each existing shell retains that snapshot until refreshed/expired, as source paintFlash. Repeated same-part hits reuse bounded cached shells/model wrappers/materials. Source color/80ms strict boundary/non-pop and event/lifecycle contracts checked. No GPU/build/native/browser launch. Shader compilation, visible depth/glow, natural controls/combat and mobile performance remain OPEN; this increment is not in manifest-e266.'}
 output=ROOT/'docs/migration/evidence/part-hit-flash-offline.json'
 output.write_text(json.dumps(report,indent=2)+'\n',encoding='utf-8')

@@ -1,4 +1,13 @@
 -- Frozen intro.css / introSortie.js composition; actual shared drive reticle.
+local MechReticle=require("ui.MechReticle")
+local UI=require("urhox-libs/UI")
+local DriveOverlay=require("ui.DriveOverlay")
+local ReticleState=require("ui.ReticleState")
+local ReticleGauges=require("ui.ReticleGauges")
+local ReticleWeapons=require("ui.ReticleWeapons")
+local IntroSortieKill=require("ui.IntroSortieKill")
+local IntroTypography=require("ui.IntroTypography")
+
 local D=require 'ui.SourceDraw'
 local nvgGlobalAlpha=require('ui.IntroOpacity').Set
 local Coord=require 'core.Coord'
@@ -20,24 +29,24 @@ local function Tokens(s)
 end
 M.Tokens=Tokens
 function M.New(session)
- local reticle=require('ui.MechReticle'){pointerEvents='none'};reticle.session=session
+ local reticle=MechReticle{pointerEvents='none'};reticle.session=session
  reticle.GetAbsoluteLayout=function()return {x=0,y=0,w=reticle.width or 1920,h=reticle.height or 1080}end
- local root=require('urhox-libs/UI').Panel{width='100%',height='100%',pointerEvents='none'}
- local overlay=require('ui.DriveOverlay').New(session,root,reticle)
+ local root=UI.Panel{width='100%',height='100%',pointerEvents='none'}
+ local overlay=DriveOverlay.New(session,root,reticle)
  overlay.layer.GetAbsoluteLayout=reticle.GetAbsoluteLayout
  session.openingOverlay=overlay
  return setmetatable({session=session,reticle=reticle,root=root,overlay=overlay},M)
 end
 function M:Update(dt)
  self.reticle.hit=math.max(0,(self.reticle.hit or 0)-dt)
- if self.session.combat.player.alive then require('ui.ReticleState').Update(self.reticle,dt) end
+ if self.session.combat.player.alive then ReticleState.Update(self.reticle,dt) end
  self.overlay:Update(dt);self.reticle.aimState=self.overlay.aimState
 end
 function M:Warm(vg,w,h)
- D.HudFont(vg);local layout=require('ui.ReticleState').Layout(w,h)
- require('ui.ReticleGauges').Render(vg,self.reticle,layout)
- require('ui.ReticleGauges').Compass(vg,self.reticle,layout)
- require('ui.ReticleWeapons').Render(vg,self.reticle,layout)
+ D.HudFont(vg);local layout=ReticleState.Layout(w,h)
+ ReticleGauges.Render(vg,self.reticle,layout)
+ ReticleGauges.Compass(vg,self.reticle,layout)
+ ReticleWeapons.Render(vg,self.reticle,layout)
  self.reticle:Center(vg,layout)
 end
 function M:Project(point,dy,w,h)
@@ -52,7 +61,7 @@ function M:Draw(vg,I,w,h,u)
  self.reticle.width=w;self.reticle.height=h
  self.overlay.layer:Render(vg)
  if s.controlling and s.step<5 then self.reticle:Render(vg) end
- if s.killAt then require('ui.IntroSortieKill').Draw(vg,w,h,u,I.time-s.killAt,s.mine) end
+ if s.killAt then IntroSortieKill.Draw(vg,w,h,u,I.time-s.killAt,s.mine) end
  if not s.controlling and s.step<5 then
   local bw,bh=52*u,8.5*u;local x,y=(w-bw)/2,h*.46-bh/2
   D.Rect(vg,x,y,bw,bh,{8,15,28,209});D.Rect(vg,x,y,bw,1,{122,216,255,128})
@@ -104,7 +113,7 @@ function M:Dispose()
 end
 function M.Stamp(vg,w,h,u,s)
  if not s.stamped then return end
- local typography=require 'ui.IntroTypography';typography.Begin(vg)
+ local typography=IntroTypography;typography.Begin(vg)
  local progress=math.min(1,math.max(0,s.elapsed-.9)/.26);local scale=2.4-1.4*progress
  local reason=(s.reason or '')..' · 维修费将从你的工资中扣除'
  local width=math.max(58*u,D.Width(vg,reason,2.2*u,'vox-title')+6.8*u);local height=22.6*u

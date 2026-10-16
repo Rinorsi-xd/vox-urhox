@@ -1,5 +1,7 @@
 -- October 14 source CSS uses VoxIndustrial for body text on every platform.
 -- System fonts are retained only for explicitly styled code and missing symbols.
+local BodyFontMetrics=require("core.BodyFontMetrics")
+
 local Collection=require 'core.SystemFontCollection'
 local M={}
 ---@class SourceFontPaths
@@ -28,7 +30,7 @@ function M.Resolve()
             paths.code=fonts..'consola.ttf';paths.codeAdvance=Collection.MonoAdvance(paths.code)
         end
     end
-    bodyFace=require('core.BodyFontMetrics').Load(paths.body)
+    bodyFace=BodyFontMetrics.Load(paths.body)
     if bodyFace then paths.bodyMetrics={ascent=bodyFace.ascent,descent=bodyFace.descent,fractional=bodyFace.fractional,bufferBytes=bodyFace.bufferBytes} end
     resolved=paths
     print('[SourceFonts] body='..paths.body..'; code='..paths.code)
@@ -46,7 +48,7 @@ function M.ResolveHelpSymbol()
         if fileSystem:FileExists(candidate) then path=candidate;source=true end
     end
     helpSymbol={path=path}
-    local metrics=require('core.BodyFontMetrics').Load(path)
+    local metrics=BodyFontMetrics.Load(path)
     if metrics then
         helpSymbol.ascent=source and metrics.winAscent or metrics.ascent
         helpSymbol.descent=source and metrics.winDescent or metrics.descent
@@ -64,7 +66,7 @@ function M.ResolveRepairSymbol()
         if fileSystem:FileExists(candidate) then path=candidate;source=true end
     end
     repairSymbol={path=path}
-    local metrics=require('core.BodyFontMetrics').Load(path)
+    local metrics=BodyFontMetrics.Load(path)
     if metrics then
         repairSymbol.ascent=source and metrics.winAscent or metrics.ascent
         repairSymbol.descent=source and metrics.winDescent or metrics.descent
@@ -86,7 +88,7 @@ function M.ResolveInlineCode()
         end
     end
     inlineCode={path=path}
-    local metrics=require('core.BodyFontMetrics').Load(path)
+    local metrics=BodyFontMetrics.Load(path)
     if metrics then
         inlineCode.ascent=metrics.ascent;inlineCode.descent=metrics.descent
         if sourceFace then

@@ -1,5 +1,8 @@
 -- Final October 14 new-ui-drive.css readouts. World-space reticle stays outside
 -- this scaled surface, while details, summary and entry use the H5 UI viewport.
+local Wheel=require("controls.Wheel")
+local SourceButtonMotion=require("ui.SourceButtonMotion")
+
 local UI=require 'urhox-libs/UI'
 local D=require 'ui.SourceDraw'
 local Rich=require 'ui.SourceRichText'
@@ -67,7 +70,7 @@ end
 function Panel:OnWheel(_,dy)
     -- PC consumes the same wheel once in TrialSession, also while unlocked.
     if not self.session.touch then return false end
-    return self:ScrollDetails(require('controls.Wheel').Pixels(dy))
+    return self:ScrollDetails(Wheel.Pixels(dy))
 end
 function Panel:Tick(dt,covered)
     if self.session.story then self.entryPending=false;self.entryTime=0;return end
@@ -175,7 +178,7 @@ function Panel:Render(vg)
     for _,l in ipairs(layouts) do ShadowParagraph(vg,l,x+(w-l.width)/2,cy);cy=cy+l.height+2 end
     if statusH>0 then cy=top+paddingY+statusH+summaryGap end
     local clock=self.session.hud and self.session.hud.vitals.clock or 0
-    local fade=not self.session.details and 1-require('ui.SourceButtonMotion').Ease(math.min(1,math.max(0,(clock-10)/.8)),'ease') or 1
+    local fade=not self.session.details and 1-SourceButtonMotion.Ease(math.min(1,math.max(0,(clock-10)/.8)),'ease') or 1
     nvgSave(vg);nvgGlobalAlpha(vg,fade)
     self.toggleRect=nil
     for i,r in ipairs(self.session.touch and {} or rows) do
@@ -192,7 +195,7 @@ function Panel:Render(vg)
     end
     nvgRestore(vg)
     if self.entryTime>0 then
-        local elapsed=3.6-self.entryTime;local ease=require('ui.SourceButtonMotion').Ease
+        local elapsed=3.6-self.entryTime;local ease=SourceButtonMotion.Ease
         local alpha=elapsed<3.6*.14 and ease(elapsed/(3.6*.14),'ease') or elapsed>3.6*.68 and 1-ease((elapsed-3.6*.68)/(3.6*.32),'ease') or 1
         nvgSave(vg);nvgGlobalAlpha(vg,math.max(0,alpha));local ey=g.compact and 58 or self.session.battle and math.max(172,g.h*.19) or 82
         D.Text(vg,self.session.map.name or '试车场',g.w/2,ey,g.compact and 22 or 30,D.white,'vox-title',NVG_ALIGN_CENTER,3,false,nil,entryShadows)

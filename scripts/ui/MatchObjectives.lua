@@ -1,4 +1,6 @@
 -- Frozen MatchSession._objectives and matchHud._marks/_cap.
+local BattleObjectives=require("combat.BattleObjectives")
+
 local D=require 'ui.SourceDraw'
 local Coord=require 'core.Coord'
 local M={}
@@ -28,7 +30,7 @@ function M.Data(session,w,h)
     if b.mode=='conquest' then
         for _,p in ipairs(b.objectives.points) do
             local st;for _,q in ipairs(r.points) do if q.id==p.id then st=q;break end end
-            if me.alive and require('combat.BattleObjectives').InPoint(me,p) then cap={id=p.id,v=st.v,owner=st.owner,contested=st.contested,count=st.count}
+            if me.alive and BattleObjectives.InPoint(me,p) then cap={id=p.id,v=st.v,owner=st.owner,contested=st.contested,count=st.count}
             else Put(p.pos,7,{id=p.id,v=st.v,owner=st.owner,contested=st.contested}) end
         end
     elseif b.mode=='escort' then

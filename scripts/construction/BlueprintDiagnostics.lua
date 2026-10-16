@@ -1,4 +1,8 @@
 -- Data-only source warnings. UI owns presentation, highlighting and focus.
+local BuildClearance=require("construction.BuildClearance")
+local Rotors=require("construction.Rotors")
+local TurretRange=require("construction.TurretRange")
+
 local Config=require 'Config'
 local PARTS=require('parts.Defs').PARTS
 local Rot=require 'core.Rotations'
@@ -79,13 +83,13 @@ function M.Compute(bp,tier)
             end
         end
     end
-    require('construction.BuildClearance').Diagnostics(bp,parts,Push)
-    local rotorModule=require 'construction.Rotors';local rotors=rotorModule.Inspect(bp,adj)
+    BuildClearance.Diagnostics(bp,parts,Push)
+    local rotorModule=Rotors;local rotors=rotorModule.Inspect(bp,adj)
     for _,id in ipairs(rotorModule.Keys(rotors)) do local info=rotors[id]
         if info.problem then Push('warn',info.problem,{id,table.unpack(info.blockers)})
         elseif info.range and not info.range.free then Push('warn','转轴上的东西转起来会碰到车身：'..rotorModule.RangeText(info.range),{id,table.unpack(info.range.blockers)}) end
     end
-    local turretModule=require 'construction.TurretRange'
+    local turretModule=TurretRange
     local turrets=turretModule.For(bp,rotorModule.Tree(rotors).owner)
     for _,p in ipairs(parts) do local range=turrets[p.id]
         if range and (range.stuck or not range.free) then

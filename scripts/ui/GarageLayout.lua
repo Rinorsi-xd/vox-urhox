@@ -1,3 +1,5 @@
+local HomeNewMenu=require("ui.HomeNewMenu")
+
 local M={}
 function M.Apply(s,w,h,safe)
     s.width=w;s.height=h;s.safe=safe or {};s.cardWidth=184;s.cardHeight=90
@@ -40,7 +42,7 @@ function M.Apply(s,w,h,safe)
     s.bayStrip:SetStyle({height=100,width=math.max(190,#(s.cards or {})*193-3),paddingTop=5,paddingLeft=3,gap=9})
     Place(s.page,0,s.navHeight,w,h-s.navHeight-bottom)
     if s.tab=='salvage' or s.tab=='story' or s.tab=='workshop' or s.tab=='battle' or s.tab=='shop' or s.tab=='livery' then Place(s.page,0,0,w,h-bottom) end
-    if s.menu then Place(s.menu,math.max(left,math.min(w-right-264,222+stripWidth-264)),stripY-12-require('ui.HomeNewMenu').height,264,require('ui.HomeNewMenu').height) end
+    if s.menu then Place(s.menu,math.max(left,math.min(w-right-264,222+stripWidth-264)),stripY-12-HomeNewMenu.height,264,HomeNewMenu.height) end
     M.Visibility(s)
 end
 function M.Visibility(s)

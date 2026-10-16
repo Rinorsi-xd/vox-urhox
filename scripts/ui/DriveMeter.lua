@@ -1,10 +1,12 @@
+local DriveReadout=require("ui.DriveReadout")
+
 local Panel=require 'urhox-libs/UI/Widgets/Panel'
 local D=require 'ui.SourceDraw'
 local Draw=require 'ui.DriveDraw'
 local Rich=require 'ui.SourceRichText'
 local Meter=Panel:Extend('VoxDriveMeter')
 function Meter:Refresh()
-    local Readout=require 'ui.DriveReadout';self.speedValue=Readout.Speed(self.session.vehicle)
+    local Readout=DriveReadout;self.speedValue=Readout.Speed(self.session.vehicle)
     self.speedText=string.format('%.0f',self.speedValue);self.motionText=Readout.Motion(self.session.vehicle)
 end
 function Meter:Render(vg)

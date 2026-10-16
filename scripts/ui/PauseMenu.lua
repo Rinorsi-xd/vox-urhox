@@ -1,19 +1,34 @@
+local SourceDraw=require("ui.SourceDraw")
+local SourceModal=require("ui.SourceModal")
+local TouchMode=require("controls.TouchMode")
+local MatchActions=require("combat.MatchActions")
+local GarageDialogs=require("ui.GarageDialogs")
+local Matchmaker=require("combat.Matchmaker")
+local GraphicsPanel=require("ui.GraphicsPanel")
+local TouchSettings=require("ui.TouchSettings")
+-- Load optional/cyclic dependencies once, without changing first-use order.
+local DeferredModules=setmetatable({},{__index=function(modules,name)
+    local module=require(name)
+    rawset(modules,name,module)
+    return module
+end})
+
 local Button=require 'ui.SourceButton'
 local Host=require 'ui.DialogHost'
 local UI=require 'urhox-libs/UI'
 local M={}
 local Heading=UI.Panel:Extend('VoxPauseHeading')
 function Heading:Render(vg)
-    require('ui.SourceDraw').Begin(vg);local r=self:GetAbsoluteLayout();local k=self.props.sourceScale
+    SourceDraw.Begin(vg);local r=self:GetAbsoluteLayout();local k=self.props.sourceScale
     nvgSave(vg);nvgScale(vg,k,k)
-    require('ui.SourceModal').DrawHeading(vg,r.x/k,r.y/k,r.w/k,'暂停',nil,self.props.compact)
+    SourceModal.DrawHeading(vg,r.x/k,r.y/k,r.w/k,'暂停',nil,self.props.compact)
     nvgRestore(vg)
 end
 function M.Open(owner,options)
     options=options or {}
     local build=owner.editor~=nil
     local inGame=options.inGame==true
-    local touch=require('controls.TouchMode').Enabled()
+    local touch=TouchMode.Enabled()
     local w,h=graphics:GetWidth(),graphics:GetHeight()
     local compact=touch and math.min(w,h)/math.max(1,graphics:GetDPR())<=600
     local refH=compact and 600 or 1080
@@ -33,29 +48,29 @@ function M.Open(owner,options)
     if inGame then
         Add('return','返回车库','hangar','结束当前驾驶并返回',function()
             Host.Close(owner)
-            if owner.battle then require('combat.MatchActions').ConfirmLeave(owner.battle) else owner.wantsReturn=true end
+            if owner.battle then MatchActions.ConfirmLeave(owner.battle) else owner.wantsReturn=true end
         end)
     end
     if build then
         Add('save','保存','save',touch and '存进车位' or '存进车位（Ctrl+S）',function() owner:SaveSlot() end)
         Add('home','回机库','hangar','有车位的车自动保存',function() Host.Close(owner);owner.app:ExitBuild() end)
     end
-    if not touch then Add('help','操作说明','help','建造、视角、试车的全部按键（H）',function() require('ui.GarageDialogs').Help(owner) end) end
+    if not touch then Add('help','操作说明','help','建造、视角、试车的全部按键（H）',function() GarageDialogs.Help(owner) end) end
     if owner.app.tutorial and not inGame then Add('tutorial','新手引导','play','让诺诺从头再带一遍',function()
         Host.Close(owner);local app=owner.app
         if app.build then app:ExitBuild() end
-        local home=require('ui.GarageHud').GetState();if home then home.SetTab('hangar') end
+        local home=DeferredModules['ui.GarageHud'].GetState();if home then home.SetTab('hangar') end
         app.tutorial:Start()
     end) end
     Add('modeIntro','模式介绍','play','下一局重新播放对战开场的地图和规则介绍',function()
-        local ok,err=require('combat.Matchmaker').ResetIntro(owner.app.store)
+        local ok,err=Matchmaker.ResetIntro(owner.app.store)
         Host.Close(owner)
         Host.Notify(owner,ok and '下一局对战会重新播放完整的模式介绍' or '模式介绍设置保存失败：'..tostring(err),ok and 'ok' or 'bad')
     end)
-    local childOptions=options.unified and {onDone=function() require('ui.GameSettings').Open(owner) end} or nil
-    Add('graphics','画面设置','gear','画质、泛光、曝光、环境光遮蔽',function() require('ui.GraphicsPanel').Open(owner,childOptions) end)
-    Add('audio','声音与音乐','sliders','音乐、音效音量与场景曲目',function() require('ui.AudioSettings').Open(owner,childOptions) end)
-    if touch then Add('touch','触屏操作','sliders','灵敏度、按钮大小、瞄准辅助、建造方式',function() require('ui.TouchSettings').Open(owner,childOptions) end)
+    local childOptions=options.unified and {onDone=function() DeferredModules['ui.GameSettings'].Open(owner) end} or nil
+    Add('graphics','画面设置','gear','画质、泛光、曝光、环境光遮蔽',function() GraphicsPanel.Open(owner,childOptions) end)
+    Add('audio','声音与音乐','sliders','音乐、音效音量与场景曲目',function() DeferredModules['ui.AudioSettings'].Open(owner,childOptions) end)
+    if touch then Add('touch','触屏操作','sliders','灵敏度、按钮大小、瞄准辅助、建造方式',function() TouchSettings.Open(owner,childOptions) end)
     else Add('keys','键位设置','sliders','开发中',function() end,true) end
     local count=0;for _ in pairs(buttons) do count=count+1 end
     local natural=((compact and 82 or 118)+count*66+math.max(0,count-1)*6)*k

@@ -1,4 +1,6 @@
 -- PC H5 post chain. The source scene is rendered once; all later passes are quads.
+local AdaptiveResolution=require("render.AdaptiveResolution")
+
 local Graph=require 'render.FilterGraph'
 local Viewports=require 'render.WindowViewports'
 local M={};M.__index=M
@@ -38,7 +40,7 @@ end
 function M:Init(scene,camera,data,options)
     self.scene=scene;self.camera=camera;self.data=data;self.zone=scene:GetComponent('Zone',true)
     self.fixedResolution=options and options.fixedResolution or false
-    self.adaptive=require('render.AdaptiveResolution').New(not self.fixedResolution)
+    self.adaptive=AdaptiveResolution.New(not self.fixedResolution)
     self.source=Viewport:new(scene,camera);self.source:SetRenderPath(renderer:GetDefaultRenderPath():Clone())
     self:Resize(self:RenderSize());self:ConfigureSource()
 end

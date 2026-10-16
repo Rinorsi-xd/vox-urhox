@@ -1,4 +1,9 @@
 -- One capture of the existing scene. No copied world, live camera or per-frame RT.
+local ResourceData=require("core.ResourceData")
+local ResourceGate=require("app.ResourceGate")
+local Readback=require("render.Readback")
+local RenderTargetLifetime=require("render.RenderTargetLifetime")
+
 ---@class MatchMapShot
 ---@field size integer
 ---@field half integer
@@ -76,7 +81,7 @@ local function Flat(self,reason)
     self.result=texture;self.ready=true;self.captured=true;self.progress=1;self.flat=true
 end
 function M:LoadBaked()
-    local meta=require('core.ResourceData').Read('Crater/Minimap.json')
+    local meta=ResourceData.Read('Crater/Minimap.json')
     assert(meta.version==1 and meta.revision=='crater-static-v1' and meta.scene=='Scenes/Crater.xml'
         and meta.size==1024 and meta.half==320 and meta.image=='Crater/Minimap.bin','Stale minimap contract')
     for path,expected in pairs(meta.runtimeChecks)do
@@ -102,7 +107,7 @@ function M.New(scene,map)
     local self=setmetatable({scene=scene,half=320,size=1024},M)
     if Baked(scene,map) then
         self.bakePending=true;self.bakeStarted=Time:GetSystemTime()
-        self.bakeGate=require('app.ResourceGate').New()
+        self.bakeGate=ResourceGate.New()
         local started,message=pcall(function()
             self.bakeGate:Start({'Crater/Minimap.json','Crater/Minimap.bin'},function(ok,failure)
                 if self.disposed or not self.bakePending then return end
@@ -115,7 +120,7 @@ function M.New(scene,map)
 end
 function M:Capture()
     -- 现场截图要把渲染目标同步读回 CPU，WebGPU 不支持
-    if not require('render.Readback').Sync() then Flat(self,'no synchronous readback on '..tostring(graphics.apiName));return end
+    if not Readback.Sync() then Flat(self,'no synchronous readback on '..tostring(graphics.apiName));return end
     local scene=self.scene
     active=self;M.Initialize()
     local ok,err=pcall(function()
@@ -196,7 +201,7 @@ function M:Update()
     if not self.worker then
         local image=self.texture:GetImage()
         self.texture:GetRenderSurface():SetNumViewports(0);self.viewport=nil
-        require('render.RenderTargetLifetime').Retire(self.texture);self.texture=nil
+        RenderTargetLifetime.Retire(self.texture);self.texture=nil
         self.node:Dispose();self.node=nil;self.camera=nil;self.scene=nil
         if active==self then active=nil end
         if not image then Flat(self,'render target readback failed');return end
@@ -213,7 +218,7 @@ function M:Dispose()
     if self.disposed then return end;self.disposed=true
     CancelBake(self);ReleaseUpload(self)
     Restore(self);if active==self then active=nil end
-    if self.texture then self.texture:GetRenderSurface():SetNumViewports(0);require('render.RenderTargetLifetime').Retire(self.texture)end
+    if self.texture then self.texture:GetRenderSurface():SetNumViewports(0);RenderTargetLifetime.Retire(self.texture)end
     if self.node then self.node:Dispose()end
     if self.image then self.image:Dispose()end
     -- The receiving minimap owns the processed texture after Take().

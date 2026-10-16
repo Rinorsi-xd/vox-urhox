@@ -1,3 +1,6 @@
+local Config=require("Config")
+local UI=require("urhox-libs/UI/Core/UI")
+
 local D=require 'ui.SourceDraw'
 local Panel=require('urhox-libs/UI/Widgets/Panel'):Extend('VoxLiveryPanel')
 local Data=require 'construction.LiveryData'
@@ -54,7 +57,7 @@ function Picker:Render(vg)
     local r=self:GetAbsoluteLayout();local hit=self:GetAbsoluteLayoutForHitTest();self.inputBounds_={x=hit.x,y=hit.y,w=hit.w,h=hit.h}
     local d=self.owner.session:List()[self.owner.session.sel];local color=d and d.c and d.c[self.channel];local custom=true
     if color and not self.isOpen_ then self:SetValue({r=(color>>16)&255,g=(color>>8)&255,b=color&255}) end
-    for _,p in ipairs(require('Config').PALETTE) do if p.hex==color then custom=false;break end end
+    for _,p in ipairs(Config.PALETTE) do if p.hex==color then custom=false;break end end
     if custom and color then D.Rect(vg,r.x,r.y,r.w,r.h,{(color>>16)&255,(color>>8)&255,color&255,255})
     else
         self:RenderBackgroundImage(vg,'Livery/custom-color.png',r,'contain',nil)
@@ -63,6 +66,6 @@ function Picker:Render(vg)
     if custom and color then
         for _,edge in ipairs({{2,D.ink,2},{3.5,D.orange,1.5}}) do nvgBeginPath(vg);nvgRect(vg,r.x-edge[1],r.y-edge[1],r.w+edge[1]*2,r.h+edge[1]*2);nvgStrokeWidth(vg,edge[3]);nvgStrokeColor(vg,D.Color(edge[2]));nvgStroke(vg) end
     end
-    if self.isOpen_ then require('urhox-libs/UI/Core/UI').QueueOverlay(function(context) self:RenderPopup(context) end) end
+    if self.isOpen_ then UI.QueueOverlay(function(context) self:RenderPopup(context) end) end
 end
 return {Panel=Panel,Hint=Hint,Picker=Picker}

@@ -1,17 +1,24 @@
 -- Frozen warehouse geometry and lighting; owns only its optional scene group.
+local WarehouseMotion=require("scene.WarehouseMotion")
+local ResourceGate=require("app.ResourceGate")
+local WarehouseEffects=require("render.WarehouseEffects")
+local PreviewRoom=require("controls.PreviewRoom")
+local HangarAtmosphere=require("scene.HangarAtmosphere")
+local ResourceData=require("core.ResourceData")
+
 local Data=require('core.ResourceData').Read('Warehouse/Manifest.json')
 local M={};M.__index=M
 local function V(p) return Vector3(-p[1],p[2],p[3]) end
-function M.New(app) local self=setmetatable({},M);self:init(app);return self end
-function M:init(app)
+function M.New(app,options) local self=setmetatable({},M);self:init(app,options);return self end
+function M:init(app,options)
     self.app=app;self.root=app.scene:CreateChild('SalvageWarehouse');self.root.enabled=false
-    self.cursor=1;self.ready=false;self.materials={};self.disposed=false
-    self.batches={};self.motion=require('scene.WarehouseMotion').New(self.root,Data.motion)
-    self.gate=require('app.ResourceGate').New()
+    self.cursor=1;self.ready=false;self.materials={};self.disposed=false;self.deferActivation=options and options.deferActivation
+    self.batches={};self.motion=WarehouseMotion.New(self.root,Data.motion)
+    self.gate=ResourceGate.New()
     local paths={'Warehouse/Effects.json','Shaders/BLGL/Warehouse/Dust.shader','Shaders/BLGL/Warehouse/Holo.shader','Shaders/BLGL/Warehouse/Surface.shader','Shaders/BLGL/Warehouse/Decal.shader','Shaders/BLGL/Hangar/Deck.shader','Shaders/BLGL/Hangar/Beam.shader'}
     for _,m in ipairs(Data.models) do paths[#paths+1]=m.model end
     for _,m in ipairs(Data.materials) do if m.map then paths[#paths+1]='Warehouse/texture-'..m.map..'.png' end end
-    self.gate:Start(paths,function(ok,message) if not self.disposed then self.downloaded=ok;if not ok then app.toasts:Push(message,'bad') end end end)
+    self.gate:Start(paths,function(ok,message) if not self.disposed then self.downloaded=ok;self.failure=not ok and message or nil;if not ok then app.toasts:Push(message,'bad') end end end)
 end
 function M:Material(index)
     if self.materials[index] then return self.materials[index] end
@@ -36,7 +43,7 @@ function M:Material(index)
 end
 function M:Activate()
     self.motion:Update(self.app.hangar.time)
-    self.effects=require('render.WarehouseEffects').New(self.root,self.effectData,self.materials)
+    self.effects=WarehouseEffects.New(self.root,self.effectData,self.materials)
     self.effects:Update(self.app.hangar.time)
     for _,d in ipairs(Data.lights) do if d.type~='HemisphereLight' then
         local node=self.root:CreateChild(d.type);node.position=V(d.position)
@@ -55,7 +62,7 @@ function M:Activate()
     for _,light in ipairs(self.app.scene:GetComponents('Light',true)) do if light.node.parent~=self.root then self.oldLights[#self.oldLights+1]={light=light,enabled=light.enabled};light.enabled=false end end
     self.previousLimit=self.app.camera.roomLimit;self.app.camera.roomLimit=Data.limit
     self.previousSafety=self.app.camera.safety
-    self.app.camera.safety=require('controls.PreviewRoom').New(self.app.scene,self.root,Data.limit)
+    self.app.camera.safety=PreviewRoom.New(self.app.scene,self.root,Data.limit)
     local hall=self.app.hangar;self.previousPad=hall.padMat;hall.padMat=self.deck
     hall.reflMats[#hall.reflMats+1]=self.deck;hall.reflFilter:Bind(self.deck)
     for index,d in ipairs(Data.models) do if Data.materials[d.material+1].name=='WarehouseDeck' then self.batches[index]:GetComponent('StaticModel').viewMask=2 end end
@@ -68,12 +75,12 @@ function M:Update()
         for _,m in pairs(self.materials) do m:SetShaderParameter('hangar_time',Variant(self.app.hangar.time)) end
         self.effects:Update(self.app.hangar.time)
         self.motion:Update(self.app.hangar.time)
-        require('scene.HangarAtmosphere').Update(self.app.hangar,self.app.camera.node,self.app.camera.camera,self.app.hangar.time)
+        HangarAtmosphere.Update(self.app.hangar,self.app.camera.node,self.app.camera.camera,self.app.hangar.time)
         return
     end
-    self.effectData=self.effectData or require('core.ResourceData').Read('Warehouse/Effects.json')
+    self.effectData=self.effectData or ResourceData.Read('Warehouse/Effects.json')
     for _=1,4 do
-        local index=self.cursor;local d=Data.models[index];if not d then self:Activate();break end
+        local index=self.cursor;local d=Data.models[index];if not d then self.built=true;if not self.deferActivation then self:Activate() end;break end
         local parent=d.motion and assert(self.motion.nodes[d.motion]) or self.root
         local node=parent:CreateChild('Batch'..index);local mesh=node:CreateComponent('StaticModel');self.batches[index]=node
         mesh.model=assert(cache:GetResource('Model',d.model));mesh.material=self:Material(d.material+1);mesh.castShadows=d.shadow

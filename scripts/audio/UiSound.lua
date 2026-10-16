@@ -1,4 +1,6 @@
 -- Original UI cues; input never downloads or decodes a sound.
+local ResourceGate=require("app.ResourceGate")
+
 local UI=require 'urhox-libs/UI'
 local Levels=require 'audio.AudioLevels'
 local Data=require('core.ResourceData').Read('UI/Sounds.json')
@@ -24,7 +26,7 @@ end
 function M.Start()
     M.Dispose()
     local s={scene=Scene(),sounds={},voices={},last={},counts={},order=0,focused=true,requests=0,errors={},preparation={},next=1,decoding={},decodeCursor=1}
-    current=s;s.root=s.scene:CreateChild('UiSound');s.gate=require('app.ResourceGate').New()
+    current=s;s.root=s.scene:CreateChild('UiSound');s.gate=ResourceGate.New()
     for i=1,10 do
         local source=s.root:CreateComponent('SoundSource');source:SetSoundType('VoxUI')
         s.voices[i]={source=source,order=0}

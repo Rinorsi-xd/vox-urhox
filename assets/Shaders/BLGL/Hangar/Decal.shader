@@ -2,7 +2,7 @@ shader_type spatial;
 #include "../lib/PlanarClip.shaderinc"
 render_mode shading_model_pbr, blend_mix, depth_draw_never, cull_back;
 #include "../lib/VoxHemi.shaderinc"
-uniform sampler2D albedo_map : source_color, filter_linear_mipmap_anisotropic, repeat_disable;
+uniform sampler2D albedo_map : source_color, filter_linear_mipmap, repeat_disable;
 uniform float opacity=1.0;
 #include "Canvas.shaderinc"
 void fragment() {

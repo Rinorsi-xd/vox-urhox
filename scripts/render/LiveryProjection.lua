@@ -1,4 +1,7 @@
 -- Port of the frozen H5 projectDecal: UV/depth clipping and convex-edge folding.
+local JoinedSurface=require("render.JoinedSurface")
+local PartAssets=require("parts.PartAssets")
+
 local Rot=require 'core.Rotations'
 local Models=require 'render.LiveryModel'
 local M={}
@@ -32,7 +35,7 @@ local function Clip(pts,axis,sign,lim)
 end
 function M.Project(d,s,parts)
     local f=M.Frame(d);local w,h,depth=M.Size(d,s);local out={}
-    local Surface=require 'render.JoinedSurface'
+    local Surface=JoinedSurface
     local _,_,joined=Surface.Build(parts,true)
     for _,p in ipairs(parts) do
         local layers={}
@@ -44,7 +47,7 @@ function M.Project(d,s,parts)
             end
             layers[1]={{slot=Surface.Slot(p),triangles=triangles,worldAxes=true}}
         else
-            for _,layer in ipairs(require('parts.PartAssets').Get(p.type,p.rot).whole.layers) do layers[#layers+1]=Models.Read(layer) end
+            for _,layer in ipairs(PartAssets.Get(p.type,p.rot).whole.layers) do layers[#layers+1]=Models.Read(layer) end
         end
         for _,layer in ipairs(layers) do for _,mesh in ipairs(layer) do if not Models.Skip(mesh.slot) then
             for _,tri in ipairs(mesh.triangles) do

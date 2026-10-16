@@ -1,10 +1,17 @@
 -- storyHud.css composition, original copy and portraits, UI-owned VG frame.
+local Coord=require("core.Coord")
+local MissionBanner=require("ui.MissionBanner")
+local MissionResult=require("ui.MissionResult")
+local MissionChoice=require("ui.MissionChoice")
+
 local UI=require 'urhox-libs/UI'
 local D=require 'ui.SourceDraw'
 local F=require 'ui.MissionFrame'
 local Paragraph=require 'ui.SourceParagraph'
 local Comms=require 'ui.CommsCard'
+local CommsLayout=require 'ui.CommsLayout'
 local Markers=require 'story.MarkerRules'
+local Prompt=require 'ui.MissionPrompt'
 local Panel=UI.Panel:Extend('VoxMissionHud')
 local M={}
 local cyan={70,200,255,255};local orange={255,106,19,255};local white={244,245,247,255};local muted={154,163,173,255}
@@ -17,7 +24,7 @@ local function Frame(vg,x,y,w,h)
     F.Draw(vg,x,y,w,h,12,cyan)
 end
 function Panel:Project(target,lift,w,h)
-    local p=require('core.Coord').Vec(target[1],target[2]+lift,target[3]);local camera=self.session.camera:GetCamera()
+    local p=Coord.Vec(target[1],target[2]+lift,target[3]);local camera=self.session.camera:GetCamera()
     local uv=camera:WorldToScreenPoint(p);local depth=camera.node:WorldToLocal(p).z
     return Markers.Project(uv.x*2-1,1-uv.y*2,depth<0 or depth>camera.farClip,w,h)
 end
@@ -78,8 +85,11 @@ function Panel:Render(vg)
     end
     local card=mission.voice.card
     if card then
+        local compact=CommsLayout.Compact(s.touch,graphics:GetWidth(),graphics:GetHeight(),graphics:GetDPR())
+        local k=CommsLayout.Scale(w,h,compact)
         local height=Comms.Height(vg,card,646)
-        Comms.Draw(vg,card,20,h-(cinematic and h*.09+14 or 64)-height,646,height,1,mission.voice.time)
+        local bottom=cinematic and h*.09+14*k or 64*k
+        Comms.Draw(vg,card,20*k,h-bottom-height*k,646,height,k,mission.voice.time)
     end
     local intel=mission.intelCard
     if intel and r.time<intel.untilAt then
@@ -89,29 +99,15 @@ function Panel:Render(vg)
         Text(vg,intel.item.name,x+20,y+62,24);Text(vg,'来源 · '..intel.item.sub,x+20,y+100,13,cyan)
         self.intel:Draw(vg,intel.item.text,x+20,y+128,380,white)
     end
-    if r.inside and step and step.kind=='install' then local x,y=w/2,h*.63
-        nvgBeginPath(vg);nvgCircle(vg,x,y+42,34);nvgStrokeColor(vg,nvgRGBA(255,255,255,38));nvgStrokeWidth(vg,5);nvgStroke(vg)
-        nvgBeginPath(vg);nvgArc(vg,x,y+42,34,-math.pi/2,-math.pi/2+math.pi*2*math.min(1,r.install/2.4),NVG_CW);nvgStrokeColor(vg,D.Color(orange));nvgStroke(vg)
-        Text(vg,s.touch and '安装' or 'G',x,y+27,20,white,NVG_ALIGN_CENTER)
-        Text(vg,r.blocked and '先停稳' or '按住安装采集器',x,y+90,20,white,NVG_ALIGN_CENTER)
-    end
-    if r.inside and step and step.kind=='capture' then local x,y=w/2,h*.63;local scrub=r.cap.phase=='scrub'
-        D.Rect(vg,x-150,y,300,8,{255,255,255,38});D.Rect(vg,x-150,y,300*math.min(1,r.progress),8,r.blocked and {255,59,70,255} or cyan)
-        Text(vg,scrub and (s.touch and '按住清理涂鸦' or '按住 G 擦掉涂鸦') or r.blocked and '圈里还有海盗' or '正在夺回采集器…',x,y+18,20,white,NVG_ALIGN_CENTER)
-        Text(vg,scrub and '「狐狐到此一游」——清理费从工资里扣' or r.blocked and '先清掉圈附近的 '..r.cap.contested..' 辆' or '待在圈里别出去',x,y+48,15,muted,NVG_ALIGN_CENTER)
-    end
-    if not mission.player.alive then
-        Text(vg,'信号丢失 · SIGNAL LOST',w/2,h*.34,18,{255,59,70,255},NVG_ALIGN_CENTER)
-        Text(vg,'战车损毁',w/2,h*.34+36,54,white,NVG_ALIGN_CENTER);Text(vg,string.format('%.1f 秒后从检查点重新空投',r.respawnLeft or 3),w/2,h*.34+108,20,muted,NVG_ALIGN_CENTER)
-    end
-    require('ui.MissionBanner').Draw(vg,mission.banner,r.time,mission.level.no,w,h)
+    self.prompt=self.prompt or Prompt.New();self.prompt:Render(vg,r,s.touch,mission.player.alive,w,h)
+    MissionBanner.Draw(vg,mission.banner,r.time,mission.level.no,w,h)
     nvgRestore(vg)
 end
 function M.Attach(session,root)
     local layer=Panel{position='absolute',width='100%',height='100%',pointerEvents='none'};layer.session=session
     layer.hint=Paragraph.New(13,19);layer.intel=Paragraph.New(15,24);root:AddChild(layer)
-    local state=require('ui.MissionResult').Attach(session,root);state.layer=layer
-    local update=state.Update;local choice=require('ui.MissionChoice').Attach(session,root)
+    local state=MissionResult.Attach(session,root);state.layer=layer
+    local update=state.Update;local choice=MissionChoice.Attach(session,root)
     state.Update=function(dt) update(dt);choice() end;return state
 end
 return M

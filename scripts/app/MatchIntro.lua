@@ -1,4 +1,8 @@
 -- Authored shots and timings from frozen three/src/battle/matchIntro.js.
+local Matchmaker=require("combat.Matchmaker")
+local StoryComms=require("audio.StoryComms")
+local MatchIntro=require("ui.MatchIntro")
+
 local UI=require 'urhox-libs/UI'
 local Coord=require 'core.Coord'
 local Levels=require 'audio.AudioLevels'
@@ -8,7 +12,7 @@ local function Shot(duration,fov,label,from,look,to,toLook,say,vo,face)
 end
 function M.New(session)
     local self=setmetatable({},M);self.session=session;self.time=0;self.index=0;self.localTime=0;self.done=false
-    local battle=session.battle;local world=session.world;local maker=require 'combat.Matchmaker'
+    local battle=session.battle;local world=session.world;local maker=Matchmaker
     self.full=not maker.IntroSeen(session.app.store,session.map.battleMode);self.shots={}
     if self.full then
         local hall=world.layout.nav.nodes.iC1[2]
@@ -49,12 +53,12 @@ function M.New(session)
         shot.team=team;self.shots[#self.shots+1]=shot
     end
     self.root=session.scene:CreateChild('MatchIntroAudio');self.voice=self.root:CreateComponent('SoundSource');self.voice:SetSoundType('VoxMatchVoice')
-    self.comms=require('audio.StoryComms').New(session.scene,{voices={}},true)
+    self.comms=StoryComms.New(session.scene,{voices={}},true)
     for _,shot in ipairs(self.shots) do
         if shot.vo then local sound=cache:GetResource('Sound',string.format('Sounds/Match/m%02d.wav',shot.vo));shot.voiceLength=sound.length;shot.dur=math.max(shot.dur,sound.length+1.1) end
     end
     session:Pause();session.hud.root:SetVisible(false)
-    self.page=require('ui.MatchIntro').New(self);UI.RegisterGlobalComponent('vox-match-intro',self.page);UI.PushOverlay(self.page)
+    self.page=MatchIntro.New(self);UI.RegisterGlobalComponent('vox-match-intro',self.page);UI.PushOverlay(self.page)
     self:Update(0);return self
 end
 function M:Update(dt)
@@ -86,7 +90,7 @@ function M:Camera()
 end
 function M:Finish()
     if self.done then return end;self.done=true
-    require('combat.Matchmaker').MarkIntro(self.session.app.store,self.session.map.battleMode)
+    Matchmaker.MarkIntro(self.session.app.store,self.session.map.battleMode)
     self:Dispose();self.session.hud.root:SetVisible(true);self.session.camera:GetCamera().fov=48
     if self.session.touch then self.session:Resume() end
 end

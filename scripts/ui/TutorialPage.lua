@@ -1,4 +1,7 @@
 -- Source tutorial.css and NonoComms composition in the UI-owned VG frame.
+local GarageHud=require("ui.GarageHud")
+local TouchMode=require("controls.TouchMode")
+
 local UI=require 'urhox-libs/UI'
 local D=require 'ui.SourceDraw'
 local Comms=require 'ui.CommsCard'
@@ -39,7 +42,7 @@ end
 function Page:Close() self:CancelInput();UI.UnregisterGlobalComponent('vox-tutorial') end
 function Page:Update(dt) self.owner:Update(dt) end
 function Page:Target()
-    local a=self.owner.app;local h=require('ui.GarageHud').GetState();local b=a.build
+    local a=self.owner.app;local h=GarageHud.GetState();local b=a.build
     local id=self.owner.rules:StepSpec().id;local widgets={}
     if h then
         if id=='car' then widgets={h.info}
@@ -94,7 +97,7 @@ end
 function Page:Render(vg)
     local t=self.owner;if not t.visible then return end
     D.Begin(vg);local w,h=UI.GetViewportSize();local s=t.rules:StepSpec()
-    local touch=require('controls.TouchMode').Enabled();local k=touch and math.max(.65,math.min(1,h/760)) or math.min(1,w/740)
+    local touch=TouchMode.Enabled();local k=touch and math.max(.65,math.min(1,h/760)) or math.min(1,w/740)
     local cw=660*k;local hint=(t:Hint() or ''):gsub('<[^>]+>','')
     local lines=t:Lines();local line=lines[t.line]
     local card=t.voice and t.voice.card or {who=line[1],text=line[2],face=line[3],age=t.lineAge or 0,typing=t.typing or utf8.len(line[2])*.032}

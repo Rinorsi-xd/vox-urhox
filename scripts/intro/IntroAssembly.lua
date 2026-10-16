@@ -1,4 +1,6 @@
 -- Reveal already prepared original hero parts in the authored montage order.
+local Config=require("Config")
+
 local M={};M.__index=M
 function M.New(view,bp)
  local self=setmetatable({},M);self:init(view,bp);return self
@@ -7,7 +9,7 @@ function M:init(view,bp)
  self.view=view;self.parts=bp:List();self.index=0;self.drops={};self.homes={};self.scales={};self.axes={};self.flashes={}
  self.material=Material:new();assert(self.material:SetSurfaceShader('Intro/Shaders/BLGL/AssemblyFlash.shader'))
  self.material.depthBias=BiasParameters(-.00004,-1);self.material.renderOrder=130
- self.color=require('Config').HexLinear(0x3fe6ff)
+ self.color=Config.HexLinear(0x3fe6ff)
  table.sort(self.parts,function(a,b)return (a.pos[2]-b.pos[2])*4+(math.abs(a.pos[1])+math.abs(a.pos[3])-math.abs(b.pos[1])-math.abs(b.pos[3]))*.3<0 end)
  for _,part in ipairs(self.parts) do
   local vis=assert(view.visuals[part.id],'Original montage part was not prepared')

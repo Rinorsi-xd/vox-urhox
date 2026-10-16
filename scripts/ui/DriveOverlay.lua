@@ -1,13 +1,20 @@
+local DriveFeedback=require("ui.DriveFeedback")
+local CombatFeedbackMotion=require("ui.CombatFeedbackMotion")
+local ReticleState=require("ui.ReticleState")
+local ReticleTarget=require("ui.ReticleTarget")
+local MatchFeedback=require("ui.MatchFeedback")
+
 local UI=require 'urhox-libs/UI'
 local Coord=require 'core.Coord'
 local Math=require 'core.Math3'
 local Marks=require 'ui.UnitMarkState'
+local PlayerDamage=require 'ui.PlayerDamageFeedback'
 local M={};M.__index=M
 function M.New(session,root,vitals)
     local self=setmetatable({session=session,pops={},tags={},index=0,vitals=vitals},M)
-    self.layer=require('ui.DriveFeedback'){position='absolute',width='100%',height='100%',pointerEvents='none'};self.layer.owner=self;root:AddChild(self.layer)
+    self.layer=DriveFeedback{position='absolute',width='100%',height='100%',pointerEvents='none'};self.layer.owner=self;root:AddChild(self.layer)
     self.aim={visible=false}
-    self.feedback=require('ui.CombatFeedbackMotion').New()
+    self.feedback=CombatFeedbackMotion.New()
     self.scoreTick=function() if session.feedbackAudio then session.feedbackAudio:ScoreTick() end end
     self.partCounts=setmetatable({},{__mode='k'})
     self.markGhosts=Marks.New()
@@ -76,7 +83,7 @@ function M:Update(dt)
             if s.feedbackAudio and not (killed and p.seenKilled~=p.killed and target.spec) then s.feedbackAudio:Hit(killed and 'kill' or broken and 'break' or 'hit') end
             if killed and p.seenKilled~=p.killed and target.spec then
                 local x,y=self:Project(target:Position());local w,h=UI.GetViewportSize()
-                self.feedback:Kill(target.name,target.kill=='核心被摧毁',x,y,require('ui.ReticleState').Layout(w,h))
+                self.feedback:Kill(target.name,target.kill=='核心被摧毁',x,y,ReticleState.Layout(w,h))
                 if s.feedbackAudio then s.feedbackAudio:Kill(self.feedback.streak) end
                 if s.ConfirmKill then s:ConfirmKill(target) end
             end
@@ -119,10 +126,10 @@ function M:Update(dt)
         end
     end
     self.aimState=self:AimMarker()
-    require('ui.ReticleTarget').Update(self,dt)
+    ReticleTarget.Update(self,dt)
 end
 function M:Consume(events)
-    if self.session.battle then require('ui.MatchFeedback').Consume(self.session.battle,events) end
+    if self.session.battle then MatchFeedback.Consume(self.session.battle,events) end
     for _,e in ipairs(events) do
         if e.type=='unitSpawn' and e.unit then self.partCounts[e.unit]=e.unit.bp:Size() end
     end
@@ -130,12 +137,8 @@ function M:Consume(events)
     local healed=false
     for _,e in ipairs(events) do if e.unit==me then
         if e.type=='unitHealed' or e.type=='partRestored' then healed=true
-        elseif e.type=='unitDamaged' and e.amount>0 then
-            local from=e.source and e.source:Position() or e.point
-            if from then
-                local localPoint=s.camera:GetNode():WorldToLocal(Coord.Vec(table.unpack(from)))
-                self.feedback:Hit(math.atan(localPoint.x,localPoint.z),e.amount/math.max(1,me.rawHpMax*me.partScale)*4)
-            end
+        elseif e.type=='unitDamaged' or e.type=='unitKilled' then
+            PlayerDamage.Apply(s,self.feedback,e,e.type=='unitKilled')
         elseif e.type=='unitSpawn' then self.feedback:Clear() end
     end end
     if healed and me.alive then self.feedback:Heal(me:Life()>=.995 and me.bp:Size()>=#me.repairOrder) end

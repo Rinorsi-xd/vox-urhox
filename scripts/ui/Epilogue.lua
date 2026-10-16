@@ -1,8 +1,13 @@
+local EpilogueRules=require("story.EpilogueRules")
+local StoryComms=require("audio.StoryComms")
+
 local UI=require 'urhox-libs/UI'
 local D=require 'ui.SourceDraw'
 local Paint=require 'ui.WorkshopPaint'
 local Images=require 'urhox-libs/UI/Core/ImageCache'
 local Comms=require 'ui.CommsCard'
+local CommsLayout=require 'ui.CommsLayout'
+local TouchMode=require 'controls.TouchMode'
 local Resource=require('core.ResourceData').Read('Story/Boss/Epilogue.json')
 local Radio=require 'audio.StoryRadio'
 local Typography=require 'ui.IntroTypography'
@@ -82,12 +87,18 @@ function Page:Render(vg)
         local width=D.Width(vg,'已驳回',64,'vox-title',10)+72;D.Rect(vg,-width/2,-42,width,136,{5,5,6,191});nvgBeginPath(vg);nvgRect(vg,-width/2,-42,width,136);nvgStrokeWidth(vg,5);nvgStrokeColor(vg,nvgRGBA(208,40,46,242));nvgStroke(vg)
         Text(vg,'带薪年假申请单',0,-22,18,{233,228,218,179},'vox-display',NVG_ALIGN_CENTER,3);Text(vg,'已驳回',0,6,64,{208,40,46,242},'vox-title',NVG_ALIGN_CENTER,10);nvgRestore(vg)
     end
-    local card=o.voice.card;if card then if card.who=='boss' then card.portraitPath=Resource.images.chairman_cut.path end;local width=646;local scale=math.min(1,(w-40)/width);local height=Comms.Height(vg,card,width);Comms.Draw(vg,card,20,h-24-height*scale,width,height,scale,o.voice.time) end
+    local card=o.voice.card
+    if card then
+        if card.who=='boss' then card.portraitPath=Resource.images.chairman_cut.path end
+        local compact=CommsLayout.Compact(TouchMode.Enabled(),graphics:GetWidth(),graphics:GetHeight(),graphics:GetDPR())
+        local scale=CommsLayout.Scale(w,h,compact);local height=Comms.Height(vg,card,646)
+        Comms.Draw(vg,card,20*scale,h-(24+height)*scale,646,height,scale,o.voice.time)
+    end
     Text(vg,'Enter 下一句    Esc 跳过',w-28,22,13,{138,133,128,255},'vox-display',NVG_ALIGN_RIGHT,3);nvgRestore(vg)
 end
 function M.Dependencies() local out=Radio.Dependencies();for _,path in ipairs(Typography.Dependencies()) do out[#out+1]=path end;out[#out+1]='Story/Boss/Epilogue.json';for _,image in pairs(Resource.images) do out[#out+1]=image.path end;return out end
 function M.Attach(scene,root,onDone,shots)
-    local self=setmetatable({active=true,panels={},motion=Motion.New(),shots=shots or {},onDone=onDone,dealCues={}},M);self.rules=require('story.EpilogueRules').New(Resource.data);self.voice=require('audio.StoryComms').New(scene,{voices={}},true);self.radio=Radio.New()
+    local self=setmetatable({active=true,panels={},motion=Motion.New(),shots=shots or {},onDone=onDone,dealCues={}},M);self.rules=EpilogueRules.New(Resource.data);self.voice=StoryComms.New(scene,{voices={}},true);self.radio=Radio.New()
     self.page=Page{position='absolute',width='100%',height='100%',pointerEvents='auto',focusable=false,zIndex=10000};self.page.owner=self;root:AddChild(self.page);return self
 end
 function M:Advance() if self.rules.current.kind=='say' then self.voice:SkipLine() else self.rules:Next() end end

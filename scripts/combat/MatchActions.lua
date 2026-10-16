@@ -1,4 +1,7 @@
 -- Match-specific input, exit accounting and source spectator framing.
+local Matchmaker=require("combat.Matchmaker")
+local DialogHost=require("ui.DialogHost")
+
 local M={}
 function M.Key(b,key)
     if key==KEY_TAB then b.boardOn=not b.boardOn;return true end
@@ -12,7 +15,7 @@ function M.Leave(b)
     if b.leaving then return end
     b.leaving=true
     if b.rules.state~='over' and not b.result then
-        b.result=require('combat.Matchmaker').Record(b.session.app.store,'red',b.roster.rating.red,0,false)
+        b.result=Matchmaker.Record(b.session.app.store,'red',b.roster.rating.red,0,false)
     end
     b.session.wantsReturn=true
 end
@@ -21,7 +24,7 @@ function M.ConfirmLeave(b)
     if b.rules.state=='over' then M.Leave(b);return end
     if b.session.dialog and b.session.dialog.matchLeave then return end
     b.session:Pause()
-    local modal=require('ui.DialogHost').Confirm(b.session,'退出对局','退出这局对战？本局按失败计算。',function() M.Leave(b) end)
+    local modal=DialogHost.Confirm(b.session,'退出对局','退出这局对战？本局按失败计算。',function() M.Leave(b) end)
     modal.matchLeave=true
 end
 function M.Again(b)

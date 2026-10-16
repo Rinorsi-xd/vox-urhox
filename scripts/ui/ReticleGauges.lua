@@ -1,3 +1,6 @@
+local MatchBanner=require("ui.MatchBanner")
+local ReticleNavigation=require("ui.ReticleNavigation")
+
 local D=require 'ui.SourceDraw'
 local R=require 'ui.ReticleDraw'
 local State=require 'ui.ReticleState'
@@ -63,7 +66,7 @@ function M.Compass(vg,v,l)
     local k,cx=l.k,l.cx;local head=((v.session.yaw or 0)%360+360)%360
     nvgSave(vg)
     if v.session.battle then
-        nvgTranslate(vg,0,100*require('ui.MatchBanner').Scale(l.width,l.height,v.session.touch))
+        nvgTranslate(vg,0,100*MatchBanner.Scale(l.width,l.height,v.session.touch))
     end
     local names={[0]='N',[45]='NE',[90]='E',[135]='SE',[180]='S',[225]='SW',[270]='W',[315]='NW'}
     local half,y=320*k,40*k
@@ -73,7 +76,7 @@ function M.Compass(vg,v,l)
         if names[d%360] then R.Text(vg,names[d%360],x,y-17*k,14*k,R.muted,NVG_ALIGN_CENTER,v.session.story~=nil) end
         nvgRestore(vg)
     end
-    require('ui.ReticleNavigation').Render(vg,l,head,v.waypoint)
+    ReticleNavigation.Render(vg,l,head,v.waypoint)
     R.Poly(vg,{cx,y+3*k,cx-6*k,y+12*k,cx+6*k,y+12*k},R.white)
     R.Text(vg,string.format('%03d',math.floor(head+.5)%360),cx,y+32*k,20*k,R.white,NVG_ALIGN_CENTER,v.session.story~=nil)
     nvgRestore(vg)

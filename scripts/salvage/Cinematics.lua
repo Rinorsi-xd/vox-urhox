@@ -1,3 +1,7 @@
+local CineDeathFilter=require("render.CineDeathFilter")
+local SourceDraw=require("ui.SourceDraw")
+local SalvageCineDust=require("render.SalvageCineDust")
+
 local Motion=require 'salvage.CineMotion'
 local View=require 'render.SalvageCinematics'
 local Tween=require 'ui.SourceButtonMotion'
@@ -32,7 +36,7 @@ function M:Extract(exit)
 end
 function M:Death()
     local c=self:Start('death',2.8,true);c.P=Vec(self.run.player:Position());self.approach=nil
-    self.session.firing=false;self.filter=require('render.CineDeathFilter').New();print('[SalvageCine] death begin')
+    self.session.firing=false;self.filter=CineDeathFilter.New();print('[SalvageCine] death begin')
 end
 function M:Flash(alpha,duration) self.flash=alpha;self.flashTime=0;self.flashDuration=duration end
 function M:NameCard(title,sub,duration) self.cardTitle=title;self.cardSub=sub;self.cardUntil=self.time+duration end
@@ -85,18 +89,21 @@ function M:StepShot(c)
         self.hold=r.hold;self.rawHold=true;self.holdYaw=c.yaw
         if t>5.2 and not c.white then c.white=true;self:Flash(1,1.2) end
         self.captionTitle=t<2.6 and '撤离 · '..c.exit.name or t>2.8 and '撤离成功' or nil
-        self.captionSub=t<2.6 and '挂钩锁定 · 拉升' or '带出价值 '..require('ui.SourceDraw').Number(Loot.Value(self.run.rules.cargo))
+        self.captionSub=t<2.6 and '挂钩锁定 · 拉升' or '带出价值 '..SourceDraw.Number(Loot.Value(self.run.rules.cargo))
     elseif c.name=='death' then Motion.Death(r,t,c.P)
     else
         Motion.Elite(r,t,Vec(self.run.player:Position()),Vec(c.unit:Position()));self.barsOn=t<=2.6
     end
 end
 function M:LandingDust(at,approach)
-    if not self.dust then self.dust=require('render.SalvageCineDust').New(self.session.scene) end
+    if not self.dust then self.dust=SalvageCineDust.New(self.session.scene) end
     self.dust:Burst(at,approach)
 end
 function M:Update(dt)
     if self.disposed then return end
+    local shot=self.current
+    local advanceTime=not self.run.result and self.run.rules.finished and shot and (shot.name=='extract' or shot.name=='death')
+    local presentationDt=math.max(0,dt)
     if self.run.UpdateFeedback then self.run:UpdateFeedback() end
     dt=math.max(0,math.min(dt,.1));self.time=self.time+dt;self.shake=self.shake*math.exp(-dt*5)
     if self.run.explosion and not self.run.result then self.run.explosion:Update(dt,self.session.camera:GetNode(),self.run.player:Position()) end
@@ -127,6 +134,8 @@ function M:Update(dt)
     Tween.Step(self.namecard,self.cardUntil and self.time<self.cardUntil and 1 or 0,.25,dt,'ease')
     if self.captionTitle then self.lastTitle=self.captionTitle;self.lastSub=self.captionSub end
     Tween.Step(self.caption,self.captionTitle and 1 or 0,.35,dt,'ease');Tween.Step(self.skip,self.skipOn and .9 or 0,.3,dt,'ease')
+    -- H5 records the result inside the final cinematic step, then advances time.
+    if advanceTime then self.run:AdvancePresentationTime(presentationDt) end
 end
 function M:Camera()
     if not self.playing then return end

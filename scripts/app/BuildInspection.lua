@@ -1,9 +1,11 @@
 -- Diagnostic cache and camera focus are owned by the current build session.
+local BuildHighlights=require("render.BuildHighlights")
+
 local Config=require 'Config'
 local M={};M.__index=M
 function M.New(session)
     return setmetatable({session=session,revision=-1,tier=-1,focus={},computations=0,
-        view=require('render.BuildHighlights').New(session.app.scene)},M)
+        view=BuildHighlights.New(session.app.scene)},M)
 end
 function M:Get()
     local e=self.session.editor;local tier=self.session.app.tier

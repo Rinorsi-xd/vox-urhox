@@ -1,3 +1,15 @@
+local Blueprint=require("construction.Blueprint")
+local ArenaData=require("combat.ArenaData")
+local ImportedDependencies=require("parts.Dependencies")
+local BossView=require("render.BossView")
+local Config=require("Config")
+local RotorMotion=require("drive.RotorMotion")
+local DriverActions=require("combat.DriverActions")
+local WeaponDefs=require("combat.WeaponDefs")
+local BossExposedDelay=require("combat.BossExposedDelay")
+local BossSceneCapture=require("render.BossSceneCapture")
+local WindowViewports=require("render.WindowViewports")
+
 local Data=require('core.ResourceData').Read('Story/Mission/Level5.json')
 local Rules=require 'story.BossRules'
 local Unit=require 'combat.CarUnit'
@@ -20,16 +32,16 @@ local function Flat(a,b) return math.sqrt((a[1]-b[1])^2+(a[3]-b[3])^2) end
 local function Wrap(a) return math.atan(math.sin(a),math.cos(a)) end
 local function Vec(p) return {x=p[1],y=p[2],z=p[3]} end
 function M.Dependencies(player)
-    local BP=require 'construction.Blueprint';local parts=BP.New():Load(Data.fox):List()
+    local BP=Blueprint;local parts=BP.New():Load(Data.fox):List()
     for _,p in ipairs(BP.New():Load(Data.level.steps[2].drillSource):List()) do parts[#parts+1]=p end
     local tier=V.Clamp((player:Stats().fitTier or {id=3}).id,2,4)
     for _,role in ipairs(C.ally.roles) do
-        local source=require('combat.ArenaData').prefabs['blue:'..tier..':'..role..':0'] or require('combat.ArenaData').prefabs['red:'..tier..':'..role..':0']
+        local source=ArenaData.prefabs['blue:'..tier..':'..role..':0'] or ArenaData.prefabs['red:'..tier..':'..role..':0']
         for _,p in ipairs(BP.New():Load(assert(source)):List()) do parts[#parts+1]=p end
     end
-    local out=require('parts.Dependencies').For(parts)
+    local out=ImportedDependencies.For(parts)
     out[#out+1]='Story/Mission/Level5.json';out[#out+1]='Shaders/BLGL/Combat/Glow.shader';out[#out+1]='Shaders/BLGL/Combat/Ring.shader'
-    for _,p in ipairs(require('render.BossView').Dependencies()) do out[#out+1]=p end
+    for _,p in ipairs(BossView.Dependencies()) do out[#out+1]=p end
     for _,p in ipairs(Radio.Dependencies()) do out[#out+1]=p end
     return out
 end
@@ -50,7 +62,7 @@ function M.New(mission,step)
     self.unit.Damage=function() return 0 end
     self.unit.HurtHull=function() return 0 end
     self.env=mission:Environment(self.unit,C.dmg);self.driver=Driver.New(self.world,self.unit,'heavy',1)
-    self.ownsRadio=mission.radio==nil;self.radio=mission.radio or Radio.New();self.view=require('render.BossView').New(self.session.scene,self);return self
+    self.ownsRadio=mission.radio==nil;self.radio=mission.radio or Radio.New();self.view=BossView.New(self.session.scene,self);return self
 end
 function M:Ground(x,z) return self.world:GroundAt(x,z) end
 function M:CenterPlace(unit,pos,yaw)
@@ -62,7 +74,7 @@ function M:PartCenter(part)
     local cells=part and part._cells or {};local p={0,0,0}
     for _,c in ipairs(cells) do p[1]=p[1]+c[1];p[2]=p[2]+c[2]+.5;p[3]=p[3]+c[3] end
     if #cells==0 then return V.Add(self.unit:Position(),{0,6,0}) end
-    local body=self.unit.vehicle.body;return V.Add(V.Array(body.translation()),V.Rotate(body.rotation(),V.Scale(p,require('Config').CELL/#cells)))
+    local body=self.unit.vehicle.body;return V.Add(V.Array(body.translation()),V.Rotate(body.rotation(),V.Scale(p,Config.CELL/#cells)))
 end
 function M:Cockpit() return self:PartCenter(self.head or self.unit.bp:CoreParts()[1]) end
 function M:Feet()
@@ -113,7 +125,7 @@ function M:Banner(kick,title,sub,kind,ms) self.mission:Banner(kick,title,sub,kin
 function M:SpawnAlly(index)
     local p=self.mission.player:Position();local angle=(self.mission.player.vehicle and self.mission.player.vehicle:Yaw() or 0)+math.pi+(index-2)*.8
     local x,z=p[1]+math.sin(angle)*22,p[3]+math.cos(angle)*22;local tier=V.Clamp((self.mission.player.bp:Stats().fitTier or {id=3}).id,2,4)
-    local role=C.ally.roles[index];local arena=require('combat.ArenaData');local source=arena.prefabs['blue:'..tier..':'..role..':0'] or arena.prefabs['red:'..tier..':'..role..':0']
+    local role=C.ally.roles[index];local arena=ArenaData;local source=arena.prefabs['blue:'..tier..':'..role..':0'] or arena.prefabs['red:'..tier..':'..role..':0']
     local u=Unit.New(self.world,source,{name=({'合同工 · 铁锤','合同工 · 螺丝','合同工 · 扳手'})[index],spawn={pos={x,self:Ground(x,z)+1.5,z},yaw=0},team='blue',autoRespawn=false,externalControl=true,combat=true})
     self:CenterPlace(u,{x,self:Ground(x,z)+1.5,z},math.atan(self.unit.pos[1]-x,self.unit.pos[3]-z));self.world.units[#self.world.units+1]=u
     self.allies[index]={unit=u,driver=Driver.New(self.world,u,role,index,{tier=tier,seed='fox-ally:'..(index-1)..':'..math.floor(self.time),aimSkill=1.3}),env=self.mission:Environment(u,C.ally.dmg)}
@@ -152,7 +164,7 @@ function M:AllyTarget(unit)
 end
 function M:StepUnit(u,cmd,aim,firing,env,dt,salvo)
     u:Flush();if not u.alive then return end;local v=u.vehicle
-    v:StepRotors(aim,cmd.rotorStep,dt);require('drive.RotorMotion').Weapons(v.rotors,u.weapons);v:Step(cmd,dt)
+    v:StepRotors(aim,cmd.rotorStep,dt);RotorMotion.Weapons(v.rotors,u.weapons);v:Step(cmd,dt)
     u.weapons:Step(dt,{firing=firing,aim=aim,pos=V.Array(v.body.translation()),quat=v.body.rotation(),vel=V.Array(v.body.linvel()),body=v.body,team=u.team,salvo=salvo},env)
     self.session.effects:Consume(u.weapons.fx);self.session.weaponAudio:Consume(u.weapons.fx,true)
 end
@@ -165,12 +177,12 @@ function M:StepAllies(dt)
             else local target,passive,reference=self:AllyTarget(u)
                 if not target then
                     u.vehicle:StepRotors(nil,false,dt)
-                    require('drive.RotorMotion').Weapons(u.vehicle.rotors,u.weapons)
+                    RotorMotion.Weapons(u.vehicle.rotors,u.weapons)
                     u.vehicle:Step(PARK,dt)
                 else
                     local fake={passive=passive,radius=passive and 3 or nil,unit=reference,spec={bounds={min={0,0,0},max={0,0,0}}},Position=function() return target end}
                     local cmd,aim,fire,driverInfo=a.driver:Step(dt,fake)
-                    require('combat.DriverActions').Apply(u,driverInfo)
+                    DriverActions.Apply(u,driverInfo)
                     self:StepUnit(u,cmd,aim,fire and not passive,a.env,dt,driverInfo and driverInfo.salvo)
                 end
             end
@@ -199,7 +211,7 @@ function M:BeforeStep(dt)
     end
     self:Nodes();self:StepAllies(dt)
     local player=self.mission.player
-    if r.state=='kneel' and player.weapons then player.weapons.energy=math.min(player.weapons.energyMax,player.weapons.energy+require('combat.WeaponDefs').ENERGY.regen*(C.kneelEnergy-1)*dt) end
+    if r.state=='kneel' and player.weapons then player.weapons.energy=math.min(player.weapons.energyMax,player.weapons.energy+WeaponDefs.ENERGY.regen*(C.kneelEnergy-1)*dt) end
     local u=self.unit;local pos=u:Position();local victim=self.focusUnit
     if not victim or not victim.alive or self.time>(self.focusUntil or 0) then self.focusUnit=self:Victim();self.focusUntil=self.time+5+math.random()*2;victim=self.focusUnit end
     local target=victim and victim:Position();local cmd,fire,aim=PARK,false,nil
@@ -269,7 +281,7 @@ end
 function M:Events()
     for _,e in ipairs(self.rules:Drain()) do
         if e.type=='say' then self:Say(e.key,URGENT_LINES[e.key])
-        elseif e.type=='exposed' then self.exposedDelay=require('combat.BossExposedDelay').New(self)
+        elseif e.type=='exposed' then self.exposedDelay=BossExposedDelay.New(self)
         elseif e.type=='kneelLine' then self:KneelLine(e.phase)
         elseif e.type=='damage' then self.world:RecordDamage(self.unit,e.amount,e.point,{shield=e.shield,pierce=e.pierce,broke=e.broke})
         elseif e.type=='energyFull' then local ws=self.mission.player.weapons;ws.energy=ws.energyMax;ws.offline=false
@@ -465,7 +477,7 @@ function M:FramePresented()
     if self.disposed then return end
     for key,capture in pairs(self.shotCaptures or {}) do if capture:Presented() then self.shots[key]=capture.texture end end
     for key,at in pairs(self.captureWanted or {}) do if self:CaptureNow()>=at then
-        self.shotCaptures[key]=require('render.BossSceneCapture').New(require('render.WindowViewports').Get(0))
+        self.shotCaptures[key]=BossSceneCapture.New(WindowViewports.Get(0))
         self.captureWanted[key]=nil
     end end
 end

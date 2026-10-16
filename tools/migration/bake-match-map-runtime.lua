@@ -1,5 +1,6 @@
 local MapShot=require 'render.MatchMapShot'
 local scene,environment,shot,request,phase,start,sceneFile
+local previousSettings={}
 local function Read(path)local f=File(path,FILE_READ);local value=cjson.decode(f:ReadString());f:Dispose();return value end
 local function Write(path,value)local f=File(path,FILE_WRITE);f:WriteString(cjson.encode(value));f:Dispose()end
 local function Update()
@@ -35,13 +36,18 @@ local function Update()
         local file=assert(cache:GetFile(path));checksums[path]=file:GetChecksum();file:Dispose()
     end
     local elapsed=Time:GetSystemTime()-start
+    V.assert(renderer.textureFilterMode==FILTER_TRILINEAR and renderer.textureAnisotropy==1,'capture uses production linear mip filtering without anisotropy')
     image:Dispose();texture:Dispose();shot:Dispose();shot=nil
     V.assert(scene:GetChild('MatchMapShotCamera')==nil,'bake camera released')
     environment:Dispose();environment=nil;scene:Dispose();scene=nil;MapShot.Shutdown()
-    local result={result='PASSED',checksums=checksums,colorsSampled=count,captureAndToneMs=elapsed,half=half,size=1024}
+    renderer.textureFilterMode=previousSettings.filter;renderer.textureAnisotropy=previousSettings.anisotropy
+    V.assert(renderer.textureFilterMode==previousSettings.filter and renderer.textureAnisotropy==previousSettings.anisotropy,'capture restores previous renderer filtering')
+    local result={result='PASSED',checksums=checksums,colorsSampled=count,captureAndToneMs=elapsed,half=half,size=1024,textureFilter='trilinear',textureAnisotropy=1}
     Write(request.result,result);print('MATCH_MAP_BAKE '..cjson.encode(result));V.finish()
 end
 V.atFrame(2,function()
+    previousSettings={filter=renderer.textureFilterMode,anisotropy=renderer.textureAnisotropy}
+    renderer.textureFilterMode=FILTER_TRILINEAR;renderer.textureAnisotropy=1
     request=Read('.tmp/match-map-bake-request.json');scene=Scene();scene.asyncLoadingMs=3
     sceneFile=assert(cache:GetFile(request.scene));assert(scene:LoadAsyncXML(sceneFile,LOAD_SCENE_AND_RESOURCES))
     phase='scene';SubscribeToEvent('Update',Update)

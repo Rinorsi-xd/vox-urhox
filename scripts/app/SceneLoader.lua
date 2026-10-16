@@ -1,4 +1,6 @@
 -- A candidate scene loads off-screen. The active scene survives load/validation failure.
+local ResourceGate=require("app.ResourceGate")
+
 ---@class SceneLoader
 -- CPU time and engine TimeStep do not measure a blocked Web main thread.
 local function Now() return Time:GetSystemTime() end
@@ -20,7 +22,7 @@ function Loader:init()
     self.elapsed=0
     self.downloadCompleted=0;self.downloadBytes=0
     self.phase='idle';self.job=nil;self.options=nil
-    self.gate=require('app.ResourceGate').New()
+    self.gate=ResourceGate.New()
     self.prepareFrames=0;self.maxPrepareMs=0;self.prepareBudgetMs=3
     self.warmIndex=1;self.warmWait=0;self.warmPath='';self.sceneProgressStart=.35
     self.warmPending=nil ---@type table|nil

@@ -1,15 +1,32 @@
 -- PC source composition. Rendering, stats and native input stay separate.
+local TouchMode=require("controls.TouchMode")
+local SourceBuildLayout=require("ui.SourceBuildLayout")
+local BuildOverlay=require("ui.BuildOverlay")
+local BuildNameField=require("ui.BuildNameField")
+local BuildStats=require("ui.BuildStats")
+local BuildDock=require("ui.BuildDock")
+local SourceSelectionBar=require("ui.SourceSelectionBar")
+local BuildHover=require("ui.BuildHover")
+local BuildModeBadge=require("ui.BuildModeBadge")
+local RotorHud=require("ui.RotorHud")
+-- Load optional/cyclic dependencies once, without changing first-use order.
+local DeferredModules=setmetatable({},{__index=function(modules,name)
+    local module=require(name)
+    rawset(modules,name,module)
+    return module
+end})
+
 local UI=require 'urhox-libs/UI'
 local Button=require 'ui.BuildButton'
 local D=require 'ui.SourceDraw'
 local Config=require 'Config'
 local M={}
 function M.Create(session)
-    require('controls.TouchMode').Apply('build')
+    TouchMode.Apply('build')
     local controls=session.controls;local editor=session.editor
     local width,height=UI.GetViewportSize();local safe=UI.GetSafeAreaInsets()
     local narrow=width<900
-    local layout=require('ui.SourceBuildLayout').ForWidth(width)
+    local layout=SourceBuildLayout.ForWidth(width)
     local root=UI.Panel{width='100%',height='100%',pointerEvents='box-none'}
     local state={root=root,width=width,height=height,safe=safe,buttons={},colorOpen=false,disposed=false}
     local function Action(parent,key,text,icon,kind,fn,props)
@@ -25,7 +42,7 @@ function M.Create(session)
         onPointerUp=function(e) controls:Up(e) end,onPointerCancel=function() controls:Cancel() end,
         onPointerLeave=function() controls:Cancel() end,onPointerEnter=function(e) controls:Position(e) end}
     state.playfield=playfield;root:AddChild(playfield)
-    local Overlay=require 'ui.BuildOverlay'
+    local Overlay=BuildOverlay
     local shade=Overlay{shade=true,position='absolute',width='100%',height='100%',pointerEvents='none'};shade.session=session;root:AddChild(shade)
     local box=UI.Panel{position='absolute',left=0,top=0,width=0,height=0,pointerEvents='none',borderWidth=1,borderColor='#ff6a13',backgroundColor={255,106,19,20}};root:AddChild(box)
     local toolbar=UI.Panel{position='absolute',top=12,left=18,right=18,height=narrow and 102 or 46,pointerEvents='box-none'};root:AddChild(toolbar);state.toolbar=toolbar
@@ -36,7 +53,7 @@ function M.Create(session)
         if value~=editor.bp.name then local ok,err=session.app.bays:Rename(value);if not ok then session:Notify(err,'bad') end end
         field:SetValue(editor.bp.name)
     end
-    local name=require('ui.BuildNameField'){value=editor.bp.name,maxLength=20,position='absolute',left=100,top=1,width=narrow and width-150 or layout.nameWidth,height=44,sourceFontSize=layout.nameSize,onBlur=Rename,
+    local name=BuildNameField{value=editor.bp.name,maxLength=20,position='absolute',left=100,top=1,width=narrow and width-150 or layout.nameWidth,height=44,sourceFontSize=layout.nameSize,onBlur=Rename,
         onSubmit=function(field) Rename(field);UI.ClearFocus() end};toolbar:AddChild(name);state.name=name
     local right=UI.Panel{position='absolute',right=0,top=narrow and 54 or 0,width=575.0625,height=46,flexDirection='row',alignItems='center',gap=8};toolbar:AddChild(right)
     for _,spec in ipairs({{'undo','undo',function() editor:Undo() end},{'redo','redo',function() editor:Redo() end},
@@ -46,26 +63,26 @@ function M.Create(session)
     Action(right,'help','','help','icon',function() session.buildCamera:Release();session.app.tutorial:Replay() end,{width=42,height=42,tooltip='再看一遍拼装教学'})
     Action(right,'trial','试车','wheel','side',function() session.app:EnterTrial() end,{width=138.015625,height=46,key='T'})
     Action(right,'save','保存','save','save',function() session:SaveSlot() end,{width=179.046875,height=46,key='Ctrl+S'})
-    local stats=require('ui.BuildStats').Create(session);root:AddChild(stats.root);state.stats=stats
+    local stats=BuildStats.Create(session);root:AddChild(stats.root);state.stats=stats
     if narrow then stats.root:SetStyle({top=130,height=math.min(350,height-430)}) end
-    if require('controls.TouchMode').Enabled() and not narrow then stats.root:SetStyle({top=82,height=math.max(100,height-210)}) end
+    if TouchMode.Enabled() and not narrow then stats.root:SetStyle({top=82,height=math.max(100,height-210)}) end
     local overlay=Overlay{position='absolute',width='100%',height='100%',pointerEvents='none'};overlay.session=session;root:AddChild(overlay)
     state.SetColor=function() state.colorOpen=false end
-    require('ui.BuildDock').Create(session,state,Action,root,layout)
-    state.selectionBar=require('ui.SourceSelectionBar').Create(session,root)
+    BuildDock.Create(session,state,Action,root,layout)
+    state.selectionBar=SourceSelectionBar.Create(session,root)
     local hotbar=state.hotbar
-    local hover=require('ui.BuildHover'){position='absolute',width='100%',height='100%',pointerEvents='none'}
+    local hover=BuildHover{position='absolute',width='100%',height='100%',pointerEvents='none'}
     hover.session=session;root:AddChild(hover);state.hover=hover
-    local badge=require('ui.BuildModeBadge'){position='absolute',width='100%',height='100%',pointerEvents='none'}
+    local badge=BuildModeBadge{position='absolute',width='100%',height='100%',pointerEvents='none'}
     badge.session=session;root:AddChild(badge);state.modeBadge=badge
-    local rotor=require('ui.RotorHud'){position='absolute',width='100%',height='100%',pointerEvents='none'}
+    local rotor=RotorHud{position='absolute',width='100%',height='100%',pointerEvents='none'}
     rotor.session=session;root:AddChild(rotor);state.rotor=rotor
     local desktopOnly={toolbar,state.dock,stats.root,hover,badge}
     local function TouchVisibility()
         if session.buildCamera.touch then for _,child in ipairs(desktopOnly) do child:SetVisible(false) end end
     end
     TouchVisibility()
-    if session.buildCamera.touch then state.touchControls=require('ui.TouchBuildControls').Create(session,root,playfield) end
+    if session.buildCamera.touch then state.touchControls=DeferredModules['ui.TouchBuildControls'].Create(session,root,playfield) end
     local owned={};for _,child in ipairs(root.children) do owned[#owned+1]=child end
     local pointerModes={};for _,child in ipairs(owned) do pointerModes[child]=child.props.pointerEvents or 'auto' end
     local blockedPointer=false;local inventoryHidden=false

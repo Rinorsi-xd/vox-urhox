@@ -1,3 +1,20 @@
+local BlueprintCode=require("storage.BlueprintCode")
+local Inventory=require("construction.Inventory")
+local TouchPreferences=require("controls.TouchPreferences")
+local MusicPlayer=require("audio.MusicPlayer")
+local AudioLevels=require("audio.AudioLevels")
+local GraphicsSettings=require("render.GraphicsSettings")
+local Matchmaker=require("combat.Matchmaker")
+local TutorialRules=require("story.TutorialRules")
+local Records=require("endless.Records")
+local PlatformUtils=require("urhox-libs.Platform.PlatformUtils")
+-- Load optional/cyclic dependencies once, without changing first-use order.
+local DeferredModules=setmetatable({},{__index=function(modules,name)
+    local module=require(name)
+    rawset(modules,name,module)
+    return module
+end})
+
 local Sync=require 'storage.CloudSync'
 local Numbers=require 'storage.RecordNumbers'
 local M={sync=false,web=false,notice=false,confirmWanted=false,warned=false}
@@ -18,28 +35,28 @@ local function Decode(text,key)
     if not r.deleted then
         local name=key:match('^vox%-save%-v1%-vox%-garage%-(.+)$') or key:match('^vox%-save%-v1%-vox%-salvage%-(.+)$')
         local data=r.data;local valid=false
-        if name=='draft' or name and name:match('^slot%d+$') then valid=require('storage.BlueprintCode').Validate(data)
+        if name=='draft' or name and name:match('^slot%d+$') then valid=BlueprintCode.Validate(data)
         elseif name=='garage-state' then valid=data.v==1 and (data.active==false or type(data.active)=='number' and data.active%1==0 and data.active>=1 and data.active<=20)
-        elseif name=='build-settings' then valid=require('construction.Inventory').ValidSettings(data)
-        elseif name=='touch-settings' then valid=require('controls.TouchPreferences').Valid(data)
-        elseif name=='music' then valid=require('audio.MusicPlayer').Valid(data)
-        elseif name=='vox.audio.v2' then valid=require('audio.AudioLevels').Valid(data)
-        elseif name=='graphics' then valid=require('render.GraphicsSettings').ValidSaved(data)
-        elseif name=='match-profile' then valid=require('combat.Matchmaker').Valid(data)
-        elseif name=='tutorial-v1' then valid=require('story.TutorialRules').ValidRecord(data)
-        elseif name=='intro-profile' then valid=require('app.OpeningHost').ValidProfile(data)
-        elseif name=='stash' then valid=require('app.SalvageLobby').Valid(data)
+        elseif name=='build-settings' then valid=Inventory.ValidSettings(data)
+        elseif name=='touch-settings' then valid=TouchPreferences.Valid(data)
+        elseif name=='music' then valid=MusicPlayer.Valid(data)
+        elseif name=='vox.audio.v2' then valid=AudioLevels.Valid(data)
+        elseif name=='graphics' then valid=GraphicsSettings.ValidSaved(data)
+        elseif name=='match-profile' then valid=Matchmaker.Valid(data)
+        elseif name=='tutorial-v1' then valid=TutorialRules.ValidRecord(data)
+        elseif name=='intro-profile' then valid=DeferredModules['app.OpeningHost'].ValidProfile(data)
+        elseif name=='stash' then valid=DeferredModules['app.SalvageLobby'].Valid(data)
         elseif name=='story-progress' then valid=true
         elseif name=='vox.story.voiced' then valid=type(data)=='boolean'
-        elseif name=='vox.endless.run.v1' then valid=require('endless.Records').Run(data)
-        elseif name=='vox.endless.best.v1' then valid=require('endless.Records').Best(data) end
+        elseif name=='vox.endless.run.v1' then valid=Records.Run(data)
+        elseif name=='vox.endless.best.v1' then valid=Records.Best(data) end
         if not valid then return nil end
     end
     return r
 end
 M.Decode=Decode
 function M.Boot(done)
-    M.web=require('urhox-libs.Platform.PlatformUtils').IsWebPlatform()
+    M.web=PlatformUtils.IsWebPlatform()
     local validation=rawget(_G,'VOX_CLOUD_VALIDATION')==true
     for _,arg in ipairs(GetArguments()) do if arg=='-validate' or arg:match('^%-screenshot=') then validation=true end end
     if not M.web or validation then done();return end
@@ -55,7 +72,7 @@ function M.Boot(done)
     M.sync=Sync.New{transport=transport,identity=Identity,user=user,keys=list,allowed=allowed,decode=Decode}
     M.sync:Start(function(records,reason)
         if records then
-            local Store=require 'storage.BlueprintStore'
+            local Store=DeferredModules['storage.BlueprintStore']
             for _,namespace in ipairs(namespaces) do
                 for _,key in ipairs(keys) do
                     local record=records[Remote(namespace,key)] or {v=1,generation=1,deleted=true}
@@ -103,7 +120,7 @@ function M.Update(dt,app)
     end
 end
 function M.Stop()
-    require('storage.BlueprintStore').FlushAll()
+    DeferredModules['storage.BlueprintStore'].FlushAll()
     if M.sync then M.sync:Stop();M.sync=false end
     M.notice=false
     M.confirmWanted=false;M.warned=false

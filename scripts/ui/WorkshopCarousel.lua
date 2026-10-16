@@ -1,3 +1,6 @@
+local ImageCache=require("urhox-libs/UI/Core/ImageCache")
+local WorkshopPaint=require("ui.WorkshopPaint")
+
 local Motion=require 'ui.SourceButtonMotion'
 local ResourceGate=require 'app.ResourceGate'
 local M={ids=require('core.ResourceData').Read('UI/Workshop.json').featured}
@@ -63,7 +66,7 @@ function M.Step(s,dt)
         Motion.Step(slide.alpha,id==ws.selected and 1 or 0,.9,dt,'ease')
         if id==ws.selected and M.Ready(ws,id) then slide.imageElapsed=slide.imageElapsed+dt end
         if previous>0 and slide.alpha.value==0 then
-            require('urhox-libs/UI/Core/ImageCache').Release('UI/Prefabs/'..id..'.jpg')
+            ImageCache.Release('UI/Prefabs/'..id..'.jpg')
         end
     end
 end
@@ -92,7 +95,7 @@ function M.Keep(ws,keep)
     end
 end
 function M.Render(vg,ws,x,y,w,h)
-    local Paint=require 'ui.WorkshopPaint'
+    local Paint=WorkshopPaint
     -- CSS paints slides in markup order; deselected images return to scale(1.12).
     for _,id in ipairs(M.ids) do
         local slide=ws.slides[id];local alpha=slide.alpha.value

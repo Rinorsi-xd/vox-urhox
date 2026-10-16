@@ -1,3 +1,18 @@
+local Matchmaker=require("combat.Matchmaker")
+local ImportedDependencies=require("parts.Dependencies")
+local BattleFlow=require("audio.BattleFlow")
+local CommsPortrait=require("ui.CommsPortrait")
+local BattleObjectives=require("combat.BattleObjectives")
+local MatchVoice=require("audio.MatchVoice")
+local MatchFeed=require("ui.MatchFeed")
+local MatchTarget=require("combat.MatchTarget")
+local DriverActions=require("combat.DriverActions")
+local RotorMotion=require("drive.RotorMotion")
+local MatchBanner=require("ui.MatchBanner")
+local MvpMotion=require("combat.MvpMotion")
+local MvpShow=require("app.MvpShow")
+local PlayerViewSync=require("combat.PlayerViewSync")
+
 local Data=require 'combat.ArenaData'
 local BP=require 'construction.Blueprint'
 local Unit=require 'combat.CarUnit'
@@ -6,22 +21,22 @@ local M={};M.__index=M
 function M.Dependencies(bp,roster,mode)
     local tier=(bp:Stats().fitTier or {id=5}).id;local parts={}
     local fallback=not roster
-    roster=roster or require('combat.Matchmaker').Find({Read=function() return nil end,Write=function() return true end},Data.modes[mode or 'elimination'].size,tier,nil,90862445)
+    roster=roster or Matchmaker.Find({Read=function() return nil end,Write=function() return true end},Data.modes[mode or 'elimination'].size,tier,nil,90862445)
     for _,team in ipairs({'blue','red'}) do for _,member in ipairs(roster[team]) do
         if not member.player then
             local variants=fallback and tier<=3 and (member.role=='assault' or member.role=='heavy') and {0,1} or {member.variant or 0}
             for _,variant in ipairs(variants) do for _,p in ipairs(BP.New():Load(Data.prefabs[team..':'..tier..':'..member.role..':'..variant]):List()) do parts[#parts+1]=p end end
         end
     end end
-    local paths=require('parts.Dependencies').For(parts)
-    if mode=='escort' then for _,path in ipairs(require('parts.Dependencies').For(BP.New():Load(Data.payload):List())) do paths[#paths+1]=path end end
+    local paths=ImportedDependencies.For(parts)
+    if mode=='escort' then for _,path in ipairs(ImportedDependencies.For(BP.New():Load(Data.payload):List())) do paths[#paths+1]=path end end
     paths[#paths+1]='Shaders/BLGL/Combat/Objective.shader'
     for _,style in ipairs({'round','square'}) do paths[#paths+1]='UI/Match/minimap-mask-'..style..'.png' end
-    for _,path in ipairs(require('audio.BattleFlow').Dependencies(false)) do paths[#paths+1]=path end
+    for _,path in ipairs(BattleFlow.Dependencies(false)) do paths[#paths+1]=path end
     for _,team in ipairs({'blue','red'}) do for _,member in ipairs(roster[team]) do paths[#paths+1]='UI/Avatars/'..member.avatar..'.jpg' end end
     if fallback then for i=2,11 do paths[#paths+1]=string.format('UI/Avatars/a%02d.jpg',i) end end
     for i=1,13 do paths[#paths+1]=string.format('Sounds/Match/m%02d.wav',i) end
-    for _,face in ipairs({'smile','deadpan','talk'}) do paths[#paths+1]=require('ui.CommsPortrait').Path('nono',face) end
+    for _,face in ipairs({'smile','deadpan','talk'}) do paths[#paths+1]=CommsPortrait.Path('nono',face) end
     return paths
 end
 function M.New(session,bp,checkpoint)
@@ -29,13 +44,13 @@ function M.New(session,bp,checkpoint)
     self.mode=session.map.battleMode or 'elimination'
     self.baseDamage=self.world.RecordDamage;self.baseKill=self.world.RecordKill
     session.battle=self;session.combat=self
-    self.sounds=require('audio.BattleFlow').New()
+    self.sounds=BattleFlow.New()
     self.sounds:Prepare(false,function() if checkpoint then checkpoint(0) end end)
-    self.objectives=require('combat.BattleObjectives').New(self,self.mode);self.rules=self.objectives:Rules()
-    self.voice=require('audio.MatchVoice').New(self)
+    self.objectives=BattleObjectives.New(self,self.mode);self.rules=self.objectives:Rules()
+    self.voice=MatchVoice.New(self)
     self.tier=(bp:Stats().fitTier or {id=5}).id;self.banner=nil;self.stats={};self.lastHit={};self.clock=0
     for _,u in ipairs(self.world.units) do u:Dispose() end;self.world.units={}
-    self.roster=session.map.battleRoster or require('combat.Matchmaker').Find(session.app.store,Data.modes[self.mode].size,self.tier)
+    self.roster=session.map.battleRoster or Matchmaker.Find(session.app.store,Data.modes[self.mode].size,self.tier)
     for _,team in ipairs({'blue','red'}) do for i,member in ipairs(self.roster[team]) do
         local source=member.player and bp:ToTable() or Data.prefabs[team..':'..self.tier..':'..member.role..':'..(member.variant or 0)]
         local spawn=self:SpawnAt(team,i)
@@ -89,7 +104,7 @@ function M.New(session,bp,checkpoint)
         self.voice:Kill(unit,attacker)
         local function Identity(u) return u and {name=u.name,team=u.team,me=u==self.player} or nil end
         local group=attacker and attacker.weapons and attacker.weapons.groups and attacker.weapons.groups[1]
-        require('ui.MatchFeed').Push(self,Identity(attacker),Identity(unit),group and group.kind)
+        MatchFeed.Push(self,Identity(attacker),Identity(unit),group and group.kind)
         if attacker and attacker.team~=unit.team then
             self.stats[attacker].kills=self.stats[attacker].kills+1
             if self.mode=='conquest' then self.rules:Kill(attacker.team) end
@@ -114,7 +129,7 @@ function M:SpawnAt(team,slot)
     return {pos={x,y,z},yaw=team=='blue' and 0 or math.pi}
 end
 function M:Pick(entry)
-    return require('combat.MatchTarget').Pick(self,entry)
+    return MatchTarget.Pick(self,entry)
 end
 function M:BeforeStep(dt,command,aim)
     local live=self.rules.state=='live'
@@ -139,9 +154,9 @@ function M:BeforeStep(dt,command,aim)
             end
             u:Flush()
             if u.alive then
-                require('combat.DriverActions').Apply(u,driverInfo)
+                DriverActions.Apply(u,driverInfo)
                 local v=u.vehicle;v:StepRotors(live and target or nil,live and cmd.rotorStep,live and dt or 0)
-                require('drive.RotorMotion').Weapons(v.rotors,u.weapons)
+                RotorMotion.Weapons(v.rotors,u.weapons)
                 v:Step(cmd,dt);local p,velocity=v.body.translation(),v.body.linvel()
                 local eye=u==self.player and self.session.camera:GetNode().worldPosition or nil
                 u.weapons:Step(dt,{firing=live and firing,aim=target or u:Position(),pos={p.x,p.y,p.z},quat=v.body.rotation(),vel={velocity.x,velocity.y,velocity.z},body=v.body,
@@ -175,26 +190,26 @@ function M:AfterStep(dt)
                 if e.driver then e.driver=Driver.New(self.world,e.unit,e.member.role,i,e.member) end
             end
         end
-        local notice=require('ui.MatchBanner').ForEvent(self,event,worldState)
+        local notice=MatchBanner.ForEvent(self,event,worldState)
         if notice then self:Banner(notice.text,notice.tag,notice.sub,notice.cls,notice.ms,notice.mini) end
         if event.type=='matchOver' then
-            require('ui.MatchBanner').Clear(self)
+            MatchBanner.Clear(self)
             self.session:Pause()
             if not self.result then
-                self.mvp=require('combat.MvpMotion').Winner(self.entries,self.stats)
-                self.result=require('combat.Matchmaker').Record(self.session.app.store,self.rules.winner,self.roster.rating.red,self.stats[self.player].kills,self.mvp and self.mvp.unit==self.player)
+                self.mvp=MvpMotion.Winner(self.entries,self.stats)
+                self.result=Matchmaker.Record(self.session.app.store,self.rules.winner,self.roster.rating.red,self.stats[self.player].kills,self.mvp and self.mvp.unit==self.player)
                 self.session.weaponAudio:SetActive(false);self.session.drivingAudio:SetActive(false);self.session.feedbackAudio:SetActive(false);self.session.drillSpeed:Clear()
                 self.voice:Reset()
-                self.mvpShow=require('app.MvpShow').New(self.session,self.mvp,self.stats[self.mvp.unit])
+                self.mvpShow=MvpShow.New(self.session,self.mvp,self.stats[self.mvp.unit])
             end
         end
     end
     self.objectives:Update(dt)
 end
-function M:Banner(text,tag,sub,cls,ms,mini) return require('ui.MatchBanner').Push(self,text,tag,sub,cls,ms,mini) end
+function M:Banner(text,tag,sub,cls,ms,mini) return MatchBanner.Push(self,text,tag,sub,cls,ms,mini) end
 function M:Restart()
-    require('ui.MatchBanner').Clear(self)
-    require('ui.MatchFeed').Clear(self)
+    MatchBanner.Clear(self)
+    MatchFeed.Clear(self)
     if self.mvpShow then self.mvpShow:Dispose();self.mvpShow=nil end
     self.mvp=nil;self.lastHit={}
     self.session:Pause();self.result=nil;self.objectives:Reset();self.rules=self.objectives:Rules();self.voice:Reset();self.world.debris:Clear()
@@ -206,7 +221,7 @@ function M:Restart()
     self.objectives:PlaceCart()
 end
 function M:SyncPlayer()
-    require('combat.PlayerViewSync').Update(self)
+    PlayerViewSync.Update(self)
 end
 function M:Snapshot()
     local units={}

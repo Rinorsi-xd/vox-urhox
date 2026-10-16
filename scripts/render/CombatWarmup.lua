@@ -1,5 +1,7 @@
 -- Loading-only draws use the live effect owner without simulation events or RNG.
 -- Call Presented only after a rendered frame; Dispose before disposing the scene.
+local FlashWarmup=require("render.FlashWarmup")
+
 local M={};M.__index=M
 local WarmupSignature=require('render.WarmupSignature')
 local kinds={'StaticModel','StaticModelGroup','AnimatedModel','CustomGeometry','BillboardSet','Terrain','Skybox'}
@@ -72,7 +74,7 @@ function M:init(options)
     self.originalGroups=#self.groups
     if options.groupEquivalent~=false then self.groups,self.signatureStats=WarmupSignature.Compact(self.groups) end
     self.owned=owned
-    self.flashWarmup=require('render.FlashWarmup').New(self.session)
+    self.flashWarmup=FlashWarmup.New(self.session)
     self:Effects(4);self.phase='effects-instanced'
     local stats=self.signatureStats or {eligible=0,rejected=0,errors=0}
     print('[CombatWarmup] begin groups='..#self.groups..' originalGroups='..self.originalGroups..' chips='..#fx.chips.slots..' missiles='..#fx.missiles.view.slots

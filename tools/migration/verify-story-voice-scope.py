@@ -83,16 +83,25 @@ for name, old_comms, old_mission in [
     else:
         raise AssertionError('Historical actual all-voice behavior unexpectedly passed: ' + name)
 
-# Dependency work leaves playback intact; the separately validated fight seed fix
-# changes this one call outside that scope.
+# Isolate the separately verified visual preparation hooks before proving that
+# audio playback and every other mission method remain identical.
 old_comms = (OLD / 'scripts/audio/StoryComms.lua').read_text(encoding='utf-8')
 old_mission = (OLD / 'scripts/story/Mission.lua').read_text(encoding='utf-8')
 assert comms[:comms.index('function M.Dependencies')] == old_comms[:old_comms.index('function M.Dependencies')]
 assert comms[comms.index('function M.New'):] == old_comms[old_comms.index('function M.New'):]
-assert mission[:mission.index('function M.Dependencies')] == old_mission[:old_mission.index('function M.Dependencies')]
+prepare_start=mission.index('function M:PrepareSpawnSpecs')
+old_prepare_start=old_mission.index('function M:PrepareSpawnSpecs')
+comparison_mission=mission[:prepare_start]+old_mission[old_prepare_start:old_mission.index('function M.Dependencies')]+mission[mission.index('function M.Dependencies'):]
+new_prepare_call='self:PrepareSpawnSpecs(checkpoint and function(p) checkpoint(p*.35) end or nil,options and options.prepareViews)'
+assert comparison_mission.count(new_prepare_call)==1
+comparison_mission=comparison_mission.replace(new_prepare_call,'self:PrepareSpawnSpecs(checkpoint and function(p) checkpoint(p*.35) end or nil)',1)
+cache_release='    if self.spawnViewCache then self.spawnViewCache:Dispose();self.spawnViewCache=nil end\n'
+assert comparison_mission.count(cache_release)==1
+comparison_mission=comparison_mission.replace(cache_release,'',1)
+assert comparison_mission[:comparison_mission.index('function M.Dependencies')] == old_mission[:old_mission.index('function M.Dependencies')]
 seed_call='self:Spawn({enemies=e.step.enemies,role=e.step.role,name=e.step.name,tag=e.step.id})'
 assert mission.count(seed_call)==1
-assert mission.replace(seed_call,'self:Spawn(e.step)',1)[mission.index('function M.New'):] == old_mission[old_mission.index('function M.New'):]
+assert comparison_mission.replace(seed_call,'self:Spawn(e.step)',1)[comparison_mission.index('function M.New'):] == old_mission[old_mission.index('function M.New'):]
 
 manifest = json.loads((OLD / 'dist/1.0.0/manifest-9e5d7ed6.json').read_text(encoding='utf-8'))
 files = {row['fs_path']: row for row in manifest['files']}
@@ -115,7 +124,7 @@ report = {
     'productionHashes': {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest() for name in paths},
     'testInputs': {name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest() for name in
                    ['tools/migration/check-story-voice-scope.lua', 'tools/migration/verify-story-voice-scope.py']},
-    'unchangedOutsideDependenciesExcept': 'Single separately validated Mission.Events fight Spawn tag/seed call',
+    'unchangedOutsideDependenciesExcept': 'Separately verified fight Spawn tag/seed call and SpawnViewCache PrepareSpawnSpecs/New/Dispose hooks. Audio playback remains byte-identical.',
     'boundary': 'Actual Lua MissionData, Mission.Dependencies/Quote, StoryComms.Dependencies/Say/result lookup and StoryRadio dependency API. Native audio/model/Boss/Epilogue boundaries adapted. Complete authored text/choice/retry/respawn/result lookup, not real decoding, HTTP transport, audible output, full S5 rendering or load-time/mobile acceptance. Candidate not yet built; 9e5d natural gameplay does not validate this change.'
 }
 out = ROOT / 'docs/migration/evidence/story-voice-scope-offline.json'

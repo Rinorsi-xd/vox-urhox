@@ -1,4 +1,11 @@
 -- Frozen .motto-card flex composition; reveal clocks remain IntroPromoMotion's.
+-- Load optional/cyclic dependencies once, without changing first-use order.
+local DeferredModules=setmetatable({},{__index=function(modules,name)
+    local module=require(name)
+    rawset(modules,name,module)
+    return module
+end})
+
 local D=require 'ui.SourceDraw'
 local Opacity=require 'ui.IntroOpacity'
 local M={}
@@ -25,7 +32,7 @@ end
 function M.Draw(page,vg,w,h,u,alpha,one,two)
  local plan=M.Plan(vg,w,h,u,page.cssPixel or 1);page.mottoLayout=plan
  Opacity.Push(vg,alpha)
- require('ui.IntroPage').Image(vg,page.owner,'company-emblem',w/2-8*u,plan.top,16*u,16*u)
+ DeferredModules['ui.IntroPage'].Image(vg,page.owner,'company-emblem',w/2-8*u,plan.top,16*u,16*u)
  D.Rect(vg,plan.x,plan.textY,plan.w,plan.pixel,{255,255,255,64})
  D.Rect(vg,plan.x,plan.textY+plan.textHeight-plan.pixel,plan.w,plan.pixel,{255,255,255,64})
  Line(vg,first,w,h,plan,plan.firstY,one);Line(vg,second,w,h,plan,plan.secondY,two)

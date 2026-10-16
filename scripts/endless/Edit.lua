@@ -1,5 +1,26 @@
 -- The real BuildSession edits a separate blueprint over the paused battle scene.
 -- The host adapter preserves garage editor/history/store ownership throughout.
+local ResourceGate=require("app.ResourceGate")
+local OrbitCamera=require("controls.OrbitCamera")
+local TouchPreferences=require("controls.TouchPreferences")
+local Math3=require("core.Math3")
+local VehicleView=require("render.VehicleView")
+local BuildEditor=require("construction.BuildEditor")
+local Inventory=require("construction.Inventory")
+local Defs=require("parts.Defs")
+local NodeVisibility=require("render.NodeVisibility")
+local WindowViewports=require("render.WindowViewports")
+local EndlessEditBar=require("ui.EndlessEditBar")
+local SourceDraw=require("ui.SourceDraw")
+local BuildStretch=require("construction.BuildStretch")
+local TouchMode=require("controls.TouchMode")
+-- Load optional/cyclic dependencies once, without changing first-use order.
+local DeferredModules=setmetatable({},{__index=function(modules,name)
+    local module=require(name)
+    rawset(modules,name,module)
+    return module
+end})
+
 local BP=require('construction.Blueprint')
 local Inv=require('endless.Inventory')
 local Config=require('Config')
@@ -12,21 +33,21 @@ function M:Enter()
     self.originalRoot=UI.GetRoot();self.originalViewport=renderer:GetViewport(0);UI.SetRoot(nil)
     self.root=s.scene:CreateChild('EndlessEditing');self.root.position=Coord.Vec(table.unpack(self.anchor.pos));self.root.rotation=Quaternion(-math.deg(self.anchor.yaw),Vector3.UP)
     local host={scene=s.scene,toasts=s.app.toasts,tier=5,blueprint=BP.New():Load(c.run.blueprint),buildCameraState={},buildXray=false,
-        tutorial={Replay=function() s.app.toasts:Push('完成改装后按 Enter 返回本局战斗','info') end},vehicleGate=require('app.ResourceGate').New()}
-    self.host=host;host.camera=require('controls.OrbitCamera').New(s.scene);host.camera.maxDist=260;host.camera.camera.farClip=s.camera:GetCamera().farClip
-    host.touchPrefs=require('controls.TouchPreferences').Get(s.app)
+        tutorial={Replay=function() s.app.toasts:Push('完成改装后按 Enter 返回本局战斗','info') end},vehicleGate=ResourceGate.New()}
+    self.host=host;host.camera=OrbitCamera.New(s.scene);host.camera.maxDist=260;host.camera.camera.farClip=s.camera:GetCamera().farClip
+    host.touchPrefs=TouchPreferences.Get(s.app)
     host.SaveTouchPrefs=function(_,prefs) return s.app:SaveTouchPrefs(prefs) end
     local offset=Coord.Vec(p.x+15,p.y+12,p.z-18);host.camera.node.position=offset;host.camera.node:LookAt(self.root.position)
-    host.buildCameraState={pos={-offset.x,offset.y,offset.z},forward=require('core.Math3').Normalize({self.anchor.pos[1]+offset.x,-12,18})}
-    host.car=require('render.VehicleView').New(self.root,'EndlessEditCar');host.car:Rebuild(host.blueprint)
+    host.buildCameraState={pos={-offset.x,offset.y,offset.z},forward=Math3.Normalize({self.anchor.pos[1]+offset.x,-12,18})}
+    host.car=VehicleView.New(self.root,'EndlessEditCar');host.car:Rebuild(host.blueprint)
     host.store={LoadBuildSettings=function() return nil end,SaveBuildSettings=function() return true end,Flush=function() return true end,Queue=function() end}
     host.bays={active=1,Changed=function() end,Rename=function(_,name) host.blueprint.name=name;return true end,Save=function() return false,'本局改装期间不可写入机库车位' end}
     host.ExitBuild=function() return self:Depart() end
     host.EnterTrial=function() s.app.toasts:Push('本局改装期间不可用','warn');return false end
     host.LoadBlueprint=host.EnterTrial;host.WithVehicle=host.EnterTrial;host.NewBlueprint=host.EnterTrial
-    host.editor=require('construction.BuildEditor').New(host.blueprint,function(ops) host.car:ApplyEdits(ops,host.blueprint) end)
-    host.inventory=require('construction.Inventory').New({hotbar={'cube','slope','heavy','truss',false,false,false,false,false,false},active=1})
-    local index=5;for _,def in ipairs(require('parts.Defs').LIST) do if (c.run.inventory[def.id] or 0)>0 and index<=10 then host.inventory.hotbar[index]=def.id;index=index+1 end end
+    host.editor=BuildEditor.New(host.blueprint,function(ops) host.car:ApplyEdits(ops,host.blueprint) end)
+    host.inventory=Inventory.New({hotbar={'cube','slope','heavy','truss',false,false,false,false,false,false},active=1})
+    local index=5;for _,def in ipairs(Defs.LIST) do if (c.run.inventory[def.id] or 0)>0 and index<=10 then host.inventory.hotbar[index]=def.id;index=index+1 end end
     local list=host.inventory.List;host.inventory.List=function(model)
         local result={};for _,def in ipairs(list(model)) do if not Inv.Limited(def.id) or (c.run.inventory[def.id] or 0)>0 then result[#result+1]=def end end;return result
     end
@@ -34,11 +55,11 @@ function M:Enter()
     history.Commit=function(h,ops,derive)
         local counts=Inv.Count(host.blueprint)
         for _,op in ipairs(ops) do if (op.op=='add' or op.op=='remove') and Inv.Limited(op.data.type) then counts[op.data.type]=(counts[op.data.type] or 0)+(op.op=='add' and 1 or -1) end end
-        for id,count in pairs(counts) do if count>(c.run.inventory[id] or 0) then s.app.toasts:Push(require('parts.Defs').PARTS[id].name..' 超过本局仓库数量','warn');return false end end
+        for id,count in pairs(counts) do if count>(c.run.inventory[id] or 0) then s.app.toasts:Push(Defs.PARTS[id].name..' 超过本局仓库数量','warn');return false end end
         return commit(h,ops,derive)
     end
     self.sourceTier=Config.TIERS[5];Config.TIERS[5]=Inv.Limits(c.run.tier)
-    self.build=require('app.BuildSession').New(host)
+    self.build=DeferredModules['app.BuildSession'].New(host)
     self.build.ghost.root.position=self.root.position;self.build.ghost.root.rotation=self.root.rotation
     self.build.inspection.view.node.position=self.root.position;self.build.inspection.view.node.rotation=self.root.rotation
     local build=self.build
@@ -64,13 +85,13 @@ function M:Enter()
     end
     build.buildCamera:Focus()
     self:ConfigureHud()
-    require('render.NodeVisibility').Set(s.view.view.root,false)
+    NodeVisibility.Set(s.view.view.root,false)
     local post=s.app.graphicsSettings.post
     if post and post.scene==s.scene then
         -- Keep one source viewport and its depth targets while changing cameras.
         self.post=post;self.battleCamera=post.camera
         post.camera=host.camera.camera;post.source:SetCamera(host.camera.camera)
-    else require('render.WindowViewports').Set(0,Viewport:new(s.scene,host.camera.camera)) end
+    else WindowViewports.Set(0,Viewport:new(s.scene,host.camera.camera)) end
     build:Refresh()
 end
 function M:ConfigureHud()
@@ -86,7 +107,7 @@ function M:ConfigureHud()
     end
     for _,key in ipairs({'home','trial','save','help'}) do if build.hud.buttons[key] then build.hud.buttons[key]:SetDisabled(true) end end
     for _,button in ipairs(build.hud.stats.pane.tiers) do button:SetDisabled(true) end
-    self.bar=require('ui.EndlessEditBar').Attach(self,build.hud.root);self.hudRoot=build.hud.root
+    self.bar=EndlessEditBar.Attach(self,build.hud.root);self.hudRoot=build.hud.root
 end
 function M:StockCards()
     self.remaining=Inv.Remaining(self.controller.run.inventory,self.host.blueprint)
@@ -96,7 +117,7 @@ function M:StockCards()
             local card=cell.root;local render=card.Render;card.endlessStock=true
             card.Render=function(widget,vg)
                 render(widget,vg);local id=widget.props.partType;if not id or not Inv.Limited(id) then return end
-                local count=self.remaining[id] or 0;local r=widget:GetAbsoluteLayout();local draw=require('ui.SourceDraw')
+                local count=self.remaining[id] or 0;local r=widget:GetAbsoluteLayout();local draw=SourceDraw
                 draw.Rect(vg,r.x,r.y,56,22,count>0 and {17,38,57,238} or {86,36,36,238})
                 draw.Text(vg,'剩余 '..count,r.x+5,r.y+4,12,{238,247,255,255},'vox-title')
             end
@@ -110,7 +131,7 @@ function M:Depart()
 end
 function M:Reset()
     local e=self.host.editor
-    self.build.controls:Cancel();require('construction.BuildStretch').Cancel(e)
+    self.build.controls:Cancel();BuildStretch.Cancel(e)
     self.host.blueprint:Load(self.controller.run.blueprint)
     e.history.undoStack={};e.history.redoStack={};e.selection={};e.selectionOrder={};e.selectionCorners={}
     e.clipboard={};e.pasting=false
@@ -159,10 +180,10 @@ function M:Leave()
     Config.TIERS[5]=self.sourceTier
     if self.post then self.post.camera=self.battleCamera;self.post.source:SetCamera(self.battleCamera) end
     self.host.car:Dispose();self.host.camera.node:Dispose();self.root:Dispose()
-    local s=self.controller.session;require('render.NodeVisibility').Set(s.view.view.root,s.combat.player.alive)
+    local s=self.controller.session;NodeVisibility.Set(s.view.view.root,s.combat.player.alive)
     if self.originalRoot and self.originalRoot.node then UI.SetRoot(self.originalRoot) end
-    require('render.WindowViewports').Set(0,self.originalViewport)
-    require('controls.TouchMode').Apply('drive')
+    WindowViewports.Set(0,self.originalViewport)
+    TouchMode.Apply('drive')
     self.controller=nil;self.host=nil;self.build=nil;self.root=nil;self.bar=nil;self.hudRoot=nil
     self.post=nil;self.battleCamera=nil;self.originalRoot=nil;self.originalViewport=nil;self.sourceTier=nil
 end

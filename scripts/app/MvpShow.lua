@@ -1,3 +1,9 @@
+local ResourceGate=require("app.ResourceGate")
+local Blueprint=require("construction.Blueprint")
+local ImportedDependencies=require("parts.Dependencies")
+local MvpMusic=require("audio.MvpMusic")
+local ImageCache=require("urhox-libs/UI/Core/ImageCache")
+
 local Motion=require 'combat.MvpMotion'
 local Stage=require 'render.MvpStage'
 local M={};M.__index=M
@@ -6,7 +12,7 @@ function M.New(session,entry,stats)
 end
 function M:init(session,entry,stats)
     self.session=session;self.entry=entry;self.stats=stats;self.t=0;self.fired={};self.deform={sy=1,twist=0,lx=0,lz=0,bulge=0}
-    self.gate=require('app.ResourceGate').New();self.preparing=true;self.failed=false;self.done=false;self.cleared=false
+    self.gate=ResourceGate.New();self.preparing=true;self.failed=false;self.done=false;self.cleared=false
     self.sq=Motion.Spring(140,4.2);self.lx=Motion.Spring(80,3.5);self.lz=Motion.Spring(80,3.5);self.tw=Motion.Spring(90,3.2)
     self.scene=Scene();self.scene:CreateComponent('Octree')
     local zone=self.scene:CreateChild('Zone'):CreateComponent('Zone');zone.boundingBox=BoundingBox(-500,500);zone.ambientSource=AMBIENT_COLOR
@@ -14,14 +20,14 @@ function M:init(session,entry,stats)
     local n=self.scene:CreateChild('Sun');n.direction=Vector3(-15,-30,-20);local light=n:CreateComponent('Light');light.lightType=LIGHT_DIRECTIONAL;light.color=Color(1,.76,.5);light.brightness=1.3
     self.cameraNode=self.scene:CreateChild('Camera');self.camera=self.cameraNode:CreateComponent('Camera');self.camera.fov=38;self.camera.farClip=500
     self.viewport=Viewport:new(self.scene,self.camera)
-    local bp=require('construction.Blueprint').New():Load(entry.unit.source)
-    local paths=Stage.Dependencies();for _,p in ipairs(require('parts.Dependencies').For(bp:List())) do paths[#paths+1]=p end
+    local bp=Blueprint.New():Load(entry.unit.source)
+    local paths=Stage.Dependencies();for _,p in ipairs(ImportedDependencies.For(bp:List())) do paths[#paths+1]=p end
     self.gate:Start(paths,function(ok,err)
         if self.cleared then return end
         if not ok then self.failed=true;self.preparing=false;self.done=true;print('[MVP] Resource loading failed: '..tostring(err));self:Dispose();return end
         local success,message=pcall(function()
             self.stage=Stage.New(self.scene,bp,entry.unit.name);self.prevY=Motion.PodY(0,self.stage.S,self.stage.height);self.prevVy=0;self.prevRot=0;self.prevW=0
-            self.music=require('audio.MvpMusic').New(self.scene,session.app.music)
+            self.music=MvpMusic.New(self.scene,session.app.music)
             self.previousMusicPaused=session.app.music.userPaused;session.app.music:SetPaused(true);session.app.graphicsSettings:Show(self.scene,self.camera);session.app.graphicsSettings:Apply(self.scene)
             self.preparing=false;self.active=true;self:Update(.001)
             print('[MVP] Ready '..entry.unit.name..' / '..bp:Size()..' parts')
@@ -75,7 +81,7 @@ function M:Dispose()
     if self.cleared then return end;self.cleared=true;self.gate:Cancel()
     if self.music then self.music:Dispose();self.session.app.music:SetPaused(self.previousMusicPaused==true) end
     if self.stage then self.stage:Dispose();self.stage=nil end
-    require('urhox-libs/UI/Core/ImageCache').Release('Mvp/title.png')
+    ImageCache.Release('Mvp/title.png')
     if self.active and not self.session.disposed then
         self.session.app.graphicsSettings:Show(self.session.scene,self.session.camera:GetCamera());self.session.app.graphicsSettings:Apply(self.session.scene)
     end

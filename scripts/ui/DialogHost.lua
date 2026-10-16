@@ -1,5 +1,10 @@
 -- Shared ownership for home/build overlays. A replaced build session must never
 -- receive callbacks into its destroyed widgets.
+local SourceModal=require("ui.SourceModal")
+local ImportedUI=require("urhox-libs/UI")
+local SourceButton=require("ui.SourceButton")
+local SourceHint=require("ui.SourceHint")
+
 local M={}
 function M.Current(owner) return owner.editor and owner.app.build or owner end
 function M.Notify(owner,text,kind)
@@ -32,7 +37,7 @@ function M.Open(owner,title,onClose,source,onDispose)
         if owner.editor then owner.editor.preview=nil;owner.ghost:Refresh(owner.editor,false) end
     end
     source=source or {width=780}
-    local Modal=require 'ui.SourceModal'
+    local Modal=SourceModal
     local modal=Modal{title=title,source=source,contentGap=source.gap or 0,size='lg',closeOnEscape=false,onClose=function(self)
             if owner.dialog==self then owner.dialog=nil;owner.dialogTick=nil end
             if not self.props.source.help then
@@ -50,8 +55,8 @@ function M.Open(owner,title,onClose,source,onDispose)
     owner.dialog=modal;modal:Open();return modal
 end
 function M.Confirm(owner,title,text,yes,no)
-    local UI=require 'urhox-libs/UI';local Button=require 'ui.SourceButton';local m=M.Open(owner,title,nil,{width=780})
-    m:AddContent(require('ui.SourceHint'){text=text,width='100%',height=29.25,marginTop=12.5,marginBottom=12.5,flexShrink=0})
+    local UI=ImportedUI;local Button=SourceButton;local m=M.Open(owner,title,nil,{width=780})
+    m:AddContent(SourceHint{text=text,width='100%',height=29.25,marginTop=12.5,marginBottom=12.5,flexShrink=0})
     local buttons={cancel=Button{text='取消',sourceKind='dialog',width=72,height=40,onClick=function() M.Close(owner);if no then no() end end},
         confirm=Button{text='确定',sourceKind='primary',width=72,height=40,onClick=function() M.Close(owner);yes() end}}
     m:AddContent(UI.Panel{flexDirection='row',justifyContent='flex-end',gap=8,marginTop=20,children={buttons.confirm,buttons.cancel}})

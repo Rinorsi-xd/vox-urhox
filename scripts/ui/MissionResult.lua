@@ -1,4 +1,7 @@
 -- Frozen storyHud.js result composition and storyHud.css dimensions.
+local MissionFrame=require("ui.MissionFrame")
+local CommsPortrait=require("ui.CommsPortrait")
+
 local UI=require 'urhox-libs/UI'
 local D=require 'ui.SourceDraw'
 local Paint=require 'ui.WorkshopPaint'
@@ -33,7 +36,7 @@ function Panel:Render(vg)
     local mission=self.session.story;local r=mission.rules
     local progress=math.min(1,self.age/.5);local rise=(1-progress)^3*24
     nvgSave(vg);nvgTranslate(vg,x,y+rise);nvgScale(vg,scale,scale);nvgGlobalAlpha(vg,math.min(1,self.age/.4))
-    require('ui.MissionFrame').Draw(vg,0,0,728,height,18,cyan)
+    MissionFrame.Draw(vg,0,0,728,height,18,cyan)
     Text(vg,'MISSION '..mission.level.no..' · '..mission.level.name,34,30,15,cyan)
     Text(vg,'任务完成',34,54,76);Text(vg,'MISSION COMPLETE',34,137,13,muted)
     D.Path(vg,{652,30,694,72,652,114,610,72});nvgFillColor(vg,D.Color(orange));nvgFill(vg)
@@ -48,7 +51,7 @@ function Panel:Render(vg)
     nvgSave(vg);nvgTranslate(vg,0,shift)
     D.Rect(vg,34,418,660,94,{70,200,255,15});D.Rect(vg,34,418,3,94,cyan)
     nvgSave(vg);nvgScissor(vg,44,430,58,58)
-    Paint.Image(vg,require('ui.CommsPortrait').Path('nono',r.grade=='B' and 'deadpan' or 'smile'),{x=18,y=418,w=126,h=156},1,0,nil,nil,0);nvgRestore(vg)
+    Paint.Image(vg,CommsPortrait.Path('nono',r.grade=='B' and 'deadpan' or 'smile'),{x=18,y=418,w=126,h=156},1,0,nil,nil,0);nvgRestore(vg)
     Text(vg,'诺诺',116,428,15,cyan);Text(vg,'NONO',166,433,10,muted)
     self.quote:Draw(vg,'「'..mission:Quote()..'」',116,451,560,{214,221,227,255})
     D.Rect(vg,34,590,660,30,{0,0,0,90});D.Line(vg,34,590,694,590,cyan);D.Line(vg,34,620,694,620,cyan)

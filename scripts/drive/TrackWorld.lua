@@ -5,6 +5,13 @@
 --   target boxes -> .3 x 2.2 x 2, centre y=1.6, disabled when destroyed
 -- Ray suspension excludes its own chassis and triggers; raised tracks keep the
 -- finite side/end faces, so ramp edges and airborne wheels remain unsupported.
+local TrialMetrics=require("drive.TrialMetrics")
+local Prefab=require("construction.Prefab")
+local Blueprint=require("construction.Blueprint")
+local DrillSweep=require("physics.DrillSweep")
+local Math3=require("core.Math3")
+local OpeningRetirement=require("app.OpeningRetirement")
+
 local Coord=require "core.Coord"
 local Assets=require "scene.TrackAssets"
 local Space=require "physics.Space"
@@ -25,7 +32,7 @@ function M:init(scene)
     self.scene=scene;self.space=Space.New(scene);self.layout=Assets.data.layout
     self.root=scene:CreateChild("TrialPhysics");self.cones={};self.targets={};self.time=0
     self.stats={shots=0,hits=0,damage=0,kills=0}
-    self.metrics=require('drive.TrialMetrics').New(self.layout.drag)
+    self.metrics=TrialMetrics.New(self.layout.drag)
     self.units={};self.fx={};self.viewEvents={};self.debris=Debris.New(self.space)
     self.env={stats=self.stats,castRay=function(...) return self:CastRay(...) end,sweepDrill=function(...) return self:SweepDrill(...) end,
         hit=function(...) self:Hit(...) end,lockables=function(...) return self:Lockables(...) end,
@@ -84,7 +91,7 @@ function M:SetUnits(bp,combat)
     for _,unit in ipairs(self.units) do unit:Dispose() end
     self.units={};self.debris:Clear()
     local source=bp:ToTable()
-    local prefab=require("construction.Prefab").BuildRaceCar(require("construction.Blueprint").New()):ToTable()
+    local prefab=Prefab.BuildRaceCar(Blueprint.New()):ToTable()
     for _,spot in ipairs(self.layout.unitSpots) do
         self.units[#self.units+1]=CarUnit.New(self,spot.who=="self" and source or prefab,{name=spot.name,spawn=spot,combat=combat==true})
     end
@@ -100,7 +107,7 @@ function M:CastRay(origin,direction,length,excluded)
     return best
 end
 function M:SweepDrill(...)
-    self.drillSweep=self.drillSweep or require('physics.DrillSweep').New(self)
+    self.drillSweep=self.drillSweep or DrillSweep.New(self)
     return self.drillSweep:Cast(...)
 end
 function M:Lockables(excluded,team,accept)
@@ -117,7 +124,7 @@ end
 -- excluded. Ray occlusion protects targets; each car distributes one damage pool
 -- across its visible parts. Boundary edge == radius retains 30 percent damage.
 function M:Explode(point,radius,damage,excluded,accept,cast)
-    local V=require 'core.Math3'
+    local V=Math3
     for _,t in ipairs(self.targets) do if t.alive then
         local delta=V.Sub(t.pos,point);local d=V.Length(delta);local edge=math.max(0,d-1)
         if edge<=radius then
@@ -207,7 +214,7 @@ function M:Dispose(checkpoint)
     for _,unit in ipairs(self.units) do unit:Dispose();if checkpoint then checkpoint() end end
     self.units={};self.debris:Clear();self.fx={};self.viewEvents={};self.debris.events={}
     self.space:Dispose()
-    require('app.OpeningRetirement').Nodes(self.root,checkpoint)
+    OpeningRetirement.Nodes(self.root,checkpoint)
     self.root:Dispose();self.cones={};self.targets={}
     self.root=nil;self.scene=nil;self.env=nil;self.metrics=nil;self.feedbackPlayer=nil;self.attacker=nil
     self.debris.space=nil;self.space=nil;self.layout=nil

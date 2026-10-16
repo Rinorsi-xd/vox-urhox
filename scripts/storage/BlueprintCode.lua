@@ -1,5 +1,7 @@
 -- H5 FKZC1 interchange. Export uses its uncompressed JSON fallback; import also
 -- accepts raw DEFLATE codes. Bounded RFC1951 decoding needs no native/plugin API.
+local LiveryData=require("construction.LiveryData")
+
 local M={};local LIMIT=2*1024*1024
 local alphabet='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'
 local function Encode(s)
@@ -105,7 +107,7 @@ function M.Validate(data)
         for i=6,7 do local c=row[i];assert(c==nil or c==cjson.null or type(c)=='number' and c%1==0 and c>=0 and c<=0xffffff,'涂装颜色无效') end
         local g=row[8];assert(g==nil or g==cjson.null or type(g)=='number' and g%1==0 and g>=0 and g<=1000000000,'连接块组号无效')
     end
-    if data.livery~=nil and data.livery~=cjson.null then data.livery=require('construction.LiveryData').Clean(data.livery) end
+    if data.livery~=nil and data.livery~=cjson.null then data.livery=LiveryData.Clean(data.livery) end
     return data
 end
 function M.Encode(data)

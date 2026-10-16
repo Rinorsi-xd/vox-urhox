@@ -6,6 +6,9 @@
 --   [track full bounds / moving leg links]           = hit sensors, no support
 -- Thin antenna/flag add mass to their mount; inverted wheels become structure.
 -- Only parts connected to the core drive. Debris uses all supplied parts.
+local Rotors=require("construction.Rotors")
+local TurretRange=require("construction.TurretRange")
+
 local Config=require "Config"
 local Defs=require "parts.Defs"
 local Rot=require "core.Rotations"
@@ -267,12 +270,12 @@ function M.Build(bp,checkpoint,connected)
     local parts={}
     for _,p in ipairs(bp:List()) do if conn.reached[p.id] then parts[#parts+1]=p end end
     stage=.2
-    local rotors,owner=require('construction.Rotors').Spec(bp,adj,conn.reached,pause)
+    local rotors,owner=Rotors.Spec(bp,adj,conn.reached,pause)
     stage=.4
     local out=M.BuildParts(parts,bp:Size()-#parts,rotors,owner,pause)
     if out.ok then
         stage=.6
-        local ranges=require('construction.TurretRange').For(bp,owner,pause)
+        local ranges=TurretRange.For(bp,owner,pause)
         for _,w in ipairs(out.weapons) do w.range=ranges[w.partId] end
     end
     if checkpoint then checkpoint(1) end

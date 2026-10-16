@@ -110,12 +110,13 @@ for root in M['roots']:collect_material_roles(json.loads((SOURCE/Path(root['file
 for key in ['albedo','nra']:
  r=E.Element('texture');
  for i in range(6):E.SubElement(r,'layer',name='Crater/'+key+'-'+str(i)+'.bin')
- E.SubElement(r,'address',coord='u',mode='wrap');E.SubElement(r,'address',coord='v',mode='wrap');E.SubElement(r,'filter',mode='anisotropic');xml(OUT/(key+'.xml'),r)
+ E.SubElement(r,'address',coord='u',mode='wrap');E.SubElement(r,'address',coord='v',mode='wrap');E.SubElement(r,'filter',mode='trilinear');xml(OUT/(key+'.xml'),r)
 for i,d in enumerate(M['materials'],1):
  r=E.Element('material');kind=d['kind'];shader={'terrain':'Terrain','far':'Far','glow':'Glow','fx':'Fx','shield':'Fx','scatter':'Scatter'}.get(kind)
  if not shader:
   defines=d['defines'];shader='Map-'+ '-'.join(sorted(defines)) if defines else 'Map-plain'
   write(shader+'.shader','shader_type spatial;\nrender_mode shading_model_pbr,cull_disabled;\n'+''.join('#define '+k+'\n' for k in defines)+'#include "Map.shaderinc"\n')
+ if kind=='terrain':E.SubElement(r,'shader',psdefines='FLOW_CONTROL')
  E.SubElement(r,'surfaceshader',name='Shaders/BLGL/Crater/'+shader+'.shader')
  param(r,'tint',d['color']+[d['opacity']]);param(r,'roughness',d['rough']);param(r,'metalness',d['metal']);param(r,'alpha_cut',d['alphaTest']);param(r,'emission',[v*d['emissionStrength'] for v in d['emission']])
  for k,v in d['uniforms'].items():param(r,k,v)

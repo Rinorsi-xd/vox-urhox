@@ -1,4 +1,14 @@
 -- Frozen mobileEditor.js composition; existing editor commands remain authoritative.
+local SourceTouchDriveWidgets=require("ui.SourceTouchDriveWidgets")
+local TouchGestures=require("controls.TouchGestures")
+local Defs=require("parts.Defs")
+-- Load optional/cyclic dependencies once, without changing first-use order.
+local DeferredModules=setmetatable({},{__index=function(modules,name)
+    local module=require(name)
+    rawset(modules,name,module)
+    return module
+end})
+
 local UI=require 'urhox-libs/UI'
 local W=require 'ui.TouchEditorWidgets'
 local Layout=require 'ui.TouchEditorLayout'
@@ -52,7 +62,7 @@ function M.Create(session,root,playfield)
             elseif name=='me-liftUp' then e:Lift(1)
             elseif name=='me-liftDown' then e:Lift(-1)
             elseif name=='me-lesson' then session.buildCamera:Release();session.app.tutorial:Replay()
-            elseif name=='me-settings' then require('ui.GameSettings').Open(session)
+            elseif name=='me-settings' then DeferredModules['ui.GameSettings'].Open(session)
             elseif name=='me-tool' then session.selecting=value=='select';e:SetTool(value=='select' and 'build' or value)
             elseif name=='me-slot' then if session.inventory.hotbar[value] then session:SelectHotbar(value) else session:OpenInventory() end
             elseif name=='me-bag' then session:OpenInventory()
@@ -129,11 +139,11 @@ function M.Create(session,root,playfield)
             return false
         end,
         Action=function(id) layer.Action(id) end}
-    local stick=require('ui.SourceTouchDriveWidgets').Stick{position='absolute',pointerEvents='none'};container:AddChild(stick);layer.stick=stick
+    local stick=SourceTouchDriveWidgets.Stick{position='absolute',pointerEvents='none'};container:AddChild(stick);layer.stick=stick
     adapter.PlaceStick=function(r,live)stick:SetStyle{left=r.x*k,top=r.y*k,width=r.w*k,height=r.h*k};stick.live=live end
     adapter.HomeStick=function()stick:SetStyle(layer.layout.stick);stick.live=false end
     local move=adapter.Move;adapter.Move=function(x,y)stick.axisX=x;stick.axisY=-y;move(x,y)end
-    local gesture=require('controls.TouchGestures').New(adapter);layer.gestures=gesture
+    local gesture=TouchGestures.New(adapter);layer.gestures=gesture
     local fixedChildren={layer.eyedrop}
     for _,group in ipairs({layer.toolRows,layer.moreRows,layer.modeButtons,layer.channels,layer.swatches}) do for _,child in pairs(group) do fixedChildren[#fixedChildren+1]=child end end
     local function Target(x,y) if controls.TouchTarget then controls:TouchTarget(x*k,y*k) end end
@@ -201,7 +211,7 @@ function M.Create(session,root,playfield)
         for id,b in pairs(layer.buttons) do local r=layout.buttons[id];b:SetVisible(r~=nil);if r then b:SetStyle(r) end;b.props.narrow=layout.narrow and (id=='me-back' or id=='me-test' or id=='me-save');b.props.sourceScale=layout.s end
         layer.dock:SetStyle(layout.dock);layer.liftLabel:SetVisible(layout.liftLabel~=nil);if layout.liftLabel then layer.liftLabel:SetStyle(layout.liftLabel) end;hint:SetStyle(layout.hint)
         for i,sep in ipairs(layer.separators) do sep:SetStyle(layout.separators[i]) end
-        local part=require('parts.Defs').PARTS[e.type];local color='原色';for _,c in ipairs(Config.PALETTE) do if not e.autoColor and c.hex==e.color then color=c.name;break end end
+        local part=Defs.PARTS[e.type];local color='原色';for _,c in ipairs(Config.PALETTE) do if not e.autoColor and c.hex==e.color then color=c.name;break end end
         local tool=session.selecting and 'select' or e.tool;local t=toolsOf[tool] or toolsOf.build
         layer.hint.props.text=layer.pickTap and '点一下车身吸取零件' or layer.colorTap and '点一下车身吸取颜色' or (t[2]..' · '..(part and part.name or '')..' · '..color)
         local info=layer.buttons['me-stats'].props;info.text=name;info.nameWidth=math.max(0,math.min(nameWidth,layout.buttons['me-stats'].width/s-(layout.narrow and 124 or 150)));info.narrow=layout.narrow;info.budget=budget;info.tier='T'..tostring((stats.fitTier or {}).id or 1);info.selected=layer.statsOpen

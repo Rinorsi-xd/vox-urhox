@@ -1,3 +1,14 @@
+local SalvagePaint=require("ui.SalvagePaint")
+local VoxTheme=require("ui.VoxTheme")
+local Prefab=require("construction.Prefab")
+local Blueprint=require("construction.Blueprint")
+-- Load optional/cyclic dependencies once, without changing first-use order.
+local DeferredModules=setmetatable({},{__index=function(modules,name)
+    local module=require(name)
+    rawset(modules,name,module)
+    return module
+end})
+
 local UI=require('urhox-libs/UI')
 local Host=require('ui.DialogHost')
 local Button=require('ui.SourceButton')
@@ -7,7 +18,7 @@ local Stash=require('salvage.StashRules')
 local M={}
 local Credit=UI.Panel:Extend('VoxPurchaseCredit')
 function Credit:Render(vg)
-    Draw.Begin(vg);local r=self:GetAbsoluteLayout();require('ui.SalvagePaint').Credit(vg,r.x,r.y+(r.h-16)/2,16)
+    Draw.Begin(vg);local r=self:GetAbsoluteLayout();SalvagePaint.Credit(vg,r.x,r.y+(r.h-16)/2,16)
     Draw.Text(vg,Draw.Number(self.props.value),r.x+20,r.y+(r.h-19)/2,19,nil,'vox-tabular')
 end
 local Tag=UI.Panel:Extend('VoxPurchaseTag')
@@ -43,7 +54,7 @@ local function Rows(modal,list,limit)
         if i<=shown then
             local item=Data.items[row.id];local type=row.id:sub(6)
             local line=UI.Panel{width='100%',height=58,flexDirection='row',alignItems='center',gap=14,borderTopWidth=1,borderColor={255,255,255,20},flexShrink=0}
-            line:AddChild(UI.Panel{backgroundImage=require('ui.VoxTheme').Thumbnail(type),width=48,height=48,backgroundFit='contain'})
+            line:AddChild(UI.Panel{backgroundImage=VoxTheme.Thumbnail(type),width=48,height=48,backgroundFit='contain'})
             line:AddChild(UI.Label{text=item.name,fontFamily='vox-body',fontSize=17,color='#eef7ff',flexGrow=1,flexShrink=1})
             line:AddChild(UI.Label{text=limit and ('×'..row.n) or ('缺 '..row.n..' 个'),fontFamily='vox-body',fontSize=14,color='#ffc21a',width=74})
             line:AddChild(Credit{value=limit and row.cost or item.price,width=110,height=32})
@@ -94,7 +105,7 @@ function M.Parts(owner,short,retry,choose)
 end
 function M.Car(s,id)
     local app=s.app;local lobby=app.salvageLobby
-    local bp=require('construction.Prefab').Create(require('construction.Blueprint').New(),id):ToTable()
+    local bp=Prefab.Create(Blueprint.New(),id):ToTable()
     if not app.bays:FirstEmpty() then app.toasts:Push('打捞车位都满了，先在「车库」拆掉一辆','warn');return false end
     local need=Stash.Need(bp.parts);local missing={};local usage=lobby:Usage()
     for key,n in pairs(need) do local lack=n-lobby:Loose(key,usage);if lack>0 then missing[key]=lack end end
@@ -117,7 +128,7 @@ function M.Car(s,id)
             end
             return true
         end,function()
-            if s.salvage then require('ui.SalvagePage').Tab(s,'garage') end
+            if s.salvage then DeferredModules['ui.SalvagePage'].Tab(s,'garage') end
             s.SetTab('salvage',{quiet=true});s.revision=-1
         end,bp)
     end

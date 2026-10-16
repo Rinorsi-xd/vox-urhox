@@ -1,5 +1,27 @@
 -- Composition boundary: pure commands -> incremental view, bounded ghost,
 -- native input/UI and debounced storage. The app retains the editor across scenes.
+local TouchPreferences=require("controls.TouchPreferences")
+local BuildInspection=require("app.BuildInspection")
+local BuildCamera=require("controls.BuildCamera")
+local Inventory=require("construction.Inventory")
+local InventoryPanel=require("ui.InventoryPanel")
+local BlueprintLibrary=require("ui.BlueprintLibrary")
+local BuildStretch=require("construction.BuildStretch")
+local Rotations=require("core.Rotations")
+local ImportedWheel=require("controls.Wheel")
+local UiSound=require("audio.UiSound")
+local DialogHost=require("ui.DialogHost")
+local Rotors=require("construction.Rotors")
+local GarageDialogs=require("ui.GarageDialogs")
+local TouchMode=require("controls.TouchMode")
+local VoxTheme=require("ui.VoxTheme")
+-- Load optional/cyclic dependencies once, without changing first-use order.
+local DeferredModules=setmetatable({},{__index=function(modules,name)
+    local module=require(name)
+    rawset(modules,name,module)
+    return module
+end})
+
 local UI=require 'urhox-libs/UI'
 local Ghost=require 'render.BuildGhost'
 local Controls=require 'controls.BuildInput'
@@ -7,13 +29,13 @@ local Hud=require 'ui.BuildHud'
 local Config=require 'Config'
 local M={};M.__index=M
 function M.New(app)
-    require('controls.TouchPreferences').Get(app)
+    TouchPreferences.Get(app)
     local self=setmetatable({app=app,editor=app.editor,camera=app.camera,car=app.car,slot=app.bays.active or 1,message='',disposed=false,refreshTime=0},M)
     self.controls=Controls.New(self);self.ghost=Ghost.New(app.scene);self.camera.autoSpin=false
-    self.inspection=require('app.BuildInspection').New(self)
-    self.buildCamera=require('controls.BuildCamera').New(self)
+    self.inspection=BuildInspection.New(self)
+    self.buildCamera=BuildCamera.New(self)
     self.flyStep=app.buildFlyStep or 3;self.flyScale=({.5,.75,1,1.5,2})[self.flyStep]
-    app.inventory=app.inventory or require('construction.Inventory').New(app.store:LoadBuildSettings())
+    app.inventory=app.inventory or Inventory.New(app.store:LoadBuildSettings())
     self.inventory=app.inventory
     self:ApplyHotbar()
     self.car.root.position=Vector3.ZERO
@@ -24,7 +46,7 @@ function M.New(app)
         self.buildCamera:Focus()
     end
     self.car:SetXray(app.buildXray==true)
-    self.hud=Hud.Create(self);require('app.SalvageBuild').Attach(self);self:Refresh();return self
+    self.hud=Hud.Create(self);DeferredModules['app.SalvageBuild'].Attach(self);self:Refresh();return self
 end
 function M:ApplyHotbar()
     local type=self.inventory:Current()
@@ -45,13 +67,13 @@ function M:PickHotbar(type) self.inventory:Pick(type);self:ApplyHotbar();self:Sa
 function M:ClearHotbar(slot) self.inventory:Clear(slot);self:ApplyHotbar();self:SaveSettings() end
 function M:OpenInventory()
     if self.dialog then return end
-    return require('ui.InventoryPanel').Open(self)
+    return InventoryPanel.Open(self)
 end
 function M:OpenLibrary(mode)
     if self.app.lobby=='salvage' and mode~='save' then self:Notify('打捞行动的车在大厅「车库」里新建和切换','info');return false end
-    return require('ui.BlueprintLibrary').Open(self,mode)
+    return BlueprintLibrary.Open(self,mode)
 end
-function M:OpenPause() return require('ui.GameSettings').Open(self) end
+function M:OpenPause() return DeferredModules['ui.GameSettings'].Open(self) end
 function M:ToggleXray()
     self.app.buildXray=not self.app.buildXray;self.car:SetXray(self.app.buildXray);self:Refresh()
 end
@@ -81,7 +103,7 @@ function M:SelectionAction(action)
 end
 function M:Escape()
     self.controls:Cancel()
-    if self.editor.stretch then require('construction.BuildStretch').Cancel(self.editor);self:Refresh();return end
+    if self.editor.stretch then BuildStretch.Cancel(self.editor);self:Refresh();return end
     if not self.buildCamera.touch and (self.buildCamera.captured or self.buildCamera.pending) then self.buildCamera:Release();self:Refresh();return end
     if self.dialog then self.dialog:Close()
     elseif self.inventoryPanel then self.inventoryPanel:Close()
@@ -102,7 +124,7 @@ function M:Trace(x,y,touchTarget)
 end
 function M:MoveSelection(forward,right,up)
     local f=self.camera.node.rotation*Vector3.FORWARD
-    local axis=require('core.Rotations').SnapDir(-f.x,0,f.z);local x,z=axis[1],axis[3]
+    local axis=Rotations.SnapDir(-f.x,0,f.z);local x,z=axis[1],axis[3]
     return self.editor:MoveSelection({x*forward-z*right,up,z*forward+x*right})
 end
 function M:CyclePaintColor(direction)
@@ -114,19 +136,17 @@ function M:CyclePaintColor(direction)
 end
 function M:Wheel(delta)
     if self.dialog or self.inventoryPanel then return end
-    if self.editor.stretch then
-        self.wheelAcc=(self.wheelAcc or 0)+require('controls.Wheel').Pixels(delta)
-        if math.abs(self.wheelAcc)>=50 then
-            local direction=self.wheelAcc>0 and 1 or -1;self.wheelAcc=0
-            require('construction.BuildStretch').Adjust(self.editor,direction)
-        end
-        return
-    end
     if input:GetKeyDown(KEY_SHIFT) or input:GetKeyDown(KEY_CTRL) then
-        if self.buildCamera.mode=='orbit' then self.camera.dist=require('controls.Wheel').Zoom(self.camera.dist,delta,self.camera.minDist,self.camera.maxDist) end
+        if self.buildCamera.mode=='orbit' then self.camera.dist=ImportedWheel.Zoom(self.camera.dist,delta,self.camera.minDist,self.camera.maxDist) end
         return
     end
-    self.wheelAcc=(self.wheelAcc or 0)+require('controls.Wheel').Pixels(delta)
+    if self.editor.stretch then
+        local pixels=ImportedWheel.Pixels(delta)
+        local direction=pixels>0 and -1 or pixels<0 and 1 or 0
+        BuildStretch.Adjust(self.editor,direction)
+        return
+    end
+    self.wheelAcc=(self.wheelAcc or 0)+ImportedWheel.Pixels(delta)
     if math.abs(self.wheelAcc)<50 then return end
     local direction=self.wheelAcc>0 and 1 or -1;self.wheelAcc=0
     if self.editor.tool=='paint' or input:GetKeyDown(KEY_ALT) then self:CyclePaintColor(direction)
@@ -169,7 +189,7 @@ function M:Act()
 end
 function M:SaveSlot()
     local ok,err,reason=self.app.bays:Save()
-    if ok then self.slot=self.app.bays.active;require('audio.UiSound').Play('stamp') end
+    if ok then self.slot=self.app.bays.active;UiSound.Play('stamp') end
     self:Notify(ok and ('已保存到车位 '..self.slot) or err,ok and 'ok' or 'bad')
     self.app.store:Flush()
     if not ok and reason=='full' then self:OpenLibrary('save') end
@@ -179,7 +199,7 @@ function M:LoadSlot()
     local slot=self.slot;local data=self.app.store:LoadSlot(slot)
     if not data then return false,'这个车位没有战车' end
     return self.app:WithVehicle(data,function() return self.app.bays:Restore(slot) end,function(ok,err)
-        require('ui.DialogHost').Notify(self,ok and ('已读取车位 '..slot) or err)
+        DialogHost.Notify(self,ok and ('已读取车位 '..slot) or err)
     end)
 end
 function M:Keys()
@@ -188,6 +208,9 @@ function M:Keys()
     local focus=UI.GetFocus();if focus and focus.OnTextInput and focus~=self.hud.playfield then return end
     local e=self.editor;local ctrl=input:GetKeyDown(KEY_CTRL);local shift=input:GetKeyDown(KEY_SHIFT)
     local function Press(k) return input:GetKeyPress(k) end
+    if e.stretch and ctrl and (Press(KEY_Z) or Press(KEY_Y)) then
+        BuildStretch.Cancel(e);self.controls:Cancel();self:Refresh();return
+    end
     if Press(KEY_TAB) then
         self.controls:Cancel();self.wheelAcc=0
         self.selecting=false
@@ -210,7 +233,7 @@ function M:Keys()
         end
         for i,k in ipairs({KEY_1,KEY_2,KEY_3,KEY_4,KEY_5,KEY_6,KEY_7,KEY_8,KEY_9,KEY_0}) do if Press(k) then
             if input:GetKeyDown(KEY_ALT) then e.autoColor=false;e.color=Config.PALETTE[i].hex;e.dirty=true
-            elseif i<=3 and e.hit and e.bp.parts[e.hit.partId] and require('construction.Rotors').Is(e.bp.parts[e.hit.partId].type) then
+            elseif i<=3 and e.hit and e.bp.parts[e.hit.partId] and Rotors.Is(e.bp.parts[e.hit.partId].type) then
                 local _,message=e:SetRotorMode(i);if message then self:Notify(message,'info') end
             else self:SelectHotbar(i) end
         end end
@@ -233,7 +256,7 @@ function M:Keys()
         end
         if Press(KEY_C) and e:Eyedrop(e.hit) then self.controls:Cancel();e.dirty=true end
         if Press(KEY_B) then self:OpenInventory();return end
-        if Press(KEY_H) or Press(KEY_F1) then require('ui.GarageDialogs').Help(self);return end
+        if Press(KEY_H) or Press(KEY_F1) then GarageDialogs.Help(self);return end
         if Press(KEY_G) and self.inventory:CycleBlock() then self:ApplyHotbar();self:SaveSettings() end
         if Press(KEY_DELETE) or Press(KEY_BACKSPACE) then if next(e.selection) then e:DeleteSelection() else e:Remove() end end
         if Press(KEY_PAGEUP) then if next(e.selection) then self:MoveSelection(0,0,1) else e:Lift(1) end end
@@ -248,10 +271,10 @@ end
 function M:Update(dt)
     if self.disposed then return end
     if self.editor.stretch and (not input.focus or input.minimized or self.dialog or self.inventoryPanel) then
-        require('construction.BuildStretch').Cancel(self.editor)
+        BuildStretch.Cancel(self.editor)
     end
-    require('controls.TouchMode').Update('build')
-    require('ui.DialogHost').Update(self,dt)
+    TouchMode.Update('build')
+    DialogHost.Update(self,dt)
     local width,height=UI.GetViewportSize();local safe=UI.GetSafeAreaInsets();local old=self.hud.safe
     if width~=self.hud.width or height~=self.hud.height or safe.left~=old.left or safe.right~=old.right or safe.top~=old.top or safe.bottom~=old.bottom then
         -- UI-only replacement: keep blueprint/history/camera and modal drafts.
@@ -268,7 +291,7 @@ function M:Update(dt)
             self.hud.root:AddChild(dialog);dialog.autoMountParent_=self.hud.root
             if focus and focus.node then UI.SetFocus(focus) end
         end
-        if inventory then require('ui.InventoryPanel').Open(self,inventoryState) end
+        if inventory then InventoryPanel.Open(self,inventoryState) end
         self:Refresh()
         return -- Do not reuse presses/deltas sampled before the resize.
     end
@@ -286,13 +309,13 @@ end
 function M:Dispose()
     if self.disposed then return end;self.disposed=true
     self.app.vehicleGate:Cancel()
-    require('ui.DialogHost').Dispose(self)
+    DialogHost.Dispose(self)
     if self.inventoryPanel then self.inventoryPanel:Close() end
-    require('ui.VoxTheme').TrimThumbnails({})
+    VoxTheme.TrimThumbnails({})
     self.buildCamera:Dispose()
     self.car:SetXray(false)
     self.controls:Cancel();self.ghost:Dispose();self.app.store:Flush()
-    require('construction.BuildStretch').Cancel(self.editor)
+    BuildStretch.Cancel(self.editor)
     self.inspection:Dispose()
     if self.hud then self.hud.Dispose() end
 end

@@ -1,10 +1,12 @@
 -- Retained audio scene; page transitions never dispose a playing voice.
+local IntroAudioTail=require("audio.IntroAudioTail")
+
 local Levels=require 'audio.AudioLevels'
 local M={};M.__index=M
 local loud={alarm=-7.9,blip=-22.9,clang=-8,confirm=-12.9,crt_on=-27.2,door_open=-10.4,heartbeat=-4.3,holo_shatter=-9.8,
  laser_big=-6.5,laser_boom=-3.9,laser_charge=-11.5,pigeon=-4.8,scratch=-9,scribble=-30.1,shred=-12.1,slam=-4.6,spotlight=-13.4,stamp=-9.2,tv_cut=-8.6,whoosh=-8.6}
 function M.New(data)
- require('audio.IntroAudioTail').CancelAll()
+ IntroAudioTail.CancelAll()
  local self=setmetatable({},M);self:init(data);return self
 end
 function M:init(data)

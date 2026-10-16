@@ -1,6 +1,9 @@
+local ResourceData=require("core.ResourceData")
+local SalvageCinematics=require("render.SalvageCinematics")
+
 local M={}
 function M.Release()
-    local refs=require('core.ResourceData').Read('Salvage/Resources.json')
+    local refs=ResourceData.Read('Salvage/Resources.json')
     for _,kind in ipairs({'Material','Model','Texture2D'}) do
         for _,path in ipairs(refs) do
             if path:sub(1,8)=='Salvage/' then
@@ -11,6 +14,6 @@ function M.Release()
             end
         end
     end
-    require('render.SalvageCinematics').Release()
+    SalvageCinematics.Release()
 end
 return M

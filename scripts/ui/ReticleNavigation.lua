@@ -1,4 +1,6 @@
 -- Frozen reticle._compass waypoint, in logical H5 world coordinates.
+local MarkerRules=require("story.MarkerRules")
+
 local D=require 'ui.SourceDraw'
 local R=require 'ui.ReticleDraw'
 local M={}
@@ -6,7 +8,7 @@ function M.Read(session)
     local mission=session.story
     if not mission or not mission.player.alive or not mission.rules.begun or mission.rules.finished
         or mission.boss and mission.boss.cinematic or mission.epilogue then return nil end
-    local state=require('story.MarkerRules').Select(mission)
+    local state=MarkerRules.Select(mission)
     if not state or state.close then return nil end
     local pos=mission.player:Position();local target=state.target
     local dx,dz=target[1]-pos[1],target[3]-pos[3]

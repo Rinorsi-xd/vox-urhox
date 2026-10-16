@@ -1,7 +1,17 @@
+local TouchPreferences=require("controls.TouchPreferences")
+local MatchActions=require("combat.MatchActions")
+local SourceTouchOverlay=require("ui.SourceTouchOverlay")
+-- Load optional/cyclic dependencies once, without changing first-use order.
+local DeferredModules=setmetatable({},{__index=function(modules,name)
+    local module=require(name)
+    rawset(modules,name,module)
+    return module
+end})
+
 local UI=require 'urhox-libs/UI'
 local M={}
 function M.Create(session,root)
-    local prefs=require('controls.TouchPreferences').Get(session.app)
+    local prefs=TouchPreferences.Get(session.app)
     local controls=session.controls;local layer=false
     local function Ready()
         if session.dialog or not session:HasFocus() then return false end
@@ -39,9 +49,9 @@ function M.Create(session,root)
         Action=function(action)
             if action:sub(1,4)=='aux-' then layer.aux=action:sub(5)
             elseif action=='exit' then
-                if session.battle then require('combat.MatchActions').ConfirmLeave(session.battle) else session.wantsReturn=true end
+                if session.battle then MatchActions.ConfirmLeave(session.battle) else session.wantsReturn=true end
             elseif action=='scope' then session.scope=not session.scope
-            elseif action=='settings' then require('ui.GameSettings').Open(session)
+            elseif action=='settings' then DeferredModules['ui.GameSettings'].Open(session)
             elseif action=='weapon' then session.weapons:Select(session.weapons.current%math.max(1,#session.weapons.groups)+1)
             elseif action=='flip' then session:Flip()
             elseif action=='interact' then
@@ -92,7 +102,7 @@ function M.Create(session,root)
             l.buttons.board:SetVisible(not l.menu and not l.blocked and session.battle~=nil)
             if l.readiness then local group=session.weapons:Group();l.readiness.value=group and math.max(0,math.min(1,session.weapons:Readiness(group))) or 1 end
         end}
-    layer=require('ui.SourceTouchOverlay').Create(root,playfield,adapter,{'scope','interact','up','primary','aux','weapon','rudder-l','rudder-r','board'},options)
+    layer=SourceTouchOverlay.Create(root,playfield,adapter,{'scope','interact','up','primary','aux','weapon','rudder-l','rudder-r','board'},options)
     layer.buttons.fire=layer.buttons.primary;layer.buttons.brake=layer.buttons.up;layer.buttons.descend=layer.buttons.aux
     layer.Update(false);return layer
 end

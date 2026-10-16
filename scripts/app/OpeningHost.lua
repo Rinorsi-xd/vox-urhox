@@ -1,21 +1,57 @@
 -- Opening owns its crater; the authored garage is borrowed and restored.
+local DriveMaps=require("app.DriveMaps")
+local ResourceData=require("core.ResourceData")
+local ImportedDependencies=require("parts.Dependencies")
+local WeaponIconResources=require("ui.WeaponIconResources")
+local MissileView=require("render.MissileView")
+local SceneLoader=require("app.SceneLoader")
+local UI=require("urhox-libs/UI")
+local Crater=require("scene.Crater")
+local OpeningRetirement=require("app.OpeningRetirement")
+local CommsCard=require("ui.CommsCard")
+local ResourceGate=require("app.ResourceGate")
+local IntroWarmup=require("intro.IntroWarmup")
+local VehicleView=require("render.VehicleView")
+local IntroAssembly=require("intro.IntroAssembly")
+local IntroGarage=require("intro.IntroGarage")
+local CraterWorld=require("drive.CraterWorld")
+local CraterPhysics=require("drive.CraterPhysics")
+local IntroSortieCar=require("intro.IntroSortieCar")
+local IntroBattle=require("intro.IntroBattle")
+local IntroSortieUi=require("ui.IntroSortieUi")
+local IntroMontagePool=require("intro.IntroMontagePool")
+local IntroShots=require("intro.IntroShots")
+local ReticleState=require("ui.ReticleState")
+local DriveAim=require("controls.DriveAim")
+local ChaseState=require("controls.ChaseState")
+local IntroStrike=require("intro.IntroStrike")
+local IntroSceneCapture=require("intro.IntroSceneCapture")
+local SourceDraw=require("ui.SourceDraw")
+local Config=require("Config")
+-- Load optional/cyclic dependencies once, without changing first-use order.
+local DeferredModules=setmetatable({},{__index=function(modules,name)
+    local module=require(name)
+    rawset(modules,name,module)
+    return module
+end})
+
 local BP=require 'construction.Blueprint'
 local Coord=require 'core.Coord'
 local M={}
 local function ValidProfile(p) return type(p)=='table' and type(p.name)=='string' and (utf8.len(p.name) or 99)<=10 and p.name~='' and type(p.signedAt)=='number' end
 M.ValidProfile=ValidProfile
 function M.Dependencies(app,data)
- local resources={};local map=require('app.DriveMaps').crater
- for _,path in ipairs(require('core.ResourceData').Read(map.resources)) do resources[#resources+1]=path end
+ local resources={};local map=DriveMaps.crater
+ for _,path in ipairs(ResourceData.Read(map.resources)) do resources[#resources+1]=path end
  local parts={}
  local sources={app.blueprint:ToTable(),data.actors.hero,data.actors.cart}
  for _,actor in ipairs(data.actors.invaders) do sources[#sources+1]=actor.blueprint end
  for _,source in ipairs(data.actors.hovers or {}) do sources[#sources+1]=source end
  for _,source in ipairs(sources) do for _,p in ipairs(BP.New():Load(source):List()) do parts[#parts+1]=p end end
- for _,path in ipairs(require('parts.Dependencies').For(parts)) do resources[#resources+1]=path end
- for _,path in ipairs(require('ui.WeaponIconResources').For(parts)) do resources[#resources+1]=path end
+ for _,path in ipairs(ImportedDependencies.For(parts)) do resources[#resources+1]=path end
+ for _,path in ipairs(WeaponIconResources.For(parts)) do resources[#resources+1]=path end
  for _,name in ipairs({'audio.WeaponAudio','audio.DrivingAudio','audio.CombatFeedbackAudio'}) do
-  for _,path in ipairs(require(name).Dependencies()) do resources[#resources+1]=path end
+  for _,path in ipairs(DeferredModules[name].Dependencies()) do resources[#resources+1]=path end
  end
  resources[#resources+1]='Equipment/plasma-flow.png'
  resources[#resources+1]='Shaders/BLGL/UI/CommsPortrait.shader'
@@ -24,17 +60,17 @@ function M.Dependencies(app,data)
  resources[#resources+1]='Intro/Shaders/BLGL/AssemblyFlash.shader'
  resources[#resources+1]='Shaders/BLGL/RestoreFlash.shader'
  resources[#resources+1]=data.images.dove
- for _,path in ipairs(require('render.MissileView').Dependencies()) do resources[#resources+1]=path end
+ for _,path in ipairs(MissileView.Dependencies()) do resources[#resources+1]=path end
  return resources
 end
 function M.New(app)
- local state={app=app,loader=require('app.SceneLoader').New(),activeScene='garage',captures={}}
+ local state={app=app,loader=SceneLoader.New(),activeScene='garage',captures={}}
  state.loader.prepareBudgetMs=5
  local host={state=state}
  local function ResumeTutorial()
   local pending=state.pendingTutorial;state.pendingTutorial=nil
   if not pending or app.stopped or app.openingRestoreOwner~=state or app.opening or app.mode~='hangar' or app.build or app.scene~=state.hall or app.tutorial~=pending.tutorial then return end
-  require('urhox-libs/UI').RegisterGlobalComponent('vox-tutorial',pending.tutorial.page)
+  UI.RegisterGlobalComponent('vox-tutorial',pending.tutorial.page)
   if pending.start then pending.tutorial:Start() end
  end
  local function DisposeWorld(checkpoint)
@@ -46,7 +82,7 @@ function M.New(app)
   if state.craterRetired then return end
   state.craterRetired=true
   local session,world,scene,strike=state.session,state.world,state.scene,state.strike
-  local release=session and session.ReleaseAssets or require('scene.Crater').Release
+  local release=session and session.ReleaseAssets or Crater.Release
   if incremental and session and not state.finishPaused then session:Pause() end
   if scene then scene.updateEnabled=false;app.graphicsSettings:ReleasePost(scene) end
   if state.warmup and state.warmup.disposed then state.warmup=nil end
@@ -58,7 +94,7 @@ function M.New(app)
   local function Work(checkpoint)
    if session then session:Dispose(checkpoint) elseif world then world:Dispose(checkpoint) end
    if strike then strike:Dispose() end
-   if scene then require('app.OpeningRetirement').Nodes(scene,checkpoint);scene:Dispose() end
+   if scene then OpeningRetirement.Nodes(scene,checkpoint);scene:Dispose() end
   end
   local function Done()
    app:DeferAssetRelease(function()
@@ -73,10 +109,10 @@ function M.New(app)
   state.intro=I;state.tutorial=app.tutorial;state.tutorialPage=app.tutorial and app.tutorial.page
   state.hall=app.scene;state.hallCamera=app.camera.camera;state.oldPose={position=app.camera.node.position,rotation=app.camera.node.rotation,fov=app.camera.camera.fov}
   state.oldCarVisible=app.car.root.enabled;app.car:SetVisible(false)
-  require('ui.GarageHud').Dispose()
+  DeferredModules['ui.GarageHud'].Dispose()
   if app.tutorial then
    app.tutorial.visible=false;app.tutorial.page:CancelInput();app.tutorial:DetachVoice()
-   require('urhox-libs/UI').UnregisterGlobalComponent('vox-tutorial')
+   UI.UnregisterGlobalComponent('vox-tutorial')
   end
  end
  host.TakeTutorialPortrait=function(I,portrait,context)
@@ -85,7 +121,7 @@ function M.New(app)
    or not I.signed or I.failed or app.mode~='hangar' or app.build or app.scene~=state.hall
    or not tutorial or tutorial.disposed or app.tutorial~=tutorial or tutorial.page~=state.tutorialPage
    or not I.page or I.page.portrait~=portrait then return false end
-  return require('ui.CommsCard').AdoptPortrait(portrait,context)
+  return CommsCard.AdoptPortrait(portrait,context)
  end
  host.CancelPrefetch=function(I)
   if I and state.prefetchIntro~=I then return end
@@ -97,9 +133,9 @@ function M.New(app)
   if state.disposed or app.stopped or state.prefetchIntro==I then return end
   host.CancelPrefetch()
   state.prefetchIntro=I;state.resources=M.Dependencies(app,I.data)
-  local requested={require('app.DriveMaps').crater.scene}
+  local requested={DriveMaps.crater.scene}
   for _,path in ipairs(state.resources) do requested[#requested+1]=path end
-  state.prefetchGate=require('app.ResourceGate').New()
+  state.prefetchGate=ResourceGate.New()
   -- Download bytes only. Native decode/construction stays behind audioReady.
   state.prefetchGate:Start(requested,function(ok,message)
    if state.disposed or app.stopped or state.prefetchIntro~=I then return end
@@ -107,30 +143,30 @@ function M.New(app)
   end)
  end
  host.Prepare=function(I,done,fail)
-  local map=require('app.DriveMaps').crater
+  local map=DriveMaps.crater
   local resources=state.prefetchIntro==I and state.resources or M.Dependencies(app,I.data)
   state.prepareFail=fail
   state.loader:Load(map.scene,function(scene)
-   state.scene=scene;state.warmup=require('intro.IntroWarmup').New(state,host,done);state.warmup:Next()
+   state.scene=scene;state.warmup=IntroWarmup.New(state,host,done);state.warmup:Next()
   end,fail,{resources=resources,webWarmup=map.webWarmup,
    cleanup=DisposeWorld,
    prepare=function(scene,checkpoint)
-    state.hallActor=require('render.VehicleView').New(app.scene,'OpeningHero')
+    state.hallActor=VehicleView.New(app.scene,'OpeningHero')
     local hero=BP.New():Load(I.data.actors.hero)
     for i,p in ipairs(hero:List()) do state.hallActor:AddPart(p);checkpoint(.02*i/hero:Size(),'intro-hall-actor') end
     state.hallActor.joined:Update();state.hallActor.root.position=Vector3(0,0,0)
-    state.assembly=require('intro.IntroAssembly').New(state.hallActor,hero)
-    state.garage=require('intro.IntroGarage').New(app.scene,I.data,function(p,s)checkpoint(.02+p*.03,s)end)
-    local world=require('drive.CraterWorld').New(scene,true);state.world=world
-    require('drive.CraterPhysics').Build(world,function(p,s)checkpoint(p*.5,s)end)
-    local source=require('intro.IntroSortieCar').Select(app.blueprint:ToTable())
-    local trial=require('app.TrialSession').New(scene,BP.New():Load(source),app,map,world,
+    state.assembly=IntroAssembly.New(state.hallActor,hero)
+    state.garage=IntroGarage.New(app.scene,I.data,function(p,s)checkpoint(.02+p*.03,s)end)
+    local world=CraterWorld.New(scene,true);state.world=world
+    CraterPhysics.Build(world,function(p,s)checkpoint(p*.5,s)end)
+    local source=IntroSortieCar.Select(app.blueprint:ToTable())
+    local trial=DeferredModules['app.TrialSession'].New(scene,BP.New():Load(source),app,map,world,
      function(p,s)checkpoint(.5+p*.46,s)end,function(s)state.session=s end,
-     function(session,_,progress)return require('intro.IntroBattle').New(session,I.data,source,progress)end)
+     function(session,_,progress)return IntroBattle.New(session,I.data,source,progress)end)
     local battle=trial.combat
-    state.sortieUi=require('ui.IntroSortieUi').New(trial)
+    state.sortieUi=IntroSortieUi.New(trial)
     trial.view:ResetPose();trial.view:Update(1);trial:ResetCamera();trial:PostUpdate(1)
-    require('intro.IntroMontagePool').New(trial,battle,I.data.actors.hero,function(p)checkpoint(.96+p*.04,'intro-montage-view')end)
+    IntroMontagePool.New(trial,battle,I.data.actors.hero,function(p)checkpoint(.96+p*.04,'intro-montage-view')end)
     app.graphicsSettings:RetainPost(scene,trial.camera:GetCamera())
    end})
  end
@@ -186,7 +222,7 @@ function M.New(app)
   I.payslipShot=nil
   if id=='payslip' then
    local cart=state.session.combat.cart
-   require('intro.IntroShots').BeginPayslip(I,cart,function(origin,direction,length)
+   IntroShots.BeginPayslip(I,cart,function(origin,direction,length)
     return state.world.space:Raycast(origin,direction,length,cart and cart.vehicle and cart.vehicle.body)
    end)
   end
@@ -249,8 +285,8 @@ function M.New(app)
    if s.pointer.captured then
     command=s.controls:Read();local dx,dy=s.controls:TakeLook()
     local group=s.weapons:Group()
-    local sensitivity=(s.scope and require('ui.ReticleState').ScopeFov(48,group and group.kind)/48 or 1)*require('controls.DriveAim').Look(s,dt)
-    s.yaw,s.pitch=require('controls.ChaseState').Look(s.yaw,s.pitch,dx,dy,sensitivity,s.vehicle.spec.wings~=nil and #s.vehicle.spec.wings>0)
+    local sensitivity=(s.scope and ReticleState.ScopeFov(48,group and group.kind)/48 or 1)*DriveAim.Look(s,dt)
+    s.yaw,s.pitch=ChaseState.Look(s.yaw,s.pitch,dx,dy,sensitivity,s.vehicle.spec.wings~=nil and #s.vehicle.spec.wings>0)
     if s.combat.player.alive then s.controls:Command(command,s.vehicle,-math.rad(s.yaw),-math.rad(s.pitch)) end
     for index,key in ipairs({KEY_1,KEY_2,KEY_3,KEY_4,KEY_5,KEY_6,KEY_7,KEY_8,KEY_9,KEY_0}) do
      if input:GetKeyPress(key) then s.weapons:Select(index);break end
@@ -271,7 +307,7 @@ function M.New(app)
     if not s.combat.player.alive then state.strikePending=nil
     elseif age>=1.8 then
      -- The source samples the moving player after the lock, at beam fire time.
-     state.strikePending=nil;state.strike=require('intro.IntroStrike').New(state.scene,s.combat.player:Position())
+     state.strikePending=nil;state.strike=IntroStrike.New(state.scene,s.combat.player:Position())
     elseif age>(state.nextLockBeep or 0) then local k=age/1.8;state.nextLockBeep=age+.36-k*.3;I.audio:Sfx('blip',{vol=.5,rate=1.4+k}) end
    end
    if state.strike then
@@ -297,10 +333,10 @@ function M.New(app)
    else state.session:PostUpdate(1/60) end
    return
   end
-  local at,look,fov=require('intro.IntroShots').Camera(id,age,I)
+  local at,look,fov=IntroShots.Camera(id,age,I)
   if at and state.activeScene=='crater' and (id=='m-drive' or id=='m-salvage' or id=='recruit' or id=='peacekeeper' or id=='master' or id=='mechanic' or id=='motto' or id=='disclaimer') then
    local p=state.session.combat.player:Position();local target={p[1],p[2]+1.5,p[3]}
-   at,state.cameraLift=require('intro.IntroShots').SafeCamera(at,target,function(origin,direction,length)
+   at,state.cameraLift=IntroShots.SafeCamera(at,target,function(origin,direction,length)
     return state.world.space:Raycast(origin,direction,length,state.session.combat.cart and state.session.combat.cart.vehicle and state.session.combat.cart.vehicle.body)
    end,state.cameraLift)
   end
@@ -325,7 +361,7 @@ function M.New(app)
  host.BeginLeaveCapture=function()
   if state.leaveCapture then state.leaveCapture:Dispose() end
   state.captures.leave=nil
-  state.leaveCapture=require('intro.IntroSceneCapture').New(state.hall,state.hallCamera)
+  state.leaveCapture=IntroSceneCapture.New(state.hall,state.hallCamera)
  end
  host.PresentLeaveCapture=function()
   local capture=state.leaveCapture
@@ -340,7 +376,7 @@ function M.New(app)
   local texture=state.captures[name];if not texture then return false end
   state.captureImages=state.captureImages or {};state.captureImages[vg]=state.captureImages[vg] or {}
   local images=state.captureImages[vg];images[name]=images[name] or nvgCreateVideo(vg,texture)
-  if r.points then require('ui.SourceDraw').Path(vg,r.points) else nvgBeginPath(vg);nvgRect(vg,r.x,r.y,r.w,r.h) end
+  if r.points then SourceDraw.Path(vg,r.points) else nvgBeginPath(vg);nvgRect(vg,r.x,r.y,r.w,r.h) end
   local scale=math.max(r.w/texture:GetWidth(),r.h/texture:GetHeight());local width,height=texture:GetWidth()*scale,texture:GetHeight()*scale
   nvgFillPaint(vg,nvgImagePattern(vg,r.x+(r.w-width)/2,r.y+(r.h-height)/2,width,height,0,images[name],1));nvgFill(vg)
   return true
@@ -365,7 +401,7 @@ function M.New(app)
  end
  host.Finish=function(I)
   if app.stopped or app.openingRestoreOwner~=state or app.opening~=I or app.mode=='trial' or app.scene~=state.hall then return end
-  app.opening=nil;app.mode='hangar';require('ui.GarageHud').Create(app);require('ui.GarageHud').Refresh(app.blueprint,require('Config').TIERS[app.tier]);app:HomeView('hangar')
+  app.opening=nil;app.mode='hangar';DeferredModules['ui.GarageHud'].Create(app);DeferredModules['ui.GarageHud'].Refresh(app.blueprint,Config.TIERS[app.tier]);app:HomeView('hangar')
   if app.tutorial then
    state.pendingTutorial={tutorial=app.tutorial,start=not I.failed}
    if not state.assetReleasePending then ResumeTutorial() end

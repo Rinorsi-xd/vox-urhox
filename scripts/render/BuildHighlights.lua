@@ -1,11 +1,14 @@
 -- Source diagnostic overlays: 1.04-cell translucent boxes, at most 1024 per
 -- color. Two batches updated only when diagnostics/focus change; no per-cell nodes.
+local Config=require("Config")
+local JoinedSurface=require("render.JoinedSurface")
+
 local Coord=require 'core.Coord'
 local M={};M.__index=M
 local faces={{1,3,4,2},{5,6,8,7},{1,5,7,3},{2,4,8,6},{1,2,6,5},{3,7,8,4}}
 function M.New(parent)
     local self=setmetatable({limit=1024,counts={}},M)
-    self.node=parent:CreateChild('BuildDiagnostics');self.node:SetScale(require('Config').CELL)
+    self.node=parent:CreateChild('BuildDiagnostics');self.node:SetScale(Config.CELL)
     self.material=Material:new();assert(self.material:SetSurfaceShader('Shaders/BLGL/BuildDiagnostic.shader'));self.material.renderOrder=141
     self.red=self.node:CreateChild('Disconnected'):CreateComponent('CustomGeometry');self.red.dynamic=true;self.red.material=self.material
     self.orange=self.node:CreateChild('Warning'):CreateComponent('CustomGeometry');self.orange.dynamic=true;self.orange.material=self.material
@@ -55,7 +58,7 @@ function M:SetRotor(bp,info)
                 end end
             end
         end
-        local lines=require('render.JoinedSurface').Edges(pos);geometry.enabled=#lines>0
+        local lines=JoinedSurface.Edges(pos);geometry.enabled=#lines>0
         if #lines>0 then
             geometry:BeginGeometry(0,LINE_LIST);local color=({Color(.18,.66,1,.85),Color(1,.23,.19,.9),Color(1,.83,.3,.9)})[i]
             for _,v in ipairs(lines) do geometry:DefineVertex(Coord.Vec(table.unpack(v)));geometry:DefineColor(color) end;geometry:Commit()

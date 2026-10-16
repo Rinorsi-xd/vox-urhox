@@ -120,7 +120,7 @@ V.atFrame(72,function()
     s.ghost.gate.Start=start;s.ghost.warmKey=nil;showGhost(s.ghost,e,true,false)
     Shot('selection');local version=e.stretch.planVersion;Stretch.Update(e)
     V.assert(e.stretch.planVersion==version,'unchanged selection preview reuses validated plan')
-    WithInput(Fake(),function() s:Wheel(-1) end)
+    WithInput(Fake(),function() s:Wheel(1) end)
     V.assert(e.stretch.h==2,'actual wheel adapter changes extrusion height instead of hotbar')
     local before=e.bp:Size();local oldSlot=s.inventory.active
     s.buildCamera.mode='fp';s.buildCamera.captured=true;s.buildCamera.buttonsReady=true

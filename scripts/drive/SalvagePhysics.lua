@@ -3,10 +3,12 @@
 --   box/cylinder/sphere hulls follow each source transform; mesh hulls retain
 --   their triangles. The outer polygon is a 240 m wall, never an interior box.
 -- Layer 1 supports wheels, weapon rays and camera. No duplicate camera mesh.
+local ResourceData=require("core.ResourceData")
+
 local Coord=require 'core.Coord'
 local M={}
 function M.Build(world,checkpoint)
-    local data=require('core.ResourceData').Read('Salvage/Physics.json');world.physicsData=data
+    local data=ResourceData.Read('Salvage/Physics.json');world.physicsData=data
     local total=#data.terrain+#data.colliders+#world.layout.salvage.gameplay.walls;local done=0;local sphereChunks={}
     local function Body(node)
         local body=node:CreateComponent('RigidBody');body.collisionLayer=1;body.friction=.8

@@ -1,3 +1,5 @@
+local ResourceData=require("core.ResourceData")
+
 local Data=require('core.ResourceData').Read('UI/Outgame.json')
 local M={}
 local Count=require('storage.RecordNumbers').Count
@@ -16,8 +18,23 @@ end
 function M.Need(parts)
     local out={};for _,p in ipairs(parts) do local t=p.type or p[1];if t~='core' then local id='part:'..t;out[id]=(out[id] or 0)+1 end end;return out
 end
+function M.Initial()
+    local items=M.Need(ResourceData.Read('Warehouse/Manifest.json').starter.parts)
+    local function Add(id,n) if Data.items[id] then items[id]=(items[id] or 0)+n end end
+    for _,id in ipairs({'cube','slope','corner','inner','half','plate'}) do Add('part:'..id,40) end
+    for _,id in ipairs({'drive1','steer1'}) do Add('part:'..id,2) end
+    Add('part:laser1',1)
+    for id,n in pairs({scrap=36,wire=8,alloy=3,repair=2,smokePack=2,ration=3,drive=1}) do Add(id,n) end
+    return {v=1,credits=8000,items=items,op=1}
+end
 function M.Shortfall(owned,usage)
     local out={};for id,n in pairs(usage) do if n>(owned[id] or 0) then out[id]=n-(owned[id] or 0) end end;return out
+end
+function M.ShortfallInfo(short)
+    local ids={};for id,n in pairs(short) do if n>0 then ids[#ids+1]=id end end;table.sort(ids)
+    local details={};for i=1,math.min(3,#ids) do local id=ids[i];details[#details+1]=(Data.items[id] and Data.items[id].name or id)..'缺 '..short[id]..' 个' end
+    if #ids>3 then details[#details+1]='另有 '..(#ids-3)..' 种' end
+    return {kinds=#ids,tip=#ids>0 and ('有 '..#ids..' 种零件超出仓库库存，先去改装或商人补齐') or '',details=table.concat(details,'、')}
 end
 function M.Price(list)
     local cost=0

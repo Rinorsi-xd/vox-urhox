@@ -1,0 +1,182 @@
+{
+  "result": "PASS",
+  "message": "two actual wall-time windows complete; normal return invoked",
+  "errors": {},
+  "skipped": {},
+  "phases": {
+    "player-neutral": {
+      "frames": 1541,
+      "steps": 3593,
+      "stepsPerFrame": 2.3316028552887733,
+      "wallGapP50Ms": 34,
+      "wallGapP95Ms": 74,
+      "wallGapMaxMs": 155,
+      "maxProjectiles": 11,
+      "dtP50Ms": 33.69499742984772,
+      "dtP95Ms": 56.70449882745743,
+      "dtMaxMs": 92.98299998044968,
+      "meanDtMs": 38.865604935277986,
+      "aliveMin": 5,
+      "aliveMax": 8,
+      "updateToEndP50Ms": 34,
+      "droppedSeconds": 0,
+      "batchesMean": 916.704737183647,
+      "primitivesMean": 3840141.768981181,
+      "luaKBStart": 92177.5,
+      "luaKBEnd": 135295.2919921875,
+      "roster": [
+        {
+          "name": "你",
+          "legs": 0,
+          "parts": 209,
+          "wheels": 4,
+          "alive": true
+        },
+        {
+          "name": "雷霆小方块",
+          "legs": 0,
+          "wheels": 10,
+          "role": "heavy",
+          "parts": 139,
+          "alive": true
+        },
+        {
+          "name": "护盾下乘凉",
+          "legs": 0,
+          "wheels": 0,
+          "role": "hover",
+          "parts": 168,
+          "alive": true
+        },
+        {
+          "name": "Mosswolf",
+          "legs": 6,
+          "wheels": 0,
+          "role": "sniper",
+          "parts": 152,
+          "alive": true
+        },
+        {
+          "name": "拆迁办主任",
+          "legs": 0,
+          "wheels": 4,
+          "role": "assault",
+          "parts": 140,
+          "alive": true
+        },
+        {
+          "name": "慢一点会散架",
+          "legs": 0,
+          "wheels": 10,
+          "role": "heavy",
+          "parts": 143,
+          "alive": true
+        },
+        {
+          "name": "lowtide",
+          "legs": 0,
+          "wheels": 0,
+          "role": "hover",
+          "parts": 168,
+          "alive": true
+        },
+        {
+          "name": "悬浮漂移",
+          "legs": 6,
+          "wheels": 0,
+          "role": "sniper",
+          "parts": 152,
+          "alive": true
+        }
+      ],
+      "methods": []
+    },
+    "player-fire": {
+      "frames": 1483,
+      "steps": 3589,
+      "stepsPerFrame": 2.4200944032366825,
+      "wallGapP50Ms": 34,
+      "wallGapP95Ms": 88,
+      "wallGapMaxMs": 130,
+      "maxProjectiles": 7,
+      "dtP50Ms": 33.773500472307205,
+      "dtP95Ms": 63.87600302696228,
+      "dtMaxMs": 93.05350482463837,
+      "meanDtMs": 40.39084223059489,
+      "aliveMin": 7,
+      "aliveMax": 8,
+      "updateToEndP50Ms": 34,
+      "droppedSeconds": 0,
+      "batchesMean": 1104.124072825354,
+      "primitivesMean": 4569830.766014835,
+      "luaKBStart": 116464.810546875,
+      "luaKBEnd": 157308.921875,
+      "roster": [
+        {
+          "name": "你",
+          "legs": 0,
+          "parts": 209,
+          "wheels": 4,
+          "alive": true
+        },
+        {
+          "name": "雷霆小方块",
+          "legs": 0,
+          "wheels": 10,
+          "role": "heavy",
+          "parts": 145,
+          "alive": true
+        },
+        {
+          "name": "护盾下乘凉",
+          "legs": 0,
+          "wheels": 0,
+          "role": "hover",
+          "parts": 168,
+          "alive": true
+        },
+        {
+          "name": "Mosswolf",
+          "legs": 6,
+          "wheels": 0,
+          "role": "sniper",
+          "parts": 152,
+          "alive": true
+        },
+        {
+          "name": "拆迁办主任",
+          "legs": 0,
+          "wheels": 4,
+          "role": "assault",
+          "parts": 140,
+          "alive": true
+        },
+        {
+          "name": "慢一点会散架",
+          "legs": 0,
+          "wheels": 10,
+          "role": "heavy",
+          "parts": 124,
+          "alive": true
+        },
+        {
+          "name": "lowtide",
+          "legs": 0,
+          "wheels": 0,
+          "role": "hover",
+          "parts": 168,
+          "alive": true
+        },
+        {
+          "name": "悬浮漂移",
+          "legs": 6,
+          "wheels": 0,
+          "role": "sniper",
+          "parts": 152,
+          "alive": true
+        }
+      ],
+      "methods": []
+    }
+  }
+}

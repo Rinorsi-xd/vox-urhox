@@ -1,4 +1,6 @@
 -- Original storyView meshes exported offline; animations move nodes, not vertices.
+local EffectBatch=require("render.EffectBatch")
+
 local Data=require('story.MissionData').view
 local Coord=require 'core.Coord'
 local Visibility=require 'render.NodeVisibility'
@@ -16,7 +18,7 @@ end
 function M.New(scene)
     local self=setmetatable({root=scene:CreateChild('StoryMissionObjects'),objects={},intel={},collectors={},sites={},time=0},M)
     self.beacon=self:Rig(Data.beacon);self:HideBeacon();self.alarm=self:Rig(Data.alarm);self.alarmOn=true
-    self.glow=require('render.EffectBatch').New(self.root,'Glow',64,'Shaders/BLGL/Story/')
+    self.glow=EffectBatch.New(self.root,'Glow',64,'Shaders/BLGL/Story/')
     self.zone=self.root:CreateChild('InstallZone');local sm=self.zone:CreateComponent('StaticModel');sm.model=assert(cache:GetResource('Model',Data.models[Data.zone].path))
     self.zoneMaterial=self:Material({shader='Ring',color={1,106/255,19/255},alpha=1});sm.material=self.zoneMaterial;sm.castShadows=false;self.zone.enabled=false
     return self

@@ -1,4 +1,7 @@
 -- Frozen matchHud.minimap, fixed 472px canvas displayed at 236 CSS pixels.
+local MatchMapShot=require("render.MatchMapShot")
+local RenderTargetLifetime=require("render.RenderTargetLifetime")
+
 local D=require 'ui.SourceDraw'
 local M={};M.__index=M
 local colors={blue={46,168,255,255},red={255,74,61,255},none={216,221,227,255}}
@@ -44,7 +47,7 @@ function M.New(session)
         self:SetBase(session.mapBase.texture,session.mapBase.half);session.mapBase=nil
     elseif session.mapCapture then
         self.capture=session.mapCapture;session.mapCapture=nil
-    elseif session.scene then self.capture=require('render.MatchMapShot').New(session.scene) end
+    elseif session.scene then self.capture=MatchMapShot.New(session.scene) end
     return self
 end
 function M:SetBase(texture,half)
@@ -192,6 +195,6 @@ function M:Dispose()
     if self.base then nvgDeleteVideo(self.vg,self.base.image);self.base.texture:Dispose();self.base=nil end
     for _,image in pairs(self.masks)do nvgDeleteImage(self.vg,image)end;self.masks={}
     nvgDelete(self.vg);self.vg=nil
-    require('render.RenderTargetLifetime').Retire(self.texture);self.texture=nil
+    RenderTargetLifetime.Retire(self.texture);self.texture=nil
 end
 return M

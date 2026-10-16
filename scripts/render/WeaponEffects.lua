@@ -1,5 +1,7 @@
 -- Source weaponRig persistent FX. One lazily allocated set of bounded batches per
 -- vehicle, in world metres; transforms follow the final aimed/recoiling head.
+local Config=require("Config")
+
 local V=require 'core.Math3'
 local Coord=require 'core.Coord'
 local Batch=require 'render.EffectBatch'
@@ -181,7 +183,7 @@ function M:Update(dt,context,emitter)
         self:Bands(item,dt,m,head,scale);self:Swirl(item,dt,m,head);self:Arcs(item,dt,m,head,scale)
         if c.d<Q.equipmentLod then self:Motes(item,dt,m,head,scale) end
         if m.orb and m.orb.alpha>.004 then
-            local color=require('Config').HexLinear(0xd8f0ff)
+            local color=Config.HexLinear(0xd8f0ff)
             self:Batch('Glow'):Disc(World(head,m.data.weapon.muzzle),m.orb.size*scale,{color.r,color.g,color.b},1,self.right,self.up,m.orb.alpha)
         end
     end end

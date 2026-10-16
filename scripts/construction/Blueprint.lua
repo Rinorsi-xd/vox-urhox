@@ -1,6 +1,11 @@
 -- 蓝图：零件集合 + 占用表 + 连通性 / 属性 / 警告计算（对应 H5 shared/build/blueprint.js）
 -- 坐标为蓝图逻辑空间的整数格；序列化格式与 H5 相同：{ v = 1, name, parts = { {type, x, y, z, rot, color}, ... } }
 
+local BlueprintStats=require("construction.BlueprintStats")
+local BlueprintDiagnostics=require("construction.BlueprintDiagnostics")
+local LiveryData=require("construction.LiveryData")
+local BlueprintMigration=require("construction.BlueprintMigration")
+
 local Config = require "Config"
 local Defs = require "parts.Defs"
 local Rot = require "core.Rotations"
@@ -474,7 +479,7 @@ end
 
 ---@return BlueprintStats
 function Blueprint:Stats()
-    return require("construction.BlueprintStats").Compute(self)
+    return BlueprintStats.Compute(self)
 end
 
 -- ── 校验与警告（策划案 4.4）────────────────────
@@ -486,7 +491,7 @@ end
 
 ---@return { list: DiagnoseItem[], stats: BlueprintStats, conn: table, outside: table<integer, boolean> }
 function Blueprint:Diagnose(tier)
-    return require("construction.BlueprintDiagnostics").Compute(self,tier)
+    return BlueprintDiagnostics.Compute(self,tier)
 end
 
 -- ── 序列化 ────────────────────────────────────
@@ -499,13 +504,13 @@ function Blueprint:ToTable()
         parts[#parts + 1] = row
     end
     local out = { v = 1, sizeVersion=1, name = self.name, parts = parts }
-    if #self.livery>0 then out.livery=require('construction.LiveryData').Clean(self.livery) end
+    if #self.livery>0 then out.livery=LiveryData.Clean(self.livery) end
     return out
 end
 
 ---@return Blueprint
-function Blueprint:Load(data)
-    return require("construction.BlueprintMigration").Load(self,data)
+function Blueprint:Load(data,checkpoint)
+    return BlueprintMigration.Load(self,data,checkpoint)
 end
 
 return Blueprint

@@ -1,6 +1,15 @@
 -- Native client storage, isolated by engine project/user. Two alternating
 -- generations preserve the previous good write if an app exits during saving.
 -- WASM memory files are session-only; cloud persistence is a separate adapter.
+local Inventory=require("construction.Inventory")
+local PreviewCache=require("storage.PreviewCache")
+-- Load optional/cyclic dependencies once, without changing first-use order.
+local DeferredModules=setmetatable({},{__index=function(modules,name)
+    local module=require(name)
+    rawset(modules,name,module)
+    return module
+end})
+
 local M={};M.__index=M
 local Code=require 'storage.BlueprintCode'
 local Numbers=require 'storage.RecordNumbers'
@@ -24,8 +33,8 @@ function M:Read(key,validator)
         local ok,result=pcall(validator or Code.Validate,v and v.data)
         return Numbers.Metadata(v) and (v.deleted==true or ok and result)
     end
-    if a and not valid(a) then require('storage.CloudStorage').Invalid(self.namespace);a=nil end
-    if b and not valid(b) then require('storage.CloudStorage').Invalid(self.namespace);b=nil end
+    if a and not valid(a) then DeferredModules['storage.CloudStorage'].Invalid(self.namespace);a=nil end
+    if b and not valid(b) then DeferredModules['storage.CloudStorage'].Invalid(self.namespace);b=nil end
     local best=a and b and (a.generation>b.generation and a or b) or a or b
     return best and not best.deleted and best.data or nil,best and best.generation or 0,best and best.time or nil,best and best.capture or nil
 end
@@ -40,7 +49,7 @@ function M:Write(key,data,validator,deleted,savedTime,capture)
     file:WriteString(text);file:Flush();file:Dispose()
     local check=Read(path)
     if not check or check.generation~=generation then return false,'存档校验失败，保留上一版' end
-    require('storage.CloudStorage').Queue(self.namespace,key,text)
+    DeferredModules['storage.CloudStorage'].Queue(self.namespace,key,text)
     return true
 end
 function M.Hydrate(namespace,key,record)
@@ -56,9 +65,9 @@ function M.Hydrate(namespace,key,record)
 end
 function M.UpdateAll(dt) for store in pairs(stores) do store:Update(dt) end end
 function M.FlushAll() for store in pairs(stores) do store:Flush() end end
-function M:SaveMessage(text) return require('storage.CloudStorage').Message(self.namespace,text) end
-function M:LoadBuildSettings() return self:Read('build-settings',require('construction.Inventory').ValidSettings) end
-function M:SaveBuildSettings(settings) return self:Write('build-settings',settings,require('construction.Inventory').ValidSettings) end
+function M:SaveMessage(text) return DeferredModules['storage.CloudStorage'].Message(self.namespace,text) end
+function M:LoadBuildSettings() return self:Read('build-settings',Inventory.ValidSettings) end
+function M:SaveBuildSettings(settings) return self:Write('build-settings',settings,Inventory.ValidSettings) end
 function M:Queue(bp) self.pending=bp;self.delay=.5 end
 function M:Flush()
     if not self.pending then return true end
@@ -77,7 +86,7 @@ function M:SaveSlot(slot,bp)
     -- exchange blueprint. Source slots use Date.now() (milliseconds).
     local _,previous=self:LoadSlot(slot)
     local ok,err=self:Write('slot'..slot,bp:ToTable(),nil,nil,os.time()*1000,self.captureContext and self.captureContext() or nil)
-    if ok and previous>1 then require('storage.PreviewCache').Retire(self,slot,previous-1) end
+    if ok and previous>1 then PreviewCache.Retire(self,slot,previous-1) end
     return ok,err
 end
 function M:LoadSlot(slot)
@@ -88,7 +97,7 @@ function M:DeleteSlot(slot)
     if slot%1~=0 or slot<1 or slot>20 then return false,'车位超出范围' end
     local _,generation=self:LoadSlot(slot)
     local ok,err=self:Write('slot'..slot,nil,nil,true);if not ok then return false,err end
-    local previews=require('storage.PreviewCache')
+    local previews=PreviewCache
     previews.Retire(self,slot,generation);if generation>1 then previews.Retire(self,slot,generation-1) end
     -- Retire both backup generations so later corruption cannot resurrect it.
     return self:Write('slot'..slot,nil,nil,true)

@@ -1,4 +1,7 @@
 -- Frozen three/src/ui/storyHolo.js: same terrain, models, routes and camera.
+local ResourceGate=require("app.ResourceGate")
+local WindowViewports=require("render.WindowViewports")
+
 local Data=require('core.ResourceData').Read('Story/Manifest.json')
 local Levels=require('core.ResourceData').Read('UI/Outgame.json').levels
 local M={};M.__index=M
@@ -17,7 +20,7 @@ function M:init(app)
     self.camera.projectionOffset=Vector2(-.045,.06)
     self.view={az=0,azTo=0,el=.92,elTo=.92,zoom=1,zoomTo=1,sway=1,swayTo=1}
     self.focus=Vector3.ZERO;self.distance=15.5;self.materials={};self.nodes={}
-    self.gate=require('app.ResourceGate').New()
+    self.gate=ResourceGate.New()
     local paths={}
     for _,m in ipairs(Data.models) do paths[#paths+1]=m.model end
     for _,m in ipairs(Data.materials) do
@@ -81,7 +84,7 @@ function M:Update(dt)
         node.enabled=not m.level or tonumber(m.level)==self.level
         self.nodes[index]=node;self.cursor=index+1
         if self.cursor>#Data.models then
-            self.ready=true;require('render.WindowViewports').Set(1,Viewport:new(self.scene,self.camera))
+            self.ready=true;WindowViewports.Set(1,Viewport:new(self.scene,self.camera))
             print('[StoryHolo] Ready frozen batches='..#Data.models)
         end
     end
@@ -98,7 +101,7 @@ function M:Update(dt)
 end
 function M:Dispose()
     if self.disposed then return end;self.disposed=true
-    self.gate:Cancel();require('render.WindowViewports').Set(1,nil);self.scene:Dispose()
+    self.gate:Cancel();WindowViewports.Set(1,nil);self.scene:Dispose()
     for _,material in pairs(self.materials) do material:Dispose() end
     self.materials={};self.nodes={}
 end

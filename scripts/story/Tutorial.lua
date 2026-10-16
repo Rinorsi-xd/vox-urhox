@@ -1,3 +1,12 @@
+local ResourceData=require("core.ResourceData")
+local TutorialPage=require("ui.TutorialPage")
+local ResourceGate=require("app.ResourceGate")
+local GarageHud=require("ui.GarageHud")
+local CommsPortrait=require("ui.CommsPortrait")
+local StoryCommsCues=require("audio.StoryCommsCues")
+local TouchMode=require("controls.TouchMode")
+local StoryComms=require("audio.StoryComms")
+
 local UI=require 'urhox-libs/UI'
 local Rules=require 'story.TutorialRules'
 local Sound=require 'audio.UiSound'
@@ -7,16 +16,16 @@ function M.New(app)
 end
 function M:init(app)
     self.app=app;self.visible=false;self.initialized=false;self.disposed=false;self.revision=-1
-    local data=require('core.ResourceData').Read('UI/Tutorial.json')
+    local data=ResourceData.Read('UI/Tutorial.json')
     self.data=data;self.voice=nil ---@type table|nil
     self.rules=Rules.New(data,app.store:Read('tutorial-v1',Rules.ValidRecord),function(r)
         local ok,err=app.store:Write('tutorial-v1',r,Rules.ValidRecord);if not ok then print('[Tutorial] '..err) end
     end)
-    self.page=require('ui.TutorialPage').New(self)
-    self.gate=require('app.ResourceGate').New()
+    self.page=TutorialPage.New(self)
+    self.gate=ResourceGate.New()
 end
 function M:State()
-    local a=self.app;local h=require('ui.GarageHud').GetState();local b=a.build
+    local a=self.app;local h=GarageHud.GetState();local b=a.build
     return {parts=a.blueprint:Size(),build=b~=nil,inventory=b and b.inventoryPanel~=nil or false,
         saved=a.bays.active~=nil and a.bays.active~=false and not a.bays.unsaved,
         tab=h and h.tab or '',home=h~=false and h~=nil,drive=a.trial~=nil,mission=a.trial and a.trial.story~=nil or false}
@@ -25,14 +34,14 @@ function M:Busy(state)
     local a=self.app;local b=a.build
     return not a.scene or a.stopped or not input.focus or input.minimized or a.mapPreview~=nil or state.drive or
         a.loader.state=='loading' or a.loadingFlow.active or a.vehicleGate.state=='loading' or
-        require('ui.GarageHud').IsBlocked() or b and b.dialog~=nil or a.lobby=='salvage' or self.gate.state=='loading'
+        GarageHud.IsBlocked() or b and b.dialog~=nil or a.lobby=='salvage' or self.gate.state=='loading'
 end
 function M:Prepare()
     if self.gate.state=='idle' or self.gate.state=='failed' then
-        local Portrait=require('ui.CommsPortrait');local paths={}
+        local Portrait=CommsPortrait;local paths={}
         for _,face in ipairs({'talk','deadpan','smile'}) do paths[#paths+1]=Portrait.Path('nono',face) end
         for _,v in pairs(self.data.voices) do paths[#paths+1]=v.path end
-        for _,path in ipairs(require('audio.StoryCommsCues').Dependencies()) do paths[#paths+1]=path end
+        for _,path in ipairs(StoryCommsCues.Dependencies()) do paths[#paths+1]=path end
         self.gate:Start(paths,function(ok,message)
             if not ok then print('[Tutorial] Portrait download failed: '..tostring(message)) end
         end)
@@ -42,11 +51,11 @@ function M:Start() self.initialized=true;self.rules:Start(1,nil,self:State());se
 function M:Replay() self.initialized=true;self.rules:Replay(self:State());self.revision=-1 end
 function M:Lines()
     local spec=self.rules:StepSpec()
-    return require('controls.TouchMode').Enabled() and spec.touchLines or spec.lines
+    return TouchMode.Enabled() and spec.touchLines or spec.lines
 end
 function M:Hint()
     local spec=self.rules:StepSpec()
-    return require('controls.TouchMode').Enabled() and spec.touchHint or spec.hint
+    return TouchMode.Enabled() and spec.touchHint or spec.hint
 end
 function M:Advance()
     if not self.visible or self.rules:StepSpec().next~='button' then return end
@@ -68,7 +77,7 @@ function M:Choose(path)
     if not self.visible or not self.rules:StepSpec().choice then return end
     Sound.Play('press')
     if path=='build' then self.app:EnterBuild()
-    else local h=require('ui.GarageHud').GetState();if h then h.SetTab('battle') end end
+    else local h=GarageHud.GetState();if h then h.SetTab('battle') end end
 end
 function M:Update(dt)
     if self.disposed then return end
@@ -99,7 +108,7 @@ function M:Update(dt)
     local lines=self:Lines();local line=lines[self.line]
     -- H5 replays this step's authored lines after a modal/scene borrows the card.
     if self.suspended then self.line=1;self.lineAge=0;self.voiceKey=false;self.suspended=false;line=lines[1] end
-    if not self.voice then self.voice=require('audio.StoryComms').New(self.app.scene,self.data,true) end
+    if not self.voice then self.voice=StoryComms.New(self.app.scene,self.data,true) end
     if not self.voice:Owns() then self.voice:Use(true);self.voiceKey=false end
     local key=self.rules.revision..':'..self.line
     if self.voiceKey~=key then self.voiceKey=key;self.voice:Say({line},true) end

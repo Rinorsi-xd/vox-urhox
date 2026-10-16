@@ -1,12 +1,21 @@
 -- October 14 opening clock. Host borrows the actual hall/battle, never screenshots.
+local ResourceData=require("core.ResourceData")
+local IntroTypography=require("ui.IntroTypography")
+local IntroAudio=require("audio.IntroAudio")
+local ResourceGate=require("app.ResourceGate")
+local IntroPage=require("ui.IntroPage")
+local IntroImpact=require("intro.IntroImpact")
+local IntroSortie=require("intro.IntroSortie")
+local IntroAudioTail=require("audio.IntroAudioTail")
+
 local UI=require 'urhox-libs/UI'
 local Coord=require 'core.Coord'
 local M={};M.__index=M
 local function Plain(text) return ((text or ''):gsub('<[^>]+>','')) end
-function M.Data() return require('core.ResourceData').Read('Intro/Intro.json') end
+function M.Data() return ResourceData.Read('Intro/Intro.json') end
 function M.Dependencies()
  local data=M.Data();local result={'Intro/Intro.json','Intro/Fonts/TitleGlyphs.json','UI/IntroComicInkDots.png','UI/IntroComicPaperDots.png'}
- for _,path in ipairs(require('ui.IntroTypography').Dependencies()) do result[#result+1]=path end
+ for _,path in ipairs(IntroTypography.Dependencies()) do result[#result+1]=path end
  for _,path in pairs(data.audio) do result[#result+1]=path end
  for _,path in pairs(data.images) do result[#result+1]=path end
  return result
@@ -18,8 +27,8 @@ function M:init(app,host)
  self.app=app;self.host=assert(host,'Intro requires actual scene host');self.data=M.Data()
  self.active=false;self.stage='idle';self.shot='';self.time=0;self.age=0;self.log={};self.ink=0;self.strokes={};self.name='';self.holding=false
  self.waitingAdvance=false;self.lineVoiceToken=nil
- self.audio=require('audio.IntroAudio').New(self.data);self.gate=require('app.ResourceGate').New()
- self.page=require('ui.IntroPage').New(self);self.part='';self.ready=false;self.failed=false;self.skipRequested=false
+ self.audio=IntroAudio.New(self.data);self.gate=ResourceGate.New()
+ self.page=IntroPage.New(self);self.part='';self.ready=false;self.failed=false;self.skipRequested=false
 end
 function M:Start(part)
  if self.active or self.disposed then return false end
@@ -125,7 +134,7 @@ function M:UpdateAdCues()
   local q=math.min(1,t/(hitAt-.4))
   if q<1 and t-(cues.lastBeep or 0)>.32-q*.24 then cues.lastBeep=t;self.audio:Sfx('blip',{vol=.35,rate=1+q}) end
   if t>=hitAt and not cues.laser then cues.laser=true;self.audio:Sfx('laser_big',{vol=.8,rate=1.4}) end
-  if t>=hitAt+.09 and not cues.shred then cues.shred=true;self.audio:Sfx('shred',{vol=.9});require('intro.IntroImpact').Payslip(self) end
+  if t>=hitAt+.09 and not cues.shred then cues.shred=true;self.audio:Sfx('shred',{vol=.9});IntroImpact.Payslip(self) end
  end
 end
 function M:Ad()
@@ -152,7 +161,7 @@ function M:Ad()
  self.countdown='2';self.audio:Sfx('slam',{vol=.9});if not self:Wait(.5) then return end
  self.countdown='1';self.audio:Sfx('slam',{vol=.9});if not self:Wait(.5) then return end
  self.countdown='出动！';self.audio:Sfx('slam',{vol=.9});self:Mark('sortie-play')
- self.playing=true;self.sortie=require('intro.IntroSortie').New(self)
+ self.playing=true;self.sortie=IntroSortie.New(self)
  assert(self.host.StartSortie,'Intro real driving host missing');self.host.StartSortie(self)
  while self.active and not self.sortie.done and not self.skipRequested do coroutine.yield() end
  self.playing=false;if self.host.EndSortie then self.host.EndSortie(self) end
@@ -221,16 +230,16 @@ function M:Run()
   self.page:ShowContract(true);self.audio:Sfx('whoosh',{vol=.5})
   while self.active and not self.signed do coroutine.yield() end
   self.page:ShowContract(false);self.face='stamp';self:Wait(.3)
-  self:Mark('stamp');self.face='stamp';self:Wait(.2);self.audio:Sfx('stamp',{vol=1});require('intro.IntroImpact').Terminal(self,'stamp');self:Wait(.6)
+  self:Mark('stamp');self.face='stamp';self:Wait(.2);self.audio:Sfx('stamp',{vol=1});IntroImpact.Terminal(self,'stamp');self:Wait(.6)
   self:Vivi('v12','smile',false);self:Wait(.4);self.contractExitAt=self.time
  end
  self:Mark('gate','garage');self.storyCameraAt=self.storyCameraAt or self.time;self.audio:Sfx('slam',{vol=.55,rate=.8});self:Wait(.46)
- require('intro.IntroImpact').Terminal(self,'gate-close');self.audio:Sfx('clang',{vol=.35,rate=.7});self:Wait(.35)
+ IntroImpact.Terminal(self,'gate-close');self.audio:Sfx('clang',{vol=.35,rate=.7});self:Wait(.35)
  self.audio:Sfx('confirm',{vol=.35,rate=.9})
  for i=1,6 do self:Wait(.18);self.audio:Sfx('blip',{vol=.2,rate=1+(i-1)*.08}) end
  self.audio:Sfx('confirm',{vol=.5,rate=1.15});self:Wait(.55)
  for i=1,6 do self.audio:Sfx('clang',{vol=.16,rate=1.1+(i-1)*.05});self:Wait(.08) end
- self:Wait(.36);self.audio:Sfx('stamp',{vol=.4,rate=.7});require('intro.IntroImpact').Terminal(self,'gate-unlock');self:Wait(.3)
+ self:Wait(.36);self.audio:Sfx('stamp',{vol=.4,rate=.7});IntroImpact.Terminal(self,'gate-unlock');self:Wait(.3)
  self.audio:Sfx('door_open',{vol=.75});self:Wait(.36);self.gateCameraAt=self.time;self:Wait(.3)
  self.audio:StopMusic(2);self:Wait(1.7);self:Wait(.5)
  self:Finish()
@@ -347,7 +356,7 @@ function M:Camera()
   local a=.6+t*.4;local r=27-t*1.6;node.position=Coord.Vec(math.sin(a)*r,8-t*.8,math.cos(a)*r);node:LookAt(Coord.Vec(0,3,0));camera.fov=44
  end
  if self.host.CameraShot then self.host.CameraShot(id,t,self,camera) end
- require('intro.IntroImpact').Camera(self,camera)
+ IntroImpact.Camera(self,camera)
 end
 function M:Finish()
  if not self.active or self.finishing then return end
@@ -363,7 +372,7 @@ end
 function M:CompleteFinish()
  if not self.active or self.disposed then return end
  self.completed=not self.failed;self.finishing=false
- if self.completed and self.audio then require('audio.IntroAudioTail').Adopt(self.audio);self.audio=nil end
+ if self.completed and self.audio then IntroAudioTail.Adopt(self.audio);self.audio=nil end
  self:Dispose();if self.host.Finish then self.host.Finish(self,self.name) end
 end
 function M:Dispose()

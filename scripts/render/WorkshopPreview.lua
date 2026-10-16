@@ -1,10 +1,14 @@
 -- Reuse the active hall and camera. Only one optional vehicle exists, and its
 -- model creation is spread across frames rather than opening another renderer.
+local ResourceGate=require("app.ResourceGate")
+local Dependencies=require("parts.Dependencies")
+local Quality=require("render.Quality")
+
 local BP=require 'construction.Blueprint'
 local Prefab=require 'construction.Prefab'
 local View=require 'render.VehicleView'
 local M={};M.__index=M
-function M.New(app) return setmetatable({app=app,auto=true,gate=require('app.ResourceGate').New()},M) end
+function M.New(app) return setmetatable({app=app,auto=true,gate=ResourceGate.New()},M) end
 function M:Show(id)
     self:Clear()
     self.bp=Prefab.Create(BP.New(),id);self.parts=self.bp:List();self.cursor=1
@@ -15,7 +19,7 @@ function M:Show(id)
     self.view.root.worldRotation=host.worldRotation
     self.framing=nil;self.rise=nil;self.complete=false
     self.ready=false
-    self.gate:Start(require('parts.Dependencies').For(self.parts),function(ok,message)
+    self.gate:Start(Dependencies.For(self.parts),function(ok,message)
         self.ready=ok
         if not ok then self:Clear();self.app.toasts:Push(message,'bad') end
     end)
@@ -46,7 +50,7 @@ end
 function M:Update(dt)
     if not self.view or not self.ready then return end
     if not self.complete then
-        local limit=require('render.Quality').current.name=='mobile' and 12 or 24
+        local limit=Quality.current.name=='mobile' and 12 or 24
         for _=1,limit do
             local part=self.parts[self.cursor];if not part then break end
             local ok,err=pcall(self.view.AddPart,self.view,part)

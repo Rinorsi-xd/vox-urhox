@@ -1,4 +1,8 @@
 -- Frozen home.js battle pane: full canvas with its original card and action bands.
+local WorkshopPaint=require("ui.WorkshopPaint")
+local TacticalMap=require("ui.TacticalMap")
+local SourceButton=require("ui.SourceButton")
+
 local UI=require 'urhox-libs/UI'
 local D=require 'ui.SourceDraw'
 local Card=require 'ui.ModeCard'
@@ -22,7 +26,7 @@ function Page:Render(vg)
     local x,y=r.x,r.y;local s=self.owner;local p=Modes[s.modeChoice]
     local test=s.modeChoice=='test';local dark={11,12,15,255};local transparent={11,12,15,0}
     D.Rect(vg,x,y,w,h,{10,20,34,255})
-    require('ui.WorkshopPaint').Image(vg,'UI/Modes/Filtered/'..(test and 'test' or 'crater')..'-map.jpg',{x=x+w*.4,y=y,w=w*.6,h=h},1,.5)
+    WorkshopPaint.Image(vg,'UI/Modes/Filtered/'..(test and 'test' or 'crater')..'-map.jpg',{x=x+w*.4,y=y,w=w*.6,h=h},1,.5)
     Fade(vg,x+w*.4,y,w*.084,h,dark,{11,12,15,235},true)
     Fade(vg,x+w*.484,y,w*.168,h,{11,12,15,235},{11,12,15,89},true)
     Fade(vg,x+w*.652,y,w*.12,h,{11,12,15,89},transparent,true)
@@ -49,7 +53,7 @@ function Page:Render(vg)
         yy=yy+self.paragraph:Draw(vg,text,tx+36,yy,434,{223,226,230,255}).height+14
     end
     if test then D.Text(vg,'出战档位',tx,yy+14,13,D.muted,'vox-body') end
-    if not test and h>=800 then require('ui.TacticalMap').Draw(vg,x+w-262,y+h-360,210,s.modeChoice) end
+    if not test and h>=800 then TacticalMap.Draw(vg,x+w-262,y+h-360,210,s.modeChoice) end
     Fade(vg,x,y,w,60,{8,9,12,235},{8,9,12,184})
     D.Rect(vg,x,y+59,w,1,{255,255,255,20})
 end
@@ -101,7 +105,7 @@ function M.Create(s)
     page:AddChild(s.Track(Action{text=name,subtitle=subtitle,position='absolute',left=w-432,top=h-122,width=380,height=88,onClick=function() M.Start(s) end}))
     if s.modeChoice=='test' then
         for i=1,5 do
-            page:AddChild(s.Track(require('ui.SourceButton'){text='T'..i,sourceKind='flat',selected=s.app.tier==i,position='absolute',
+            page:AddChild(s.Track(SourceButton{text='T'..i,sourceKind='flat',selected=s.app.tier==i,position='absolute',
                 left=w-436+(i-1)*67,top=500,width=60,height=32,onClick=function() s.app.tier=i;s.app.hangar:SetTier(i);s.revision=-1 end}))
         end
     end

@@ -1,5 +1,7 @@
 -- Frozen new-ui-inventory.css: tile .28s/12ms stagger, hover .18s,
 -- image .22s, budget .15s. Pooled cells inherit the list's animation clock.
+local UI=require("urhox-libs/UI")
+
 local Motion=require 'ui.SourceButtonMotion'
 local M={}
 local function Tween(value) return {value=value,start=value,target=value,elapsed=0,duration=0} end
@@ -11,7 +13,7 @@ end
 function M.Update(card,dt)
     local m=card.inventoryMotion;if not m then return end
     local enabled=not card.props.disabled
-    local focused=card.inventoryOwner and card.inventoryOwner.keyboardFocus==card and require('urhox-libs/UI').GetFocus()==card
+    local focused=card.inventoryOwner and card.inventoryOwner.keyboardFocus==card and UI.GetFocus()==card
     local hovered=enabled and (card.state.hovered or focused)
     local pressed=enabled and card.state.pressed
     Motion.Step(m.x,pressed and 2 or hovered and -2 or 0,.18,dt,false)

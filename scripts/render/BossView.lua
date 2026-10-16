@@ -1,4 +1,7 @@
 -- Geometry is exported from the frozen H5 factories, preserving their hierarchy.
+local EffectBatch=require("render.EffectBatch")
+local MissionView=require("render.MissionView")
+
 local Data=require('core.ResourceData').Read('Story/Boss/View.json')
 local Coord=require 'core.Coord'
 local V=require 'core.Math3'
@@ -25,8 +28,8 @@ function M.New(scene,boss)
     self.dome=self:Mesh(Data.dome,{shader='Alpha',color=RGB(0xff2a20),alpha=0});self.dome.root.enabled=false
     self.shock=self:Mesh(Data.shock,{shader='Alpha',color=RGB(0xffc8a0),alpha=0});self.shock.root.enabled=false
     for i=1,4 do self.nodes[i]=self:Mesh(Data.node,{shader='Unlit',color=RGB(0xffb02e),alpha=1}) end
-    local Batch=require 'render.EffectBatch';self.glow=Batch.New(self.root,'BossGlow',64,'Shaders/BLGL/Story/');self.ribbon=Batch.New(self.root,'Ribbon',300)
-    self.truck=require('render.MissionView').New(scene);self.truck:HideBeacon();self.truck:AlarmOff()
+    local Batch=EffectBatch;self.glow=Batch.New(self.root,'BossGlow',64,'Shaders/BLGL/Story/');self.ribbon=Batch.New(self.root,'Ribbon',300)
+    self.truck=MissionView.New(scene);self.truck:HideBeacon();self.truck:AlarmOff()
     return self
 end
 function M:Material(d)

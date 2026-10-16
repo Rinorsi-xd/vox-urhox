@@ -1,3 +1,5 @@
+local ResourceData=require("core.ResourceData")
+
 local Loot=require 'salvage.Loot'
 local Data=require('core.ResourceData').Read('Salvage/RunData.json')
 local M={};M.__index=M
@@ -92,7 +94,7 @@ end
 function M:AddExtra(o) self.objects[#self.objects+1]=o;self:Emit('crate',{object=o}) end
 function M:ExitCheck(e,width)
     if e.openAt and self.time<e.openAt then return math.ceil((e.openAt-self.time)/60)..' 分钟后开放' end
-    if e.needs and (self.cargo[e.needs] or 0)<1 then return '需要 1 个'..require('core.ResourceData').Read('UI/Outgame.json').items[e.needs].name end
+    if e.needs and (self.cargo[e.needs] or 0)<1 then return '需要 1 个'..ResourceData.Read('UI/Outgame.json').items[e.needs].name end
     if e.maxWidth and width>e.maxWidth then return string.format('车宽 %.1f 米，超过 %d 米过不去',width,e.maxWidth) end
 end
 function M:Objective(pos)
@@ -115,7 +117,7 @@ function M:Step(dt,state)
     if self.finished then return end
     self.time=self.time+dt;self.heat=math.max(0,self.heat-dt*.7);self.prompt=nil
     if not state.alive then self:Emit('failed',{reason='战车被击毁'});self.finished=true;return end
-    if self.time>=900 then self:Emit('failed',{reason='撤离时间耗尽'});self.finished=true;return end
+    if self.time>=900 then self:Emit('failed',{reason='超时 · 撤离窗口关闭'});self.finished=true;return end
     if state.firing then self:Heat(dt*1.5);self.fireTime=(self.fireTime or 0)+dt;if self.fireTime>.5 then self.fireTime=0;self:Emit('noise',{at=state.pos,r=180}) end end
     if self.airdrops[1] and self.time>=self.airdrops[1] then table.remove(self.airdrops,1);self:Emit('airdrop') end
     local inside=false;for _,e in ipairs(self.extracts) do if Flat(e.g,state.pos)<e.radius then inside=e;break end end

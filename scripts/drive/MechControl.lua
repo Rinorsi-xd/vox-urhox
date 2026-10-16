@@ -2,6 +2,8 @@
 -- mount + UP*.3 -> down to 1.45*standHeight; only fixed terrain, no sensors.
 -- A leg farther than 1.12*height cannot support. Planted feet supply the load;
 -- swing sensors only receive bullets. Two legs alternate, four use diagonals.
+local TerrainObstacles=require("drive.TerrainObstacles")
+
 local V=require('core.Math3')
 local Rot=require('core.Rotations')
 local IK=require('parts.MechIK')
@@ -49,7 +51,7 @@ function M:Restore(data)
     for _,row in ipairs(data.states or {}) do local s=self.states[row[1]];if s then for k,value in pairs(row[2]) do s[k]=value end end end
 end
 function M:Cast(p,dir,distance)
-    local h=self.v.space:Raycast(p,dir,distance,self.v.body,nil,true,require('drive.TerrainObstacles').SUPPORT_MASK)
+    local h=self.v.space:Raycast(p,dir,distance,self.v.body,nil,true,TerrainObstacles.SUPPORT_MASK)
     return h and {point=h.point,normal=h.normal,distance=h.dist,collider=h.collider} or nil
 end
 function M:OffPlane(f,r) if math.sqrt(f*f+r*r)<1e-4 then return 0 end;return math.max(0,math.atan(math.abs(r),math.abs(f))-math.pi/6) end

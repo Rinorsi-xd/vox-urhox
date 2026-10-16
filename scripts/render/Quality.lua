@@ -1,3 +1,5 @@
+local TouchMode=require("controls.TouchMode")
+
 local Platform=require "urhox-libs.Platform.PlatformUtils"
 local M={}
 M.profiles={
@@ -18,7 +20,7 @@ function M.FrameLimit()
     -- Web uses conservative rendering budgets on both device classes.
     -- A desktop browser still needs the desktop input/render cadence.
     for _,arg in ipairs(GetArguments()) do if arg:match('^%-quality=') then return M.current.maxFps end end
-    if Platform.IsWebPlatform() and not require('controls.TouchMode').Enabled() then return M.profiles.desktop.maxFps end
+    if Platform.IsWebPlatform() and not TouchMode.Enabled() then return M.profiles.desktop.maxFps end
     return M.current.maxFps
 end
 function M.Apply(level)

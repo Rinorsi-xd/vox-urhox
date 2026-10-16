@@ -1,8 +1,10 @@
 -- PC source pointer-lock semantics. Sampling is separate from the OS adapter so
 -- capture edges, right-click toggle/hold, and focus loss can be replayed exactly.
+local MouseDeltaFilter=require("controls.MouseDeltaFilter")
+
 local M={};M.__index=M
 local Platform=require 'urhox-libs.Platform.PlatformUtils'
-function M.New(session) return setmetatable({session=session,web=Platform.IsWebPlatform(),captured=false,pending=false,lockWait=0,ready=false,skip=false,right=false,scopeHold=false,heldTime=0,mouse=require('controls.MouseDeltaFilter').New()},M) end
+function M.New(session) return setmetatable({session=session,web=Platform.IsWebPlatform(),captured=false,pending=false,lockWait=0,ready=false,skip=false,right=false,scopeHold=false,heldTime=0,mouse=MouseDeltaFilter.New()},M) end
 function M:SetMouseMode(mode) input.mouseMode=mode end
 function M:Listen()
     if self.session.touch or self.eventNode then return end

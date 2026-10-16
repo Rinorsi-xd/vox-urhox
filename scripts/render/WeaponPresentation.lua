@@ -1,3 +1,5 @@
+local Materials=require("parts.Materials")
+
 local Motion=require 'render.WeaponMotion'
 local Coord=require 'core.Coord'
 local Config=require 'Config'
@@ -17,7 +19,7 @@ end
 function M.Material(vis,slot)
     if vis.weaponMaterials[slot] then return vis.weaponMaterials[slot] end
     local source=MaterialData[slot]
-    local material=require('parts.Materials').New('Weapon.shader')
+    local material=Materials.New('Weapon.shader')
     local c=source and source.color or {.02,.02,.02};local e=source and source.emission
     local fallback=Config.HexLinear(slot=='heatGlow' and 0xff7a22 or 0xfff1dc)
     local emission=e and Color(e[1],e[2],e[3]) or fallback

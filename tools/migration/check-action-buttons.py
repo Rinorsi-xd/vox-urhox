@@ -40,6 +40,7 @@ unchanged = []
 subsequent = {
     'scripts/ui/MissionChoice.lua': 'docs/migration/evidence/story-choice-presentation-offline.json',
     'scripts/ui/StoryPage.lua': 'docs/migration/evidence/story-page-lifecycle-offline.json',
+    'scripts/ui/SalvageItem.lua': 'docs/migration/evidence/salvage-loadout-feedback-offline.json',
 }
 portrait_reports = ['story-result-rows', 'story-result-quote', 'comms-portraits']
 for report_name in portrait_reports:
@@ -68,8 +69,17 @@ for name in files:
     if name in subsequent:
         evidence = json.loads((root / subsequent[name]).read_text(encoding='utf-8'))
         assert evidence.get('result', evidence.get('status')) == 'PASS', name
-        assert evidence.get('source', evidence.get('baseline', {}))['commit'] == baseline['commit'], name
+        assert evidence.get('sourceCommit', evidence.get('source', evidence.get('baseline', {})).get('commit')) == baseline['commit'], name
         assert evidence.get('production', evidence.get('productionHashes', {}))[name] == sha(root / name), name
+        if name == 'scripts/ui/SalvageItem.lua':
+            for source_name, expected_hash in evidence['sourceHashes'].items():
+                assert expected_hash == sha(Path(baseline['snapshot']) / source_name), source_name
+                assert expected_hash == baseline['files'][source_name]['sha256'], source_name
+            for field in ['productionHashes', 'resources', 'testInputs']:
+                for dependency, expected_hash in evidence[field].items():
+                    assert expected_hash == sha(root / dependency), dependency
+            assert len(evidence['negativeControls']) == 4
+            assert all(control['rejected'] for control in evidence['negativeControls'])
         continue  # Still loaded and exercised by the full native Button matrix below.
     prior = (old / name).read_text(encoding='utf-8')
     expected = prior.replace("require 'urhox-libs/UI/Widgets/Button'", "require 'ui.ActionButton'")
@@ -120,7 +130,7 @@ report = {'result': 'PASS', 'checks': result['checks'], 'classes': list(result['
           'subsequentSourceParityReports': subsequent,
           'canonicalResultPortraitReports': portrait_reports,
           'canonicalResultPortraitNegativeCases': portrait_guard_negatives,
-          'boundary': 'Actual PointerEvent and complete engine Button module, extracted actual Widget.Extend and UI pointer/key dispatch methods, all 23 project button modules loaded and all descendant Button classes including MissionChoice exercised. Original 20 e31 modules retain exact base-only transformation. MissionResult permits only the exact additional canonical Nono path expression; three unrelated timing/callback/speaker changes remain rejected. Its rows/render/callback coverage and portrait resolver/dependencies bind to fresh story-result-rows and comms-portraits reports at the frozen commit. Fresh story-result-quote covers actual Mission/StoryComms audio semantics, not MissionResult rendering. MissionChoice subsequent source layout/animation coverage binds to fresh story-choice-presentation. New SourceSelectionBar has separate source parity coverage. Layout/native rendering and focus/hit-test edges adapted. Frozen H5 native click/keyboard listener contract inspected; browser DOM activation and actual public page navigation require root Web regression. Native keyboard behavior covered separately in button-keyboard-offline.json. No GPU or performance acceptance.'}
+          'boundary': 'Actual PointerEvent and complete engine Button module, extracted actual Widget.Extend and UI pointer/key dispatch methods, all 23 project button modules loaded and all descendant Button classes including MissionChoice exercised. Historical modules without subsequent parity reports retain exact base-only transformation. MissionResult permits only the exact additional canonical Nono path expression; three unrelated timing/callback/speaker changes remain rejected. Its rows/render/callback coverage and portrait resolver/dependencies bind to fresh story-result-rows and comms-portraits reports at the frozen commit. Fresh story-result-quote covers actual Mission/StoryComms audio semantics, not MissionResult rendering. MissionChoice subsequent source layout/animation coverage binds to fresh story-choice-presentation. SalvageItem subsequent count/shortage drawing binds to salvage-loadout-feedback, verifying frozen source, production, resources, checker hashes and all four rejected negative controls. New SourceSelectionBar has separate source parity coverage. Layout/native rendering and focus/hit-test edges adapted. Frozen H5 native click/keyboard listener contract inspected; browser DOM activation and actual public page navigation require root Web regression. Native keyboard behavior covered separately in button-keyboard-offline.json. No GPU or performance acceptance.'}
 out = root / 'docs/migration/evidence/action-buttons-offline.json'
 out.write_text(json.dumps(report, ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
 print(json.dumps({k: report[k] for k in ['result', 'checks', 'classes', 'matrixCases', 'oldRightClickReproduced']}, indent=2))

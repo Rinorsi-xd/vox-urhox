@@ -1,4 +1,6 @@
 -- Source actVirtues: panels persist, each entry/layer keeps its own clock.
+local SourceParagraph=require("ui.SourceParagraph")
+
 local D=require 'ui.SourceDraw'
 local Opacity=require 'ui.IntroOpacity'
 local nvgGlobalAlpha=Opacity.Set
@@ -39,7 +41,7 @@ end
 local function Fine(page,vg,w,h,u)
  local size=1.35*u;local px,py=size*.8,size*.35
  local x,width=w*.06,w*.91
- page.comicFine=page.comicFine or require('ui.SourceParagraph').New(size,size*1.3)
+ page.comicFine=page.comicFine or SourceParagraph.New(size,size*1.3)
  local p=page.comicFine;p.font='vox-title';p.size=size;p.lineHeight=size*1.3;p.spacing=size*.04
  local text='*年假须在战区内休完 · 每年 0.5 天 · 不可累计 · 最终解释权归公司所有'
  local layout=p:Measure(vg,text,width-px*2,{255,255,255,255})

@@ -1,5 +1,8 @@
 -- .bay-new-menu: original PC content, CSS boxes, transparent items and entry.
 -- UI retains hit testing/ownership; entry opacity composites one bounded layer.
+local ResourceData=require("core.ResourceData")
+local GarageDialogs=require("ui.GarageDialogs")
+
 local Popover=require 'ui.SourcePopover'
 local Button=require 'ui.ActionButton'
 local D=require 'ui.SourceDraw'
@@ -106,11 +109,11 @@ function M.Create(s)
     menu:AddChild(Header{width='100%',height=41,flexShrink=0,pointerEvents='none'})
     local rows={{'empty','创建新车','cube'},{'import','导入蓝图','download'},{'workshop','创意工坊','workshop'}}
     for i,p in ipairs(rows) do
-        menu:AddChild(s.Track(Item{text=p[2],icon=p[3],separator=i>1,count=i==3 and (#require('core.ResourceData').Read('UI/Workshop.json').prefabs..' 辆预制车') or nil,width='100%',height=50,flexShrink=0,
+        menu:AddChild(s.Track(Item{text=p[2],icon=p[3],separator=i>1,count=i==3 and (#ResourceData.Read('UI/Workshop.json').prefabs..' 辆预制车') or nil,width='100%',height=50,flexShrink=0,
             sourceGlow=function(vg,kind,x,y,scaleY) menu:DrawGlow(vg,kind,x,y,scaleY) end,
             onClick=function()
                 if p[1]=='workshop' then s.SetNew(false);s.SetTab('workshop')
-                elseif p[1]=='import' then s.SetNew(false);require('ui.GarageDialogs').Code(s,true)
+                elseif p[1]=='import' then s.SetNew(false);GarageDialogs.Code(s,true)
                 else s.CreateVehicle(p[1]) end
             end}))
     end

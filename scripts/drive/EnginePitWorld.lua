@@ -1,17 +1,24 @@
 -- Source EnginePit owns its independent heightfield, landmarks and road graph.
+local Space=require("physics.Space")
+local CraterLayout=require("drive.CraterLayout")
+local EnginePitDeck=require("scene.EnginePitDeck")
+local TrialMetrics=require("drive.TrialMetrics")
+local Debris=require("combat.Debris")
+local CraterPhysics=require("drive.CraterPhysics")
+
 local Base=require 'drive.TrackWorld'
 local M={};M.__index=M;setmetatable(M,{__index=Base})
 function M.New(scene,deferred)
     local self=setmetatable({},M)
-    self.assetNamespace='EnginePit';self.scene=scene;self.space=require('physics.Space').New(scene)
-    self.layout=require('drive.CraterLayout').Begin('EnginePit');self.root=scene:CreateChild('EnginePitPhysics')
-    self.deck=require('scene.EnginePitDeck').Get(scene,self.layout)
+    self.assetNamespace='EnginePit';self.scene=scene;self.space=Space.New(scene)
+    self.layout=CraterLayout.Begin('EnginePit');self.root=scene:CreateChild('EnginePitPhysics')
+    self.deck=EnginePitDeck.Get(scene,self.layout)
     self.cones={};self.targets={};self.units={};self.time=0;self.stats={shots=0,hits=0,damage=0,kills=0}
-    self.metrics=require('drive.TrialMetrics').New(self.layout.drag);self.fx={};self.viewEvents={}
-    self.debris=require('combat.Debris').New(self.space)
+    self.metrics=TrialMetrics.New(self.layout.drag);self.fx={};self.viewEvents={}
+    self.debris=Debris.New(self.space)
     self.env={stats=self.stats,killHeight=-80,castRay=function(...) return self:CastRay(...) end,sweepDrill=function(...) return self:SweepDrill(...) end,
         hit=function(...) self:Hit(...) end,lockables=function(...) return self:Lockables(...) end,explode=function(...) return self:Explode(...) end}
-    if not deferred then require('drive.CraterPhysics').Build(self) end
+    if not deferred then CraterPhysics.Build(self) end
     return self
 end
 function M:GroundAt(x,z)

@@ -1,3 +1,6 @@
+local SourceParagraph=require("ui.SourceParagraph")
+local Defs=require("parts.Defs")
+
 local UI=require 'urhox-libs/UI'
 local D=require 'ui.SourceDraw'
 local Data=require('core.ResourceData').Read('UI/Outgame.json')
@@ -10,7 +13,7 @@ local M={Page=Page,Surface=Surface,Text=Text}
 function Text:Render(vg)
     D.Begin(vg);local r=self:GetAbsoluteLayout();local p=self.props
     if p.rule then D.Rect(vg,r.x,r.y+r.h-1,r.w,1,{127,164,194,46}) end
-    if p.paragraph then self.paragraph=self.paragraph or require('ui.SourceParagraph').New(p.fontSize,p.lineHeight);self.paragraph:Draw(vg,p.text,r.x,r.y,r.w,{173,196,216,255});return end
+    if p.paragraph then self.paragraph=self.paragraph or SourceParagraph.New(p.fontSize,p.lineHeight);self.paragraph:Draw(vg,p.text,r.x,r.y,r.w,{173,196,216,255});return end
     D.Text(vg,p.text,r.x+(p.alignRight and r.w or 0),r.y,p.fontSize or 20,p.color,p.font,p.alignRight and NVG_ALIGN_RIGHT or nil)
 end
 local panel={20,43,67,255};local line={127,164,194,46}
@@ -26,7 +29,7 @@ end
 local function Wallet(vg,x,y,value,size) M.Credit(vg,x,y,size);D.Text(vg,D.Number(value),x+size+5,y,size,nil,'vox-tabular') end
 local function Carline(vg,s,x,y)
     local st=s.app.blueprint:Stats()
-    local hp=0;for _,p in ipairs(s.app.blueprint:List()) do hp=hp+require('parts.Defs').PARTS[p.type].hp end
+    local hp=0;for _,p in ipairs(s.app.blueprint:List()) do hp=hp+Defs.PARTS[p.type].hp end
     D.Text(vg,'带入价值',x,y,16,D.muted,'vox-body');Wallet(vg,x+72,y-2,M.Value(s),20)
     D.Rect(vg,x+166,y,1,16,line);D.Text(vg,'耐久',x+182,y,16,D.muted,'vox-body');D.Text(vg,D.Number(hp),x+217,y-2,20,nil,'vox-tabular')
     D.Rect(vg,x+279,y,1,16,line);D.Text(vg,'极速',x+296,y,16,D.muted,'vox-body');D.Text(vg,st.topSpeed>0 and D.Number(st.topSpeed) or '—',x+331,y-2,20,nil,'vox-tabular');D.Text(vg,'km/h',x+362,y,16,D.muted,'vox-body')
@@ -60,10 +63,6 @@ function Page:Render(vg)
         local kw=D.Width(vg,hint[1],14,'vox-code')+14;D.Rect(vg,hx,y+h-48,kw,22,{19,36,58,255});D.Text(vg,hint[1],hx+7,y+h-46,14,D.muted,'vox-code')
         D.Text(vg,hint[2],hx+kw+8,y+h-44,15,D.muted,'vox-body');hx=hx+kw+8+D.Width(vg,hint[2],15,'vox-body')+26
     end
-end
-function Surface:OnWheel(dx,dy)
-    if self.props.kind~='deal' or not self.owner.salvage.selected then return false end
-    local sv=self.owner.salvage;sv.qty=math.max(1,math.min(self.owner.app.salvageLobby:MaxQuantity(sv.selected,sv.market=='sell'),sv.qty+(dy>0 and 1 or -1)));self.owner.revision=-1;return true
 end
 function Surface:Render(vg)
     D.Begin(vg);local r=self:GetAbsoluteLayout();local s=self.owner;local sv=s.salvage;local kind=self.props.kind;local x,y,w,h=r.x,r.y,r.w,r.h
@@ -102,12 +101,20 @@ function Surface:Render(vg)
             if kind=='deal' then
                 local rowY=iy+122+description.height+14;local unit=sv.market=='sell' and math.max(1,math.floor(it.price*Rules.sellRate)) or it.price
                 D.Line(vg,x+26,rowY,x+w-26,rowY,line);D.Text(vg,'单价',x+26,rowY+10,15,D.muted,'vox-body');Wallet(vg,x+w-26-D.Width(vg,D.Number(unit),19,'vox-tabular')-24,rowY+9,unit,19)
-                D.Line(vg,x+26,rowY+38,x+w-26,rowY+38,line);D.Text(vg,'仓库里',x+26,rowY+48,15,D.muted,'vox-body');D.Text(vg,D.Number(s.app.salvageLobby:Owned(it.id)),x+w-26,rowY+47,19,nil,'vox-tabular',NVG_ALIGN_RIGHT)
+                D.Line(vg,x+26,rowY+38,x+w-26,rowY+38,line);D.Text(vg,'仓库里',x+26,rowY+48,15,D.muted,'vox-body');D.Text(vg,D.Number(sv.loose[it.id] or 0),x+w-26,rowY+47,19,nil,'vox-tabular',NVG_ALIGN_RIGHT)
                 local total=unit*sv.qty;D.Line(vg,x+26,y+h-200,x+w-26,y+h-200,line);D.Text(vg,'合计',x+26,y+h-187,16,D.muted,'vox-body');Wallet(vg,x+w-26-D.Width(vg,D.Number(total),28,'vox-tabular')-35,y+h-192,total,28)
                 D.Text(vg,'持有',x+26,y+h-139,16,D.muted,'vox-body');Wallet(vg,x+w-26-D.Width(vg,D.Number(s.app.salvageLobby.data.credits),20,'vox-tabular')-27,y+h-142,s.app.salvageLobby.data.credits,20)
                 return
             end
-            D.Text(vg,'持有 '..(sv.loose[it.id] or 0),x+26,y+h-290,16,D.muted,'vox-body')
+            local loose=sv.loose[it.id] or 0;local used=math.max(0,s.app.salvageLobby:Owned(it.id)-loose)
+            local facts={{'仓库里',D.Number(loose)}};if used>0 then facts[#facts+1]={'装在车上',D.Number(used)} end
+            facts[#facts+1]={'占用',math.ceil(loose/(Rules.stack[it.id] or 1))..' 格 · 每格 '..(Rules.stack[it.id] or 1)}
+            local unit=math.max(1,math.floor(it.price*Rules.sellRate));facts[#facts+1]={'收购价',D.Number(unit)}
+            for i,fact in ipairs(facts) do local fy=y+h-140-(#facts-i+1)*38
+                D.Line(vg,x+28,fy,x+w-28,fy,line);D.Text(vg,fact[1],x+28,fy+10,15,D.muted,'vox-body');D.Text(vg,fact[2],x+w-28,fy+9,19,nil,'vox-tabular',NVG_ALIGN_RIGHT)
+            end
+            Wallet(vg,x+w-28-D.Width(vg,D.Number(unit*sv.qty),19,'vox-tabular')-24,y+h-58,unit*sv.qty,19)
+            return
         end
         D.Line(vg,x+26,y+h-72,x+w-26,y+h-72,line);D.Text(vg,'持有',x+26,y+h-56,16,D.muted,'vox-body')
         local amount=D.Number(s.app.salvageLobby.data.credits);local cashWidth=D.Width(vg,amount,28,'vox-tabular')+35;Wallet(vg,x+w-26-cashWidth,y+h-61,s.app.salvageLobby.data.credits,28)

@@ -1,5 +1,8 @@
 -- Frozen TrackSim.setPlayer: practice uses the same damageable player as combat,
 -- with parked targets, five-second respawns, and no extra mode repair rules.
+local RotorMotion=require("drive.RotorMotion")
+local PlayerViewSync=require("combat.PlayerViewSync")
+
 local Unit=require 'combat.CarUnit'
 local M={};M.__index=M
 function M.New(session,bp)
@@ -21,7 +24,7 @@ function M:BeforeStep(dt,command,aim)
     if not u.alive then return end
     u:RegenerateStructure(dt)
     local v=u.vehicle;v:StepRotors(aim,command.rotorStep==true,dt)
-    require('drive.RotorMotion').Weapons(v.rotors,u.weapons)
+    RotorMotion.Weapons(v.rotors,u.weapons)
     v:Step(command,dt)
     local p,velocity=v.body.translation(),v.body.linvel()
     local eye=self.session.camera:GetNode().worldPosition
@@ -34,7 +37,7 @@ function M:BeforeStep(dt,command,aim)
     self.session.weaponAudio:Consume(u.weapons.fx)
 end
 function M:AfterStep() end
-function M:SyncPlayer() require('combat.PlayerViewSync').Update(self) end
+function M:SyncPlayer() PlayerViewSync.Update(self) end
 function M:Dispose()
     if self.disposed then return end;self.disposed=true
     -- TrackWorld owns disposal of every CarUnit, including the player.

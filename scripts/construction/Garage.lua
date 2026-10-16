@@ -1,5 +1,7 @@
 -- Vehicle bay semantics from shared/build/editor.js, with explicit failure
 -- results. UI owns confirmations; storage writes must succeed before switching.
+local PreviewCache=require("storage.PreviewCache")
+
 local Blueprint=require 'construction.Blueprint'
 local Prefab=require 'construction.Prefab'
 local Code=require 'storage.BlueprintCode'
@@ -26,7 +28,7 @@ function M:Slots()
         local data,generation,savedTime,context=self.store:LoadSlot(i)
         if data then
             data.savedTime=savedTime
-            data.preview=require('storage.PreviewCache').Ref(self.store,i,generation,context)
+            data.preview=PreviewCache.Ref(self.store,i,generation,context)
         end
         list[i]=data or false
     end

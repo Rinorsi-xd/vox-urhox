@@ -1,4 +1,6 @@
 -- Frozen H5 shared/parts/mechIK.js. All solver coordinates are source cells.
+local PartAssets=require("parts.PartAssets")
+
 local M={}
 local geometry,sinks,extensions={},{},{}
 local DEG=math.pi/180
@@ -11,7 +13,7 @@ local function Ang(a) return math.atan(a[2],a[1]) end
 local function Rotate(a,r) local c,s=math.cos(r),math.sin(r);return {a[1]*c-a[2]*s,a[1]*s+a[2]*c} end
 local function Wrap(a) return a-2*math.pi*math.floor(a/(2*math.pi)+.5) end
 local function Sign(a) return a<0 and -1 or a>0 and 1 or 0 end
-function M.Data(type) return require('parts.PartAssets').Get(type).segments.info end
+function M.Data(type) return PartAssets.Get(type).segments.info end
 function M.Geometry(type)
     if geometry[type] then return geometry[type] end
     local d=M.Data(type);local p=d.plane

@@ -1,9 +1,14 @@
+local ResourceData=require("core.ResourceData")
+local MvpBanner=require("render.MvpBanner")
+local VehicleView=require("render.VehicleView")
+local Config=require("Config")
+
 local Data=require('core.ResourceData').Read('Mvp/Manifest.json')
 local Motion=require 'combat.MvpMotion'
 local M={};M.__index=M
 function M.Dependencies()
     local paths={'Mvp/Manifest.json','Mvp/Beats.json','Mvp/music.mp3','Mvp/VehicleShaders.json','Mvp/Cues.json','Mvp/title.png'}
-    for _,d in pairs(require('core.ResourceData').Read('Mvp/Cues.json')) do paths[#paths+1]=d.path end
+    for _,d in pairs(ResourceData.Read('Mvp/Cues.json')) do paths[#paths+1]=d.path end
     for _,d in ipairs(Data.models) do paths[#paths+1]=d.model end
     for _,d in ipairs(Data.materials) do for _,id in ipairs({d.map,d.emissiveMap}) do if type(id)=='number' then paths[#paths+1]='Mvp/texture-'..id..'.png' end end end
     return paths
@@ -30,16 +35,16 @@ function M:init(scene,bp,name)
         if d.name=='MvpSpiral' then self.spiral=m;m:SetShaderParameter('spiral',Variant(1.0)) end
         if flag then self.banner=m end
     end
-    self.awardBanner=require('render.MvpBanner').New(name,self.banner)
+    self.awardBanner=MvpBanner.New(name,self.banner)
     for _,d in ipairs(Data.models) do local model=self.nodes[d.motion]:CreateChild('Batch'):CreateComponent('StaticModel')
         model.model=assert(cache:GetResource('Model',d.model));model.material=self.materials[d.material+1];model.castShadows=false
     end
-    self.pivot=self.nodes.pod:CreateChild('CarPivot');self.view=require('render.VehicleView').New(self.pivot,'MvpCar');self.view:Rebuild(bp)
+    self.pivot=self.nodes.pod:CreateChild('CarPivot');self.view=VehicleView.New(self.pivot,'MvpCar');self.view:Rebuild(bp)
     local box=self.view:GetWorldBounds();local size,center=box.size,box.center
     self.height=math.max(.6,size.y);self.S=math.min(5,math.max(1.8,math.max(size.x,size.z)*.5*1.15))
     self.view.root.position=Vector3(-center.x,-box.min.y,-center.z)
     self.root.scale=Vector3(self.S,self.S,self.S);self.pivot.scale=Vector3(1/self.S,1/self.S,1/self.S)
-    local variants={};for _,name in ipairs(require('core.ResourceData').Read('Mvp/VehicleShaders.json')) do variants[name]=true end
+    local variants={};for _,name in ipairs(ResourceData.Read('Mvp/VehicleShaders.json')) do variants[name]=true end
     local clones={}
     for _,kind in ipairs({'StaticModel','CustomGeometry'}) do for _,mesh in ipairs(self.view.root:GetComponents(kind,true)) do
         for slot=0,mesh:GetNumGeometries()-1 do
@@ -80,7 +85,7 @@ function M:Confetti()
     local function R(a,b) seedValue=(seedValue*1664525+1013904223)&0xffffffff;return a+(b-a)*seedValue/4294967296 end
     for i=0,899 do
         local side=i<300 and -1 or 1;local v=i>=600 and Vector3(0,-R(.5,1.5),0) or Vector3(-side*.4+R(-.45,.45),.9+R(-.2,.3),-.18+R(-.45,.45)):Normalized()*R(5,15)
-        local seed=R(0,6);local color=require('Config').HexLinear(colors[i%8+1])
+        local seed=R(0,6);local color=Config.HexLinear(colors[i%8+1])
         for _,q in ipairs({{0,0},{1,0},{0,1},{0,1},{1,0},{1,1}}) do
             g:DefineVertex(Vector3(-side,i,seed));g:DefineNormal(v);g:DefineColor(color);g:DefineTexCoord(Vector2(q[1],q[2]))
         end

@@ -2,6 +2,8 @@
 -- Runtime 20260923 renders queued surfaces in reverse registration order;
 -- allocate the entire DAG backwards, including on resize, before binding it.
 -- tools/migration/verify-filter-graph.ps1 guards same-frame HDR propagation.
+local RenderTargetLifetime=require("render.RenderTargetLifetime")
+
 local M={};M.__index=M
 local vertices={{-1,-1,0,1},{-1,1,0,0},{1,1,1,0},{-1,-1,0,1},{1,1,1,0},{1,-1,1,1}}
 function M.New(specs,width,height)
@@ -59,7 +61,7 @@ function M:Dispose()
     for _,texture in pairs(self.textures) do texture.renderSurface:SetNumViewports(0) end
     for _,scene in ipairs(self.scenes) do scene:Dispose() end
     for _,material in pairs(self.materials) do material:Dispose() end
-    for _,texture in pairs(self.textures) do require('render.RenderTargetLifetime').Retire(texture) end
+    for _,texture in pairs(self.textures) do RenderTargetLifetime.Retire(texture) end
     self.scenes={};self.materials={};self.textures={};self.viewports={};self.output=nil
 end
 return M

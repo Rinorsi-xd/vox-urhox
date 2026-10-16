@@ -1,4 +1,7 @@
 -- Frozen workshop.css card geometry and pointer transitions.
+local Config=require("Config")
+local WorkshopShopPaint=require("ui.WorkshopShopPaint")
+
 local Button=require 'ui.ActionButton'
 local D=require 'ui.SourceDraw'
 local Paint=require 'ui.WorkshopPaint'
@@ -47,7 +50,7 @@ function Card:Render(vg)
     if m.sweep.value>0 and m.sweep.value<1 then Paint.Sweep(vg,points,x,y,w,h,m.sweep.value) end
     local badgeY=y+(self.mini and 10 or 14);local badgeSize=self.mini and 13 or 15
     local badgePad=self.mini and 10 or 12;local tierText='T'..tier
-    local label=require('Config').TIERS[tier].name:gsub('^T%d%s*','')
+    local label=Config.TIERS[tier].name:gsub('^T%d%s*','')
     local numberWidth=D.Width(vg,tierText,badgeSize,'vox-tabular')
     local badgeWidth=badgePad+numberWidth+(self.mini and 12 or 22+D.Width(vg,label,12,nil,2))
     local badgeHeight=self.mini and 21.6 or 26
@@ -63,7 +66,7 @@ function Card:Render(vg)
         end
         nvgRestore(vg);D.Text(vg,'主打推荐',fx+12,y+19,13,{26,18,5,255},nil,nil,3)
     end
-    require('ui.WorkshopShopPaint').Card(vg,self.shop,x,y,w,self.mini,self.hero)
+    WorkshopShopPaint.Card(vg,self.shop,x,y,w,self.mini,self.hero)
     local tx=x+(self.hero and 30 or 16)
     local size=self.hero and (self.heroTitleSize or 46) or self.mini and 17 or 21;local titleHeight=size*1.2
     local barHeight=self.hero and 62 or self.mini and 0 or 50*m.reveal.value

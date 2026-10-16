@@ -1,4 +1,6 @@
 -- Source ZoneMarker/Reactor/RouteLine, shared bounded geometry at 10 Hz.
+local ObjectiveRoute=require("render.ObjectiveRoute")
+
 local Coord=require 'core.Coord'
 local M={};M.__index=M
 local function Hex(n)
@@ -16,7 +18,7 @@ function M.Geometry(scene)
 end
 function M.New(world,mode)
     local self=M.Geometry(world.scene);self.world=world;self.mode=mode
-    if mode.id~='conquest' then self.route=require('render.ObjectiveRoute').New(self.root,mode,self.materials[1],colors.contest) end
+    if mode.id~='conquest' then self.route=ObjectiveRoute.New(self.root,mode,self.materials[1],colors.contest) end
     return self
 end
 function M:Begin(name,pos,overlay)

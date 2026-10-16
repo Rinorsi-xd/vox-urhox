@@ -1,6 +1,17 @@
 -- One on-demand authored-scene capture for all home/library owners. No gameplay
 -- input, second application or persistent preview world. Source camera/crop:
 -- shared/build/editor.js::_thumbnail + three/src/render/pipeline.js::capture.
+local SceneLoader=require("app.SceneLoader")
+local ResourceGate=require("app.ResourceGate")
+local RenderTargetLifetime=require("render.RenderTargetLifetime")
+local PreviewRoom=require("controls.PreviewRoom")
+local HangarResources=require("scene.HangarResources")
+local Blueprint=require("construction.Blueprint")
+local VehicleView=require("render.VehicleView")
+local GraphicsSettings=require("render.GraphicsSettings")
+local ImportedReadback=require("render.Readback")
+local Dependencies=require("parts.Dependencies")
+
 local Cache=require 'storage.PreviewCache'
 local Config=require 'Config'
 ---@class HangarPreview
@@ -10,8 +21,8 @@ local Config=require 'Config'
 ---@field job table|nil
 local M={};M.__index=M
 function M.New(app)
-    return setmetatable({app=app,loader=require('app.SceneLoader').New(function(scene) scene:SetVar('VoxPreview',Variant(true)) end),queue={},frame=0,
-        captures=0,cacheHits=0,cancelled=0,sceneLoads=0,idle=0,gate=require('app.ResourceGate').New()},M)
+    return setmetatable({app=app,loader=SceneLoader.New(function(scene) scene:SetVar('VoxPreview',Variant(true)) end),queue={},frame=0,
+        captures=0,cacheHits=0,cancelled=0,sceneLoads=0,idle=0,gate=ResourceGate.New()},M)
 end
 function M:Request(data,done)
     local request={data=data,ref=data.preview,done=done}
@@ -25,7 +36,7 @@ function M:Cancel(request)
 end
 function M:ReleaseJob()
     local job=self.job;if not job then return end
-    if job.texture then require('render.RenderTargetLifetime').Retire(job.texture) end
+    if job.texture then RenderTargetLifetime.Retire(job.texture) end
     if job.view then job.view:Dispose() end
     self.job=nil;self.bp=nil
 end
@@ -49,7 +60,7 @@ function M:LoadScene()
         -- render targets; tearing those nested captures down can stall the GPU.
         self.cameraNode=scene:CreateChild('SavedVehicleCamera')
         self.camera=self.cameraNode:CreateComponent('Camera')
-        self.cameraSafety=require('controls.PreviewRoom').New(scene)
+        self.cameraSafety=PreviewRoom.New(scene)
         self.camera.nearClip=.05;self.camera.farClip=320;self.camera.autoAspectRatio=false
     end,function(message)
         -- SceneLoader owns disposal of a failed candidate.
@@ -58,7 +69,7 @@ function M:LoadScene()
         self.camera=nil;self.cameraNode=nil
         for _,r in ipairs(self.queue) do if not r.cancelled then self:Complete(r,nil,message) end end
         self.queue={}
-    end,{resources=require('scene.HangarResources').For()})
+    end,{resources=HangarResources.For()})
 end
 function M:Start(request)
     local data=request.data;local context=request.ref and request.ref.context or {}
@@ -67,8 +78,8 @@ function M:Start(request)
     aspect=math.max(.5,math.min(4,aspect))
     local width=math.ceil(math.max(320,200*aspect)*1.35)
     local height=math.ceil(width/aspect)
-    local bp=require('construction.Blueprint').New():Load(data)
-    local view=require('render.VehicleView').New(self.scene,'SavedVehicle')
+    local bp=Blueprint.New():Load(data)
+    local view=VehicleView.New(self.scene,'SavedVehicle')
     self.job={request=request,view=view,frame=self.frame}
     view:Rebuild(bp)
     local stats=bp:Stats();local b=stats.bb;local cell=Config.CELL
@@ -82,8 +93,8 @@ function M:Start(request)
     self.cameraNode:LookAt(center);self.camera.fov=48;self.camera.aspectRatio=width/height
     self.bp=bp;self.tier=math.max(1,math.min(5,tonumber(context.tier) or 3));self.slot=request.ref and request.ref.slot
     local settings=context.graphics
-    if not require('render.GraphicsSettings').Valid(settings) then settings=self.app.graphicsSettings.data end
-    require('render.GraphicsSettings').Apply({app={ownsScene=true},data=settings},self.scene)
+    if not GraphicsSettings.Valid(settings) then settings=self.app.graphicsSettings.data end
+    GraphicsSettings.Apply({app={ownsScene=true},data=settings},self.scene)
     local texture=Texture2D:new();texture:SetNumLevels(1)
     self.job.texture=texture
     assert(texture:SetSize(width,height,Graphics:GetRGBAFormat(),TEXTURE_RENDERTARGET),'Cannot allocate saved preview')
@@ -96,7 +107,7 @@ end
 function M:Readback()
     local job=self.job;local request=job.request
     -- WebGPU 不支持同步读回：不调用 GetImage（它会报引擎错误），缩略图按读回失败处理
-    assert(require('render.Readback').Sync(),'Saved preview readback unavailable on '..tostring(graphics.apiName))
+    assert(ImportedReadback.Sync(),'Saved preview readback unavailable on '..tostring(graphics.apiName))
     local image=assert(job.texture:GetImage(),'Saved preview readback unavailable')
     -- Canvas drawImage centers a cover fit scaled by 1.35, then shifts up 6%.
     local x=math.floor((job.width-320)/2+.5);local y=math.floor((job.height-200)/2+12+.5)
@@ -141,7 +152,7 @@ function M:Update(dt)
     if not self.scene then if self.loader.state~='loading' then self:LoadScene() end;return end
     table.remove(self.queue,1)
     self.loadingRequest=request
-    self.gate:Start(require('parts.Dependencies').FromBlueprint(request.data),function(ready,message)
+    self.gate:Start(Dependencies.FromBlueprint(request.data),function(ready,message)
         if self.loadingRequest~=request then return end
         self.loadingRequest=nil
         if request.cancelled then return end

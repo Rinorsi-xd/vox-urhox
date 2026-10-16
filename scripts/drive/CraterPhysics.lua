@@ -3,6 +3,11 @@
 --         / ramp      wall |   hanging geometry is never flattened
 -- terrain /\/\____ 2 m cell triangles, same diagonal as source physics
 -- Static layer 1 supports suspension, weapons and camera; own vehicle is layer 2.
+local CraterLayout=require("drive.CraterLayout")
+local ResourceData=require("core.ResourceData")
+local TerrainObstacles=require("drive.TerrainObstacles")
+local CameraObstacles=require("controls.CameraObstacles")
+
 local Coord=require 'core.Coord'
 local M={}
 local function Body(world,node,friction)
@@ -11,7 +16,7 @@ local function Body(world,node,friction)
     return b
 end
 function M.Build(world,checkpoint)
-    require('drive.CraterLayout').Fill(world.layout,checkpoint and function(p) checkpoint(p*.15,'data') end)
+    CraterLayout.Fill(world.layout,checkpoint and function(p) checkpoint(p*.15,'data') end)
     local function Progress(p,phase) if checkpoint then checkpoint(.15+p*.85,phase) end end
     local layout=world.layout;local t=layout.terrain;local n=t.n;local size=t.size;local step=size/n;local h=t.heights
     for x=0,n-1,32 do for z=0,n-1,32 do
@@ -55,9 +60,9 @@ function M.Build(world,checkpoint)
         if world.AttachBlockPhysics then world:AttachBlockPhysics(native,b) end
         if i%4==0 then Progress(.55+.4*i/#layout.blocks,'hulls') end
     end end
-    local boulders=require('core.ResourceData').Read((world.assetNamespace or 'Crater')..'/Boulders.json')
-    require('drive.TerrainObstacles').Build(world,boulders,function(p) Progress(.95+.03*p,'boulders') end)
-    if not world.assetNamespace then require('controls.CameraObstacles').Build(world,function(p) Progress(.98+.02*p,'camera') end) end
+    local boulders=ResourceData.Read((world.assetNamespace or 'Crater')..'/Boulders.json')
+    TerrainObstacles.Build(world,boulders,function(p) Progress(.95+.03*p,'boulders') end)
+    if not world.assetNamespace then CameraObstacles.Build(world,function(p) Progress(.98+.02*p,'camera') end) end
     print('[CraterPhysics] Source heightfield '..n..'x'..n..', authored blocks '..#layout.blocks..', boulders '..world.boulderCount)
 end
 return M

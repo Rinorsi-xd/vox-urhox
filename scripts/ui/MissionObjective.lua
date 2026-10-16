@@ -1,4 +1,6 @@
 -- Frozen StoryHud.objective/retitle/objectiveDone, independent of game time.
+local SourceDraw=require("ui.SourceDraw")
+
 local Ease=require('ui.SourceButtonMotion').Ease
 local M={};M.__index=M
 local function Now() return Time:GetSystemTime() end
@@ -55,7 +57,7 @@ function M:State(now)
 end
 function M:Draw(vg,hint,x,y,width)
     local s=self:State();if not s then return end
-    local D=require 'ui.SourceDraw'
+    local D=SourceDraw
     local color=Color(s.done and {61,220,132} or {255,106,19},s.brightness)
     nvgSave(vg);nvgTranslate(vg,s.x,0);nvgGlobalAlpha(vg,s.alpha)
     nvgSave(vg);nvgTranslate(vg,x+8,y+14);nvgRotate(vg,math.pi/4)

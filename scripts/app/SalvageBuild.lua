@@ -1,3 +1,5 @@
+local EditHistory=require("construction.EditHistory")
+
 local Stash=require('salvage.StashRules')
 local Buy=require('ui.SalvageBuy')
 local M={}
@@ -22,7 +24,7 @@ function M.Attach(s)
     end
     history.Undo=function(h)
         local ops=h.undoStack[#h.undoStack];if not ops then return false end
-        local inverse={};for i=#ops,1,-1 do inverse[#inverse+1]=require('construction.EditHistory').Inverse(ops[i]) end
+        local inverse={};for i=#ops,1,-1 do inverse[#inverse+1]=EditHistory.Inverse(ops[i]) end
         local short=Missing(inverse)
         if next(short) then Buy.Parts(s,short,function() if not s.disposed then h:Undo();s:Refresh() end end);return false end
         return undo(h)

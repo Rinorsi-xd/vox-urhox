@@ -1,3 +1,7 @@
+local SourceParagraph=require("ui.SourceParagraph")
+local ArenaData=require("combat.ArenaData")
+local CommsCard=require("ui.CommsCard")
+
 local UI=require 'urhox-libs/UI'
 local D=require 'ui.SourceDraw'
 local Paint=require 'ui.WorkshopPaint'
@@ -5,7 +9,7 @@ local Coord=require 'core.Coord'
 local Page=UI.Widget:Extend('VoxMatchIntro')
 local M={};local role={assault='突击',heavy='重装',hover='悬浮快攻',sniper='狙击'}
 local orange={122,216,255,255}
-function M.New(owner) local p=Page{pointerEvents='auto',focusable=false};p.owner=owner;p.paragraph=require('ui.SourceParagraph').New(22,33);return p end
+function M.New(owner) local p=Page{pointerEvents='auto',focusable=false};p.owner=owner;p.paragraph=SourceParagraph.New(22,33);return p end
 function Page:GetAbsoluteLayout() local w,h=UI.GetViewportSize();return {x=0,y=0,w=w,h=h} end
 function Page:GetAbsoluteLayoutForHitTest() return self:GetAbsoluteLayout() end
 function Page:HitTest() return not self.owner.done end
@@ -37,7 +41,7 @@ function Page:Render(vg)
             end
         end end
     elseif intro.index==1 then
-        local cfg=require('combat.ArenaData').modes[intro.session.battle.mode]
+        local cfg=ArenaData.modes[intro.session.battle.mode]
         D.Text(vg,cfg.en..' · '..cfg.size..'V'..cfg.size..' · AI 对战',w*.05,h*.13,13,orange,'vox-title',nil,8)
         D.Text(vg,cfg.name,w*.05,h*.13+30,64,D.white,'vox-title',nil,8)
         D.Text(vg,'坠舰陨坑 · 第 7 边境星区 · CV-07 ARGUS 坠毁现场',w*.05,h*.13+105,14,D.muted,'vox-title',nil,4)
@@ -45,7 +49,7 @@ function Page:Render(vg)
         D.Text(vg,shot.label[1],w*.95,h*.13,12,orange,'vox-title',NVG_ALIGN_RIGHT,5)
         D.Text(vg,shot.label[2],w*.95,h*.13+27,34,D.white,'vox-title',NVG_ALIGN_RIGHT,5)
     end
-    local sw=math.min(980,w*.86);local x=(w-sw)/2;local Comms=require 'ui.CommsCard'
+    local sw=math.min(980,w*.86);local x=(w-sw)/2;local Comms=CommsCard
     local card=intro.comms.card
     if card then local height=Comms.Height(vg,card,sw);Comms.Draw(vg,card,x,h*.91-26-height,sw,height,1,intro.time) end
     local sy=h*.91+22;D.Text(vg,'空格',w-195,sy,12,D.muted,'vox-tabular');D.Text(vg,'跳过介绍',w-132,sy,12,D.muted,'vox-title',nil,3)

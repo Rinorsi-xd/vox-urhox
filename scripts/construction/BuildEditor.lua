@@ -1,4 +1,7 @@
 -- Engine-independent editor commands. Input, previews and persistence are adapters.
+local BuildStretch=require("construction.BuildStretch")
+local Rotors=require("construction.Rotors")
+
 local Blueprint=require 'construction.Blueprint'
 local Placement=require 'construction.Placement'
 local History=require 'construction.EditHistory'
@@ -24,14 +27,14 @@ end
 function M:Cue(id) if self.onCue then self.onCue(id) end end
 function M:SelectType(type)
     if not Defs[type] then return false end
-    require('construction.BuildStretch').Cancel(self)
+    BuildStretch.Cancel(self)
     self.emptySlot=false
     self.type=type;self.tool='build';self.spin=0;self.sampledRot=nil;self.sampledFinish=nil;self.pasting=false;self.preview=nil
     return true
 end
 function M:SetTool(tool)
     assert(tool=='build' or tool=='erase' or tool=='paint' or tool=='stretch')
-    require('construction.BuildStretch').Cancel(self)
+    BuildStretch.Cancel(self)
     self.tool=tool;self.preview=nil;if tool~='build' then self.pasting=false end
 end
 function M:Rotate(step)
@@ -50,7 +53,7 @@ function M:Trace(origin,direction)
     local hit=Ray.Cast(origin,direction,self.bp,160,false)
     if not hit.hit and self.bp:Size()==0 and self.type=='core' then hit={hit=true,cell={0,3,0},place={0,4,0},normal={0,1,0},anchor=true} end
     local pv=self:Preview(hit.hit and hit or nil)
-    require('construction.BuildStretch').Update(self)
+    BuildStretch.Update(self)
     return pv
 end
 function M:Preview(hit)
@@ -121,11 +124,11 @@ function M:ToggleForm()
     return true,self.joinNew and '连块放置：新方块相邻时连成整体，F 关闭' or '普通方块放置'
 end
 function M:SetRotorMode(index)
-    local rotor=self.hit and self.bp.parts[self.hit.partId];local mode=require('construction.Rotors').MODES[index]
-    if not rotor or not require('construction.Rotors').Is(rotor.type) or not mode then return false end
+    local rotor=self.hit and self.bp.parts[self.hit.partId];local mode=Rotors.MODES[index]
+    if not rotor or not Rotors.Is(rotor.type) or not mode then return false end
     if rotor.type==mode.type then return false,'转轴已经是「'..mode.name..'」' end
     local ops={}
-    for _,p in ipairs(self:Targets(self.hit)) do if require('construction.Rotors').Is(p.type) and p.type~=mode.type then
+    for _,p in ipairs(self:Targets(self.hit)) do if Rotors.Is(p.type) and p.type~=mode.type then
         local before=History.Snapshot(p);local after=History.Snapshot(p);after.type=mode.type
         ops[#ops+1]={op='remove',data=before};ops[#ops+1]={op='add',data=after}
     end end
@@ -139,7 +142,7 @@ function M:Targets(hit)
     if mirror then list[#list+1]=mirror end;return list
 end
 function M:Remove(hit)
-    if self.stretch then return require('construction.BuildStretch').Right(self) end
+    if self.stretch then return BuildStretch.Right(self) end
     local ops={};for _,p in ipairs(self:Targets(hit or self.hit)) do ops[#ops+1]={op='remove',data=History.Snapshot(p)} end
     local ok=self.history:Commit(ops,Groups.SplitRemoved)
     if ok then self:Cue('remove') end
@@ -345,18 +348,18 @@ function M:CommitPaste()
 end
 function M:Act()
     if self.pasting then return self:CommitPaste() end
-    if self.tool=='stretch' then return require('construction.BuildStretch').Click(self) end
+    if self.tool=='stretch' then return BuildStretch.Click(self) end
     if self.tool=='paint' then return self:Paint() elseif self.tool=='erase' then return self:Remove() end
     return self:Place()
 end
 function M:Undo()
-    require('construction.BuildStretch').Cancel(self)
+    BuildStretch.Cancel(self)
     local ops=self.history.undoStack[#self.history.undoStack] or {}
     for _,op in ipairs(ops) do if op.op=='add' then self.selection[op.data.id]=nil end end
     return self.history:Undo()
 end
 function M:Redo()
-    require('construction.BuildStretch').Cancel(self)
+    BuildStretch.Cancel(self)
     local ops=self.history.redoStack[#self.history.redoStack] or {}
     for _,op in ipairs(ops) do if op.op=='remove' then self.selection[op.data.id]=nil end end
     return self.history:Redo()

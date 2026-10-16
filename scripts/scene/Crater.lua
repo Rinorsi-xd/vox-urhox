@@ -1,12 +1,16 @@
 -- Behavior for assets/Scenes/Crater.xml: no second scene or procedural rebuild.
+local ResourceData=require("core.ResourceData")
+local CraterEffects=require("render.CraterEffects")
+local CraterLayout=require("drive.CraterLayout")
+
 local Coord=require 'core.Coord'
 local M={};M.__index=M
 local spin={genRing=.45,genHalo=-.3,anchorRing=.7,radar=.5,holo=.6,pointRing=.12,dropRing=-.25}
 function M.New(scene,layout)
     scene:SetVar('VoxColorGrade',Variant('crater'))
     local self=setmetatable({scene=scene,dynamics={},glows={},time=0},M)
-    local materials=require('core.ResourceData').Read('Crater/Materials.json')
-    for _,d in ipairs(require('core.ResourceData').Read('Crater/Dynamics.json')) do
+    local materials=ResourceData.Read('Crater/Materials.json')
+    for _,d in ipairs(ResourceData.Read('Crater/Dynamics.json')) do
         local n=scene:GetNode(d.id);assert(n,'Missing authored dynamic node '..d.name)
         local p=n.position;local seed=(math.abs(math.sin(-p.x*12.9898+p.z*78.233))*43758.5453)%1
         self.dynamics[#self.dynamics+1]={node=n,kind=d.kind,home=p,rotation=n.rotation,scale=n.scale,seed=seed,dir=(string.byte(d.name,-1)%2==1) and 1 or -1}
@@ -34,7 +38,7 @@ function M.New(scene,layout)
     -- Current shipping Runtime predates SkyLightCapture. Bake the same source
     -- sky formula into HDR once and use its supported asynchronous SH/IBL path.
     zone.sourceTexture=assert(cache:GetResource('Texture2D','Crater/Sky.hdr'));zone.ambientIntensity=.75
-    self.effects=require('render.CraterEffects').New(scene,layout or require('drive.CraterLayout').Read())
+    self.effects=CraterEffects.New(scene,layout or CraterLayout.Read())
     print('[Crater] Bound source map, '..#self.dynamics..' moving parts')
     return self
 end

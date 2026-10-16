@@ -1,5 +1,8 @@
 -- Source CSS modal ownership and input. SourceModalVisual handles layout and
 -- nested opacity groups; steady-state drawing stays in the UI-owned NVG frame.
+local SourceModalVisual=require("ui.SourceModalVisual")
+local SourceRelief=require("ui.SourceRelief")
+
 local Base=require 'ui.OwnedModal'
 local UI=require 'urhox-libs/UI'
 local D=require 'ui.SourceDraw'
@@ -10,7 +13,7 @@ function Modal:Open()
     if not self.isOpen_ then
         self.sourceEntryTime=0;self.sourceOverlayTime=self.sourceOverlayTime or 0
     end
-    if not self.visual then self.visual=require('ui.SourceModalVisual').New(self) end
+    if not self.visual then self.visual=SourceModalVisual.New(self) end
     return Base.Open(self)
 end
 function Modal:Update(dt)
@@ -98,7 +101,7 @@ function Modal.DrawHeading(vg,x,y,w,title,subtitle,compact)
     local h,padx,pady,size=compact and 54 or 74,compact and 18 or 28,compact and 12 or 20,compact and 24 or 30
     local shape={x,y,x+w-20,y,x+w,y+20,x+w,y+h,x,y+h}
     D.Path(vg,shape);nvgFillColor(vg,nvgRGBA(29,56,82,255));nvgFill(vg)
-    require('ui.SourceRelief').Halftone(vg,x,y,w,h,false,h*2,shape)
+    SourceRelief.Halftone(vg,x,y,w,h,false,h*2,shape)
     D.Rect(vg,x,y,4,h,{155,215,250,255});D.Rect(vg,x,y+h-1,w,1,{255,255,255,20})
     D.Text(vg,title,x+padx,y+pady,size,nil,'vox-title',nil,1)
     if subtitle then D.Text(vg,subtitle,x+padx+12+D.Width(vg,title,size,'vox-title',1),y+pady+(compact and 9 or 13),13,{174,196,218,255},'vox-body') end
