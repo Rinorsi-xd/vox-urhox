@@ -53,7 +53,7 @@ function Page:Render(vg)
         yy=yy+self.paragraph:Draw(vg,text,tx+36,yy,434,{223,226,230,255}).height+14
     end
     if test then D.Text(vg,'出战档位',tx,yy+14,13,D.muted,'vox-body') end
-    if not test and h>=800 then TacticalMap.Draw(vg,x+w-262,y+h-360,210,s.modeChoice) end
+    if not test and h>=860 then TacticalMap.Draw(vg,x+w-262,y+h-360,210,s.modeChoice) end
     Fade(vg,x,y,w,60,{8,9,12,235},{8,9,12,184})
     D.Rect(vg,x,y+59,w,1,{255,255,255,20})
 end

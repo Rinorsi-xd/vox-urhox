@@ -360,8 +360,9 @@ function M.Create(s)
     end
     if s.storyHolo.level~=s.storyLevel then s.storyHolo:Select(s.storyLevel) end
     local compact=TouchMode.Enabled()
-    -- 手机紧凑界面整页已按 972 高画布缩小（TouchMode 'home-page'），这里不再二次缩放
-    local pageScale=compact and not TouchMode.Compact() and 1080*.58/600 or 1
+    -- 源 uiScale.js COMPACT_SURFACE.storyPage=.58：手机 600 高画布上剧情页按 600/.58≈1034 高排版再缩到 .58
+    -- （原移植写成 1080*.58/600≈1.04，反而放大，剧情页在手机上挤成一团）
+    local pageScale=TouchMode.Compact() and .58 or 1
     local w,h=s.width/pageScale,s.height/pageScale;s.storyPageHeight=h
     local page=Page{position='absolute',width=w,height=h,scale=pageScale,transformOrigin='top-left',pointerEvents='box-none'};page.owner=s
     page.storyLogicalWidth=w;page.storyLogicalHeight=h

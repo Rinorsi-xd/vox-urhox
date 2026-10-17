@@ -35,6 +35,20 @@ local Config=require 'Config'
 local M={}
 ---@type table|false
 local state=false
+-- 模式选择页一打开就要画的 7 张大图（900×1350 / 1920×1080 JPG）。第一次进页面时在主线程同步解码，
+-- 实测首帧 96+77 ms；在机库里提前按 Texture2D 后台预读后降到 28+18 ms（NanoVG 建图复用缓存纹理）。
+-- 每 0.25 秒排一张：Web 没有后台线程时退化为同步加载，分散开不会集中卡一下
+local battleArt={}
+for _,name in ipairs({'elimination-selected','conquest-idle','escort-idle','crater-story','test-idle','crater-idle','crater-map'}) do
+    battleArt[#battleArt+1]='UI/Modes/Filtered/'..name..'.jpg'
+end
+local prewarm={index=0,wait=1.5}
+local function Prewarm(s,dt)
+    if prewarm.index>=#battleArt or s.tab~='hangar' then return end
+    prewarm.wait=prewarm.wait-dt;if prewarm.wait>0 then return end
+    prewarm.index=prewarm.index+1;prewarm.wait=.25
+    cache:BackgroundLoadResource('Texture2D',battleArt[prewarm.index])
+end
 local function Clear(container)
     local old={table.unpack(container.children)};container:ClearChildren();for _,c in ipairs(old) do c:Destroy() end
 end
@@ -60,7 +74,7 @@ function M.SetMode(text) if state then state.message:SetText(text or '') end end
 function M.GetState() return state end
 function M.Refresh() if state then state.revision=-1 end end
 local function Build(app)
-    TouchMode.Apply((app.homeTab or 'hangar')=='hangar' and 'home' or 'home-page');local w,h=UI.GetViewportSize()
+    TouchMode.Apply('home');local w,h=UI.GetViewportSize()
     local s={app=app,revision=-1,tab=app.homeTab or 'hangar',buttons={},cards={},width=w,height=h,pointers={},
         touch=require('controls.TouchMode').Enabled(),compact=require('controls.TouchMode').Compact()}
     if app.homeWorkshopState then
@@ -229,8 +243,8 @@ local function Rebuild(s)
     Layout.Apply(s,s.width,s.height,s.safe);s.revision=app.bays.revision;s.tier=app.tier
 end
 function M.Update(dt)
-    if not state then return end;TouchMode.Update(state.tab=='hangar' and 'home' or 'home-page');local s=state;local w,h=UI.GetViewportSize();local safe=UI.GetSafeAreaInsets()
-    DialogHost.Update(s,dt)
+    if not state then return end;TouchMode.Update('home');local s=state;local w,h=UI.GetViewportSize();local safe=UI.GetSafeAreaInsets()
+    DialogHost.Update(s,dt);Prewarm(s,dt)
     if w~=s.width or h~=s.height then s.CancelInput();Layout.Apply(s,w,h,safe);s.app:HomeView(s.tab);s.revision=-1 end
     if s.revision~=s.app.bays.revision or s.tier~=s.app.tier then Rebuild(s) end
     s.previews:Update(dt)

@@ -65,8 +65,9 @@ function M.Apply(s,w,h,safe)
     Place(s.leftArrow,36,stripY,30,100);Place(s.bayScroll,74,stripY,stripWidth,100)
     Place(s.rightArrow,82+stripWidth,stripY,30,100);Place(s.buttons.new,120+stripWidth,stripY,102,100)
     s.bayStrip:SetStyle({height=100,width=math.max(190,#(s.cards or {})*193-3),paddingTop=5,paddingLeft=3,gap=9})
-    Place(s.page,0,s.navHeight,w,h-s.navHeight-bottom)
-    if s.tab=='salvage' or s.tab=='story' or s.tab=='workshop' or s.tab=='battle' or s.tab=='shop' or s.tab=='livery' then Place(s.page,0,0,w,h-bottom) end
+    local pk=s.page.pageScale or 1 -- HomePages 缩放过的页面按放大后的逻辑尺寸占位
+    Place(s.page,0,s.navHeight,w/pk,(h-s.navHeight-bottom)/pk)
+    if s.tab=='salvage' or s.tab=='story' or s.tab=='workshop' or s.tab=='battle' or s.tab=='shop' or s.tab=='livery' then Place(s.page,0,0,w/pk,(h-bottom)/pk) end
     if s.menu then Place(s.menu,math.max(left,math.min(w-right-264,222+stripWidth-264)),stripY-12-HomeNewMenu.height,264,HomeNewMenu.height) end
     M.Visibility(s)
 end
