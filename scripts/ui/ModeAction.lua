@@ -24,8 +24,11 @@ function Button:Render(vg)
         D.Text(vg,'换车 ›',x+w-44,y+36,13,{219,238,255,255},nil,NVG_ALIGN_RIGHT,2)
     else
         D.Text(vg,p.text,x+40,y+14.5,40,{243,249,255,255},nil,nil,4,false,40);D.Text(vg,p.subtitle,x+40,y+58.5,12,{228,244,255,255},'vox-body',nil,2)
-        local kw=D.Width(vg,'Enter',13)+16;D.Rect(vg,x+w-34-kw,y+31,kw,26,{19,36,58,255})
-        D.Text(vg,'Enter',x+w-26-kw,y+36,13,{219,238,255,255})
+        -- 触屏不显示键位
+        if not require('controls.TouchMode').Enabled() then
+            local kw=D.Width(vg,'Enter',13)+16;D.Rect(vg,x+w-34-kw,y+31,kw,26,{19,36,58,255})
+            D.Text(vg,'Enter',x+w-26-kw,y+36,13,{219,238,255,255})
+        end
     end
 end
 return Button

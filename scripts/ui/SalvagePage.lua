@@ -94,6 +94,7 @@ function M.Create(s)
     local function Add(text,kind,x,y,bw,bh,fn,extra,parent)
         local p={text=text,kind=kind,position='absolute',left=x,top=y,width=bw,height=bh,onClick=fn}
         for k,v in pairs(extra or {}) do p[k]=v end
+        if s.touch then p.key=nil end -- 触屏不显示键位
         local b=s.Track(Button(p));b.paragraph=Paragraph.New(14,21);(parent or page):AddChild(b);return b
     end
     local function Box(kind,x,y,bw,bh,props)

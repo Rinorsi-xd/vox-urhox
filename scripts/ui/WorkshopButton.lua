@@ -84,11 +84,13 @@ function Button:Render(vg)
             D.Text(vg,p.text,x+88,y+11,26,c,nil,nil,4)
             if shop then ShopPaint.Subtitle(vg,shop,x+88,y+44)
             else D.Text(vg,'现有的车不受影响',x+88,y+44,12,{237,246,255,179},'vox-body') end
+            if not require('controls.TouchMode').Enabled() then
             local kw=D.Width(vg,'Enter',11)+18;local kx=x+w-20-kw;local ky=y+(h-22)/2
             D.Rect(vg,kx,ky,kw,22,{8,15,28,89})
             D.Line(vg,kx,ky,kx+kw,ky,{255,255,255,89});D.Line(vg,kx,ky+22,kx+kw,ky+22,{255,255,255,89})
             D.Line(vg,kx,ky,kx,ky+22,{255,255,255,89});D.Line(vg,kx+kw,ky,kx+kw,ky+22,{255,255,255,89})
             D.Text(vg,'Enter',kx+9,ky+4,11,{255,255,255,255})
+            end
         elseif kind=='add' and shop then
             local labelWidth=D.Width(vg,p.text,16,nil,2)
             D.Icon(vg,'plus',x+22,y+23,18,c);D.Text(vg,p.text,x+50,y+22.4,16,c,nil,nil,2)

@@ -27,7 +27,7 @@ function M:Render(vg)
         D.Rect(vg,x,y+14,3,h-28,D.orange);D.Icon(vg,'cube',x+19,y+24,25,D.white)
         D.Text(vg,'仓',x+w/2,y+74,26,nil,nil,NVG_ALIGN_CENTER);D.Text(vg,'库',x+w/2,y+111,26,nil,nil,NVG_ALIGN_CENTER)
         D.Text(vg,p.subtitle,x+w/2,y+169,16,D.orange,'vox-tabular',NVG_ALIGN_CENTER);D.Icon(vg,'back',x+23,y+206,16,D.muted)
-        D.Rect(vg,x+15,y+h-47,32,22,{19,36,58,255});D.Text(vg,'Tab',x+w/2,y+h-44,12,D.muted,'vox-code',NVG_ALIGN_CENTER)
+        if not require('controls.TouchMode').Enabled() then D.Rect(vg,x+15,y+h-47,32,22,{19,36,58,255});D.Text(vg,'Tab',x+w/2,y+h-44,12,D.muted,'vox-code',NVG_ALIGN_CENTER) end
     elseif kind=='mode' then
         D.Rect(vg,x,y,w,h,{16,34,55,255});if p.selected then Relief.Draw(vg,x,y,w,h,false,true,{x,y,x+w,y,x+w,y+h,x,y+h}) end
         D.Rect(vg,x+7,y+7,36,36,p.selected and {185,231,255,255} or {20,43,67,255});D.Icon(vg,p.icon,x+15,y+15,20,p.selected and D.ink or D.muted)

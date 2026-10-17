@@ -17,8 +17,8 @@ function M.Apply(s,w,h,safe)
     -- 源 mobile.css：顶栏「？」是键位说明（H），触屏不显示
     s.buttons.help:SetVisible(not s.touch)
     local stripY=h-bottom-115
-    -- 手机紧凑界面：车是主角。改装/出战/试车整组缩到 .72 并贴到车位条上方，模式切换挪到车位条右侧，
-    -- 不再压在战车上（按钮按 sourceScale 等比绘制，点击区域跟着布局一起缩）
+    -- 手机紧凑界面：车是主角。改装/出战/试车整组缩到 .72 并贴到车位条上方；模式切换放右栏（配件清单下、
+    -- 出战右上方），都不压战车（按钮按 sourceScale 等比绘制，点击区域跟着布局一起缩）
     local k=s.compact and .72 or 1
     local ctaWidth=672*k
     local ctaHeight=74*k
@@ -27,15 +27,26 @@ function M.Apply(s,w,h,safe)
     if s.tab=='shop' then Place(s.cta,(w-ctaWidth)/2,h-bottom-98,ctaWidth,ctaHeight) end
     local modeWidth=434*k
     if s.modeStrip then
-        if s.compact then Place(s.modeStrip,w-right-modeWidth,stripY+(100-51*k)/2,modeWidth,51*k)
+        if s.compact then Place(s.modeStrip,w-right-modeWidth,ctaY-51*k-10,modeWidth,51*k)
         else Place(s.modeStrip,(w-modeWidth)/2,h-bottom-279,modeWidth,51) end
         Place(s.buttons.arena,0,0,215*k,51*k);Place(s.buttons.salvage,219*k,0,215*k,51*k)
     end
     Place(s.buttons.edit,0,0,174*k,74*k);Place(s.buttons.battle,160*k,0,352*k,74*k);Place(s.buttons.trial,498*k,0,174*k,74*k)
     for _,id in ipairs({'edit','battle','trial','arena','salvage'}) do if s.buttons[id] then s.buttons[id].props.sourceScale=k end end
     local infoHeight=math.min(s.detailsOpen and 585 or 332.96875,math.max(48,h-top-bottom-290))
-    Place(s.info,left,top+88,s.infoWidth,infoHeight)
-    Place(s.loadout,w-right-254,top+88,254,math.min(infoHeight,s.loadoutHeight or 168))
+    -- 紧凑界面左栏下面是音乐盒，信息栏收在它上方，不让「车辆详情」被压掉半截
+    if s.compact and s.tab=='hangar' then infoHeight=math.max(48,math.min(infoHeight,ctaY+ctaHeight-66-4-(top+88))) end
+    -- 紧凑机库：左侧整备信息和右侧配件清单缩到 .8（绘制与点击一起缩），让车成为画面主体；
+    -- 配件清单放到右侧中段、模式切换上方，和车并排
+    local side=s.compact and s.tab=='hangar' and .8 or 1
+    if side<1 then infoHeight=infoHeight/side end
+    Place(s.info,left,top+(side<1 and 78 or 88),s.infoWidth,infoHeight)
+    s.info:SetStyle({scale=side,transformOrigin='top-left'})
+    local loadoutHeight=math.min(infoHeight,s.loadoutHeight or 168)
+    local loadoutTop=top+88
+    if side<1 then loadoutTop=math.max(top+78,(s.navHeight+ctaY-51*k-10)/2-loadoutHeight*side/2-10) end
+    Place(s.loadout,w-right-254,loadoutTop,254,loadoutHeight)
+    s.loadout:SetStyle({scale=side,transformOrigin='top-right'})
     Place(s.actions,w-321,h-bottom-183,283,58)
     if s.musicConsole then
         local cw=graphics:GetWidth()/graphics:GetDPR();local k=w/cw
@@ -47,7 +58,7 @@ function M.Apply(s,w,h,safe)
         else Place(s.musicConsole,28,h-262,336,98) end
     end
     if s.buttons.manage then Place(s.buttons.manage,w-158,h-bottom-150,122,32) end
-    local stripWidth=math.min(math.max(190,#(s.cards or {})*(s.cardWidth+9)-3),w-36*2-30*2-102-24-(s.compact and modeWidth+right+16 or 0))
+    local stripWidth=math.min(math.max(190,#(s.cards or {})*(s.cardWidth+9)-3),w-36*2-30*2-102-24)
     Place(s.leftArrow,36,stripY,30,100);Place(s.bayScroll,74,stripY,stripWidth,100)
     Place(s.rightArrow,82+stripWidth,stripY,30,100);Place(s.buttons.new,120+stripWidth,stripY,102,100)
     s.bayStrip:SetStyle({height=100,width=math.max(190,#(s.cards or {})*193-3),paddingTop=5,paddingLeft=3,gap=9})

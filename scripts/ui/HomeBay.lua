@@ -5,7 +5,8 @@ function Overlay:Render(vg)
     D.Begin(vg);local r=self:GetAbsoluteLayout();local x,y,w,h=r.x,r.y,r.w,r.h;local a=self.data
     if a.draft then
         D.Panel(vg,x,y,w,h,12,{32,58,84,255},{18,38,56,255})
-        D.Text(vg,'草稿',x+w/2,y+38,17,D.dim,nil,NVG_ALIGN_CENTER)
+        -- 手机紧凑车位卡只有 74 高，水印会压在车名上，不画
+        if h>=80 then D.Text(vg,'草稿',x+w/2,y+38,17,D.dim,nil,NVG_ALIGN_CENTER) end
     end
     nvgBeginPath(vg);nvgRect(vg,x,y,w,h*.34);D.Gradient(vg,x,y,w,h*.34,{0,0,0,140},{0,0,0,0})
     nvgBeginPath(vg);nvgRect(vg,x,y+h*.42,w,h*.58);D.Gradient(vg,x,y+h*.42,w,h*.58,{10,11,13,0},{10,11,13,242})

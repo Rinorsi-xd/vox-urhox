@@ -78,7 +78,7 @@ function Button:Render(vg)
         end
         D.Text(vg,ready and '开始任务' or '制作中',x+30,y+9.5,32,ready and {3,20,31,255} or {109,135,153,255},nil,nil,8)
         D.Text(vg,'第 '..l.no..' 关 · '..(ready and l.name or '即将开放'),x+30,y+48,13,ready and {3,20,31,158} or {86,112,127,255},'vox-body')
-        D.Rect(vg,x+w-68,y+26,40,22,{3,20,31,31});D.Text(vg,'Enter',x+w-48,y+29,13,{3,20,31,255},nil,NVG_ALIGN_CENTER)
+        if not require('controls.TouchMode').Enabled() then D.Rect(vg,x+w-68,y+26,40,22,{3,20,31,31});D.Text(vg,'Enter',x+w-48,y+29,13,{3,20,31,255},nil,NVG_ALIGN_CENTER) end
     end
 end
 function Brief:Render(vg)
@@ -204,7 +204,8 @@ function Page:Render(vg)
     for yy=270,704,11 do D.Rect(vg,x+87,y+yy,1,6,{214,240,255,102}) end
     D.Text(vg,'关卡全部开放，可以任意顺序挑战',x+142,y+762,13,dim,'vox-body')
     local hx=x+64
-    for _,hint in ipairs({{'↑↓','选择关卡'},{'Enter','开始任务'},{'Esc','返回'}}) do
+    -- 触屏没有键盘，底部键位提示整行不画
+    for _,hint in ipairs(require('controls.TouchMode').Enabled() and {} or {{'↑↓','选择关卡'},{'Enter','开始任务'},{'Esc','返回'}}) do
         local kw=math.max(22,D.Width(vg,hint[1],13)+12)
         D.Rect(vg,hx,y+h-52,kw,22,{3,10,18,153});D.Text(vg,hint[1],hx+kw/2,y+h-48,13,ice,nil,NVG_ALIGN_CENTER)
         D.Text(vg,hint[2],hx+kw+6,y+h-51,15,muted,'vox-body');hx=hx+kw+6+D.Width(vg,hint[2],15,'vox-body')+24
@@ -262,7 +263,8 @@ function M.Create(s)
     end
     if s.storyHolo.level~=s.storyLevel then s.storyHolo:Select(s.storyLevel) end
     local compact=TouchMode.Enabled()
-    local pageScale=compact and 1080*.58/600 or 1
+    -- 手机紧凑界面整页已按 972 高画布缩小（TouchMode 'home-page'），这里不再二次缩放
+    local pageScale=compact and not TouchMode.Compact() and 1080*.58/600 or 1
     local w,h=s.width/pageScale,s.height/pageScale;s.storyPageHeight=h
     local page=Page{position='absolute',width=w,height=h,scale=pageScale,transformOrigin='top-left',pointerEvents='box-none'};page.owner=s
     page.storyLogicalWidth=w;page.storyLogicalHeight=h

@@ -59,7 +59,8 @@ function Page:Render(vg)
         D.Rect(vg,x+860,y+h-170,3,60,D.orange);self.paragraph:Draw(vg,'“零件、修车材料、带进图的道具都在这儿。账上有钱就行。”',x+879,y+h-167,420,D.white)
     end
     local hints=({loadout={{'Enter','出发'},{'Tab','仓库'},{'E','改装'},{'1–5','切换页面'},{'Esc','返回竞技'}},ops={{'Enter','去整备'},{'1–5','切换页面'},{'Esc','回整备'}},market={{'Enter','成交'},{'右键','选中并 +1'},{'滚轮','调整数量'},{'Esc','回整备'}},garage={{'E','改装'},{'1–5','切换页面'},{'Esc','回整备'}},workshop={{'Enter','看详情 / 购买'},{'← →','换一辆'},{'Esc','返回'}}})[sv.tab]
-    local hx=x+56;for _,hint in ipairs(hints) do
+    if require('controls.TouchMode').Enabled() then hints={} end
+    local hx=x+56;for _,hint in ipairs(hints or {}) do
         local kw=D.Width(vg,hint[1],14,'vox-code')+14;D.Rect(vg,hx,y+h-48,kw,22,{19,36,58,255});D.Text(vg,hint[1],hx+7,y+h-46,14,D.muted,'vox-code')
         D.Text(vg,hint[2],hx+kw+8,y+h-44,15,D.muted,'vox-body');hx=hx+kw+8+D.Width(vg,hint[2],15,'vox-body')+26
     end

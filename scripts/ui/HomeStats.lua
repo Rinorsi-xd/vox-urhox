@@ -88,7 +88,7 @@ function M.Fill(root,app,s)
     widget.data=data;widget.expanded=expanded;widget.paragraph=SourceParagraph.New(13,19);root:AddChild(widget)
     if s then
         root:AddChild(s.Track(SourceButton{text='车辆详情',subtitle=st.parts..' 个零件 · '..st.weapons..' / '..tier.weapons..' 武器',icon=expanded and 'minus' or 'plus',sourceKind='details',
-            position='absolute',left=0,top=271.97,width=s.infoWidth-8,height=51,onClick=function() s.detailsOpen=not s.detailsOpen;s.revision=-1 end}))
+            position='absolute',left=0,top=s.compact and 260 or 271.97,width=s.infoWidth-8,height=51,onClick=function() s.detailsOpen=not s.detailsOpen;s.revision=-1 end}))
         local loadoutHeight=0
         for _,group in ipairs(data.groups) do loadoutHeight=loadoutHeight+27+math.max(1,math.ceil(#group.items/5))*50+10 end
         s.loadoutHeight=loadoutHeight-6

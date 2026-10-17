@@ -19,10 +19,16 @@ function Panel:Render(vg)
     if not d then
         D.Rect(vg,x+16,y+47,268,133.96875,{11,26,44,153});D.Rect(vg,x+16,y+47,268,1,{61,88,114,68})
         Text(vg,'没有选中贴纸',x+28,y+59,15,D.white,'vox-title',18);Text(vg,'点车上的贴纸可以选中它',x+28,y+80,12)
+        if require('controls.TouchMode').Enabled() then
+            Text(vg,'按住贴纸拖动挪位置',x+28,y+106.8,12)
+            Text(vg,'拖四角调大小，拖顶上的圆点转角度',x+28,y+127.6,12)
+            Text(vg,'空白处拖动转视角，双指捏合拉近拉远',x+28,y+150.4,12)
+        else
         local k=Kbd(vg,'左键',x+29,y+105.8);Text(vg,'拖动挪位置',x+29+k+4,y+106.8,12)
         Text(vg,'拖四角调大小，拖顶上的圆点转角度',x+28,y+127.6,12)
         local a=Kbd(vg,'右键',x+29,y+149.4);Text(vg,'拖动转视角，',x+29+a+4,y+150.4,12)
         local b=Kbd(vg,'滚轮',x+29+a+80,y+149.4);Text(vg,'拉近拉远',x+29+a+80+b+4,y+150.4,12)
+        end
     else
         local xx,yy=x+16,y+47
         D.Path(vg,{xx,yy,xx+52,yy,xx+52,yy+52,xx,yy+52});D.Gradient(vg,xx,yy,52,52,{185,193,202,255},{143,154,166,255})
@@ -47,6 +53,8 @@ function Hint:Render(vg)
     elseif session.sel>0 then text='拖动挪位置 · 拖四角调大小 · 拖顶上的圆点旋转 · ';key='Delete';tail=' 撕掉'
     elseif #session:List()>0 then text='点车上的贴纸选中它，或者从左边再挑一张' end
     if not text then return end
+    -- 触屏没有 Esc / Delete：去掉键位，句尾的「· 」也一起收掉
+    if key and require('controls.TouchMode').Enabled() then key=nil;text=text:gsub(' · $','') end
     local r=self:GetAbsoluteLayout();local lead=D.Width(vg,text,13,'vox-body');local span=lead+(key and D.Width(vg,key,10.5,'vox-body')+12+D.Width(vg,tail,13,'vox-body') or 0);local x=r.x+(r.w-span-28)/2
     D.Rect(vg,x,r.y,span+28,32.6875,{8,20,35,153});Text(vg,text,x+14,r.y+7,13,{219,238,255,255},nil,18.6875)
     if key then local kw=Kbd(vg,key,x+15+lead,r.y+8);Text(vg,tail,x+16+lead+kw,r.y+7,13,{219,238,255,255},nil,18.6875) end

@@ -60,7 +60,7 @@ function M.SetMode(text) if state then state.message:SetText(text or '') end end
 function M.GetState() return state end
 function M.Refresh() if state then state.revision=-1 end end
 local function Build(app)
-    TouchMode.Apply('home');local w,h=UI.GetViewportSize()
+    TouchMode.Apply((app.homeTab or 'hangar')=='hangar' and 'home' or 'home-page');local w,h=UI.GetViewportSize()
     local s={app=app,revision=-1,tab=app.homeTab or 'hangar',buttons={},cards={},width=w,height=h,pointers={},
         touch=require('controls.TouchMode').Enabled(),compact=require('controls.TouchMode').Compact()}
     if app.homeWorkshopState then
@@ -216,7 +216,8 @@ local function Rebuild(s)
             local budget=0;local defs=Defs.PARTS;for _,p in ipairs(data.parts) do budget=budget+(defs[p[1]] and defs[p[1]].budget or 0) end
             overlay.data={draft=draft,slot=slot,active=active,name=data.name,budget=budget,parts=#data.parts};overlay.card=card;card:AddChild(overlay)
             if draft then
-                local save=s.Track(Button{text='保存到车位',icon='save',sourceKind='save',position='absolute',right=18,top=8,width=110.5,height=28,onClick=function() Dialogs.Save(s) end})
+                local save=s.Track(Button{text='保存到车位',icon='save',sourceKind='save',position='absolute',right=s.compact and 6 or 18,top=s.compact and 5 or 8,
+                    width=s.compact and 88.4 or 110.5,height=s.compact and 22.4 or 28,sourceScale=s.compact and .8 or nil,onClick=function() Dialogs.Save(s) end})
                 card:AddChild(save);s.buttons.save=save
             end
             s.bayStrip:AddChild(card);s.cards[#s.cards+1]=card
@@ -228,7 +229,7 @@ local function Rebuild(s)
     Layout.Apply(s,s.width,s.height,s.safe);s.revision=app.bays.revision;s.tier=app.tier
 end
 function M.Update(dt)
-    if not state then return end;TouchMode.Update('home');local s=state;local w,h=UI.GetViewportSize();local safe=UI.GetSafeAreaInsets()
+    if not state then return end;TouchMode.Update(state.tab=='hangar' and 'home' or 'home-page');local s=state;local w,h=UI.GetViewportSize();local safe=UI.GetSafeAreaInsets()
     DialogHost.Update(s,dt)
     if w~=s.width or h~=s.height then s.CancelInput();Layout.Apply(s,w,h,safe);s.app:HomeView(s.tab);s.revision=-1 end
     if s.revision~=s.app.bays.revision or s.tier~=s.app.tier then Rebuild(s) end

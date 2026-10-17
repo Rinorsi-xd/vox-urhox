@@ -44,9 +44,9 @@ function Button:Render(vg)
         if kind=='bar' then self:RenderBackgroundImage(vg,'Livery/bar-'..p.action..'.png',r,'cover',nil)
         else Relief.Draw(vg,x,y,w,h,selected,true,points,true) end
         if hover and not p.disabled then D.Path(vg,points);nvgFillColor(vg,nvgRGBA(255,255,255,35));nvgFill(vg) end
-        local fs=kind=='bar' and 17 or 12;local size=kind=='bar' and 20 or 15;local span=D.Width(vg,p.text,fs,kind=='bar' and 'vox-title' or 'vox-body')+size+(kind=='bar' and 8 or 5)+(p.action=='done' and 43 or 0)
+        local fs=kind=='bar' and 17 or 12;local size=kind=='bar' and 20 or 15;local span=D.Width(vg,p.text,fs,kind=='bar' and 'vox-title' or 'vox-body')+size+(kind=='bar' and 8 or 5)+(p.action=='done' and not require('controls.TouchMode').Enabled() and 43 or 0)
         local xx=x+(w-span)/2;D.Icon(vg,p.icon,xx,y+(h-size)/2,size,{207,226,243,255});D.Text(vg,p.text,xx+size+(kind=='bar' and 8 or 5),y+(h-fs)/2,fs,D.white,kind=='bar' and 'vox-title' or 'vox-body')
-        if p.action=='done' then local kx=xx+span-31;D.Rect(vg,kx,y+13.5,29,19,{35,63,93,255});D.Text(vg,'Esc',kx+5,y+15.5,10,{219,238,255,204},'vox-body') end
+        if p.action=='done' and not require('controls.TouchMode').Enabled() then local kx=xx+span-31;D.Rect(vg,kx,y+13.5,29,19,{35,63,93,255});D.Text(vg,'Esc',kx+5,y+15.5,10,{219,238,255,204},'vox-body') end
     end;nvgRestore(vg)
 end
 local Slider=require('urhox-libs/UI/Widgets/Slider'):Extend('VoxLiverySlider')
