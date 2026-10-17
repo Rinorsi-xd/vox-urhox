@@ -18,20 +18,10 @@ local performance=nil ---@type table|nil
 local performancePanel=nil ---@type table|nil
 local showPerformance=true
 
--- Web 音频由主线程上的 ScriptProcessor 回调混音，引擎默认每块 4096 采样（48 kHz 约 85 ms）。
--- 主线程卡顿超过一块的时长，浏览器会反复播放上一块，BGM 听起来「当当当」地卡住。
--- 启动时把缓冲加到约 170 ms（8192 采样），可容忍的卡顿翻倍；代价是音效多约 85 ms 延迟。
-local function WebAudioBuffer()
-    if not PlatformUtils.IsWebPlatform() or not audio or not audio:IsInitialized() then return end
-    for _,arg in ipairs(GetArguments()) do if arg=='-vox-audio-buffer=0' then return end end
-    local rate,stereo,interp=audio:GetMixRate(),audio:IsStereo(),audio:GetInterpolation()
-    local ok=audio:SetMode(170,rate,stereo,interp)
-    print(string.format('[Audio] Web buffer 170 ms @%d Hz: %s',rate,tostring(ok)))
-    if not ok or not audio:IsInitialized() then audio:SetMode(85,rate,stereo,interp) end
-end
+-- Web Audio 的 ScriptProcessor 输出回调固定使用 4096 个采样。
+-- 不在 Lua 侧调用 Audio:SetMode 改写缓冲长度，避免引擎期望值与回调目标尺寸不一致。
 function Start()
     running=true
-    WebAudioBuffer()
     -- 发布版默认关闭逐帧性能监控与 PERF 面板（订阅全部日志并逐帧记录，本身有 CPU/GC 开销）；
     -- 诊断时用 -vox-perf=1 打开
     local enabled=false

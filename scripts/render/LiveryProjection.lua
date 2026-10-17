@@ -39,7 +39,114 @@ local function Clip(pts,axis,sign,lim)
         if (dp>=0)~=(dq>=0) then local k=dp/(dp-dq);local v={};for j=1,8 do v[j]=p[j]+(q[j]-p[j])*k end;out[#out+1]=v end
     end;return out
 end
-function M.Project(d,s,parts)
+-- Group a mesh's triangles by geometric facing. Each cluster keeps a bounding
+-- sphere and a normal cone, so whole faces of a part can be rejected at once.
+local function Clusters(tris)
+    local byKey,list={},{}
+    for _,tri in ipairs(tris) do
+        local a,b,c=tri[1],tri[2],tri[3]
+        local ux,uy,uz=b[1]-a[1],b[2]-a[2],b[3]-a[3];local vx,vy,vz=c[1]-a[1],c[2]-a[2],c[3]-a[3]
+        local nx,ny,nz=uy*vz-uz*vy,uz*vx-ux*vz,ux*vy-uy*vx;local len=math.sqrt(nx*nx+ny*ny+nz*nz)
+        local key
+        if len<1e-9 then key='degenerate';nx,ny,nz=0,0,0
+        else nx,ny,nz=nx/len,ny/len,nz/len;key=math.floor(nx*2+.5)..','..math.floor(ny*2+.5)..','..math.floor(nz*2+.5) end
+        local cl=byKey[key]
+        if not cl then
+            cl={id=#list+1,sx=0,sy=0,sz=0,normals={},lo={math.huge,math.huge,math.huge},hi={-math.huge,-math.huge,-math.huge},degenerate=key=='degenerate'}
+            byKey[key]=cl;list[#list+1]=cl
+        end
+        tri.k=cl.id;cl.sx,cl.sy,cl.sz=cl.sx+nx,cl.sy+ny,cl.sz+nz;cl.normals[#cl.normals+1]={nx,ny,nz}
+        for _,v in ipairs(tri) do for k=1,3 do cl.lo[k]=math.min(cl.lo[k],v[k]);cl.hi[k]=math.max(cl.hi[k],v[k]) end end
+    end
+    for _,cl in ipairs(list) do
+        local c={(cl.lo[1]+cl.hi[1])/2,(cl.lo[2]+cl.hi[2])/2,(cl.lo[3]+cl.hi[3])/2}
+        cl.c=c;cl.r=math.sqrt((cl.hi[1]-c[1])^2+(cl.hi[2]-c[2])^2+(cl.hi[3]-c[3])^2)
+        local len=math.sqrt(cl.sx^2+cl.sy^2+cl.sz^2);local minCos=-1
+        if not cl.degenerate and len>1e-9 then
+            cl.axis={cl.sx/len,cl.sy/len,cl.sz/len};minCos=1
+            for _,n in ipairs(cl.normals) do minCos=math.min(minCos,n[1]*cl.axis[1]+n[2]*cl.axis[2]+n[3]*cl.axis[3]) end
+        end
+        cl.cone=math.acos(math.max(-1,math.min(1,minCos)));cl.normals=nil;cl.lo=nil;cl.hi=nil
+    end
+    return list
+end
+-- True only when every triangle of the cluster faces the decal at nz < -.3
+-- (the per-triangle facing rejection), with a margin for rounding.
+local function FacesAway(cl,fn)
+    if not cl.axis or cl.cone>=math.pi then return false end
+    local a=cl.axis;local d=a[1]*fn[1]+a[2]*fn[2]+a[3]*fn[3]
+    local phi=math.acos(math.max(-1,math.min(1,d)))
+    return math.cos(math.max(0,phi-cl.cone-1e-3))< -.3-1e-3
+end
+-- Part meshes rotated once per (model data, rotation). Weak keys follow the
+-- bounded LiveryModel cache. Each layer records a local bounding sphere.
+local rotatedCache=setmetatable({},{__mode='k'})
+local function Rotated(data,rot)
+    local byRot=rotatedCache[data];if not byRot then byRot={};rotatedCache[data]=byRot end
+    local out=byRot[rot];if out then return out end
+    out={};local lo,hi={math.huge,math.huge,math.huge},{-math.huge,-math.huge,-math.huge}
+    for i,mesh in ipairs(data) do
+        local tris={}
+        for t,tri in ipairs(mesh.triangles) do
+            local rotated={}
+            for j,v in ipairs(tri) do
+                local point=Rot.ApplyRot(rot,{v[1],v[2],v[3]});local normal=Rot.ApplyRot(rot,{v[4],v[5],v[6]})
+                rotated[j]={point[1],point[2],point[3],normal[1],normal[2],normal[3]}
+                for k=1,3 do lo[k]=math.min(lo[k],point[k]);hi[k]=math.max(hi[k],point[k]) end
+            end
+            tris[t]=rotated
+        end
+        out[i]={slot=mesh.slot,triangles=tris,worldAxes=true,clusters=Clusters(tris)}
+    end
+    if lo[1]<=hi[1] then
+        local c={(lo[1]+hi[1])/2,(lo[2]+hi[2])/2,(lo[3]+hi[3])/2}
+        local r=math.sqrt((hi[1]-c[1])^2+(hi[2]-c[2])^2+(hi[3]-c[3])^2)
+        out.bound={c=c,r=r}
+    end
+    byRot[rot]=out;return out
+end
+-- Scalar replica of the per-triangle tests below (same operations and order, so
+-- bit-identical). Returns false only when the triangle is certainly dropped:
+-- depth/facing rejection, or all three folded corners outside one clip edge.
+local function Survives(tri,pos,dp,fx,fy,fn,w,h,depth)
+    local a,b,c=tri[1],tri[2],tri[3]
+    local qx,qy,qz=a[1]+pos[1]-dp[1],a[2]+pos[2]+.5-dp[2],a[3]+pos[3]-dp[3]
+    local ax,ay,az=qx*fx[1]+qy*fx[2]+qz*fx[3],qx*fy[1]+qy*fy[2]+qz*fy[3],qx*fn[1]+qy*fn[2]+qz*fn[3]
+    qx,qy,qz=b[1]+pos[1]-dp[1],b[2]+pos[2]+.5-dp[2],b[3]+pos[3]-dp[3]
+    local bx,by,bz=qx*fx[1]+qy*fx[2]+qz*fx[3],qx*fy[1]+qy*fy[2]+qz*fy[3],qx*fn[1]+qy*fn[2]+qz*fn[3]
+    qx,qy,qz=c[1]+pos[1]-dp[1],c[2]+pos[2]+.5-dp[2],c[3]+pos[3]-dp[3]
+    local cx,cy,cz=qx*fx[1]+qy*fx[2]+qz*fx[3],qx*fy[1]+qy*fy[2]+qz*fy[3],qx*fn[1]+qy*fn[2]+qz*fn[3]
+    local hi=math.max(az,bz,cz);local lo=math.min(az,bz,cz)
+    if not (hi>=-math.max(w,h) and lo<=depth/2) then return false end
+    local ux,uy,uz=bx-ax,by-ay,bz-az;local vx,vy,vz=cx-ax,cy-ay,cz-az
+    local nx,ny,nz=uy*vz-uz*vy,uz*vx-ux*vz,ux*vy-uy*vx
+    local nlen=math.sqrt(nx*nx+ny*ny+nz*nz)
+    if nlen<1e-12 then nx,ny,nz=0,0,0 else nx,ny,nz=nx/nlen,ny/nlen,nz/nlen end
+    local fold=nz<.22;local len=math.sqrt(nx^2+ny^2)
+    if not (nz>=-.3 and (not fold and hi>=-depth/2 or fold and len>=.5 and hi<=.05)) then return false end
+    local tx,ty=fold and nx/len or 0,fold and ny/len or 0
+    local a7,b7,c7=ax-az*tx,bx-bz*tx,cx-cz*tx
+    local hw,hh=w/2,h/2
+    if a7>hw and b7>hw and c7>hw or a7< -hw and b7< -hw and c7< -hw then return false end
+    local a8,b8,c8=ay-az*ty,by-bz*ty,cy-cz*ty
+    if a8>hh and b8>hh and c8>hh or a8< -hh and b8< -hh and c8< -hh then return false end
+    return true
+end
+-- Joined block geometry stays inside its unit cell.
+local JOINED_BOUND={c={0,0,0},r=math.sqrt(.75)}
+-- True only when no point of the sphere can produce a kept, unclipped triangle.
+local function PartOutside(bound,pos,dp,fx,fy,fn,w,h,nearDepth,farDepth)
+    if not bound then return false end
+    local c=bound.c;local r=bound.r*1.001+1e-4
+    local qx,qy,qz=c[1]+pos[1]-dp[1],c[2]+pos[2]+.5-dp[2],c[3]+pos[3]-dp[3]
+    local x=qx*fx[1]+qy*fx[2]+qz*fx[3];local y=qx*fy[1]+qy*fy[2]+qz*fy[3];local z=qx*fn[1]+qy*fn[2]+qz*fn[3]
+    if z+r<nearDepth or z-r>farDepth then return true end
+    -- Folding shifts x/y by at most |depth| (unit tx/ty); bound that by the sphere.
+    local reachZ=math.max(math.abs(z-r),math.abs(z+r))
+    return math.abs(x)-r-reachZ>w/2 or math.abs(y)-r-reachZ>h/2
+end
+-- pause, when given, is called between parts so callers can time-slice.
+function M.Project(d,s,parts,pause)
     local f=M.Frame(d);local w,h,depth=M.Size(d,s);local out={}
     local Surface=JoinedSurface
     local _,_,joined=Surface.Build(parts,true)
@@ -48,7 +155,14 @@ function M.Project(d,s,parts)
     -- opened cracks there that showed the base paint). Opposed normals (touching hidden
     -- faces of adjacent parts) are not averaged together.
     local lift={};local pending={}
+    -- Exact early-outs: a triangle is kept only when its frame depth range meets
+    -- [-max(w,h),depth/2] and its folded x/y can reach the clip box. Whole parts
+    -- whose bounding sphere cannot satisfy that are skipped, and per-triangle
+    -- depth is tested with scalars before any vertex table is built.
+    local nearDepth,farDepth=-math.max(w,h),depth/2
+    local fx,fy,fn=f.x,f.y,f.n;local dp=d.p
     for _,p in ipairs(parts) do
+        if pause then pause() end
         local layers={}
         if joined[p.id] then
             local surface=joined[p.id];local triangles={}
@@ -58,13 +172,23 @@ function M.Project(d,s,parts)
             end
             layers[1]={{slot=Surface.Slot(p),triangles=triangles,worldAxes=true}}
         else
-            for _,layer in ipairs(PartAssets.Get(p.type,p.rot).whole.layers) do layers[#layers+1]=Models.Read(layer) end
+            for _,layer in ipairs(PartAssets.Get(p.type,p.rot).whole.layers) do layers[#layers+1]=Rotated(Models.Read(layer),p.rot) end
         end
-        for _,layer in ipairs(layers) do for _,mesh in ipairs(layer) do if not Models.Skip(mesh.slot) then
+        for _,layer in ipairs(layers) do
+        local bound=layer.bound or JOINED_BOUND
+        if not PartOutside(bound,p.pos,dp,fx,fy,fn,w,h,nearDepth,farDepth) then
+        for _,mesh in ipairs(layer) do if not Models.Skip(mesh.slot) then
+            local culled=nil
+            if mesh.clusters then
+                culled={}
+                for i,cl in ipairs(mesh.clusters) do
+                    culled[i]=FacesAway(cl,fn) or PartOutside(cl,p.pos,dp,fx,fy,fn,w,h,nearDepth,farDepth)
+                end
+            end
             for _,tri in ipairs(mesh.triangles) do
+                if not (culled and culled[tri.k]) and Survives(tri,p.pos,dp,fx,fy,fn,w,h,depth) then
                 local verts={};for _,v in ipairs(tri) do
                     local point,normal={v[1],v[2],v[3]},{v[4],v[5],v[6]}
-                    if not mesh.worldAxes then point=Rot.ApplyRot(p.rot,point);normal=Rot.ApplyRot(p.rot,normal) end
                     local q={point[1]+p.pos[1]-d.p[1],point[2]+p.pos[2]+.5-d.p[2],point[3]+p.pos[3]-d.p[3]}
                     verts[#verts+1]={Dot(q,f.x),Dot(q,f.y),Dot(q,f.n),Dot(normal,f.x),Dot(normal,f.y),Dot(normal,f.n)}
                 end
@@ -92,8 +216,11 @@ function M.Project(d,s,parts)
                         end
                     end
                 end
+                end
             end
-        end end end
+        end end
+        end
+        end
     end
     for _,e in ipairs(pending) do
         if not e.p then
