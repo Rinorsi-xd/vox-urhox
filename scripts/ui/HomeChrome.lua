@@ -23,9 +23,12 @@ function Chrome:Render(vg)
     end
     if s.tab=='hangar' then D.Rect(vg,32,63,w-64,1,{122,216,255,34}) end
     local metaX=w-(s.tab=='hangar' and 364.15625 or 356.15625);local metaY=s.tab=='hangar' and 2 or 0
-    D.Icon(vg,'car',metaX,20+metaY,20,D.orange);D.Text(vg,tostring(s.usedCount or 0),metaX+27,17.5+metaY,21,nil,'vox-tabular');D.Text(vg,'/ 20',metaX+43.234375,21+metaY,15,D.muted,'vox-tabular')
+    D.Icon(vg,'car',metaX,20+metaY,20,D.orange);D.Text(vg,tostring(s.usedCount or 0),metaX+27,17.5+metaY,21,nil,'vox-tabular')
+    -- 两位数车数时斜杠跟着数字宽度后移（原写死一位数的 43.23）
+    D.Text(vg,'/ 20',metaX+27+math.max(16.234375,D.Width(vg,tostring(s.usedCount or 0),21,'vox-tabular')+4),21+metaY,15,D.muted,'vox-tabular')
     if s.tab=='hangar' then
-        D.Icon(vg,'car',36,h-141,18,D.orange);D.Text(vg,'我的战车',61,h-143,17);D.Text(vg,(s.usedCount or 0)..' / 20',143,h-140,14,D.muted)
+        -- 紧凑界面这一行被音乐盒占了位置（顶栏已有 N / 20 计数），不画
+        if not s.compact then D.Icon(vg,'car',36,h-141,18,D.orange);D.Text(vg,'我的战车',61,h-143,17);D.Text(vg,(s.usedCount or 0)..' / 20',143,h-140,14,D.muted) end
     end
 end
 return Chrome

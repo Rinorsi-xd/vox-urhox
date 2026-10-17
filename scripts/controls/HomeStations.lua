@@ -23,7 +23,14 @@ function M.Get(stats,id,maxDist)
         svMarket={-7.2,2.9,-23,16,.45,1.4,false},
     })[id]
     if not s then return nil end
-    return {target={-s[1],s[2],s[3]},dist=math.min(maxDist,math.max(2.5,s[4])),
+    local dist=math.min(maxDist,math.max(2.5,s[4]))
+    -- 手机紧凑机库：下方三成被改装/出战/试车和车位条占住。镜头拉近，目标点下移，
+    -- 让车落在按钮上方那块空白的中间
+    if (id=='hangar' or id=='svLoadoutC') and require('controls.TouchMode').Compact() then
+        -- 只给普通尺寸的车拉近；蝎型战车这类大车本来就填满画面，再拉近会装不下
+        dist=math.max(2.5,dist*(r<3 and .85 or r<5 and .95 or 1));s={s[1],s[2]-dist*.085,s[3],dist,s[5],s[6],s[7]}
+    end
+    return {target={-s[1],s[2],s[3]},dist=dist,
         yaw=180-math.deg(s[5]),pitch=90-math.deg(s[6]),fov=48,spin=s[7]}
 end
 return M

@@ -19,23 +19,25 @@ function M.Apply(s,w,h,safe)
     local stripY=h-bottom-115
     -- 手机紧凑界面：车是主角。改装/出战/试车整组缩到 .72 并贴到车位条上方；模式切换放右栏（配件清单下、
     -- 出战右上方），都不压战车（按钮按 sourceScale 等比绘制，点击区域跟着布局一起缩）
-    local k=s.compact and .72 or 1
+    local k=s.compact and .6 or 1
+    local km=s.compact and .72 or 1 -- 模式切换字更小会看不清，单独保留 .72
     local ctaWidth=672*k
     local ctaHeight=74*k
     local ctaY=s.tab=='hangar' and (s.compact and stripY-8-ctaHeight or h-bottom-225) or h-bottom-98
     Place(s.cta,(w-ctaWidth)/2,ctaY,ctaWidth,ctaHeight)
     if s.tab=='shop' then Place(s.cta,(w-ctaWidth)/2,h-bottom-98,ctaWidth,ctaHeight) end
-    local modeWidth=434*k
+    local modeWidth=434*km
     if s.modeStrip then
-        if s.compact then Place(s.modeStrip,w-right-modeWidth,ctaY-51*k-10,modeWidth,51*k)
+        if s.compact then Place(s.modeStrip,w-right-modeWidth,ctaY-51*km-10,modeWidth,51*km)
         else Place(s.modeStrip,(w-modeWidth)/2,h-bottom-279,modeWidth,51) end
-        Place(s.buttons.arena,0,0,215*k,51*k);Place(s.buttons.salvage,219*k,0,215*k,51*k)
+        Place(s.buttons.arena,0,0,215*km,51*km);Place(s.buttons.salvage,219*km,0,215*km,51*km)
     end
     Place(s.buttons.edit,0,0,174*k,74*k);Place(s.buttons.battle,160*k,0,352*k,74*k);Place(s.buttons.trial,498*k,0,174*k,74*k)
-    for _,id in ipairs({'edit','battle','trial','arena','salvage'}) do if s.buttons[id] then s.buttons[id].props.sourceScale=k end end
+    for _,id in ipairs({'edit','battle','trial'}) do if s.buttons[id] then s.buttons[id].props.sourceScale=k end end
+    for _,id in ipairs({'arena','salvage'}) do if s.buttons[id] then s.buttons[id].props.sourceScale=km end end
     local infoHeight=math.min(s.detailsOpen and 585 or 332.96875,math.max(48,h-top-bottom-290))
     -- 紧凑界面左栏下面是音乐盒，信息栏收在它上方，不让「车辆详情」被压掉半截
-    if s.compact and s.tab=='hangar' then infoHeight=math.max(48,math.min(infoHeight,ctaY+ctaHeight-66-4-(top+88))) end
+    if s.compact and s.tab=='hangar' then infoHeight=math.max(48,math.min(infoHeight,ctaY+ctaHeight-70*.72-4-(top+88))) end
     -- 紧凑机库：左侧整备信息和右侧配件清单缩到 .8（绘制与点击一起缩），让车成为画面主体；
     -- 配件清单放到右侧中段、模式切换上方，和车并排
     local side=s.compact and s.tab=='hangar' and .8 or 1
@@ -44,7 +46,7 @@ function M.Apply(s,w,h,safe)
     s.info:SetStyle({scale=side,transformOrigin='top-left'})
     local loadoutHeight=math.min(infoHeight,s.loadoutHeight or 168)
     local loadoutTop=top+88
-    if side<1 then loadoutTop=math.max(top+78,(s.navHeight+ctaY-51*k-10)/2-loadoutHeight*side/2-10) end
+    if side<1 then loadoutTop=math.max(top+78,(s.navHeight+ctaY-51*km-10)/2-loadoutHeight*side/2-10) end
     Place(s.loadout,w-right-254,loadoutTop,254,loadoutHeight)
     s.loadout:SetStyle({scale=side,transformOrigin='top-right'})
     Place(s.actions,w-321,h-bottom-183,283,58)
@@ -53,7 +55,8 @@ function M.Apply(s,w,h,safe)
         s.musicConsole.small=cw<=760 or s.compact==true;s.musicConsole.consoleScale=k
         -- 源 mobile.css：手机紧凑界面把音乐盒缩成左下一条小卡（left 18 / bottom 168 / 250×66），不压改装按钮
         -- 16:9 一类较窄的屏上居中的改装/出战/试车会伸到左下，音乐盒相应缩窄，不压按钮
-        if s.compact then s.musicConsole.consoleScale=1;Place(s.musicConsole,18,ctaY+ctaHeight-66,math.max(150,math.min(250,(w-ctaWidth)/2-26)),66)
+        -- 紧凑界面用小号音乐盒（218×70 设计）缩到 .72，底边和出战按钮对齐
+        if s.compact then s.musicConsole.small=true;s.musicConsole.consoleScale=.72;Place(s.musicConsole,18,ctaY+ctaHeight-70*.72,218*.72,70*.72)
         elseif cw<=760 then Place(s.musicConsole,12*k,h-180*k,218*k,70*k)
         else Place(s.musicConsole,28,h-262,336,98) end
     end

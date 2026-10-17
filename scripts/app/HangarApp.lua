@@ -200,6 +200,20 @@ function App:GroundDisplay()
     for _,vis in pairs(self.car.visuals) do
         if vis.rig and vis.rig.mech then MechView.StandOn(vis,0) end
     end
+    -- 格子最低点不含伸出格子下方的大轮子/悬浮件，大车会陷进地面：按实际模型包围盒再抬到地面上
+    local low=math.huge
+    for _,kind in ipairs({'StaticModel','AnimatedModel'}) do
+        for _,model in ipairs(self.car.root:GetComponents(kind,true)) do
+            if model.enabled and model.node.enabled and model.model then
+                local box=model.worldBoundingBox
+                if box.defined and box.min.y<low then low=box.min.y end
+            end
+        end
+    end
+    if low<-.01 and low>-20 then
+        local p=self.car.root.position;self.car.root.position=Vector3(p.x,p.y-low,p.z)
+        print(string.format('[HangarApp] Display lifted %.2f m to clear the floor',-low))
+    end
 end
 function App:LoadBlueprint(data)
     -- Parse into a candidate first; a malformed save cannot clear the active car.
