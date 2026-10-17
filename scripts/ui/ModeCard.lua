@@ -4,7 +4,8 @@ local Paint=require 'ui.WorkshopPaint'
 local Card=UI.Panel:Extend('VoxSourceModeCard')
 function Card:Render(vg)
     D.Begin(vg);local r=self:GetAbsoluteLayout();local p=self.item
-    local selected=self.owner.modeChoice==p.id;local hover=self.state.hovered
+    -- 触屏没有悬停：按下时不切悬停大图，第一次点卡少解码一张 900×1350 JPG
+    local selected=self.owner.modeChoice==p.id;local hover=self.state.hovered and not require('controls.TouchMode').Enabled()
     local story=p.id=='story';local accent=story and {70,200,255,255} or D.orange
     local x,y,w,h=r.x,r.y-(selected and 6 or 0),r.w,r.h
     local points={x,y,x+w-22,y,x+w,y+22,x+w,y+h,x+22,y+h,x,y+h-22}
