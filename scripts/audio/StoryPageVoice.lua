@@ -60,7 +60,13 @@ function M:Update(dt,focus)
         local sound=cache:GetExistingResource('Sound',pending.path)
         if sound and sound.length>0 then
             self.loaded[pending.id]=sound;queue[index]=queue[#queue];table.remove(queue)
-        else self.decodeCursor=index+1 end
+        else
+            -- Decoded but unreferenced sounds can be evicted before this poll; requeue when idle.
+            if (pending.requeues or 0)<3 and cache:GetNumBackgroundLoadResources()==0 then
+                pending.requeues=(pending.requeues or 0)+1;cache:BackgroundLoadResource('Sound',pending.path,true)
+            end
+            self.decodeCursor=index+1
+        end
         if self.decodeCursor>#queue then self.decodeCursor=1 end
     end
     for _,slot in ipairs(self.slots) do if slot.fade then

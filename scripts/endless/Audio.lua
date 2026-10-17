@@ -4,7 +4,12 @@ local Levels=require 'audio.AudioLevels'
 local M={};M.__index=M
 local cues={drop='loot_drop',dropCollected='loot_pickup',waveClear='wave_clear',supplyShown='supply_open',supplyChosen='supply_choose',charge='urgent_warning'}
 local flow={countdown_tick=true,wave_start=true,boss_warning=true,urgent_warning=true,game_over=true}
-function M.Dependencies() local out={};for _,cue in pairs(Data.cues) do out[#out+1]=cue.path end;return out end
+function M.Dependencies()
+    local out={};for _,cue in pairs(Data.cues) do out[#out+1]=cue.path end
+    -- Endless runs on the crater map; download its ambience under the loading mask.
+    for _,path in ipairs(require('audio.GameAmbience').Dependencies('amb_crater')) do out[#out+1]=path end
+    return out
+end
 function M.New(scene)
     return setmetatable({root=scene:CreateChild('EndlessAudio'),voices={},last={},counts={},clock=0,cursor=0,tick=false,volume=.65},M)
 end

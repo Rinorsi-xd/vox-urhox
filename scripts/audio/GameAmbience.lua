@@ -12,6 +12,8 @@ function M.Resolve(state)
     if drive.active then return drive.mapId=='salvage' and 'amb_mine' or 'amb_crater' end
     return (shell.screen=='salvage' or shell.stage=='warehouse') and 'amb_warehouse' or 'amb_hangar'
 end
+-- Download-only dependency of one ambience cue, for loading masks that know the map.
+function M.Dependencies(id) local cue=Data.cues[id];return cue and {cue.path} or {} end
 function M.FromApp(app,home)
     local session=app.mode=='trial' and app.trial
     local editing=session and session.endless and session.endless.run.state=='editing'
@@ -76,7 +78,12 @@ function M:Prepare(id,dt)
     if not pending.downloaded then return end
     local sound=self.backend:GetExistingResource('Sound',cue.path)
     if not sound or sound.length<=0 then
-        if not pending.queued then
+        -- A decoded but unreferenced Sound can be evicted by ReleaseAllResources
+        -- before this poll; once no background load remains, queue it again.
+        local requeue=pending.queued and (pending.requeues or 0)<3 and self.backend.GetNumBackgroundLoadResources~=nil
+            and self.backend:GetNumBackgroundLoadResources()==0
+        if not pending.queued or requeue then
+            if requeue then pending.requeues=(pending.requeues or 0)+1 end
             pending.queued=true
             local ok,err=pcall(self.backend.BackgroundLoadResource,self.backend,'Sound',cue.path,true)
             if not ok then pending.error=tostring(err) end

@@ -52,7 +52,8 @@ function M:Save()
 end
 function M:CanPlay() return not self.disposed and self.unlocked and self.enabled and self.volume>0 and not self.userPaused and not self.hidden and not self.contextPaused end
 function M:PauseBus()
-    if self:CanPlay() then audio:ResumeSoundType(self.bus) else audio:PauseSoundType(self.bus) end
+    -- Called every Update; the shared helper only reaches the engine on a state change.
+    Levels.PauseBus(self,self.bus,not self:CanPlay())
 end
 function M:Unlock() self.unlocked=true;self:PauseBus() end
 function M:SetVolume(v)
@@ -153,7 +154,12 @@ function M:PreparePending(dt)
         local sound=self.backend:GetExistingResource('Sound',track.file)
         if sound and sound.length>0 then slot.sound=sound
         else
-            if not preparation.queued then
+            -- A decoded but unreferenced Sound can be evicted by ReleaseAllResources
+            -- before this poll; once no background load remains, queue it again.
+            local requeue=preparation.queued and (preparation.requeues or 0)<3 and self.backend.GetNumBackgroundLoadResources~=nil
+                and self.backend:GetNumBackgroundLoadResources()==0
+            if not preparation.queued or requeue then
+                if requeue then preparation.requeues=(preparation.requeues or 0)+1 end
                 preparation.queued=true
                 local ok,message=pcall(self.backend.BackgroundLoadResource,self.backend,'Sound',track.file,true)
                 if not ok then self:FailPending(index,tostring(message));return end
@@ -191,6 +197,19 @@ function M:Next()
         preparation.downloaded=ok==true;preparation.error=not ok and (err or '音频下载失败') or nil
     end)
     return true
+end
+-- Download (not decode) the track this group would start with, so a loading mask
+-- absorbs the transfer instead of the first battle seconds. Choose() is stable
+-- until Played(), so the later Next() selects the same file and finds it local.
+function M:Prefetch(group)
+    if self.disposed or self.libraryMode or self.requestedId or not self.pools[group] then return nil end
+    local saved=self.group;self.group=group
+    local ok,track=pcall(self.Choose,self);self.group=saved
+    if not ok or not track then return nil end
+    self.prefetchGate=self.prefetchGate or Gate.New(self.backend)
+    -- Completion only marks readiness; the cache work stays in Next/PreparePending.
+    self.prefetchGate:Start({track.file},function() end)
+    return track.id
 end
 function M:PlayTrack(id)
     if not self.libraryMode or not self.byId[id] then return false end
@@ -252,6 +271,7 @@ function M:Dispose()
     if self.disposed then return end
     for _,off in ipairs(self.unwatch) do off() end;self.unwatch={}
     self.disposed=true;self:Save();for i=1,2 do self:Clear(i) end
-    self.current=nil;self.pending=nil;self.scene:Dispose();audio:ResumeSoundType(self.bus)
+    if self.prefetchGate then self.prefetchGate:Cancel();self.prefetchGate=nil end
+    self.current=nil;self.pending=nil;self.scene:Dispose();Levels.ReleaseBuses(self,{self.bus})
 end
 return M

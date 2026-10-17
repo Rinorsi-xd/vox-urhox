@@ -22,6 +22,8 @@ local Button=require('ui.ActionButton'):Extend('VoxStoryButton')
 local Comms=UI.Panel:Extend('VoxStoryComms')
 local Labels=UI.Panel:Extend('VoxStoryLabels')
 local Layout=require 'ui.StoryPageLayout'
+local Opacity=require 'ui.IntroOpacity'
+local Motion=require 'ui.SourceButtonMotion'
 local M={}
 local ice={214,240,255,255};local cy={110,214,255,255};local muted={214,240,255,158};local dim={214,240,255,92};local red={255,77,66,255}
 -- Layout can re-show the mounted page before the next tab rebuild replaces it.
@@ -32,6 +34,16 @@ local function Diamond(vg,x,y,size,color,fill)
     D.Path(vg,{x,y-size,x+size,y,x,y+size,x-size,y})
     if fill then nvgFillColor(vg,D.Color(color));nvgFill(vg) else nvgStrokeColor(vg,D.Color(color));nvgStrokeWidth(vg,1.5);nvgStroke(vg) end
 end
+-- Entrance groups replay on every tab entry; level rebuilds keep the running clock.
+local function Entering(s,delay,duration)
+    return Motion.Ease(((s.storyTime or 0)-delay)/(duration or .46),false)
+end
+local function Enter(vg,s,delay,dx,dy,draw,widget)
+    local e=Entering(s,delay)
+    if e<=0 then return end
+    if e>=1 then draw(widget,vg);return end
+    Opacity.Push(vg,e);nvgTranslate(vg,dx*(1-e),dy*(1-e));draw(widget,vg);Opacity.Pop(vg)
+end
 local function Flow(s,vg)
     local brief=s.storyBrief;local l=Data.levels[s.storyLevel]
     local rec=s.storyProgress[l.id]
@@ -41,8 +53,8 @@ local function Flow(s,vg)
         function(e) return math.max(D.Width(vg,e[1],15,nil,1),D.Width(vg,e[2],12,'vox-body'))+23 end)
     brief.flowLevel=l;brief.flowRecord=rec;brief.flowHeight=height;brief.flowContext=vg;return brief.flow
 end
-function Button:Render(vg)
-    D.Begin(vg);local r=self:GetAbsoluteLayout();local p=self.props;local x,y,w,h=r.x,r.y,r.w,r.h
+local function DrawButton(self,vg)
+    local r=self:GetAbsoluteLayout();local p=self.props;local x,y,w,h=r.x,r.y,r.w,r.h
     if p.storyKind=='level' then
         local l=Data.levels[p.index];local cx=x+64
         D.Path(vg,{cx,y,x+w,y,x+w,y+h-14,x+w-14,y+h,cx,y+h})
@@ -79,10 +91,18 @@ function Button:Render(vg)
         D.Text(vg,ready and '开始任务' or '制作中',x+30,y+9.5,32,ready and {3,20,31,255} or {109,135,153,255},nil,nil,8)
         D.Text(vg,'第 '..l.no..' 关 · '..(ready and l.name or '即将开放'),x+30,y+48,13,ready and {3,20,31,158} or {86,112,127,255},'vox-body')
         if not require('controls.TouchMode').Enabled() then D.Rect(vg,x+w-68,y+26,40,22,{3,20,31,31});D.Text(vg,'Enter',x+w-48,y+29,13,{3,20,31,255},nil,NVG_ALIGN_CENTER) end
+        -- Arrival flash once the brief has settled.
+        local flash=(self.owner.storyTime or 0)-.95
+        if ready and flash>0 and flash<.5 then D.Rect(vg,x,y,w,h,{255,255,255,math.floor(150*(1-flash/.5))}) end
     end
 end
-function Brief:Render(vg)
-    D.Begin(vg);local r=self:GetAbsoluteLayout();local l=Data.levels[self.owner.storyLevel]
+local buttonEntrances={back={.04,-20,0},level={.16,-36,0},go={.62,0,18},voice={.6,0,12}}
+function Button:Render(vg)
+    D.Begin(vg);local p=self.props;local entry=buttonEntrances[p.storyKind] or buttonEntrances.go
+    Enter(vg,self.owner,entry[1]+(p.storyKind=='level' and (p.index-1)*.055 or 0),entry[2],entry[3],DrawButton,self)
+end
+local function DrawBrief(self,vg)
+    local r=self:GetAbsoluteLayout();local l=Data.levels[self.owner.storyLevel]
     F.Fill(vg,r.x,r.y,r.w,r.h,24);F.Draw(vg,r.x,r.y,r.w,r.h,'terminal','MSN·'..l.no)
     local x,y,w=r.x+34,r.y+30,r.w-68;local flow=Flow(self.owner,vg)
     D.Icon(vg,l.icon,x,y+1,18,cy)
@@ -119,8 +139,18 @@ function Brief:Render(vg)
         yy=yy+34
     end
 end
-function Comms:Render(vg)
-    D.Begin(vg);local r=self:GetAbsoluteLayout();local l=Data.levels[self.owner.storyLevel]
+function Brief:Render(vg)
+    D.Begin(vg);local s=self.owner;local e=Entering(s,.3,.7)
+    if e<=0 then return end
+    if e>=1 then DrawBrief(self,vg);return end
+    -- Terminal unfolds top-down behind a bright scan edge.
+    local r=self:GetAbsoluteLayout();local edge=r.y+(r.h+20)*e
+    nvgSave(vg);nvgIntersectScissor(vg,r.x-20,r.y-20,r.w+40,edge-r.y+20)
+    Enter(vg,s,.3,40,0,DrawBrief,self);nvgRestore(vg)
+    D.Rect(vg,r.x,edge-1,r.w,2,{214,244,255,math.floor(220*(1-e))})
+end
+local function DrawComms(self,vg)
+    local r=self:GetAbsoluteLayout();local l=Data.levels[self.owner.storyLevel]
     local x,y=r.x,r.y;local voice=self.owner.storyVoice;local card=voice and voice.card
     F.Fill(vg,x,y,136,136,13,true,225)
     if self.owner.storyFacesReady then self:RenderBackgroundImage(vg,'Story/Page/Faces/'..l.nono[1]..'.png',{x=x,y=y,w=136,h=136},'cover',nil) end
@@ -137,6 +167,7 @@ function Comms:Render(vg)
         D.Rect(vg,cx+294+i*5,y+6-12*wave,3,12*wave,cy)
     end
 end
+function Comms:Render(vg) D.Begin(vg);Enter(vg,self.owner,.48,0,26,DrawComms,self) end
 local callouts={
     {position={0,1.116,0},code='CV-07 · ARGUS',name='坠毁运输舰',info='舰体 280 m · 机库大厅能把车开进去',note='公司资产 · 残值评估中'},
     {position={0,.468,-2.5},code='OUTPOST · 07-S',name='我方要塞',info='星际前途前哨站 · 有顶机库 · 出生点',note='你的工位'},
@@ -144,6 +175,12 @@ local callouts={
 }
 function Labels:Render(vg)
     D.Begin(vg);local s=self.owner;local holo=s.storyHolo;if not holo or not holo.ready then return end
+    local intro=holo:Intro();if intro<=0 then return end
+    if intro<1 then Opacity.Push(vg,intro) end
+    self:DrawMarks(vg,s,holo)
+    if intro<1 then Opacity.Pop(vg) end
+end
+function Labels:DrawMarks(vg,s,holo)
     local r=self:GetAbsoluteLayout();local w,h=r.w,r.h
     local layout=Data.levels[s.storyLevel].holo
     local marks=ResourceData.Read('Story/Manifest.json').levels[s.storyLevel].marks
@@ -183,25 +220,55 @@ function Labels:Render(vg)
         end
     end
 end
-function Page:Render(vg)
-    if not PageActive(self) then return end
-    D.Begin(vg);local r=self:GetAbsoluteLayout();local x,y=r.x,r.y
-    -- GarageLayout sizes the outer page to the viewport; drawing uses its scaled design space.
-    local w,h=self.storyLogicalWidth,self.storyLogicalHeight
-    if not self.owner.storyHolo.ready then D.Rect(vg,x,y,w,h,{3,8,14,255}) end
-    local t=self.owner.storyTime or 0
+-- Holo boot cover: shown while the shared download and batch streaming run.
+local function Boot(vg,s,x,y,w,h)
+    local holo=s.storyHolo;local t=s.storyTime or 0
+    local cx,cy0=x+(420+w-600)/2,y+h*.47
+    local phase,done,total=holo:Progress()
+    local p=total>0 and done/total or 0
+    for i=0,2 do
+        local radius=58+i*16;local spin=t*(i==1 and -1.4 or .9+i*.3)
+        for k=0,5 do
+            local a0=spin+k*math.pi/3;nvgBeginPath(vg);nvgArc(vg,cx,cy0,radius,a0,a0+math.pi/3*(i==0 and .7 or .35),NVG_CW)
+            nvgStrokeColor(vg,D.Color({110,214,255,i==0 and 200 or 90}));nvgStrokeWidth(vg,i==0 and 2 or 1);nvgStroke(vg)
+        end
+    end
+    nvgBeginPath(vg);nvgArc(vg,cx,cy0,46,-math.pi/2,-math.pi/2+math.pi*2*math.max(.02,p),NVG_CW)
+    nvgStrokeColor(vg,D.Color(ice));nvgStrokeWidth(vg,3);nvgStroke(vg)
+    D.Text(vg,string.format('%d%%',math.floor(p*100)),cx,cy0-12,22,ice,nil,NVG_ALIGN_CENTER)
+    D.Text(vg,phase=='download' and '下载全息沙盘' or '投影校准中',cx,cy0+110,17,ice,nil,NVG_ALIGN_CENTER,3)
+    D.Text(vg,phase=='download' and 'HOLO-TABLE · SYNC' or 'HOLO-TABLE · CALIBRATE',cx,cy0+136,10,dim,'vox-tabular',NVG_ALIGN_CENTER,4)
+end
+local function DrawHeader(self,vg)
+    local r=self:GetAbsoluteLayout();local x,y=r.x,r.y;local t=self.owner.storyTime or 0
+    -- Title decodes left to right.
+    local wipe=Entering(self.owner,.1,.7)
+    nvgSave(vg);if wipe<1 then nvgIntersectScissor(vg,x+236,y,480*wipe+4,150) end
     D.Rect(vg,x+240,y+30,8,8,{110,214,255,t%1.6<.8 and 255 or 51})
     D.Text(vg,'剧情模式 · STORY',x+257,y+28,13,ice,'vox-tabular',nil,3.9)
     D.Text(vg,'第一章 · '..Data.chapter.name,x+240,y+49,52,nil,nil,nil,3)
     D.Text(vg,Data.chapter.en..' · '..Data.chapter.sub,x+240,y+107,14,muted,nil,nil,3)
     D.Line(vg,x+240,y+135,x+700,y+135,{214,240,255,100})
     for xx=0,450,14 do D.Line(vg,x+240+xx,y+137,x+240+xx,y+142,{214,240,255,60}) end
+    nvgRestore(vg)
+    if wipe<1 then D.Rect(vg,x+238+480*wipe,y+26,2,112,{214,244,255,math.floor(230*(1-wipe))}) end
+end
+local function DrawProgress(self,vg)
+    local r=self:GetAbsoluteLayout();local x,y=r.x,r.y;local w=self.storyLogicalWidth
     D.Text(vg,'章节进度',x+w-180,y+28,13,muted,'vox-body');D.Text(vg,'PROGRESS',x+w-108,y+31,10,dim,'vox-tabular')
     local completed=0;for _,level in ipairs(Data.levels) do if self.owner.storyProgress[level.id] then completed=completed+1 end end
     D.Text(vg,tostring(completed),x+w-112,y+53,34);D.Text(vg,'/ '..#Data.levels,x+w-79,y+67,20,dim)
     for i,level in ipairs(Data.levels) do D.Rect(vg,x+w-56-i*33,y+94,28,5,self.owner.storyProgress[level.id] and cy or {214,240,255,31}) end
+end
+local function DrawRoute(self,vg)
+    local r=self:GetAbsoluteLayout();local x,y=r.x,r.y
     D.Text(vg,'任务航线',x+56,y+200,20,nil,nil,nil,4);D.Text(vg,'MISSION ROUTE',x+148,y+211,11,dim,'vox-tabular',nil,4.4)
-    for yy=270,704,11 do D.Rect(vg,x+87,y+yy,1,6,{214,240,255,102}) end
+    -- The dotted rail grows downward with the level cards.
+    local grow=270+434*Entering(self.owner,.16,.8)
+    for yy=270,grow,11 do D.Rect(vg,x+87,y+yy,1,6,{214,240,255,102}) end
+end
+local function DrawFooter(self,vg)
+    local r=self:GetAbsoluteLayout();local x,y=r.x,r.y;local w,h=self.storyLogicalWidth,self.storyLogicalHeight
     D.Text(vg,'关卡全部开放，可以任意顺序挑战',x+142,y+762,13,dim,'vox-body')
     local hx=x+64
     -- 触屏没有键盘，底部键位提示整行不画
@@ -211,12 +278,41 @@ function Page:Render(vg)
         D.Text(vg,hint[2],hx+kw+6,y+h-51,15,muted,'vox-body');hx=hx+kw+6+D.Width(vg,hint[2],15,'vox-body')+24
     end
     D.Text(vg,'HOLO-TABLE · 07 · CRASH CRATER',x+w-36,y+h-35,11,dim,'vox-tabular',NVG_ALIGN_RIGHT)
+end
+function Page:Render(vg)
+    if not PageActive(self) then return end
+    D.Begin(vg);local r=self:GetAbsoluteLayout();local x,y=r.x,r.y
+    -- GarageLayout sizes the outer page to the viewport; drawing uses its scaled design space.
+    local w,h=self.storyLogicalWidth,self.storyLogicalHeight
+    local s=self.owner;local holo=s.storyHolo
+    if not holo.ready then D.Rect(vg,x,y,w,h,{3,8,14,255}) end
+    -- Boot cover fades out over the first moments of the holo reveal.
+    local boot=holo.ready and 1-(holo.revealTime or 0)/.35 or Entering(s,.2,.4)
+    if boot>0 then Opacity.Push(vg,math.min(1,boot));Boot(vg,s,x,y,w,h);Opacity.Pop(vg) end
+    Enter(vg,s,.1,-24,0,DrawHeader,self)
+    Enter(vg,s,.34,24,0,DrawProgress,self)
+    Enter(vg,s,.14,-24,0,DrawRoute,self)
+    Enter(vg,s,.56,0,14,DrawFooter,self)
+    -- Corner brackets spread from inset to the frame edge.
+    local open=Entering(s,0,.6);local inset=(1-open)*36
     for _,p in ipairs({{x+w*.009,y+h*.014,1,1},{x+w*.991,y+h*.014,-1,1},{x+w*.009,y+h*.986,1,-1},{x+w*.991,y+h*.986,-1,-1}}) do
-        D.Line(vg,p[1],p[2],p[1]+p[3]*38.88,p[2],dim);D.Line(vg,p[1],p[2],p[1],p[2]+p[4]*38.88,dim)
+        local px,py=p[1]+p[3]*inset,p[2]+p[4]*inset;local len=38.88*(.4+.6*open)
+        local c=open<1 and {214,244,255,math.floor(92+150*(1-open))} or dim
+        D.Line(vg,px,py,px+p[3]*len,py,c);D.Line(vg,px,py,px,py+p[4]*len,c)
     end
 end
 function Page:CustomRenderChildren(vg,renderFn)
-    if PageActive(self) then UI.Panel.CustomRenderChildren(self,vg,renderFn) end
+    if not PageActive(self) then return end
+    UI.Panel.CustomRenderChildren(self,vg,renderFn)
+    -- One scanline sweep over the whole page on entry.
+    local t=(self.owner.storyTime or 0)/.75
+    if t<1 then
+        local r=self:GetAbsoluteLayout();local w,h=self.storyLogicalWidth,self.storyLogicalHeight
+        local sy=r.y+h*Motion.Ease(t,'css-ease-out');local a=1-t
+        D.Path(vg,{r.x,sy-90,r.x+w,sy-90,r.x+w,sy,r.x,sy})
+        D.Gradient(vg,r.x,sy-90,w,90,{110,214,255,0},{110,214,255,math.floor(46*a)})
+        D.Rect(vg,r.x,sy-1,w,2,{214,244,255,math.floor(200*a)})
+    end
 end
 function M.Leave(s)
     -- Tab input can retire the scene after this frame's page rebuild.
@@ -233,7 +329,8 @@ function M.Start(s)
     else s.app.toasts:Push('第 '..l.no..' 关「'..l.name..'」的玩法还在迁移中','warn') end
 end
 function M.Update(s,dt)
-    s.storyTime=(s.storyTime or 0)+dt;F.SetTime(s.storyTime)
+    -- Clamped so the tab-switch frame's build cost does not skip the entrance.
+    s.storyTime=(s.storyTime or 0)+math.min(dt,.05);F.SetTime(s.storyTime)
     if s.storyHolo then s.storyHolo:Update(dt) end
     if s.storyVoice then s.storyVoice:Update(dt,input.focus and not input.minimized) end
 end

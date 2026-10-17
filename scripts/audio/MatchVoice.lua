@@ -3,6 +3,14 @@ local Data=require('core.ResourceData').Read('Combat/Radio.json')
 local Levels=require 'audio.AudioLevels'
 local Radio=require 'audio.MatchRadioDSP'
 local M={};M.__index=M
+-- The match-opening calls play right after the intro; download their stems with
+-- the battle instead of on the first live frames. Other calls stay on demand.
+function M.OpeningDependencies(mode)
+    local keys=mode=='conquest' and {'titleConquest','go'} or mode=='escort' and {'titleAttack','titleDefend','go'} or {'titleElimination','go'}
+    local out,seen={},{}
+    for _,key in ipairs(keys) do local call=Data.calls[key];if call then Radio.LineDependencies(call.ids,out,seen) end end
+    return out
+end
 function M.New(battle)
     local self=setmetatable({},M);self:init(battle);return self
 end

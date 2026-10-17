@@ -6,7 +6,6 @@ local CraterShield=require("render.CraterShield")
 local Coord=require 'core.Coord'
 local M={};M.__index=M
 local windX,windZ=.9161573349,.400818834
-local puffCorners={{-1,-1,0,0},{1,-1,1,0},{-1,1,0,1},{-1,1,0,1},{1,-1,1,0},{1,1,1,1}}
 local origins={{-160,16,0,1.6,4.5,.85},{-158,12,21,.8,3.2,.7},{94,52,92,1.1,4,.6}}
 -- Three PointLight intensity is candela. Native point lights already use
 -- inverse-square attenuation; dividing intensity by 100 darkened the interior.
@@ -69,26 +68,40 @@ function M:Smoke(dt)
         else p.vx=p.vx+windX*dt*.9;p.vz=p.vz+windZ*dt*.9;p.vy=p.vy*(1-dt*.08);p.x=p.x+p.vx*dt;p.y=p.y+p.vy*dt;p.z=p.z+p.vz*dt end
     end
 end
-local function Puff(b,rightAxis,upAxis,x,y,z,r,alpha,seed,brightness,rotation)
-    local center=Coord.Vec(x,y,z);local angle=rotation*math.pi/180
-    local right=rightAxis*math.cos(angle)+upAxis*math.sin(angle)
-    local up=upAxis*math.cos(angle)-rightAxis*math.sin(angle)
-    for _,p in ipairs(puffCorners) do
-        b:DefineVertex(center+right*(p[1]*r)+up*(p[2]*r));b:DefineNormal(Vector3.UP);b:DefineTexCoord(Vector2(p[3],p[4]));b:DefineColor(Color(seed%1,math.min(1,brightness),1,alpha))
+-- Six vertices over four unique corners; scalar math avoids per-vertex
+-- engine vector temporaries (this runs for every puff every frame).
+local cornerOrder={1,2,3,3,2,4}
+local cornerXY={{-1,-1},{1,-1},{-1,1},{1,1}}
+local cornerUV={Vector2(0,0),Vector2(1,0),Vector2(0,1),Vector2(1,1)}
+local UP=Vector3(0,1,0)
+local cornerPositions={}
+local function Puff(b,ax,x,y,z,r,alpha,seed,brightness,rotation)
+    local cx,cy,cz=-x,y,z;local angle=rotation*math.pi/180
+    local ca,sa=math.cos(angle),math.sin(angle)
+    local rx,ry,rz=ax[1]*ca+ax[4]*sa,ax[2]*ca+ax[5]*sa,ax[3]*ca+ax[6]*sa
+    local ux,uy,uz=ax[4]*ca-ax[1]*sa,ax[5]*ca-ax[2]*sa,ax[6]*ca-ax[3]*sa
+    for i=1,4 do local c=cornerXY[i];local a,d=c[1]*r,c[2]*r
+        cornerPositions[i]=Vector3(cx+rx*a+ux*d,cy+ry*a+uy*d,cz+rz*a+uz*d)
+    end
+    local color=Color(seed%1,math.min(1,brightness),1,alpha)
+    for k=1,6 do local i=cornerOrder[k]
+        b:DefineVertex(cornerPositions[i]);b:DefineNormal(UP);b:DefineTexCoord(cornerUV[i]);b:DefineColor(color)
     end
 end
 function M:Update(dt,t,camera)
     self:Smoke(math.min(dt,.1));self.smoke.material:SetShaderParameter('uTime',Variant(t));self.dust.material:SetShaderParameter('uTime',Variant(t))
     local right=camera.rotation*Vector3.RIGHT;local up=camera.rotation*Vector3.UP
+    local axes=self.axes or {};self.axes=axes
+    axes[1],axes[2],axes[3],axes[4],axes[5],axes[6]=right.x,right.y,right.z,up.x,up.y,up.z
     self.smoke.batch:BeginGeometry(0,TRIANGLE_LIST);self.dust.batch:BeginGeometry(0,TRIANGLE_LIST)
-    for i,p in ipairs(self.parts) do local k=p.age/p.life;Puff(self.smoke.batch,right,up,p.x,p.y,p.z,p.r*(1+k*3.2),math.min(1,p.age/1.5)*(1-k)^1.4*(.35+.4*p.dark),p.seed,.85+.6*(1-p.dark)*k,p.rot+p.age*4.58) end
+    for i,p in ipairs(self.parts) do local k=p.age/p.life;Puff(self.smoke.batch,axes,p.x,p.y,p.z,p.r*(1+k*3.2),math.min(1,p.age/1.5)*(1-k)^1.4*(.35+.4*p.dark),p.seed,.85+.6*(1-p.dark)*k,p.rot+p.age*4.58) end
     self.smoke.batch:Commit()
     for i,d in ipairs(self.devils) do
         d.age=d.age+dt;d.x=d.x+d.vx*dt;d.z=d.z+d.vz*dt
         if d.age>d.life or math.abs(d.x)>self.limit or math.abs(d.z)>self.limit then self:SpawnDevil(d) end
         local x,z=d.x,d.z;local ground=self:Height(x,z);local life=math.min(1,d.age/5)*math.min(1,(d.life-d.age)/6)
         for j=0,25 do local f=j/26;local a=t*(2.4-f)+j*2.399+d.seed*10;local r=d.r*(1+f*4.5);local lean=f*f*6
-            Puff(self.dust.batch,right,up,x+math.cos(a)*r*.6+windX*lean,ground+f*d.h+.8,z+math.sin(a)*r*.6+windZ*lean,r*.9+1.2,life*.16*(1-f)^.8*math.min(1,f/.08),d.seed+j*.37,1.05,a*180/math.pi)
+            Puff(self.dust.batch,axes,x+math.cos(a)*r*.6+windX*lean,ground+f*d.h+.8,z+math.sin(a)*r*.6+windZ*lean,r*.9+1.2,life*.16*(1-f)^.8*math.min(1,f/.08),d.seed+j*.37,1.05,a*180/math.pi)
         end
     end
     self.dust.batch:Commit();for _,shield in ipairs(self.shields) do shield:Update(t) end

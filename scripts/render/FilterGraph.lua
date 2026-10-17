@@ -14,16 +14,22 @@ function M.New(specs,width,height)
 end
 function M:Init(specs,width,height)
     width,height=math.max(1,math.floor(width)),math.max(1,math.floor(height))
-    self.scenes={};self.materials={};self.textures={};self.viewports={};self.width=width;self.height=height;self.colorBytes=0
+    self.scenes={};self.materials={};self.textures={};self.viewports={};self.samples={};self.width=width;self.height=height;self.colorBytes=0
     -- All inputs must reference an earlier pass, so feedback is impossible.
     for i,spec in ipairs(specs) do for _,source in pairs(spec.inputs or {}) do assert(source<i,'Filter graph cycle') end end
     for i=#specs-1,1,-1 do
         local spec=specs[i];local texture=Texture2D:new();self.textures[i]=texture;texture:SetNumLevels(1)
         local w=math.max(1,math.floor(spec.width or self.width))
         local h=math.max(1,math.floor(spec.height or self.height))
-        assert(texture:SetSize(w,h,Graphics:GetRGBAFloat16Format(),TEXTURE_RENDERTARGET),'HDR filter allocation failed')
+        -- Optional MSAA (scene source only): auto-resolved before later passes sample it.
+        local samples=math.max(1,math.floor(spec.multiSample or 1))
+        local format=Graphics:GetRGBAFloat16Format()
+        if samples>1 and not texture:SetSize(w,h,format,TEXTURE_RENDERTARGET,samples,true) then samples=1 end
+        if samples==1 then assert(texture:SetSize(w,h,format,TEXTURE_RENDERTARGET),'HDR filter allocation failed') end
+        self.samples[i]=samples
         texture.filterMode=FILTER_BILINEAR;texture:SetAddressMode(COORD_U,ADDRESS_CLAMP);texture:SetAddressMode(COORD_V,ADDRESS_CLAMP)
-        self.colorBytes=self.colorBytes+w*h*8
+        -- A multisampled target also owns its single-sample resolve texture.
+        self.colorBytes=self.colorBytes+w*h*8*(samples>1 and samples+1 or 1)
     end
     local xml=XMLFile:new()
     assert(xml:FromString('<renderpath><command type="clear" color="0 0 0 1" depth="1"/><command type="scenepass" pass="base" vertexlights="false"/></renderpath>'))
@@ -62,6 +68,6 @@ function M:Dispose()
     for _,scene in ipairs(self.scenes) do scene:Dispose() end
     for _,material in pairs(self.materials) do material:Dispose() end
     for _,texture in pairs(self.textures) do RenderTargetLifetime.Retire(texture) end
-    self.scenes={};self.materials={};self.textures={};self.viewports={};self.output=nil
+    self.scenes={};self.materials={};self.textures={};self.viewports={};self.samples={};self.output=nil
 end
 return M

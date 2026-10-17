@@ -9,7 +9,7 @@ local function Hex(n)
 end
 local colors={none=Hex(0xd8dde3),blue=Hex(0x2ea8ff),red=Hex(0xff4a3d),contest=Hex(0xff6a13),push=Hex(0x6fd36f),white={1,1,1}}
 function M.Geometry(scene)
-    local self=setmetatable({age=0,nextUpdate=0,culled={},reactorFlash={},reactorRandomState=1},M)
+    local self=setmetatable({age=0,nextUpdate=0,culled={},reactorFlash={},reactorRandomState=1,vertexCache={}},M)
     self.root=scene:CreateChild('BattleObjectives');self.materials={};self.batches={}
     for i,shader in ipairs({'Objective','ObjectiveOverlay'}) do
         local m=Material:new();assert(m:SetSurfaceShader('Shaders/BLGL/Combat/'..shader..'.shader'));m.renderOrder=144;self.materials[i]=m
@@ -34,10 +34,27 @@ function M:Vertex(x,y,z,color,alpha)
     local o=self.origin
     self.mesh:DefineVertex(Coord.Vec(x-o[1],y-o[2],z-o[3]));self.mesh:DefineNormal(Vector3.UP);self.mesh:DefineColor(Color(color[1],color[2],color[3],alpha))
 end
+local recording=nil ---@type Vector3[]|nil
 local function Emit(mesh,origin,x,y,z,normal,color)
-    mesh:DefineVertex(Coord.Vec(x-origin[1],y-origin[2],z-origin[3]));mesh:DefineNormal(normal);mesh:DefineColor(color)
+    local v=Coord.Vec(x-origin[1],y-origin[2],z-origin[3])
+    if recording then recording[#recording+1]=v end
+    mesh:DefineVertex(v);mesh:DefineNormal(normal);mesh:DefineColor(color)
 end
-function M:Ring(pos,inner,outer,start,span,color,alpha,segments)
+-- Static shapes keep their origin-relative vertices; a rebuild then replays
+-- the same positions with the current tint instead of recomputing geometry.
+function M:Replay(key,color,alpha)
+    local cached=key and self.vertexCache[key]
+    if not cached then if key then recording={} end;return false end
+    local mesh,normal,rgba=self.mesh,Vector3.UP,Color(color[1],color[2],color[3],alpha)
+    for i=1,#cached do mesh:DefineVertex(cached[i]);mesh:DefineNormal(normal);mesh:DefineColor(rgba) end
+    return true
+end
+function M:Record(key)
+    if key and recording then self.vertexCache[key]=recording end
+    recording=nil
+end
+function M:Ring(pos,inner,outer,start,span,color,alpha,segments,key)
+    if self:Replay(key,color,alpha) then return end
     local n=segments or math.max(1,math.ceil(span/math.pi*48))
     local mesh,origin,normal=self.mesh,self.origin,Vector3.UP
     local rgba=Color(color[1],color[2],color[3],alpha)
@@ -51,8 +68,10 @@ function M:Ring(pos,inner,outer,start,span,color,alpha,segments)
         Emit(mesh,origin,aiX,pos[2],aiZ,normal,rgba);Emit(mesh,origin,aoX,pos[2],aoZ,normal,rgba);Emit(mesh,origin,boX,pos[2],boZ,normal,rgba)
         Emit(mesh,origin,aiX,pos[2],aiZ,normal,rgba);Emit(mesh,origin,boX,pos[2],boZ,normal,rgba);Emit(mesh,origin,biX,pos[2],biZ,normal,rgba)
     end
+    self:Record(key)
 end
-function M:Beam(pos,r0,r1,height,color,alpha,segments)
+function M:Beam(pos,r0,r1,height,color,alpha,segments,key)
+    if self:Replay(key,color,alpha) then return end
     local n=segments or 16
     local mesh,origin,normal=self.mesh,self.origin,Vector3.UP
     local rgba=Color(color[1],color[2],color[3],alpha)
@@ -65,6 +84,7 @@ function M:Beam(pos,r0,r1,height,color,alpha,segments)
         Emit(mesh,origin,a0X,pos[2]+0,a0Z,normal,rgba);Emit(mesh,origin,b0X,pos[2]+0,b0Z,normal,rgba);Emit(mesh,origin,b1X,pos[2]+height,b1Z,normal,rgba)
         Emit(mesh,origin,a0X,pos[2]+0,a0Z,normal,rgba);Emit(mesh,origin,b1X,pos[2]+height,b1Z,normal,rgba);Emit(mesh,origin,a1X,pos[2]+height,a1Z,normal,rgba)
     end
+    self:Record(key)
 end
 function M:Crystal(pos,color,alpha)
     local mesh,origin,normal=self.mesh,self.origin,Vector3.UP
@@ -106,11 +126,11 @@ function M:Update(dt,rule,camera)
             local radius=p.radius
             if self:Refresh('PointRing'..i,frustum,p.pos,radius,0,.3,due) then
             self:Begin('PointRing'..i,p.pos,true)
-            self:Ring(pos,radius-.6,radius,0,math.pi*2,c,.7+.2*math.sin(t*4),96)
+            self:Ring(pos,radius-.6,radius,0,math.pi*2,c,.7+.2*math.sin(t*4),96,'ring'..i)
             for seg=0,2 do
                 local a=math.pi/2-seg*math.pi*2/3-.06;local length=math.pi*2/3-.12
                 local progress={p.pos[1],p.pos[2]+.3,p.pos[3]}
-                self:Ring(progress,radius-3,radius-1,a-length,length,{0,0,0},.25,48)
+                self:Ring(progress,radius-3,radius-1,a-length,length,{0,0,0},.25,48,'track'..i..':'..seg)
                 local f=math.max(0,math.min(1,math.abs(st.v)*3-seg))
                 if f>.002 then self:Ring(progress,radius-3,radius-1,a-length*f,length*f,colors[st.v>=0 and 'blue' or 'red'],.95,48) end
             end
@@ -120,9 +140,9 @@ function M:Update(dt,rule,camera)
             self:Begin('PointVolume'..i,p.pos,false)
             local near=camera and math.sqrt((camera.position.x+p.pos[1])^2+(camera.position.z-p.pos[3])^2) or 99
             local far=math.max(0,math.min(1,(near-35)/60))
-            self:Ring({p.pos[1],p.pos[2]+.2,p.pos[3]},0,radius-.6,0,math.pi*2,c,.03+.07*far,96)
-            self:Beam(p.pos,radius,radius,3,c,.16,96)
-            if far>0 then self:Beam(p.pos,1.8,1.2,90,c,(.16+.08*math.sin(t*3))*far) end
+            self:Ring({p.pos[1],p.pos[2]+.2,p.pos[3]},0,radius-.6,0,math.pi*2,c,.03+.07*far,96,'floor'..i)
+            self:Beam(p.pos,radius,radius,3,c,.16,96,'wall'..i)
+            if far>0 then self:Beam(p.pos,1.8,1.2,90,c,(.16+.08*math.sin(t*3))*far,nil,'column'..i) end
             self.mesh:Commit()
             end
         end
@@ -137,7 +157,7 @@ function M:Update(dt,rule,camera)
             for i=0,math.ceil(rule.score[team]/5-1e-6)-1 do local ring=i<10 and 0 or 1;local a=i%10/10*math.pi*2+ring*.31-t*.4
                 self:Crystal({center[1]+math.cos(a)*(2.2+ring*.8),center[2]+ring*1.6-.8,center[3]+math.sin(a)*(2.2+ring*.8)},c,.95)
             end
-            self:Beam({center[1],center[2]-2.5,center[3]},.5,.5,5,colors[team],.35,12);self.mesh:Commit()
+            self:Beam({center[1],center[2]-2.5,center[3]},.5,.5,5,colors[team],.35,12,'reactor'..team);self.mesh:Commit()
             if flash>0 then self.batches['Reactor'..team].node.position=Coord.Vec(center[1]+(self:ReactorRandom()-.5)*flash*.3,center[2],center[3]) end
             end
         end
@@ -145,7 +165,7 @@ function M:Update(dt,rule,camera)
         local p=self.mode:At(rule.s).pos
         if self:Refresh('PayloadHalo',frustum,p,22,0,.3,due) then
         self:Begin('PayloadHalo',p,true)
-        self:Ring({p[1],p[2]+.3,p[3]},21.3,22,0,math.pi*2,colors[rule.contested and 'contest' or rule.idle>=8 and 'red' or rule.pushing>0 and 'push' or 'white'],.35+.2*math.sin(t*5),128)
+        self:Ring({p[1],p[2]+.3,p[3]},21.3,22,0,math.pi*2,colors[rule.contested and 'contest' or rule.idle>=8 and 'red' or rule.pushing>0 and 'push' or 'white'],.35+.2*math.sin(t*5),128,'halo')
         self.mesh:Commit()
         end
     end

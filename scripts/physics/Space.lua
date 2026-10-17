@@ -38,7 +38,7 @@ function Space:Unregister(native)
     self.bodies[native.node:GetID()]=nil
 end
 function Space:Raycast(origin,direction,length,excluded,skipOwnerType,fixedOnly,collisionMask)
-    local ray=Ray(Coord.Vec(table.unpack(origin)),Coord.Vec(table.unpack(direction)))
+    local ray=Ray(Coord.Vec(origin[1],origin[2],origin[3]),Coord.Vec(direction[1],direction[2],direction[3]))
     local results=self.world:Raycast(ray,length,collisionMask or 0xffff)
     for _,hit in ipairs(results) do
         local native=hit.body

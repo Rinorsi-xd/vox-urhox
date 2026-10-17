@@ -10,7 +10,10 @@ vec3 linear_color(vec3 c) {
 }
 void fragment() {
     vec4 t = texture(image_map, UV);
-    vec3 c = mix(t.rgb, primary_color * t.r + secondary_color * t.g, shape_mask);
+    // Mask texels satisfy r+g=1 wherever alpha>0; filtering against transparent (rgb=0)
+    // texels shrinks r+g at the edge, so renormalise to keep the edge colour, not darken it.
+    vec2 w = t.rg / max(t.r + t.g, 1e-3);
+    vec3 c = mix(t.rgb, primary_color * w.x + secondary_color * w.y, shape_mask);
     ALBEDO = linear_color(c);
     ALPHA = t.a * opacity;
     ALPHA_SCISSOR_THRESHOLD = 0.03;

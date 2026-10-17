@@ -2,6 +2,7 @@ local LiveryPage=require("ui.LiveryPage")
 local Workshop=require("ui.Workshop")
 local HomeBattle=require("ui.HomeBattle")
 local StoryPage=require("ui.StoryPage")
+local StoryPrefetch=require("app.StoryPrefetch")
 -- Load optional/cyclic dependencies once, without changing first-use order.
 local DeferredModules=setmetatable({},{__index=function(modules,name)
     local module=require(name)
@@ -30,7 +31,8 @@ local M={}
 function M.Create(s)
     if s.tab=='livery' then return LiveryPage.Create(s) end
     if s.tab=='workshop' then return Workshop.Create(s) end
-    if s.tab=='battle' then return HomeBattle.Create(s) end
+    -- The mode page leads to the story holo; fetch its bytes while the player chooses.
+    if s.tab=='battle' then StoryPrefetch.Start();return HomeBattle.Create(s) end
     if s.tab=='story' then return StoryPage.Create(s) end
     if s.tab=='salvage' then return DeferredModules['ui.SalvagePage'].Create(s) end
     local page=Page{position='absolute',width=s.width,height=s.height,pointerEvents='none'}

@@ -9,6 +9,11 @@ local M={};M.__index=M
 local ranges={bloom={0,.8},mist={0,.2},exposure={.6,1.4},vignette={0,.6},grain={0,.06}}
 local supported={bloom=true,exposure=true,vignette=true,quality=true}
 function M.Defaults() return {v=2,quality=Quality.current.name=='mobile' and 'medium' or 'high',bloom=.18,mist=.04,exposure=1.1,vignette=.3,grain=0,ao=true} end
+-- Screen viewports inherit the backbuffer's MSAA (desktop default 4x). Where the
+-- platform gives no MSAA, use the render path's built-in single FXAA pass instead.
+function M.WantsFxaa(quality)
+    return Quality.current.fxaa==true and quality~='low' and graphics:GetMultiSample()<=1
+end
 function M.Valid(data)
     if type(data)~='table' or data.v~=2 or type(data.ao)~='boolean' then return false end
     if data.quality~='high' and data.quality~='medium' and data.quality~='low' then return false end
@@ -68,6 +73,11 @@ function M:Apply(scene)
     zone.bloomUEIntensity=d.bloom
     zone.bloomUEThreshold=1.3 -- H5 Pipeline: bloom.threshold; exclude ordinary surfaces.
     zone.vignetteEnabled=d.vignette>0;zone.vignetteIntensity=d.vignette
+    zone.fxaaEnabled=M.WantsFxaa(d.quality)
+    if self.loggedAa~=zone.fxaaEnabled then
+        self.loggedAa=zone.fxaaEnabled
+        print('[AA] backbuffer multiSample='..graphics:GetMultiSample()..' fxaa='..tostring(zone.fxaaEnabled)..' quality='..d.quality)
+    end
     if self.tonemap and self.tonemap.zone~=zone then self.tonemap:Dispose();self.tonemap=nil end
     if CraterTonemap.Available(scene) then
         self.tonemap=self.tonemap or CraterTonemap.New(zone)

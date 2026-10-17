@@ -5,6 +5,8 @@ local PartAssets=require("parts.PartAssets")
 local Rot=require 'core.Rotations'
 local Models=require 'render.LiveryModel'
 local M={}
+-- Grid cells between the decal and the painted surface (H5 LIFT).
+local LIFT=.012
 local function Dot(a,b) return a[1]*b[1]+a[2]*b[2]+a[3]*b[3] end
 local function Sub(a,b) return {a[1]-b[1],a[2]-b[2],a[3]-b[3]} end
 local function Cross(a,b) return {a[2]*b[3]-a[3]*b[2],a[3]*b[1]-a[1]*b[3],a[1]*b[2]-a[2]*b[1]} end
@@ -26,6 +28,10 @@ function M.Near(d,s,parts)
         end
     end end;return out
 end
+-- Integer key of a frame-space point quantised to 1e-4 cell (21 bits per axis).
+local function WeldKey(v)
+    return ((math.floor(v[1]*1e4+.5)+1048576)<<42)|((math.floor(v[2]*1e4+.5)+1048576)<<21)|(math.floor(v[3]*1e4+.5)+1048576)
+end
 local function Clip(pts,axis,sign,lim)
     local out={};for i,p in ipairs(pts) do
         local q=pts[i%#pts+1];local dp,dq=lim-sign*p[axis],lim-sign*q[axis]
@@ -37,6 +43,11 @@ function M.Project(d,s,parts)
     local f=M.Frame(d);local w,h,depth=M.Size(d,s);local out={}
     local Surface=JoinedSurface
     local _,_,joined=Surface.Build(parts,true)
+    -- Lift along the vertex normal welded across all parts: faces sharing a point get one
+    -- lifted position, so bevels, hard edges and part joins stay closed (a per-face lift
+    -- opened cracks there that showed the base paint). Opposed normals (touching hidden
+    -- faces of adjacent parts) are not averaged together.
+    local lift={};local pending={}
     for _,p in ipairs(parts) do
         local layers={}
         if joined[p.id] then
@@ -66,15 +77,35 @@ function M.Project(d,s,parts)
                         for _,v in ipairs(verts) do v[7]=v[1]-v[3]*tx;v[8]=v[2]-v[3]*ty end
                         local poly=Clip(Clip(Clip(Clip(verts,7,1,w/2),7,-1,w/2),8,1,h/2),8,-1,h/2)
                         poly=Clip(poly,3,1,depth/2);if not fold then poly=Clip(poly,3,-1,depth/2) end
-                        for i=2,#poly-1 do for _,v in ipairs({poly[1],poly[i],poly[i+1]}) do
-                            local q=M.ToWorld(f,{v[1]+fn[1]*.012,v[2]+fn[2]*.012,v[3]+fn[3]*.012})
+                        local entries={}
+                        for j,v in ipairs(poly) do
+                            local key=WeldKey(v)
+                            local nx,ny,nz=v[4],v[5],v[6];local len2=nx*nx+ny*ny+nz*nz
+                            if len2<1e-12 then nx,ny,nz=fn[1],fn[2],fn[3] else len2=1/math.sqrt(len2);nx,ny,nz=nx*len2,ny*len2,nz*len2 end
+                            local list=lift[key];if not list then list={};lift[key]=list end
+                            list[#list+1]=nx;list[#list+1]=ny;list[#list+1]=nz
                             local n={};for k=1,3 do n[k]=f.x[k]*v[4]+f.y[k]*v[5]+f.n[k]*v[6] end
-                            out[#out+1]={p=q,n=n,u=.5+(d.f and d.f~=0 and -1 or 1)*v[7]/w,v=1-(.5+v[8]/h)}
-                        end end
+                            entries[j]={v=v,key=key,nx=nx,ny=ny,nz=nz,n=n,u=.5+(d.f and d.f~=0 and -1 or 1)*v[7]/w,uv=1-(.5+v[8]/h)}
+                        end
+                        for i=2,#poly-1 do
+                            pending[#pending+1]=entries[1];pending[#pending+1]=entries[i];pending[#pending+1]=entries[i+1]
+                        end
                     end
                 end
             end
         end end end
+    end
+    for _,e in ipairs(pending) do
+        if not e.p then
+            local list=lift[e.key];local sx,sy,sz=0,0,0
+            for i=1,#list,3 do
+                local x,y,z=list[i],list[i+1],list[i+2]
+                if x*e.nx+y*e.ny+z*e.nz>-.1 then sx,sy,sz=sx+x,sy+y,sz+z end
+            end
+            local len=math.sqrt(sx*sx+sy*sy+sz*sz);if len<1e-6 then sx,sy,sz,len=e.nx,e.ny,e.nz,1 end
+            local v=e.v;local k=LIFT/len;e.p=M.ToWorld(f,{v[1]+sx*k,v[2]+sy*k,v[3]+sz*k})
+        end
+        out[#out+1]={p=e.p,n=e.n,u=e.u,v=e.uv}
     end;return out
 end
 return M

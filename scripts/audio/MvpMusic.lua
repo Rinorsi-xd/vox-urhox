@@ -21,12 +21,12 @@ function M:Update()
     if self.disposed then return end
     local p=self.player;local enabled=p.enabled and p.volume>0 and input.focus and not input.minimized
     self.source.gain=MusicPlayer.Gain(p.volume)
-    if enabled then audio:ResumeSoundType('VoxMvpMusic') else audio:PauseSoundType('VoxMvpMusic') end
+    Levels.PauseBus(self,'VoxMvpMusic',not enabled)
     self.beat=enabled and self.source.playing and Motion.Beat(self.source.timePosition,self.beats) or {pulse=0,bounce=0,lean=0,twist=0,index=-1}
 end
 function M:Dispose()
     if self.disposed then return end;self.disposed=true;self.source:StopImmediate();self.source:Dispose();self.sound=nil
-    audio:ResumeSoundType('VoxMvpMusic');cache:ReleaseResource('Sound','Mvp/music.mp3')
+    Levels.ReleaseBuses(self,{'VoxMvpMusic'});cache:ReleaseResource('Sound','Mvp/music.mp3')
     self.root:Dispose();for _,cue in pairs(self.cues) do cache:ReleaseResource('Sound',cue.path) end
 end
 return M

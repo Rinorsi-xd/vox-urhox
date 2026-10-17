@@ -22,18 +22,27 @@ function M:init(session,entry,stats)
     self.viewport=Viewport:new(self.scene,self.camera)
     local bp=Blueprint.New():Load(entry.unit.source)
     local paths=Stage.Dependencies();for _,p in ipairs(ImportedDependencies.For(bp:List())) do paths[#paths+1]=p end
+    self.bp=bp
     self.gate:Start(paths,function(ok,err)
         if self.cleared then return end
-        if not ok then self.failed=true;self.preparing=false;self.done=true;print('[MVP] Resource loading failed: '..tostring(err));self:Dispose();return end
-        local success,message=pcall(function()
-            self.stage=Stage.New(self.scene,bp,entry.unit.name);self.prevY=Motion.PodY(0,self.stage.S,self.stage.height);self.prevVy=0;self.prevRot=0;self.prevW=0
-            self.music=MvpMusic.New(self.scene,session.app.music)
-            self.previousMusicPaused=session.app.music.userPaused;session.app.music:SetPaused(true);session.app.graphicsSettings:Show(self.scene,self.camera);session.app.graphicsSettings:Apply(self.scene)
-            self.preparing=false;self.active=true;self:Update(.001)
-            print('[MVP] Ready '..entry.unit.name..' / '..bp:Size()..' parts')
-        end)
-        if not success then print('[MVP] Preparation failed: '..tostring(message));self.preparing=false;self.failed=true;self.done=true;self:Dispose() end
+        -- Download completion can run under the native download lock: only record
+        -- the outcome here; stage construction and the synchronous music load run
+        -- on the next Update.
+        self.downloaded={ok=ok==true,err=err}
     end)
+end
+function M:Install()
+    local download=self.downloaded;self.downloaded=nil
+    local session,entry,bp=self.session,self.entry,self.bp
+    if not download.ok then self.failed=true;self.preparing=false;self.done=true;print('[MVP] Resource loading failed: '..tostring(download.err));self:Dispose();return end
+    local success,message=pcall(function()
+        self.stage=Stage.New(self.scene,bp,entry.unit.name);self.prevY=Motion.PodY(0,self.stage.S,self.stage.height);self.prevVy=0;self.prevRot=0;self.prevW=0
+        self.music=MvpMusic.New(self.scene,session.app.music)
+        self.previousMusicPaused=session.app.music.userPaused;session.app.music:SetPaused(true);session.app.graphicsSettings:Show(self.scene,self.camera);session.app.graphicsSettings:Apply(self.scene)
+        self.preparing=false;self.active=true;self:Update(.001)
+        print('[MVP] Ready '..entry.unit.name..' / '..bp:Size()..' parts')
+    end)
+    if not success then print('[MVP] Preparation failed: '..tostring(message));self.preparing=false;self.failed=true;self.done=true;self:Dispose() end
 end
 function M:Skip()
     if self.done or self.preparing then return end
@@ -42,6 +51,7 @@ function M:Skip()
 end
 local function Tanh(x) local e=math.exp(2*x);return (e-1)/(e+1) end
 function M:Update(dt)
+    if self.preparing and self.downloaded and not self.cleared then self:Install();return end
     if self.done or self.preparing then return end
     local elapsed=math.min(.05,math.max(.00001,dt));self.music:Update()
     if not self.session:HasFocus() then return end

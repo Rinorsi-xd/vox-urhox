@@ -63,8 +63,10 @@ function M.New(session)
 end
 function M:Update(dt)
     if self.done then return end
-    if not self.session:HasFocus() then audio:PauseSoundType('VoxMatchVoice');return end
-    audio:ResumeSoundType('VoxMatchVoice')
+    -- The bus is shared with the battle radio; pause on focus changes only and
+    -- always release it in Dispose, or the radio stays muted for the match.
+    if not self.session:HasFocus() then Levels.PauseBus(self,'VoxMatchVoice',true);return end
+    Levels.PauseBus(self,'VoxMatchVoice',false)
     self.time=self.time+math.max(0,dt);local t=self.time;local index=1
     while index<=#self.shots and t>=self.shots[index].dur do t=t-self.shots[index].dur;index=index+1 end
     if index>#self.shots then self:Finish();return end
@@ -99,6 +101,7 @@ function M:Dispose()
     if self.page then UI.PopOverlay(self.page);UI.UnregisterGlobalComponent('vox-match-intro');self.page:Destroy();self.page=nil end
     if self.voice then self.voice:StopImmediate();self.voice:Dispose();self.voice=nil end
     if self.root then self.root:Dispose();self.root=nil end
+    Levels.ReleaseBuses(self,{'VoxMatchVoice'})
     self.done=true
 end
 return M

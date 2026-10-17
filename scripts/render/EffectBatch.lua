@@ -13,7 +13,7 @@ function M.New(root,kind,limit,shaderDirectory)
     self.limit=limit;self.count=0;self.kind=kind
     self.points={{0,0,0},{0,0,0},{0,0,0},{0,0,0}}
     self.uvs={{0,0},{0,0},{0,0},{0,0}};self.params={0,0,0}
-    self.nativePoints={};self.nativeUVs={}
+    self.cornerPositions={};self.cornerCoords={};self.cornerUVs={{},{},{},{}}
     return self
 end
 function M:Begin(camera,time)
@@ -29,19 +29,35 @@ function M:Quad(points,uvs,color,alpha,params)
     self.count=self.count+1
     local intensity=math.max(1,alpha)
     local tint=Color(color[1]*intensity/16,color[2]*intensity/16,color[3]*intensity/16,math.min(1,alpha))
-    local normal=Vector3(params and params[1] or 0,params and params[2] or 0,params and params[3] or 0)
-    local tangent=self.kind=='Streak' and Vector4(params and params[4] or .85,0,0,1)
-    -- The two triangles share corners 2 and 3. Convert each corner once while
-    -- preserving the original six submissions and every vertex attribute.
-    local nativePoints,nativeUVs=self.nativePoints,self.nativeUVs
-    for i=1,4 do
-        local point,uv=points[i],uvs[i]
-        nativePoints[i]=Coord.Vec(point[1],point[2],point[3]);nativeUVs[i]=Vector2(uv[1],uv[2])
+    -- Discs repeat the same normal parameters and corner UVs for every particle:
+    -- reuse the previous engine vector whenever the values are unchanged.
+    local n1,n2,n3=params and params[1] or 0,params and params[2] or 0,params and params[3] or 0
+    local last=self.lastNormal
+    if not last or last[1]~=n1 or last[2]~=n2 or last[3]~=n3 then
+        last={n1,n2,n3,Vector3(n1,n2,n3)};self.lastNormal=last
     end
-    for _,i in ipairs(order) do
-        self.mesh:DefineVertex(nativePoints[i])
-        self.mesh:DefineNormal(normal);self.mesh:DefineColor(tint);self.mesh:DefineTexCoord(nativeUVs[i])
-        if tangent then self.mesh:DefineTangent(tangent) end
+    local normal=last[4]
+    local tangent=nil ---@type Vector4|nil
+    if self.kind=='Streak' then
+        local t=params and params[4] or .85
+        if self.lastTangentValue~=t then self.lastTangentValue=t;self.lastTangent=Vector4(t,0,0,1) end
+        tangent=self.lastTangent
+    end
+    -- Six vertices share four corners; build each engine vector once per quad.
+    local mesh,positions,coords,uvValues=self.mesh,self.cornerPositions,self.cornerCoords,self.cornerUVs
+    for i=1,4 do
+        local p,uv=points[i],uvs[i]
+        positions[i]=Coord.Vec(p[1],p[2],p[3])
+        local cached=uvValues[i]
+        if cached[1]~=uv[1] or cached[2]~=uv[2] or not coords[i] then
+            cached[1]=uv[1];cached[2]=uv[2];coords[i]=Vector2(uv[1],uv[2])
+        end
+    end
+    for k=1,6 do
+        local i=order[k]
+        mesh:DefineVertex(positions[i])
+        mesh:DefineNormal(normal);mesh:DefineColor(tint);mesh:DefineTexCoord(coords[i])
+        if tangent then mesh:DefineTangent(tangent) end
     end
 end
 local function SetPoint(p,x,y,z) p[1]=x;p[2]=y;p[3]=z end

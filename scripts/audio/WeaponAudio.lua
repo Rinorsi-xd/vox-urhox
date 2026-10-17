@@ -21,10 +21,15 @@ function M:Source(name)
     local source=self.root:CreateChild(name):CreateComponent('SoundSource');source:SetSoundType('VoxWeapons');return source
 end
 function M:Audible() return not self.disposed and self.active and self.volume>0 and self.focus() end
+-- Same math as V.Sub/V.Length/V.Dot, without a temporary table per projectile/event.
+function M:Distance(point)
+    local l=self.listener;local dx,dy,dz=point[1]-l[1],point[2]-l[2],point[3]-l[3]
+    return math.sqrt(dx*dx+dy*dy+dz*dz),dx,dy,dz
+end
 function M:Spatial(point,reference)
     if not point or not self.listener then return 1,0 end
-    local delta=V.Sub(point,self.listener);local distance=V.Length(delta)
-    return distance>=240 and 0 or 1/(1+(distance/reference)^2),distance>0 and V.Clamp(V.Dot(delta,self.right)/distance,-.85,.85) or 0
+    local distance,dx,dy,dz=self:Distance(point);local r=self.right
+    return distance>=240 and 0 or 1/(1+(distance/reference)^2),distance>0 and V.Clamp((dx*r[1]+dy*r[2]+dz*r[3])/distance,-.85,.85) or 0
 end
 function M:Play(id,amount,pan)
     local cue=Data.cues[id]
@@ -46,10 +51,28 @@ function M:Play(id,amount,pan)
     Levels.Play(source,sound,sound:GetFrequency()*pitch,cue.gain*math.max(0,math.min(1,amount or 1))*self.volume,pan or 0,nil,id=='energy_online' and 'feedback' or 'weapons')
     self.counts[id]=(self.counts[id] or 0)+1;return true
 end
+-- Threshold hysteresis, identical to DrivingAudio: below .005 the voice follows the
+-- authored five-tau release tail; a return inside it continues the same voice
+-- instead of restarting the sample. A real release still ends at five tau.
+function M:Hold(loop,dt)
+    local step=math.max(0,dt);loop.hold=(loop.hold or 0)+step
+    if loop.hold>=loop.release*5 then
+        loop.released=true;loop.hold=nil;loop.amount=0;loop.source:StopImmediate();Levels.SetGain(loop.source,0);return
+    end
+    loop.amount=loop.amount*math.exp(-step/loop.release)
+    loop.pitch=loop.pitch+(loop.pitchTarget-loop.pitch)*(1-math.exp(-step/.12))
+    loop.pan=loop.pan+(loop.panTarget-loop.pan)*(1-math.exp(-step/.08))
+    Levels.SetGain(loop.source,loop.amount);loop.source.frequency=loop.source.sound:GetFrequency()*loop.pitch;loop.source.panning=loop.pan
+end
 function M:Loop(id,amount,pitch,pan,dt)
     local cue=Data.cues[id];amount=self:Audible() and amount or 0
     local loop=self.loops[id]
-    if amount<=.005 then self:ReleaseLoop(id);return false end
+    if amount<=.005 then
+        if loop and not loop.released and loop.pitchTarget and loop.source.playing then self:Hold(loop,dt)
+        else self:ReleaseLoop(id) end
+        return false
+    end
+    if loop then loop.hold=nil end
     if not loop or loop.released or not loop.source.playing then
         local slot=nil
         for _,candidate in ipairs(self.loopSources) do if not candidate.source.playing and candidate.id==id then slot=candidate;break end end
@@ -78,7 +101,7 @@ function M:ReleaseLoop(id)
     local loop=self.loops[id]
     if not loop or loop.released then return end
     -- H5 deletes the active key immediately; its old source keeps a five-tau tail.
-    loop.released=true;loop.releaseAge=0;self.loopTails[#self.loopTails+1]=loop
+    loop.released=true;loop.releaseAge=loop.hold or 0;loop.hold=nil;self.loopTails[#self.loopTails+1]=loop
 end
 function M:UpdateLoopTails(dt)
     local step=math.max(0,dt)
@@ -116,7 +139,7 @@ function M:Consume(events,remote)
         elseif e.type=='dry' and not remote then id='weapon_dry'
         elseif e.type=='impact' or e.type=='beam' and e.hit then id=e.material=='metal' and 'hit_metal' or 'hit_ground' end
         if id then
-            local point=e.pos or e.to;local distance=point and self.listener and V.Length(V.Sub(point,self.listener)) or 0
+            local point=e.pos or e.to;local distance=point and self.listener and self:Distance(point) or 0
             if distance<=180 then local amount,p=self:Spatial(point,32)
                 if not remote and (e.type=='shot' or e.type=='dry' or e.type=='mechanism' or e.type=='energy') then amount=1 end
                 self:Play(id,amount,p)
@@ -124,10 +147,22 @@ function M:Consume(events,remote)
         end
     end
 end
+-- Loudest homing projectile; a method instead of a per-frame closure.
+function M:Projectiles(weapons,flight,pan)
+    for _,projectile in ipairs(weapons.projectiles) do if projectile.s.homing and projectile.life>0 then
+        local gain,panning=self:Spatial(projectile.pos,30);local age=math.max(0,projectile.age or 0)
+        gain=gain*(age>=1.25 and 0 or math.exp(-3*age)*math.min(1,(1.25-age)/.25))
+        if gain>flight then flight,pan=gain,panning end
+    end end
+    return flight,pan
+end
 function M:Update(dt,system,camera,entries,speaking)
     if self.disposed then return end;self.time=self.time+math.max(0,dt)
     local p=camera.worldPosition;local right=camera.worldRotation*Vector3.RIGHT
-    self.listener={-p.x,p.y,p.z};self.right={-right.x,right.y,right.z}
+    -- Reuse the listener/right arrays; Consume/Spatial read them by index only.
+    local l,r=self.listener,self.right
+    if not l then l={0.0,0.0,0.0};r={0.0,0.0,0.0};self.listener=l;self.right=r end
+    l[1]=-p.x;l[2]=p.y;l[3]=p.z;r[1]=-right.x;r[2]=right.y;r[3]=right.z
     if not self:Audible() then self:Stop();return end
     self:UpdateLoopTails(dt)
     local spin=0;for _,g in ipairs(system.groups) do for _,w in ipairs(g.weapons) do spin=math.max(spin,w.spin or 0) end end
@@ -135,16 +170,8 @@ function M:Update(dt,system,camera,entries,speaking)
     local group=system:Group();local windup=0
     if group and group.kind=='sniper' then for _,w in ipairs(group.weapons) do windup=math.max(windup,w.windup) end end
     self:Loop('sniper_charge',windup>0 and .45+windup*.55 or 0,.75+windup*.6,0,dt)
-    local flight,pan=0,0
-    local function Projectiles(weapons)
-        for _,projectile in ipairs(weapons.projectiles) do if projectile.s.homing and projectile.life>0 then
-            local gain,panning=self:Spatial(projectile.pos,30);local age=math.max(0,projectile.age or 0)
-            gain=gain*(age>=1.25 and 0 or math.exp(-3*age)*math.min(1,(1.25-age)/.25))
-            if gain>flight then flight,pan=gain,panning end
-        end end
-    end
-    Projectiles(system)
-    for _,entry in ipairs(entries or {}) do if entry.unit.alive and entry.unit.weapons~=system then Projectiles(entry.unit.weapons) end end
+    local flight,pan=self:Projectiles(system,0,0)
+    if entries then for _,entry in ipairs(entries) do if entry.unit.alive and entry.unit.weapons~=system then flight,pan=self:Projectiles(entry.unit.weapons,flight,pan) end end end
     self:Loop('missile_flight',flight,1,pan,dt)
     local info=system:LockInfo()
     if not info or not info.ref or not info.inside then self.lockedRef=nil;self.nextPing=0;return end

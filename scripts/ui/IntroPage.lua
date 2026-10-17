@@ -70,6 +70,8 @@ function Page:OnPointerDown(e)
    if Inside(self.signatureRect,e.x,e.y) and (not self.signatureHitRect or Inside(self.signatureHitRect,e.x,e.y)) then
    local r=self.signatureRect
    self.signPointer=e.pointerId;self.lastPoint={e.x,e.y}
+   -- A second pointer replaces the active stroke; stop its looped scribble first or it loops orphaned.
+   if self.scribble then I.audio:StopSfx(self.scribble,.1,self.scribbleToken);self.scribble=nil end
    I.strokes[#I.strokes+1]={ {(e.x-r.x)/r.w,(e.y-r.y)/r.h} };self.scribble,self.scribbleToken=I.audio:Sfx('scribble',{vol=.4,loop=true})
    elseif Inside(self.termRect,e.x,e.y) and (not self.contractHitRect or Inside(self.contractHitRect,e.x,e.y)) then self.termPointer=e.pointerId;self.termLast=e.y end
  elseif I.playing then

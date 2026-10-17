@@ -7,10 +7,10 @@ local IK=require "parts.LegIK"
 local Spec=require "drive.VehicleSpec"
 local CELL=require("Config").CELL
 local M={};M.__index=M
-local segmentOrigins={hip='hip',link1='shoulderJoint',link2='elbow',blade='knee'}
+local JOINTS={hip='hip',link1='shoulderJoint',link2='elbow',blade='knee'}
 local function Center(leg,origin,q,point)
     -- Preserve Rotate/Add/ApplyRot/Scale/Add operation grouping without their
-    -- intermediate vector tables. The hit volume is still rebuilt every step.
+    -- intermediate vector tables.
     local x,y,z,w=q.x,q.y,q.z,q.w
     local ix=w*point[1]+y*point[3]-z*point[2]
     local iy=w*point[2]+z*point[1]-x*point[3]
@@ -37,8 +37,17 @@ function M.New(vehicle)
     end
     self:Update();return self
 end
+-- Leg states only change inside the controller step, which then calls Update.
+-- Only combat rays and drill sweeps read the boxes, so solve them on first read.
 function M:Update()
     if #self.items==0 then return end
+    self.dirty=true;self.vehicle.rayBounds=nil
+end
+function M:Items()
+    if self.dirty then self.dirty=false;self:Refresh() end
+    return self.items
+end
+function M:Refresh()
     local poses={}
     for _,item in ipairs(self.items) do
         local leg,name=item.leg,item.name;local state=self.vehicle.legStates[leg.partId]
@@ -51,10 +60,9 @@ function M:Update()
         local angle=name=='hip' and 0 or name=='link1' and pose.first or name=='link2' and pose.first+pose.second or pose.first+pose.second+pose.blade
         local q=V.QMul(pose.hitboxYaw,
             {x=0,y=0,z=math.sin(angle/2),w=math.cos(angle/2)})
-        local origin=pose.points[segmentOrigins[name]]
+        local origin=pose.points[JOINTS[name]]
         item.center=Center(leg,origin,q,item.segmentCenter)
         item.quat=V.QMul(Spec.GEOMETRY.rotations[leg.rot+1],q)
     end
-    if #self.items>0 then self.vehicle.rayBounds=nil end
 end
 return M

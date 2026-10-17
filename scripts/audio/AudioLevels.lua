@@ -7,7 +7,7 @@ local speaking=setmetatable({},{__mode='k'})
 local sources=setmetatable({},{__mode='k'})
 local kinds={VoxWeapons='sfx',VoxFeedback='sfx',VoxDriving='sfx',VoxStoryVoice='voice',VoxMatchVoice='voice'}
 local contextBuses={driving=true,weapons=true,damage=true,ambience=true}
-local contextGain,contextTarget,feedbackUntil=1,1,0
+local contextGain,contextTarget,feedbackUntil=1.0,1.0,0.0
 local function Now() return Time:GetSystemTime()/1000 end
 local function Finite(value)
  if type(value)~='number' then return false end
@@ -18,9 +18,12 @@ local function Scaled(slot)
  local sample=slot.bus and .65/.6 or 1
  return slot.raw*data[slot.kind]/M.DEFAULT_LEVELS[slot.kind]*sample*(contextBuses[slot.bus] and contextGain or 1)
 end
+-- Disposed userdata raise on access; pcall a shared setter instead of a fresh closure per source.
+local function SetSourceGain(source,gain) source.gain=gain end
+local appliedContextGain=nil ---@type number|nil
 local function ApplySources(key)
  for source,slot in pairs(sources) do if not key or slot.kind==key then
-  local ok=pcall(function() source.gain=Scaled(slot) end);if not ok then sources[source]=nil end
+  if not pcall(SetSourceGain,source,Scaled(slot)) then sources[source]=nil end
  end end
 end
 local function Copy() return {sfx=data.sfx,music=data.music,voice=data.voice,musicEnabled=data.musicEnabled} end
@@ -47,8 +50,13 @@ function M.MixContext(dt,briefing)
  local target=briefing and .3 or M.FeedbackActive() and .65 or 1
  contextTarget=target
  contextGain=contextGain+(target-contextGain)*(1-math.exp(-math.max(0,dt)/.12))
+ -- Snap the inaudible exponential remainder so a settled mix stops rewriting every source.
+ if math.abs(target-contextGain)<1e-5 then contextGain=target end
+ -- New/updated sources already apply the current contextGain in Play/SetGain.
+ if contextGain==appliedContextGain then return contextGain end
+ appliedContextGain=contextGain
  for source,slot in pairs(sources) do if contextBuses[slot.bus] then
-  local ok=pcall(function() source.gain=Scaled(slot) end);if not ok then sources[source]=nil end
+  if not pcall(SetSourceGain,source,Scaled(slot)) then sources[source]=nil end
  end end
  return contextGain
 end
@@ -59,7 +67,7 @@ function M.Save()
 end
 function M.Init(backend)
  store=backend
- contextGain=1;contextTarget=1;feedbackUntil=0
+ contextGain=1;contextTarget=1;feedbackUntil=0;appliedContextGain=nil
  local saved=store and store:Read(M.KEY,M.Valid)
  for key,value in pairs(M.DEFAULT_LEVELS) do data[key]=saved and saved[key] or value end
  data.musicEnabled=not saved or saved.musicEnabled~=false
@@ -88,5 +96,23 @@ function M.Play(source,sound,frequency,gain,pan,kind,bus)
  kind=kind or kinds[source.soundType];assert(M.DEFAULT_LEVELS[kind],'Unclassified audio bus')
  local slot=sources[source] or {};slot.raw=gain or 1;slot.kind=kind;slot.bus=bus;sources[source]=slot
  source:Play(sound,frequency or 0,Scaled(slot),pan or 0)
+end
+-- Engine sound-type pause is global and ResumeSoundType walks every source under
+-- the audio mutex. Owners declare their wish; the engine is touched on changes only.
+local busOwners={} ---@type table<string, table<any, boolean>>
+local busPaused={} ---@type table<string, boolean>
+function M.PauseBus(owner,bus,paused)
+ local owners=busOwners[bus]
+ if paused then if not owners then owners={};busOwners[bus]=owners end;owners[owner]=true
+ elseif owners then owners[owner]=nil;if next(owners)==nil then busOwners[bus]=nil end end
+ local want=busOwners[bus]~=nil
+ if busPaused[bus]~=want then
+  busPaused[bus]=want
+  if want then audio:PauseSoundType(bus) else audio:ResumeSoundType(bus) end
+ end
+end
+-- Disposal must never leave a shared bus paused for the next owner.
+function M.ReleaseBuses(owner,buses)
+ for _,bus in ipairs(buses) do M.PauseBus(owner,bus,false) end
 end
 return M

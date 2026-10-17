@@ -8,6 +8,7 @@ local Rotors=require("construction.Rotors")
 local BP=require "construction.Blueprint"
 local Defs=require("parts.Defs").PARTS
 local Spec=require "drive.VehicleSpec"
+local TurretRange=require "construction.TurretRange"
 local V=require "core.Math3"
 local CELL=require("Config").CELL
 local M={WRECK_RATIO=.15,RESPAWN_TIME=5};M.__index=M
@@ -56,7 +57,12 @@ end
 function M:Spawn(checkpoint)
     self:DisposeVehicle();self.bp=BP.New():Load(self.source)
     local spec=self.spawnSpecCache and self.spawnSpecCache:Get(self.source,self.bp)
-    if not spec then spec=Spec.Build(self.bp,checkpoint and function(p) checkpoint(p*.75) end or nil) end
+    if not spec then
+        local seed=self.turretSeed and self.turretSeed.source==self.source and self.turretSeed.entries or nil
+        TurretRange.Seed(self.bp,seed)
+        spec=Spec.Build(self.bp,checkpoint and function(p) checkpoint(p*.75) end or nil)
+        if not seed then self.turretSeed={source=self.source,entries=TurretRange.Snapshot(self.bp)} end
+    end
     if spec.ok then
         local keep={};for _,id in ipairs(spec.partIds) do keep[id]=true end
         for _,p in ipairs(self.bp:List()) do if not keep[p.id] then self.bp:Remove(p.id) end end

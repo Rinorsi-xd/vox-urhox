@@ -10,6 +10,7 @@ local MatchLobby=require("ui.MatchLobby")
 local PlatformUtils=require("urhox-libs.Platform.PlatformUtils")
 local SceneWarmup=require("render.SceneWarmup")
 local CombatWarmup=require("render.CombatWarmup")
+local StoryPrefetch=require("app.StoryPrefetch")
 local HangarAtmosphere=require("scene.HangarAtmosphere")
 local HangarFxWarmup=require 'render.HangarFxWarmup'
 local CommsWarmup=require 'ui.CommsWarmup'
@@ -29,7 +30,7 @@ function M:init(app)
     self.page=LoadingPage.New(self)
 end
 function M:Open(map,onBack)
-    self:Close()
+    self:Close();StoryPrefetch.Cancel()
     self.generation=self.generation+1;self.active=true;self.phase='cover';self.time=0;self.elapsed=0
     self.map=map;self.onBack=onBack;self.finished=false;self.failed=false;self.error=''
     self.artReady=false;self.cancelled=false;self.scenePrepared=false;self.keepSceneVisible=false
@@ -58,6 +59,8 @@ function M:QueueBattle(mode,bp)
     self:Open(map,function() self.app:CancelMapLoad(true) end)
     self.match={cfg=cfg,roster=roster,tier=tier.id,wait=roster.wait,carName=bp.name,stage='queue',age=0}
     self.sounds=BattleFlow.New();self.sounds:Prepare(true);self.sounds:Queue(true)
+    -- The queue/loading mask absorbs the first battle track's download.
+    if self.app.music and self.app.music.Prefetch then self.app.music:Prefetch('drive-combat') end
     local paths=MatchLobby.Dependencies(roster);local generation=self.generation
     self.artGate:Start(paths,function(ok)
         if not self.active or self.generation~=generation then return end
@@ -234,6 +237,8 @@ function M:Fail(message)
     if self.combatWarmup then self.combatWarmup:Dispose();self.combatWarmup=nil end
     if self.renderWarmup then self.renderWarmup:Restore();self.renderWarmup=nil end
     self.failed=true;self.error=tostring(message or '加载失败');self.steps[self.current].state='fail'
+    -- BattleFlow:Update would otherwise restart the looped search cue under the failure page.
+    if self.sounds then self.sounds:Queue(false) end
     print('[LoadingFlow] Failed '..self.error)
 end
 function M:Back()

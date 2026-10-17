@@ -21,6 +21,15 @@ function M.Dependencies()
     end end
     return out
 end
+-- Download-only stem paths for a set of line ids (appended to out, deduplicated by seen).
+function M.LineDependencies(ids,out,seen)
+    for _,id in ipairs(ids) do local line=Data.lines[id]
+        if line then for _,stem in pairs(line.stems) do
+            if not seen[stem.path] then seen[stem.path]=true;out[#out+1]=stem.path end
+        end end
+    end
+    return out
+end
 function M.New(root)
     local self=setmetatable({},M);self:init(root);return self
 end

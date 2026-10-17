@@ -203,6 +203,10 @@ function M.For(bp,owner,checkpoint)
     end end
     cached[bp]={signatures=signatures,entries=entries};return result
 end
+-- A respawn loads the same source into a new Blueprint. Seeding it with the
+-- spawn-time entries lets For() reuse them after its normal signature checks.
+function M.Snapshot(bp) return cached[bp] end
+function M.Seed(bp,snapshot) if snapshot and not cached[bp] then cached[bp]=snapshot end end
 function M.PitchLimits(range,yaw)
     -- Preserve JS remainder/add/modulo ordering at exact five-degree bins.
     local f=(math.fmod(Wrap(yaw)/M.YAW_STEP,N)+N)%N;local a=math.floor(f)+1;local b=a%N+1

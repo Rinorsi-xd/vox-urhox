@@ -31,7 +31,7 @@ function M:Sensors(excluded)
     local count=0;self.lookup={}
     for _,unit in ipairs(self.world.units) do if unit.alive and unit.vehicle.body~=excluded then
         local v=unit.vehicle;local p=V.Array(v.body.translation());local q=v.body.rotation()
-        for _,list in ipairs({v.spec.sensors,v.legHitboxes and v.legHitboxes.items or {},v.mechHitboxes and v.mechHitboxes.items or {}}) do for _,s in ipairs(list) do
+        for _,list in ipairs({v.spec.sensors,v.legHitboxes and v.legHitboxes:Items() or {},v.mechHitboxes and v.mechHitboxes.items or {}}) do for _,s in ipairs(list) do
             count=count+1;local slot=self.sensors[count]
             if not slot then
                 local node=self.root:CreateChild('PartSensor');local shape=node:CreateComponent('CollisionShape')

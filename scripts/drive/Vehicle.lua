@@ -144,7 +144,7 @@ function Vehicle:ApplyRotors()
         c.shape.position=Vec(c.wheel and item.conn or item.center)
         c.shape.rotation=c.wheel and Quat(pose.q)*c.orientation or Quat(item.quat)
     end
-    self.native:EnableMassUpdate();self.rayBounds=nil
+    self.native:EnableMassUpdate();self.rayBounds=nil;self.rayStaticBounds=nil
 end
 function Vehicle:Step(cmd,dt)
     if self.disposed then return end

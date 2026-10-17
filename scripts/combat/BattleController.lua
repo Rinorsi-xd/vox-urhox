@@ -4,6 +4,7 @@ local BattleFlow=require("audio.BattleFlow")
 local CommsPortrait=require("ui.CommsPortrait")
 local BattleObjectives=require("combat.BattleObjectives")
 local MatchVoice=require("audio.MatchVoice")
+local GameAmbience=require("audio.GameAmbience")
 local MatchFeed=require("ui.MatchFeed")
 local MatchTarget=require("combat.MatchTarget")
 local DriverActions=require("combat.DriverActions")
@@ -38,6 +39,9 @@ function M.Dependencies(bp,roster,mode)
     if fallback then for i=2,11 do paths[#paths+1]=string.format('UI/Avatars/a%02d.jpg',i) end end
     for i=1,13 do paths[#paths+1]=string.format('Sounds/Match/m%02d.wav',i) end
     for _,face in ipairs({'smile','deadpan','talk'}) do paths[#paths+1]=CommsPortrait.Path('nono',face) end
+    -- Audio needed in the first live seconds is downloaded under the loading mask.
+    for _,path in ipairs(MatchVoice.OpeningDependencies(mode or 'elimination')) do paths[#paths+1]=path end
+    for _,path in ipairs(GameAmbience.Dependencies('amb_crater')) do paths[#paths+1]=path end
     return paths
 end
 function M.New(session,bp,checkpoint)

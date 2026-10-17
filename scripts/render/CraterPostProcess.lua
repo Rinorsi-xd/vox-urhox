@@ -1,13 +1,21 @@
 -- PC H5 post chain. The source scene is rendered once; all later passes are quads.
 local AdaptiveResolution=require("render.AdaptiveResolution")
+local Quality=require("render.Quality")
 
 local Graph=require 'render.FilterGraph'
 local Viewports=require 'render.WindowViewports'
 local M={};M.__index=M
 local shaderRoot='Shaders/BLGL/CraterPost/'
 local function Half(n) return math.max(1,math.floor(n/2+.5)) end
+-- Scene-source MSAA. The source RT replaces the (multisampled) backbuffer, so
+-- without it every edge is single-sampled and then bilinearly upscaled.
+function M.Samples(quality)
+    local samples=math.floor(Quality.current.postMsaa or 1)
+    if quality=='low' then samples=math.min(samples,2) end
+    return math.max(1,samples)
+end
 function M.Specs(viewport,width,height,data)
-    local specs={{viewport=viewport}}
+    local specs={{viewport=viewport,multiSample=M.Samples(data.quality)}}
     local function Add(shader,inputs,parameters,w,h)
         specs[#specs+1]={shader=shaderRoot..shader..'.shader',inputs=inputs,parameters=parameters,width=w,height=h}
         return #specs
@@ -51,12 +59,13 @@ function M:ConfigureSource()
     -- Tone mapping is in Grade.shader, after both bloom pyramids.
     self.zone:SetAttribute('Bloom Enable',Variant(false))
     self.zone:SetAttribute('Auto Exposure Enable',Variant(false));self.zone.vignetteEnabled=false
+    self.zone.fxaaEnabled=false -- The source target is multisampled instead.
 end
 function M:Resize(width,height,force)
     if not force and self.graph and self.graph.width==width and self.graph.height==height then return false end
     local specs,indices=M.Specs(self.source,width,height,self.data)
     local graph=Graph.New(specs,width,height)
-    local previous=self.graph;self.graph=graph;self.indices=indices
+    local previous=self.graph;self.graph=graph;self.indices=indices;self.requestedSamples=specs[1].multiSample
     -- Replace the renderer's output before invalidating its old scene/camera.
     if previous then Viewports.Set(0,graph.output) end
     if previous then previous:Dispose() end
@@ -66,6 +75,7 @@ function M:Set(data)
     self.data=data;self:ConfigureSource()
     -- Coalesce rapid setting changes; at most one allocation transaction/frame.
     self.rebuild=(data.bloom>.001)~=(self.indices.bloom~=nil) or (data.mist>.001)~=(self.indices.mist~=nil)
+        or M.Samples(data.quality)~=self.requestedSamples
     if self.indices.bloom then self.graph:Parameter(self.indices.bloom,'strength',data.bloom) end
     if self.indices.mist then self.graph:Parameter(self.indices.mist,'strength',data.mist) end
     self.graph:Parameter(self.indices.grade,'exposure',data.exposure)

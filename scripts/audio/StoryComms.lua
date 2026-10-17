@@ -78,7 +78,7 @@ end
 function M.New(scene,data,keepOpen)
     if not shared then
         local audioScene=Scene();local root=audioScene:CreateChild('SharedStoryComms')
-        shared={scene=audioScene,root=root,slots={},active=0,index={},voices={},loaded={},gates={},downloaded={},decoding={},decodeCursor=1,queue={},time=0}
+        shared={scene=audioScene,root=root,slots={},active=0,index={},voices={},loaded={},gates={},downloaded={},decoding={},decodeCursor=1,requeues={},queue={},time=0}
         shared.cues=StoryCommsCues.New()
         for i=1,2 do local source=root:CreateComponent('SoundSource');source:SetSoundType('VoxStoryVoice');shared.slots[i]={source=source} end
     end
@@ -92,6 +92,7 @@ function M:Use(keepOpen)
         if shared.owner then shared.owner.resultQuote=nil end
         self.resultQuote=nil
         Fade();shared.card=nil;shared.queue={};shared.owner=self;shared.batchAt=nil;shared.speaker=nil
+        Levels.ReleaseBuses(shared,{'VoxStoryVoice'})
     end
     shared.keepOpen=keepOpen==true
     for id,voice in pairs(self.data.voices) do
@@ -162,7 +163,7 @@ function M.Tick(dt)
         if sound and sound.length>0 then shared.loaded[path]=sound
         else
             cache:BackgroundLoadResource('Sound',path,true)
-            shared.decoding[#shared.decoding+1]=path
+            shared.decoding[#shared.decoding+1]=path;shared.requeues[path]=0
         end
     end
     -- Legacy Web has no async resource callback: inspect at most four resident
@@ -174,7 +175,12 @@ function M.Tick(dt)
         local sound=cache:GetExistingResource('Sound',path)
         if sound and sound.length>0 then
             shared.loaded[path]=sound;queue[index]=queue[#queue];table.remove(queue)
-        else shared.decodeCursor=index+1 end
+        else
+            -- Decoded but unreferenced sounds can be evicted before this poll; requeue when idle.
+            local requeues=shared.requeues[path] or 0
+            if requeues<3 and cache:GetNumBackgroundLoadResources()==0 then shared.requeues[path]=requeues+1;cache:BackgroundLoadResource('Sound',path,true) end
+            shared.decodeCursor=index+1
+        end
         if shared.decodeCursor>#queue then shared.decodeCursor=1 end
     end
     for _,slot in ipairs(shared.slots) do if slot.fade then
@@ -187,8 +193,10 @@ function M.Tick(dt)
 end
 function M:Update(dt,focus)
     if not self:Owns() then return end
-    if not focus then audio:PauseSoundType('VoxStoryVoice');return end
-    audio:ResumeSoundType('VoxStoryVoice');dt=math.max(0,dt);shared.time=shared.time+dt
+    -- StoryPageVoice shares this bus; the pause belongs to the shared state and is
+    -- released on ownership loss and Shutdown so the page voice is never muted.
+    if not focus then Levels.PauseBus(shared,'VoxStoryVoice',true);return end
+    Levels.PauseBus(shared,'VoxStoryVoice',false);dt=math.max(0,dt);shared.time=shared.time+dt
     if not shared.card and #shared.queue>0 then
         local line=table.remove(shared.queue,1);local id=shared.index[Normalize(line[2])]
         local count=utf8.len(line[2]) or #line[2];local typing=count*(line[1]=='boss' and .12 or .032)
@@ -226,14 +234,14 @@ function M:Hide()
     Fade();shared.card=nil;shared.queue={};shared.speaker=nil
 end
 function M:Dispose()
-    self:Hide();if self:Owns() then shared.owner=nil end;self.disposed=true
+    self:Hide();if self:Owns() then shared.owner=nil;Levels.ReleaseBuses(shared,{'VoxStoryVoice'}) end;self.disposed=true
 end
 function M.Shutdown()
     local state=shared
     -- Opening can hand off a portrait before the first tutorial voice exists.
     if not state then CommsCard.Dispose();return end
     shared=nil
-    Levels.SetSpeaking(state,false)
+    Levels.SetSpeaking(state,false);Levels.ReleaseBuses(state,{'VoxStoryVoice'})
     state.cues:Dispose()
     for gate in pairs(state.gates) do gate:Cancel() end
     for _,slot in ipairs(state.slots) do slot.source:StopImmediate() end

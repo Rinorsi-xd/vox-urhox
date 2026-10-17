@@ -1,6 +1,11 @@
 -- H5 crater policy: a 1.5 s window, quick reduction and slower recovery.
 -- Separate from viewport/UI coordinates and from persistent graphics settings.
 local M={};M.__index=M
+function M.FrameCap()
+    local cap=engine.maxFps
+    if not cap or cap<=0 then return 60 end
+    return math.min(60,cap)
+end
 function M.New(enabled)
     return setmetatable({enabled=enabled~=false,scale=1,elapsed=0,frames=0,lastFps=0},M)
 end
@@ -12,8 +17,11 @@ function M:Sample(dt,active)
     if self.elapsed<1.5 then return false end
     self.lastFps=self.frames/self.elapsed;self:ResetWindow()
     local previous=self.scale
-    if self.lastFps<50 then self.scale=math.max(.7,self.scale-.1)
-    elseif self.lastFps>58.5 then self.scale=math.min(1,self.scale+.05) end
+    -- H5 thresholds (50 / 58.5 at a 60 FPS cap) scale with the active frame cap,
+    -- otherwise a 30 FPS cap reads as "slow" forever and pins the 70% floor.
+    local cap=M.FrameCap()
+    if self.lastFps<cap*50/60 then self.scale=math.max(.7,self.scale-.1)
+    elseif self.lastFps>cap*58.5/60 then self.scale=math.min(1,self.scale+.05) end
     self.scale=math.floor(self.scale*100+.5)/100
     return previous~=self.scale
 end

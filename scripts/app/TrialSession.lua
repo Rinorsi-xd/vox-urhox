@@ -49,6 +49,7 @@ local Coord=require "core.Coord"
 local UI=require 'urhox-libs/UI'
 local Host=require 'ui.DialogHost'
 local TargetFeedback=require 'render.TargetFeedback'
+local Quality=require 'render.Quality'
 local M={};M.__index=M
 function M.New(scene,bp,app,map,preparedWorld,checkpoint,retain,combatFactory)
     local self=setmetatable({disposed=false,app=app,name=bp.name,follow=false,lookIdle=0,scope=false,details=false,map=map or DriveMaps.trial},M)
@@ -350,6 +351,10 @@ function M:Tick(dt,command)
     -- Fixed 60 Hz on both desktop and 30 Hz mobile. Bound catch-up after pauses.
     local elapsed=math.min(math.max(dt,0),.1);self.droppedTime=self.droppedTime+math.max(0,dt-elapsed)
     self.accumulator=self.accumulator+elapsed
+    -- Slow phones would otherwise spiral: each late frame queues more 60 Hz
+    -- steps than the next frame can finish. Past the profile budget, slow down.
+    local stepBudget=Quality.current.maxSimSteps/60
+    if self.accumulator>stepBudget then self.droppedTime=self.droppedTime+self.accumulator-stepBudget;self.accumulator=stepBudget end
     self.pendingRotorStep=self.pendingRotorStep or command.rotorStep==true
     command.rotorStep=self.pendingRotorStep
     local aim=command.aim or self:Aim()

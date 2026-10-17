@@ -61,7 +61,13 @@ function M:PreparePending()
         if sound and sound.length>0 then
             self.sounds[item.path]=sound;pending[index]=pending[#pending];table.remove(pending)
         elseif self.time-item.at>20 then self.failure='Battle sound preparation timed out: '..item.path;return
-        else self.decodeCursor=index+1 end
+        else
+            -- Decoded but unreferenced sounds can be evicted before this poll; requeue when idle.
+            if (item.requeues or 0)<3 and cache:GetNumBackgroundLoadResources()==0 then
+                item.requeues=(item.requeues or 0)+1;cache:BackgroundLoadResource('Sound',item.path,true)
+            end
+            self.decodeCursor=index+1
+        end
         if self.decodeCursor>#pending then self.decodeCursor=1 end
     end
     self.ready=self.preparationIndex>#self.preparation and #pending==0
@@ -125,6 +131,11 @@ function M:Update(dt)
     end
 end
 function M:Dispose()
-    if self.disposed then return end;self.disposed=true;self.gate:Cancel();self.scene:Dispose();self.slots={};self.sounds={};self.preparation={};self.decoding={}
+    if self.disposed then return end;self.disposed=true;self.gate:Cancel();self.search=false;self.voiceAt=nil
+    -- Lua still references these components after the scene dies; stop them explicitly.
+    if self.loop then self.loop:StopImmediate();self.loop=nil end
+    if self.voice then self.voice:StopImmediate();self.voice=nil end
+    for _,source in ipairs(self.slots) do source:StopImmediate() end
+    self.scene:Dispose();self.slots={};self.sounds={};self.preparation={};self.decoding={}
 end
 return M

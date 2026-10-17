@@ -3,6 +3,7 @@ local IntroAudioTail=require("audio.IntroAudioTail")
 
 local Levels=require 'audio.AudioLevels'
 local M={};M.__index=M
+local BUSES={'VoxIntroVoice','VoxIntroSfx','VoxIntroMusic'}
 local loud={alarm=-7.9,blip=-22.9,clang=-8,confirm=-12.9,crt_on=-27.2,door_open=-10.4,heartbeat=-4.3,holo_shatter=-9.8,
  laser_big=-6.5,laser_boom=-3.9,laser_charge=-11.5,pigeon=-4.8,scratch=-9,scribble=-30.1,shred=-12.1,slam=-4.6,spotlight=-13.4,stamp=-9.2,tv_cut=-8.6,whoosh=-8.6}
 function M.New(data)
@@ -171,9 +172,8 @@ function M:Update(dt,focused)
   local start=self.time+(isFocused and dt or 0)
   slot.stopFade={from=self:SfxLevel(slot),start=start,duration=slot.fadeDuration};slot.stopAt=start+slot.fadeDuration+.02;slot.fadeWallAt=nil
  end end
- for _,kind in ipairs({'VoxIntroVoice','VoxIntroSfx','VoxIntroMusic'}) do
-  if focused==false then audio:PauseSoundType(kind) else audio:ResumeSoundType(kind) end
- end
+ -- Engine pause/resume only on focus changes; Resume walks every source under the audio lock.
+ for _,kind in ipairs(BUSES) do Levels.PauseBus(self,kind,focused==false) end
  if focused==false then return end
  self.time=self.time+dt
  local master=self:MasterLevel();local speaking=false
@@ -203,6 +203,8 @@ function M:Dispose()
   for _,slot in ipairs(slots) do slot.source:StopImmediate();slot.source:Remove();slot.source:Dispose() end
  end
  Release(self.voices);Release(self.sources);Release(self.music)
+ -- A tail can retire on its wall deadline while unfocused; never leave the buses paused.
+ Levels.ReleaseBuses(self,BUSES)
  self.scene:Dispose();self.sounds={}
 end
 return M

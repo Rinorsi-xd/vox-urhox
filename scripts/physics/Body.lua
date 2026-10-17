@@ -32,7 +32,21 @@ function M.Wrap(native)
     local function ClearReads()
         pose=nil;orientation=nil;localCenter=nil;worldCenter=nil;inverseRotation=nil;bodyMass=nil;linear=nil;angular=nil
     end
-    local function EndReadScope() scoped=false;ClearReads() end
+    -- Inside a read scope, forces and torques are summed in Lua (torque uses the
+    -- centre at call time) and submitted once when the scope ends. Bullet only
+    -- accumulates them until the world step, so the applied totals are the same.
+    local pending=false
+    local fx,fy,fz,tx,ty,tz=0.0,0.0,0.0,0.0,0.0,0.0
+    local function FlushForces()
+        if not pending then return end
+        pending=false
+        if native then
+            if fx~=0 or fy~=0 or fz~=0 then native:ApplyForce(Vector3(fx,fy,fz)) end
+            if tx~=0 or ty~=0 or tz~=0 then native:ApplyTorque(Vector3(tx,ty,tz)) end
+        end
+        fx,fy,fz,tx,ty,tz=0.0,0.0,0.0,0.0,0.0,0.0
+    end
+    local function EndReadScope() FlushForces();scoped=false;ClearReads() end
     local readGuard=setmetatable({},{__close=EndReadScope})
     local function ReadPosition() if not scoped then return native.position end;if not pose then pose=native.position end;return pose end
     local function ReadRotation() if not scoped then return native.rotation end;if not orientation then orientation=native.rotation end;return orientation end
@@ -92,8 +106,8 @@ function M.Wrap(native)
     wrapper={
         native=native,
         isValid=function() return valid end,
-        invalidate=function() valid=false;scoped=false;ClearReads();native=nil;wrapper.native=nil end,
-        beginReadScope=function() ClearReads();scoped=true;return readGuard end,
+        invalidate=function() pending=false;fx,fy,fz,tx,ty,tz=0.0,0.0,0.0,0.0,0.0,0.0;valid=false;scoped=false;ClearReads();native=nil;wrapper.native=nil end,
+        beginReadScope=function() FlushForces();ClearReads();scoped=true;return readGuard end,
         endReadScope=EndReadScope,
         mass=ReadMass,
         bodyType=function() return native.kinematic end,
@@ -120,20 +134,32 @@ function M.Wrap(native)
             local arm=Polar(point)-Center()
             return Unpolar(velocity+spin:CrossProduct(arm))
         end,
-        addForce=function(force) native:ApplyForce(Polar(force)) end,
+        addForce=function(force)
+            if not scoped then native:ApplyForce(Polar(force));return end
+            fx=fx-force.x;fy=fy+force.y;fz=fz+force.z;pending=true
+        end,
         applyImpulse=function(impulse) native:ApplyImpulse(Polar(impulse));linear=nil end,
-        addTorque=function(torque) native:ApplyTorque(Axial(torque)) end,
+        addTorque=function(torque)
+            if not scoped then native:ApplyTorque(Axial(torque));return end
+            tx=tx+torque.x;ty=ty-torque.y;tz=tz-torque.z;pending=true
+        end,
         addFlightAngularAcceleration=inertia and FlightAcceleration or nil,
         applyTorqueImpulse=function(torque) native:ApplyTorqueImpulse(Axial(torque));angular=nil end,
         addForceAtPoint=function(force,point)
-            local f=Polar(force);native:ApplyForce(f);native:ApplyTorque((Polar(point)-Center()):CrossProduct(f))
+            if not scoped then
+                local f=Polar(force);native:ApplyForce(f);native:ApplyTorque((Polar(point)-Center()):CrossProduct(f));return
+            end
+            local c=Center();local ax,ay,az=-force.x,force.y,force.z
+            local rx,ry,rz=-point.x-c.x,point.y-c.y,point.z-c.z
+            fx=fx+ax;fy=fy+ay;fz=fz+az
+            tx=tx+(ry*az-rz*ay);ty=ty+(rz*ax-rx*az);tz=tz+(rx*ay-ry*ax);pending=true
         end,
         applyImpulseAtPoint=function(impulse,point)
             local j=Polar(impulse);native:ApplyImpulse(j);native:ApplyTorqueImpulse((Polar(point)-Center()):CrossProduct(j))
             linear=nil;angular=nil
         end,
-        resetForces=function() native:ResetForces() end,
-        resetTorques=function() native:ResetForces() end,
+        resetForces=function() pending=false;fx,fy,fz,tx,ty,tz=0.0,0.0,0.0,0.0,0.0,0.0;native:ResetForces() end,
+        resetTorques=function() pending=false;fx,fy,fz,tx,ty,tz=0.0,0.0,0.0,0.0,0.0,0.0;native:ResetForces() end,
         setTranslation=Position,
         setRotation=Rotation,
         setNextKinematicTranslation=Position,

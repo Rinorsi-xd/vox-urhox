@@ -4,6 +4,8 @@ local Data=require('core.ResourceData').Read('Combat/DrivingSounds.json')
 local Mix=require 'audio.DrivingMix'
 local V=require 'core.Math3'
 local NEUTRAL={}
+-- Remote loop keys are built once; concatenating them every frame only made garbage.
+local REMOTE={};for _,id in ipairs(Mix.ids) do REMOTE[id]='remote:'..id end
 local Levels=require 'audio.AudioLevels'
 local M={};M.__index=M
 function M.Dependencies()
@@ -40,10 +42,30 @@ function M:Spatial(vehicle)
     local distance=math.sqrt(dx*dx+dy*dy+dz*dz)
     return distance>=240 and 0 or 1/(1+(distance/18)^2),distance>0 and V.Clamp((dx*self.right[1]+dy*self.right[2]+dz*self.right[3])/distance,-.85,.85) or 0
 end
+-- Threshold hysteresis. Below .005 the voice follows exactly the authored release
+-- tail (gain*exp(-dt/release), five tau). If the amount comes back inside that
+-- tail the same voice continues instead of restarting the sample from zero,
+-- which is what made threshold jitter (speed .15, hover force, distance cut)
+-- stutter and churn the 20-source pool. A real release ends at the same time.
+function M:Hold(loop,dt)
+    local step=math.max(0,dt);loop.hold=(loop.hold or 0)+step
+    if loop.hold>=loop.release*5 then
+        loop.released=true;loop.hold=nil;loop.gain=0;loop.source:StopImmediate();Levels.SetGain(loop.source,0);return
+    end
+    loop.gain=loop.gain*math.exp(-step/loop.release)
+    loop.pitch=loop.pitch+(loop.pitchTarget-loop.pitch)*(1-math.exp(-step/.12))
+    loop.pan=loop.pan+(loop.panTarget-loop.pan)*(1-math.exp(-step/.08))
+    Levels.SetGain(loop.source,loop.gain);loop.source.frequency=self.sounds[loop.id]:GetFrequency()*loop.pitch;loop.source.panning=loop.pan
+end
 function M:Loop(key,id,amount,pitch,pan,dt)
     local cue=Data.cues[id];amount=self:Audible() and amount or 0
-    if amount<=.005 then self:ReleaseLoop(key);return false end
     local loop=self.loops[key]
+    if amount<=.005 then
+        if loop and not loop.released and loop.pitchTarget and loop.source.playing then self:Hold(loop,dt)
+        else self:ReleaseLoop(key) end
+        return false
+    end
+    if loop then loop.hold=nil end
     if not loop or loop.released or not loop.source.playing then
         local slot=nil ---@type table|nil
         for _,candidate in ipairs(self.loopSources) do if not candidate.source.playing and candidate.key==key then slot=candidate;break end end
@@ -75,7 +97,7 @@ function M:ReleaseLoop(key)
     local loop=self.loops[key]
     if not loop or loop.released then return end
     -- Releasing removes the active key; a restart must not reclaim its tail.
-    loop.released=true;loop.releaseAge=0;self.loopTails[#self.loopTails+1]=loop
+    loop.released=true;loop.releaseAge=loop.hold or 0;loop.hold=nil;self.loopTails[#self.loopTails+1]=loop
 end
 function M:UpdateLoopTails(dt)
     local step=math.max(0,dt)
@@ -135,7 +157,7 @@ function M:Update(dt,vehicle,command,camera,entries,speaking)
     end
     for i,mix in ipairs(self.localMix) do
         self:Loop(mix.id,mix.id,mix.amount,mix.pitch,0,dt)
-        local best=self.best[i];self:Loop('remote:'..mix.id,mix.id,best.amount,best.pitch,best.pan,dt)
+        local best=self.best[i];self:Loop(REMOTE[mix.id],mix.id,best.amount,best.pitch,best.pan,dt)
     end
     self:UpdateLoopTails(dt)
 end
