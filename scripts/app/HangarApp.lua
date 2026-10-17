@@ -193,26 +193,35 @@ function App:DisplayHeight()
             minY=math.min(minY,p.pos[2]+.5+toe[2])
         end
     end
-    return minY<math.huge and -minY*Config.CELL or 0
+    -- displayLift：GroundDisplay 按真实最低点测出的补偿，升降台落位（HomeVehicleSwitch:Rest）也用这个高度
+    return (minY<math.huge and -minY*Config.CELL or 0)+(self.displayLift or 0)
 end
-function App:GroundDisplay()
-    self.car.root.position=Vector3(0,self:DisplayHeight(),0)
-    for _,vis in pairs(self.car.visuals) do
-        if vis.rig and vis.rig.mech then MechView.StandOn(vis,0) end
-    end
-    -- 格子最低点不含伸出格子下方的大轮子/悬浮件，大车会陷进地面：按实际模型包围盒再抬到地面上
+-- 车上所有可见模型的世界最低点（腿、轮子、悬浮件都算）
+local function LowestPoint(root)
     local low=math.huge
     for _,kind in ipairs({'StaticModel','AnimatedModel'}) do
-        for _,model in ipairs(self.car.root:GetComponents(kind,true)) do
-            if model.enabled and model.node.enabled and model.model then
-                local box=model.worldBoundingBox
-                if box.defined and box.min.y<low then low=box.min.y end
+        for _,model in ipairs(root:GetComponents(kind,true)) do
+            if model.model and model:IsEnabledEffective() then
+                local y=model.worldBoundingBox.min.y
+                if y<low then low=y end
             end
         end
     end
-    if low<-.01 and low>-20 then
-        local p=self.car.root.position;self.car.root.position=Vector3(p.x,p.y-low,p.z)
-        print(string.format('[HangarApp] Display lifted %.2f m to clear the floor',-low))
+    return low
+end
+function App:GroundDisplay()
+    self.displayLift=0
+    self.car.root.position=Vector3(0,self:DisplayHeight(),0)
+    -- 摆放高度按脚趾关节算，长腿机甲的整条腿会埋进地里（实测人形机兵最低点在地下 6.5 米）。
+    -- 摆好站姿后按真实最低点抬到地面；抬高后腿会从收起变回伸直，再解一次站姿，直到稳定
+    for pass=1,4 do
+        for _,vis in pairs(self.car.visuals) do
+            if vis.rig and vis.rig.mech then MechView.StandOn(vis,0) end
+        end
+        local low=LowestPoint(self.car.root)
+        if low>=-.01 or low<-50 then break end
+        self.displayLift=self.displayLift-low;self.car.root.position=Vector3(0,self:DisplayHeight(),0)
+        print(string.format('[HangarApp] Display lifted %.2f m to the floor (pass %d)',-low,pass))
     end
 end
 function App:LoadBlueprint(data)
