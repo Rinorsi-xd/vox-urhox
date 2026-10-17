@@ -138,6 +138,7 @@ function M:Update(dt)
     if advanceTime then self.run:AdvancePresentationTime(presentationDt) end
 end
 function M:Camera()
+    self.view:GuardCamera(self.session.camera:GetNode(),not self.playing)
     if not self.playing then return end
     local r=self.shot;if r.w<=.001 then return end
     local camera=self.session.camera:GetCamera();local node=camera.node;local p,q=node.position,node.rotation

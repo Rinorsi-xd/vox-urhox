@@ -68,12 +68,19 @@ function M:Snapshot()
  return {active=self.active,time=self.time,prepared=self.prepared,voiceUntil=self.voiceUntil,voice=Source(self.voice),music=music}
 end
 function M:Sfx(id,opt)
+ if not self.active then return end
  opt=opt or {}
  local variant=opt.lowpass and self.data.audioDsp and self.data.audioDsp[id..':'..tostring(opt.lowpass)]
  local sound=variant and self.sounds[variant] or self.sounds[id] or self.sounds['sfx_'..id];if not sound then return end
  local slot=nil
- for _,candidate in ipairs(self.sources) do if not candidate.source.playing then slot=candidate;break end end
- if not slot then slot=self.sources[1] end
+ for _,candidate in ipairs(self.sources) do
+  if not candidate.source.playing and not candidate.source.fadingOut and not candidate.stopAt and not candidate.fadeWallAt then slot=candidate;break end
+ end
+ -- Preserve authored overlap and pending stop handles; reuse the idle high-water pool.
+ if not slot then
+  local source=self.root:CreateComponent('SoundSource');source:SetSoundType('VoxIntroSfx')
+  slot={source=source};self.sources[#self.sources+1]=slot
+ end
  slot.source:StopImmediate();slot.stopFade=nil;slot.fadeWallAt=nil;self.sfxSerial=self.sfxSerial+1;slot.token=self.sfxSerial;sound:SetLooped(opt.loop==true)
  local norm=loud[id] and math.min(2,10^((-12-loud[id])/20)) or 1
  slot.base=(opt.vol or 1)*norm*.9
@@ -191,8 +198,11 @@ end
 function M:Dispose()
  if not self.active then return end;self.active=false
  for _,off in ipairs(self.unwatch) do off() end;self.unwatch={}
- for _,s in ipairs(self.voices) do s.source:StopImmediate() end;for _,s in ipairs(self.sources) do s.source:StopImmediate() end
- for _,s in ipairs(self.music) do s.source:StopImmediate() end
+ -- Retained Lua source handles outlive Scene disposal; detach and release each owner.
+ local function Release(slots)
+  for _,slot in ipairs(slots) do slot.source:StopImmediate();slot.source:Remove();slot.source:Dispose() end
+ end
+ Release(self.voices);Release(self.sources);Release(self.music)
  self.scene:Dispose();self.sounds={}
 end
 return M

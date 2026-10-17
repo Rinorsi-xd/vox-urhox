@@ -1,0 +1,25 @@
+'use strict';
+const assert=require('node:assert/strict');
+const {chunks,verifyResult}=require('./g1-web-cpu-run.cjs');
+let checks=0;
+const reject=fn=>{assert.throws(fn);checks++};
+const good=chunks();good.add({index:2,count:2,data:'true}'});good.add({index:1,count:2,data:'{"ok":'});assert.deepEqual(good.result(),{ok:true});checks++;
+reject(()=>good.add({index:1,count:2,data:''}));
+reject(()=>chunks().add({index:0,count:2,data:''}));
+reject(()=>chunks().add({index:1,count:0,data:''}));
+reject(()=>chunks().add({index:1,count:1,data:'a'.repeat(3501)}));
+reject(()=>{const c=chunks();c.add({index:1,count:2,data:''});c.add({index:2,count:3,data:''})});
+reject(()=>{const c=chunks();c.add({index:1,count:2,data:'{}'});c.result()});
+reject(()=>{const c=chunks();c.add({index:1,count:1,data:'bad JSON'});c.result()});
+const configuration={seed:1016,mode:'timing',scenario:'lanes',steps:60,warmup:0,snapshotEvery:60};
+const identity={g1WebCpu:{configuration}};
+const result={status:'PASS',configuration,vehicles:6,steps:60,samplesMs:Array(60).fill(7),expectedPhysicsSteps:60,expectedVehicleStepCalls:360,
+ totalMs:420,metadata:Array(6).fill({}),randomTail:Array(32).fill(.5),snapshots:[{}],scopes:{}};
+verifyResult(result,identity);checks++;
+for(const bad of [{vehicles:5},{totalMs:419},{status:'FAIL'},{expectedVehicleStepCalls:359},{scopes:{unexpected:1}}])reject(()=>verifyResult({...result,...bad},identity));
+const damageConfig={...configuration,scenario:'damage'};
+const cases=[['raceCar',false],['raceCar',true],['megaMech',false],['megaMech',true],['bridge-detach',false]];
+const damageResult={status:'PASS',configuration:damageConfig,damage:{randomTail:Array(32).fill(.5),fixtures:cases.map(([name,combat])=>({name,combat,stages:name==='bridge-detach'?[{alive:true,partsAfter:2,debrisPieces:1,flushScopes:false},{alive:false,partsAfter:1,debrisPieces:2,flushScopes:false}]:[{alive:false,partsAfter:2,debrisPieces:2,flushScopes:false}]}))}};
+verifyResult(damageResult,{g1WebCpu:{configuration:damageConfig}});checks++;
+reject(()=>verifyResult({...damageResult,damage:{...damageResult.damage,fixtures:damageResult.damage.fixtures.slice(0,4)}},{g1WebCpu:{configuration:damageConfig}}));
+console.log(JSON.stringify({status:'PASS',checks,boundary:'Offline transport/result rejection controls only. No engine, browser or performance measurement.'}));

@@ -11,6 +11,7 @@ local RotorMotion=require("drive.RotorMotion")
 local SalvageLootMotion=require("ui.SalvageLootMotion")
 local ResourceData=require("core.ResourceData")
 local PlayerViewSync=require("combat.PlayerViewSync")
+local ResultReturn=require("salvage.ResultReturn")
 
 local Data=require('core.ResourceData').Read('Salvage/RunData.json')
 local Loot=require 'salvage.Loot'
@@ -117,7 +118,7 @@ function M:BeforeStep(dt,command,aim)
                 if u==self.player then cmd.strafe=0 end -- E belongs to source salvage interaction.
                 DriverActions.Apply(u,driverInfo)
                 local v=u.vehicle;v:StepRotors(target,cmd.rotorStep,dt);RotorMotion.Weapons(v.rotors,u.weapons)
-                v:Step(cmd,dt);local p,velocity=v.body.translation(),v.body.linvel()
+                v:Step(cmd,dt);u:RegenerateStructure(dt);local p,velocity=v.body.translation(),v.body.linvel()
                 u.weapons:Step(dt,{firing=firing,aim=target,pos={p.x,p.y,p.z},quat=v.body.rotation(),vel={velocity.x,velocity.y,velocity.z},body=v.body,team=u.team,salvo=driverInfo and driverInfo.salvo},entry.env)
                 self.session.effects:Consume(u.weapons.fx,u~=self.player);self.session.weaponAudio:Consume(u.weapons.fx,u~=self.player)
                 if p.y< -300 then u.kill='掉出地图';u.dirty=true;u:Flush() end
@@ -128,7 +129,9 @@ end
 function M:AfterStep(dt)
     if not self.begun or self.rules.finished then self:TouchContext();return end
     if not self.landed then self.cine:HoldCar();return end
-    for i=#self.entries,2,-1 do local e=self.entries[i];local u=e.unit
+    -- Preserve H5 Map insertion order; removal shifts the next actor into this slot.
+    local i=2
+    while i<=#self.entries do local e=self.entries[i];local u=e.unit
         if not u.alive then
             self.explosion:Explode(u:Position(),math.min(5,(u.spec.bounds.radius or 3)*.8),u.elite)
             self.rules.kills=self.rules.kills+1
@@ -136,7 +139,7 @@ function M:AfterStep(dt)
             self:Feed(u.elite and '击毁精英' or '击毁',u.name..(e.why and ' · '..e.why..'，当场炸了' or '')..' · 残骸可以拆',u.elite and '#ff3420' or '#ff8a6a')
             self.rules:Heat(2)
             if e.enc then self.director:Alert(e.enc,'同伴被打爆') end;self.director:Remove(e)
-        end
+        else i=i+1 end
     end
     local u=self.player;local b=u.spec.bounds;local pos=u:Position()
     if not self.protectionEnded and self.rules.time+dt>8 then
@@ -238,7 +241,7 @@ function M:Airdrop()
         end
     end
 end
-function M:Finish(ok,title,keepCar,exit)
+function M:Finish(ok,title,keepCar,exit,disposing)
     if self.result then return self.committed end
     if self.cine.playing then
         self.cine:ReleaseCar();self.cine.current=nil;self.cine.playing=false;self.cine.blocking=false;self.cine.barsOn=false;self.cine.skipOn=false;self.cine.captionTitle=nil
@@ -257,7 +260,9 @@ function M:Finish(ok,title,keepCar,exit)
     -- Source consumes the extraction token before showing cargo; failure clears
     -- the hold. Keep the finished world's inventory equal to its retained result.
     self.rules.cargo=self.result.cargo
-    self.session:Pause();return self:Commit()
+    self.returnDelay=.25
+    if not disposing then self.session:Pause() end
+    return self:Commit()
 end
 function M:Commit()
     if self.committed then return true end
@@ -265,14 +270,15 @@ function M:Commit()
     self.committed=ok;self.saveError=not ok and tostring(err) or nil;return ok
 end
 function M:Return()
-    if self.cine.current and (self.cine.current.name=='extract' or self.cine.current.name=='death') then return false end
-    if not self.result then self:Finish(false,'放弃行动',true);return false end
-    return self.committed or self:Commit()
+    local abandoned=not self.result
+    if abandoned then self:Finish(false,'放弃行动',true) end
+    ResultReturn.Queue(self,abandoned and .2 or 0)
+    return true
 end
 function M:Key(key)
     if self.cine.blocking then
         if key==KEY_SPACE then self.cine:Skip() end
-        return self.cine.current.name~='drop' or key~=KEY_ESCAPE and key~=KEY_T
+        return key~=KEY_ESCAPE and key~=KEY_T
     end
     if self.rules.finished then if key==KEY_RETURN then self.session.wantsReturn=true end;return key~=KEY_ESCAPE and key~=KEY_T end
     if key==KEY_E then self.tapE=true;return true end
@@ -285,6 +291,12 @@ function M:Snapshot() return {time=self.rules.time,heat=self.rules.heat,cargo=se
     extracts=self.rules.extracts,objective=self.hudObjective,threat=self.threat,lootPulse=self.lootPulse,flights=#(self.lootFlights or {}),audio=self.audio:Snapshot(),cine=self.cine:Snapshot(),result=self.result,committed=self.committed,saveError=self.saveError} end
 function M:Dispose()
     if self.disposed then return end;self.disposed=true
+    if self.begun and not self.result and not self.rules.finished then
+        -- H5 dispose treats F5/scene replacement as abandonment as well.
+        self:Finish(false,'放弃行动',true,nil,true);ResultReturn.Queue(self,.2)
+    elseif self.result then
+        ResultReturn.Queue(self,0)
+    end
     self.pendingBroadcasts=nil
     -- Cinematics must release the held Bullet body before units/world go away.
     if self.cine then self.cine:Dispose() end

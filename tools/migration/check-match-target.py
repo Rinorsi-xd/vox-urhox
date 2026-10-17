@@ -19,7 +19,8 @@ proc = subprocess.run([node, '--experimental-vm-modules', str(root / 'tools/migr
 golden = json.loads(proc.stdout)
 paths = ['scripts/combat/MatchTarget.lua', 'scripts/combat/BattleObjectives.lua',
          'scripts/combat/EnemyDriverNav.lua', 'scripts/combat/EnemyDriverMath.lua',
-         'scripts/combat/BattleController.lua']
+         'scripts/combat/BattleController.lua', 'scripts/combat/ShieldQuery.lua',
+         'scripts/core/Math3.lua']
 before = {name: hashlib.sha256((root / name).read_bytes()).hexdigest() for name in paths}
 lua = LuaRuntime(unpack_returned_tuples=True)
 def convert(value):
@@ -45,7 +46,7 @@ report = {'result': 'FAIL' if failures else 'PASS', 'sourceCommit': golden['sour
           'sourceHashes': golden['hashes'], 'productionHashes': before, 'runtime': lua.lua_implementation,
           'checks': checks, 'failures': [plain(row) for row in failures],
           'sourceExecution': 'vm.SourceTextModule evaluates unchanged imports plus appended mode-class exports. Actual frozen shared driver, match rules and shield-query modules; unrelated engine/audio/UI imports are SyntheticModule stubs.',
-          'boundary': 'Actual Lua MatchTarget, EnemyDriverNav.Visible, BattleObjectives.Goal/At and source module methods. Controlled world ray hits and units. No GPU, actual physics, browser, frame-rate, visual or natural-match acceptance.'}
+          'boundary': 'Actual Lua MatchTarget, EnemyDriverNav.Visible, ShieldQuery, BattleObjectives.Goal/At and source module methods. Controlled world ray hits and units; unused hoisted constructor dependencies are strict fail-on-access sentinels. No constructors, full BeforeStep, GPU, actual physics, browser, frame-rate, visual or natural-match acceptance.'}
 out = root / 'docs/migration/evidence/match-target-offline.json'
 out.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
 print(json.dumps({'result': report['result'], 'checks': len(checks), 'failures': len(failures), 'evidence': str(out)}))

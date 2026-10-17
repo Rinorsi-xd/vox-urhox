@@ -42,8 +42,9 @@ function Button:Render(vg)
             if selected then D.Rect(vg,0,0,4,h,{155,215,250,255}) end
         elseif p.kind=='segment' then D.Text(vg,p.text or '',w/2,(h-12)/2,12,color,'vox-title',NVG_ALIGN_CENTER)
         elseif p.row then
-            local label=p.narrow and '' or p.text or '';local iw=p.icon and 18 or 0;local tw=D.Width(vg,label,15,'vox-title',1);local x=(w-iw-(label~='' and 7+tw or 0))/2
-            if p.icon then D.Icon(vg,p.icon,x,(h-18)/2,18,color) end;if label~='' then D.Text(vg,label,x+iw+7,(h-15)/2,15,color,'vox-title',nil,1) end
+            local split=p.icon=='liftUp' or p.icon=='liftDown';local size=split and 13 or 15;local iconSize=split and 16 or 18;local gap=split and 5 or 7
+            local label=p.narrow and '' or p.text or '';local iw=p.icon and iconSize or 0;local tw=D.Width(vg,label,size,'vox-title',1);local x=(w-iw-(label~='' and gap+tw or 0))/2
+            if p.icon then D.Icon(vg,p.icon,x,(h-iconSize)/2,iconSize,color) end;if label~='' then D.Text(vg,label,x+iw+gap,(h-size)/2,size,color,'vox-title',nil,1) end
         else
             if p.hex then local c=p.hex;D.Path(vg,Cut((w-22)/2,4,22,20,5));nvgFillColor(vg,nvgRGBA((c>>16)&255,(c>>8)&255,c&255,255));nvgFill(vg)
                 if p.auto then nvgSave(vg);nvgIntersectScissor(vg,(w-22)/2,4,22,20);for x=(w-22)/2-20,(w+22)/2,8 do D.Path(vg,{x,4,x+4,4,x+24,24,x+20,24});nvgFillColor(vg,nvgRGBA(213,221,229,255));nvgFill(vg) end;nvgRestore(vg) end
@@ -63,7 +64,7 @@ function Surface:Render(vg)
         nvgBeginPath(vg);nvgCircle(vg,r.x+radius,r.y+radius,radius-thickness/2);nvgStrokeWidth(vg,thickness);nvgStrokeColor(vg,nvgRGBA(255,255,255,31));nvgStroke(vg)
         local progress=math.max(0,math.min(1,self.props.progress or 0));if progress>0 then nvgBeginPath(vg);nvgArc(vg,r.x+radius,r.y+radius,radius-thickness/2,-math.pi/2,-math.pi/2+math.pi*2*progress,NVG_CW);nvgStrokeWidth(vg,thickness);nvgStrokeColor(vg,nvgRGBA(255,138,106,255));nvgStroke(vg) end
     elseif self.props.kind=='separator' then D.Rect(vg,r.x,r.y,r.w,r.h,{105,137,167,128})
-    elseif self.props.kind=='label' then D.Text(vg,self.props.text or '',r.x,r.y,10*s,{159,186,210,255},'vox-title',nil,2*s)
+    elseif self.props.kind=='label' then D.Text(vg,self.props.text or '',r.x+8*s,r.y+(r.h-10*s)/2,10*s,{159,186,210,255},'vox-title',nil,2*s)
     elseif self.props.kind=='hint' then D.Text(vg,self.props.text or '',r.x+r.w/2,r.y,12*s,{215,233,248,255},'vox-title',NVG_ALIGN_CENTER,1*s) end
 end
 return M

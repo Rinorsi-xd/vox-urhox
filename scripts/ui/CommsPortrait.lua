@@ -2,7 +2,6 @@
 local RenderTargetLifetime=require("render.RenderTargetLifetime")
 
 local Layout=require 'ui.CommsPortraitLayout'
-local Platform=require 'urhox-libs.Platform.PlatformUtils'
 ---@class CommsPortrait
 ---@field who string
 ---@field width integer
@@ -77,9 +76,6 @@ function M:Draw(vg,r)
     local handles=self.images[vg]
     if not handles then handles={nvgCreateVideo(vg,self.textures[1]),nvgCreateVideo(vg,self.textures[2])};self.images[vg]=handles end
     nvgSave(vg)
-    -- The Web spatial target reaches the NanoVG bridge upside down. Transform
-    -- coverage and RGB together; native targets already have the right direction.
-    if Platform.IsWebPlatform() then nvgTranslate(vg,0,r.y*2+r.h);nvgScale(vg,1,-1) end
     nvgBeginPath(vg);nvgRect(vg,r.x,r.y,r.w,r.h)
     nvgFillPaint(vg,nvgImagePatternTinted(vg,r.x,r.y,r.w,r.h,0,handles[1],nvgRGBA(0,0,0,255)));nvgFill(vg)
     nvgGlobalCompositeBlendFuncSeparate(vg,NVG_ONE,NVG_ONE,NVG_ZERO,NVG_ONE)

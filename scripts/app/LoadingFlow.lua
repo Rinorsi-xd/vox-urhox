@@ -10,6 +10,10 @@ local MatchLobby=require("ui.MatchLobby")
 local PlatformUtils=require("urhox-libs.Platform.PlatformUtils")
 local SceneWarmup=require("render.SceneWarmup")
 local CombatWarmup=require("render.CombatWarmup")
+local HangarAtmosphere=require("scene.HangarAtmosphere")
+local HangarFxWarmup=require 'render.HangarFxWarmup'
+local CommsWarmup=require 'ui.CommsWarmup'
+local TutorialFirstLine=require 'story.TutorialFirstLine'
 
 local UI=require 'urhox-libs/UI'
 local M={};M.__index=M
@@ -106,6 +110,12 @@ function M:PrepareScene()
     self.scenePrepared=true
     if self.app.scene and PlatformUtils.IsWebPlatform() then
         if self.renderWarmup then self.renderWarmup:Restore() end
+        local hangar=self:VisibleHangar()
+        if hangar then
+            -- Apply the current grid visibility before disabled drawables are
+            -- filtered. Zero dt leaves grid/frame interpolation unchanged.
+            hangar:UpdateGrid(0)
+        end
         local viewport=renderer:GetViewport(0)
         self.sceneWarmupAt=Time:GetSystemTime()
         self.renderWarmup=SceneWarmup.New(self.app.scene,nil,viewport and viewport.camera)
@@ -116,6 +126,27 @@ function M:PrepareScene()
         self.combatWarmupPending=self.app.trial~=nil
     end
 end
+function M:VisibleHangar()
+    local app=self.app;local hangar=app.hangar;local camera=app.camera
+    if hangar and not hangar.disposed and hangar.scene==app.scene and hangar.root and hangar.root.enabled
+        and camera and camera.node and camera.camera then return hangar end
+end
+function M:PrepareHangarWarmup()
+    if not self:VisibleHangar() then return end
+    local ok,warmup=pcall(HangarFxWarmup.New,self.app.scene,self.app.camera.camera)
+    if not ok then self:Fail(warmup);return end
+    self.hangarFxWarmup=warmup;self.hangarFxWarmupAt=Time:GetSystemTime()
+    local who,face=TutorialFirstLine.Pick(self.app.tutorial,self.app)
+    if who then
+        local started,portrait,message=pcall(CommsWarmup.Begin,who,face)
+        if not started or not portrait then self:Fail(started and message or portrait);return end
+        self.commsWarmup=portrait;self.commsWarmupAt=Time:GetSystemTime()
+    end
+end
+function M:ClearHangarWarmup()
+    if self.hangarFxWarmup then self.hangarFxWarmup:Dispose();self.hangarFxWarmup=nil end
+    if self.commsWarmup then self.commsWarmup:Dispose();self.commsWarmup=nil end
+end
 function M:Rendered()
     if not self.active or self.failed then return end
     if self.renderWarmup then
@@ -125,6 +156,35 @@ function M:Rendered()
             self.warmupTimes.batches=self.renderWarmup.batches
             print('[LoadingFlow] Render warm-up batches='..self.renderWarmup.batches..' elapsedMs='..self.warmupTimes.sceneMs)
             self.renderWarmup=nil
+            local hangar=self:VisibleHangar()
+            if hangar and hangar.reflTex and hangar.reflFilter then
+                -- Batched warmup hides off-camera geometry. Render the real
+                -- reflected view once more after every original mask returns.
+                local camera=self.app.camera
+                hangar.nextReflection=hangar.time
+                HangarAtmosphere.Update(hangar,camera.node,camera.camera,hangar.time)
+            end
+            self:PrepareHangarWarmup()
+        end
+        return
+    end
+    if self.hangarFxWarmup then
+        local ok,done=pcall(self.hangarFxWarmup.Presented,self.hangarFxWarmup)
+        if not ok then self:Fail(done);return end
+        if done then
+            self.warmupTimes.hangarFxMs=math.max(0,Time:GetSystemTime()-self.hangarFxWarmupAt)
+            print('[LoadingFlow] Hangar FX warm-up elapsedMs='..self.warmupTimes.hangarFxMs)
+            self.hangarFxWarmup=nil
+        end
+        return
+    end
+    if self.commsWarmup then
+        local ok,done,message=pcall(self.commsWarmup.Presented,self.commsWarmup)
+        if not ok or message then self:Fail(ok and message or done);return end
+        if done then
+            self.warmupTimes.commsMs=math.max(0,Time:GetSystemTime()-self.commsWarmupAt)
+            print('[LoadingFlow] Communications warm-up elapsedMs='..self.warmupTimes.commsMs)
+            self.commsWarmup:Dispose();self.commsWarmup=nil
         end
         return
     end
@@ -169,6 +229,7 @@ function M:CanStartLoad()
 end
 function M:Fail(message)
     if not self.active then return end
+    self:ClearHangarWarmup()
     self.combatWarmupPending=false
     if self.combatWarmup then self.combatWarmup:Dispose();self.combatWarmup=nil end
     if self.renderWarmup then self.renderWarmup:Restore();self.renderWarmup=nil end
@@ -178,10 +239,12 @@ end
 function M:Back()
     if not self.active or self.phase=='exit-cover' or self.phase=='exit-reveal' then return end
     if self.map.boot then return end
-    if self.finished and not self.failed or self.match and self.match.stage=='found' then return end
+    if not self.failed and (self.finished or self.match and self.match.stage=='found') then return end
+    self:ClearHangarWarmup()
     local back=self.onBack;self.onBack=nil
-    if back then back() end
+    -- Recovery can open a replacement flow; never overwrite it after callback.
     self.phase='exit-cover';self.time=0;self.cancelled=true
+    if back then back() end
 end
 function M:Retry()
     if self.active and self.failed and self.map.boot then self.app:Reload() end
@@ -217,6 +280,7 @@ function M:Advance(dt)
 end
 function M:Close()
     local wasActive=self.active
+    self:ClearHangarWarmup()
     self.combatWarmupPending=false
     if self.combatWarmup then self.combatWarmup:Dispose();self.combatWarmup=nil end
     if self.renderWarmup then self.renderWarmup:Restore();self.renderWarmup=nil end
@@ -230,7 +294,7 @@ function M:Close()
         if trial and trial.salvage and self.finished and not self.cancelled and not self.failed then trial.salvage:Begin();if trial.touch then trial:Resume() end
         elseif trial and trial.story and self.finished and not self.cancelled and not self.failed then trial.story:Begin();if trial.touch then trial:Resume() end
         elseif trial and self.match and self.finished and not self.cancelled and not self.failed then trial:StartIntro()
-        elseif trial and trial.touch then trial:Resume() end
+        elseif trial and trial.touch and not self.failed then trial:Resume() end
         print('[LoadingFlow] Closed')
     end
     self.match=nil

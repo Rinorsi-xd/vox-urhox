@@ -15,6 +15,9 @@ end
 local function Button(id,label) return {id=id,label=label} end
 function M.Sections(app,state)
     local where,s=M.Context(app);local sections={};local function Add(title,buttons) sections[#sections+1]={title=title,buttons=buttons} end
+    if app.performanceControls then
+        Add('00 // 性能',{Button('perfVisible',app.performanceControls.IsVisible() and '隐藏性能面板' or '显示性能面板'),Button('perfMark','标记本次卡顿')})
+    end
     Add('01 // 开场 · 引导',{
         Button('intro','从头播开场'),Button('introContract','直接签约'),Button('introGate','直接看闸门'),
         Button('tutStart','开始新手引导'),Button('tutStop','结束引导'),Button('tutReset','清引导记录')})
@@ -109,7 +112,10 @@ function M.Execute(app,state,action)
     local id,arg=action:match('^([^:]+):?(.*)$');local _,s=M.Context(app);local h=Home();local p=s and s.combat and s.combat.player
     local m=s and s.story;local b=s and s.battle;local r=m and m.rules
     local tut=app.tutorial
-    if id=='intro' or id=='introContract' or id=='introGate' then
+    if id=='perfVisible' and app.performanceControls then
+        app.performanceControls.SetVisible(not app.performanceControls.IsVisible());return true
+    elseif id=='perfMark' and app.performanceControls then return app.performanceControls.Mark()
+    elseif id=='intro' or id=='introContract' or id=='introGate' then
         if app.trial then return false,'请先退出当前驾驶' end
         local part=id=='introContract' and 'contract' or id=='introGate' and 'gate' or ''
         if app.opening and app.opening.active then

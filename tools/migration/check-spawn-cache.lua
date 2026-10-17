@@ -83,6 +83,19 @@ local v=Unit.New(env,altered,config);Check(v.alive and calls==1,'actual CarUnit 
 Spec.Build=specBuild
 package.loaded['combat.EnemyDriver']={New=function() return {} end}
 package.loaded['render.StoryStomp']={Emit=function() end}
+-- This suite calls only Mission's data preparation/spawn/disposal methods.
+-- Native presentation must fail if entered, rather than inventing UI enums.
+local presentationBoundaries={}
+for _,name in ipairs({'render.SpawnViewCache','ui.Epilogue'}) do
+    local boundary=name
+    package.loaded[boundary]=setmetatable({},{__index=function(_,method)
+        error('Spawn-cache data suite entered native presentation: '..boundary..'.'..tostring(method),0)
+    end})
+    local ok,why=pcall(function() return package.loaded[boundary].New end)
+    Check(not ok and tostring(why):find(boundary..'.New',1,true),'native presentation boundary rejects entry '..boundary)
+    presentationBoundaries[#presentationBoundaries+1]=boundary
+end
+spawn_cache_presentation_boundaries=presentationBoundaries
 local Mission=require 'story.Mission'
 local Data=require 'story.MissionData';local Arena=require 'combat.ArenaData'
 for levelNo,level in ipairs(Data.levels) do

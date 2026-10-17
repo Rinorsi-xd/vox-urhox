@@ -390,7 +390,12 @@ function M:Projectiles(dt)
                 if d<=ms.r+2 then local origin=V.Add(boom,{0,1,0});local delta=V.Sub(center,origin);local len=V.Length(delta);local los=self.world:CastRay(origin,V.Normalize(delta),len,nil)
                     if not los or los.owner and los.owner.ref==u or los.dist>=len-2 then
                         self.world.attacker=self.unit;u:Explode(boom,ms.r,ms.damage);self.world.attacker=nil;u:Flush()
-                        if u==self.mission.player then self.mission.rules.stats.missileHits=(self.mission.rules.stats.missileHits or 0)+1 end
+                        if u==self.mission.player then
+                            self.mission.rules.stats.missileHits=(self.mission.rules.stats.missileHits or 0)+1
+                            self.session.trauma=math.max(self.session.trauma or 0,.35)
+                            local roof=self.world:CastRay(V.Add(u:Position(),{0,4,0}),{0,1,0},90,u.vehicle and u.vehicle.body)
+                            if not roof or roof.owner and roof.owner.ref==self.unit then self:Once('outside') end
+                        end
                     end
                 end
             end

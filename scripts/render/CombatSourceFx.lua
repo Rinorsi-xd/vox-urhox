@@ -13,7 +13,9 @@ function M.Bolt(streak,glow,p,color)
     local function Back(d)return At(p.pos,dir,-math.min(d,p.dist+.05))end
     streak:Segment(Back(len),p.pos,(.2+t*.025)*k,color.glow,.55*flick,.3,0,1,true,.97)
     streak:Segment(Back(len*.75),p.pos,(.075+t*.01)*k,color.core,1,.75,0,1,true,.95)
-    glow(p.pos,(.2+t*.025)*k*flick,color.inner);glow(p.pos,(.08+t*.01)*k,color.core)
+    if not p.adsOwnProjectile then
+        glow(p.pos,(.2+t*.025)*k*flick,color.inner);glow(p.pos,(.08+t*.01)*k,color.core)
+    end
 end
 function M.ForwardSparks(f,p,dir,n,speed,jitter,spread,color,size,life,drag)
     for _=1,n do

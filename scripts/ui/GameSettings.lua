@@ -11,6 +11,7 @@ end})
 
 local M={}
 function M.Open(owner)
+    if owner.app.debugPanel and owner.app.debugPanel.open then owner.app.debugPanel:SetOpen(false) end
     if owner.dialog and owner.dialog.unifiedSettings then return owner.dialog end
     if owner.Pause then owner:Pause() end
     return DeferredModules['ui.PauseMenu'].Open(owner,{inGame=owner.combat~=nil,unified=true})

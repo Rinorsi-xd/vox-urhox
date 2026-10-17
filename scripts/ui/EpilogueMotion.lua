@@ -7,6 +7,17 @@ function M.Approval(age)
     return 2.4-1.4*Ease(elapsed/.22,.2,1.6,.4,1),.9*Ease(elapsed/.15,.25,.1,.25,1)
 end
 function M.OutroAlpha(age) return 1-Ease(age/.8,.25,.1,.25,1) end
+function M.Panel(age)
+    local eased=Ease(age/.32,.2,.9,.3,1.05)
+    return eased,-4*(1-eased),math.max(0,math.min(1,eased))
+end
+function M.Impact(age,delay,rotation)
+    local eased=Ease((age-delay)/.22,.2,.9,.3,1.3)
+    return 2.4-1.4*eased,(rotation or -6)-12*(1-eased),math.max(0,math.min(1,eased))
+end
+function M.Character(age,height)
+    return .02*height*(1-Ease(age/1.6,.2,.8,.2,1))
+end
 function M.New() return setmetatable({pages={},current=nil},M) end
 function M:Add(entry,newPage,now)
     now=now or M.Now()

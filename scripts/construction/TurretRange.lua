@@ -218,4 +218,74 @@ function M.Text(range)
     local a,b=Round(range.hi/DEG),-Round(range.lo/DEG)
     return '转不了一整圈：一边最多 '..math.max(a,b)..'°，另一边最多 '..math.min(a,b)..'°'
 end
+-- Isolated candidate suffix: scene-owned snapshots, independent per-unit caches.
+local capturedCaches=setmetatable({},{__mode='k'})
+local function Layout(bp,owner)
+    local out={}
+    for _,p in ipairs(bp:List()) do
+        local row={id=p.id,type=p.type,rot=p.rot,owner=owner and owner[p.id],position=string.pack('>ddd',table.unpack(p.pos)),
+            signature=p.type..':'..p.rot..':'..table.concat(p.pos,',')..':'..tostring(owner and owner[p.id])}
+        for _,field in ipairs({'_cells','cells'}) do
+            local cells=p[field]
+            if cells then
+                local encoded={}
+                for _,cell in ipairs(cells) do
+                    encoded[#encoded+1]=string.pack('>ddd',cell[1],cell[2],cell[3])
+                end
+                row[field]=table.concat(encoded)
+            end
+        end
+        out[#out+1]=row
+    end
+    return out
+end
+local function SameLayout(a,b)
+    if #a~=#b then return false end
+    for i,row in ipairs(a) do
+        local other=b[i]
+        if row.id~=other.id or row.type~=other.type or row.rot~=other.rot or row.owner~=other.owner or row.position~=other.position
+            or row.signature~=other.signature or row._cells~=other._cells or row.cells~=other.cells then return false end
+    end
+    return true
+end
+local function CopyCache(state,checkpoint)
+    local memo={}
+    -- Definitions and samples already have module-global immutable ownership.
+    -- Packed ray strings are immutable; partially traced ray tables are copied.
+    for _,entry in pairs(state.entries) do
+        local context=entry.context
+        if context then memo[context.def]=context.def;memo[context.samples]=context.samples end
+    end
+    local function Copy(value)
+        if type(value)~='table' then return value end
+        if memo[value] then return memo[value] end
+        local out={};memo[value]=out
+        for key,item in pairs(value) do out[Copy(key)]=Copy(item) end
+        if checkpoint then checkpoint() end
+        return out
+    end
+    return Copy(state)
+end
+function M.Capture(bp,owner,checkpoint)
+    local state=cached[bp];if not state then return nil end
+    local layout=Layout(bp,owner)
+    local count=0
+    for _,row in ipairs(layout) do
+        if state.signatures[row.id]~=row.signature then return nil end
+        count=count+1
+    end
+    for _ in pairs(state.signatures) do count=count-1 end
+    if count~=0 then return nil end
+    local snapshot=CopyCache(state,checkpoint)
+    if not SameLayout(layout,Layout(bp,owner)) then return nil end
+    local token={};capturedCaches[token]={state=snapshot,layout=layout}
+    return token
+end
+function M.Adopt(bp,owner,token)
+    local snapshot=capturedCaches[token]
+    if not snapshot or not SameLayout(snapshot.layout,Layout(bp,owner)) then return false end
+    cached[bp]=CopyCache(snapshot.state)
+    return true
+end
+
 return M

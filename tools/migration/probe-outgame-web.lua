@@ -121,6 +121,7 @@ local function WrapUpdateTiming(object,method,label,audioApp,options)
     end
 end
 local function EnsureUpdateTiming(app)
+    if VOX_QA_FRAME_PIPELINE then return end
     if not app or app.stopped then return end
     ObserveAudioPreparation(app)
     -- Engine require caches need not appear in package.loaded. Bind the actual
@@ -229,6 +230,52 @@ local function BattleTimingState() return battleTiming end
 VOX_SKIP_TUTORIAL=true
 VOX_CLOUD_VALIDATION=true
 local UI=require 'urhox-libs/UI'
+-- QA_OVERLAY_SNAPSHOT_BEGIN
+local function OverlayState(app,home)
+    local top=UI.GetTopOverlay()
+    if not top then return {present=false,stack={},buttons={},texts={}} end
+    local function Identity(widget)
+        local props=widget.props or {}
+        local data={className=widget._className or '',id=props.id or '',title=props.title or '',
+            text=props.text or '',visible=widget:IsVisible(),pointerEvents=props.pointerEvents or '',owner='unknown'}
+        local debug=app and app.debugPanel
+        if debug and debug.page==widget then
+            data.owner='app.debugPanel';data.registeredName='vox-debug';data.open=debug.open==true
+            data.disposed=debug.disposed==true;data.toggleRect=debug.toggleRect
+        elseif performancePanel and performancePanel.app==app and performancePanel.root==widget then
+            data.owner='main.performancePanel';data.disposed=performancePanel.disposed==true
+            data.panelVisible=performancePanel.visible==true
+            data.hitTestBound=type(widget.HitTest)=='function'
+        elseif app and app.trial and app.trial.dialog==widget then data.owner='app.trial.dialog';data.open=widget.isOpen_==true
+        elseif app and app.build and app.build.dialog==widget then data.owner='app.build.dialog';data.open=widget.isOpen_==true
+        elseif home and home.dialog==widget then data.owner='home.dialog';data.open=widget.isOpen_==true end
+        return data
+    end
+    local data=Identity(top);data.present=true;data.buttons={};data.texts={};data.stack={};data.visited=0
+    data.stackAvailable=type(UI.GetOverlayStack)=='function'
+    local stack=data.stackAvailable and UI.GetOverlayStack() or {top}
+    for i=math.max(1,#stack-7),#stack do data.stack[#data.stack+1]=Identity(stack[i]) end
+    data.stackTotal=#stack;data.stackTruncated=#stack>8
+    local seen={}
+    local function Walk(widget,depth)
+        if not widget or seen[widget] or not widget:IsVisible() then return end
+        if data.visited>=64 or depth>5 then data.truncated=true;return end
+        seen[widget]=true;data.visited=data.visited+1
+        local props=widget.props or {}
+        if type(props.text)=='string' and props.text~='' and #data.texts<16 then data.texts[#data.texts+1]=props.text:sub(1,240) end
+        if props.onClick and #data.buttons<12 then
+            local r=widget:GetAbsoluteLayoutForHitTest()
+            data.buttons[#data.buttons+1]={id=props.id or '',text=props.text or '',disabled=props.disabled==true,rect={r.x,r.y,r.w,r.h}}
+        end
+        for _,child in ipairs(widget.children or {}) do
+            if data.visited>=64 then data.truncated=true;break end
+            Walk(child,depth+1)
+        end
+    end
+    Walk(top,0);Walk(top.contentContainer_,1);Walk(top.footerWidget_,1)
+    return data
+end
+-- QA_OVERLAY_SNAPSHOT_END
 local shell=require 'render.RestoreFlash'
 local originalShellAdd=shell.Add
 local hitFlashCalls={total=0,white=0,shield=0}
@@ -542,8 +589,29 @@ local function AssetReleaseState(app)
         collectionCycle=cycle,collectionFencePassed=cycle~=false and app~=nil and type(app.assetReleaseEpoch)=='number'
             and cycle.epoch>app.assetReleaseEpoch}
 end
+local function SalvageReturnState(app)
+    local pending=app and app.pendingSalvageResult
+    if not pending then return false end
+    return {runId=pending.runId,result=pending.result,committed=pending.committed==true,
+        saveError=pending.saveError,shown=pending.shown==true,delay=pending.delay,release=pending.release}
+end
+local function SettingsDebugState(app)
+    local panel=app and app.debugPanel
+    local rows={}
+    if panel and panel.open then
+        for i,row in ipairs(panel.buttons or {}) do
+            if i>64 then break end
+            rows[#rows+1]={id=row.id,rect={x=row.x,y=row.y,w=row.w,h=row.h}}
+        end
+    end
+    local controls=app and app.performanceControls
+    return {present=panel~=nil,open=panel~=nil and panel.open==true,rect=panel and panel.panelRect,
+        buttons=rows,scroll=panel and panel.scroll,maxScroll=panel and panel.maxScroll},
+        {available=controls~=nil,visible=controls~=nil and controls.IsVisible(),enabled=performance and performance.enabled==true}
+end
 local function ResourceStats(app)
     local data={luaKiB=collectgarbage('count'),resourceBytes=cache:GetTotalMemoryUse(),
+        monitor=performance and {enabled=performance.enabled==true,recording=performance.recording==true} or nil,
         api=graphics.apiName,desktop=require('urhox-libs.Platform.PlatformUtils').IsDesktopPlatform(),
         modelBytes=cache:GetMemoryUse(StringHash('Model')),arrayBytes=cache:GetMemoryUse(StringHash('Texture2DArray')),
         texture2DBytes=cache:GetMemoryUse(StringHash('Texture2D')),imageBytes=cache:GetMemoryUse(StringHash('Image')),
@@ -642,13 +710,18 @@ local function DumpTrial(app)
     if match and match.minimap then observedOwners.minimap=match.minimap end
     local p=(not s.combat or s.combat.player.alive) and s.vehicle and s.vehicle.body.translation();local c=s.camera:GetNode().position
     local center=p and s.vehicle.body.center()
-    local data={mode='trial',map=s.map.id,width=w,height=h,touch=s.touch,
+    local data={mode='trial',map=s.map.id,width=w,height=h,touch=s.touch,physical={graphics:GetWidth(),graphics:GetHeight()},
         loadingFlow=app.loadingFlow:Snapshot(),sceneVisible=renderer:GetViewport(0)~=nil,
         pointer={captured=s.pointer.captured,pending=s.pointer.pending,ready=s.pointer.ready,skip=s.pointer.skip,left=input:GetMouseButtonDown(MOUSEB_LEFT),fire=s.controls.held.fire},
         camera={position={c.x,c.y,c.z},yaw=s.yaw,pitch=s.pitch,dist=s.cameraDistance},samplePhase='post-update',
         vehicle=p and {position={p.x,p.y,p.z},center={center.x,center.y,center.z},speed=s.vehicle.speed,yaw=s.vehicle:Yaw()} or false,
         weapons={energy=s.weapons.energy,shots=s.world.stats.shots,hits=s.world.stats.hits,kills=s.world.stats.kills,blocked=s.weapons.blocked,turning=s.weapons.turning},
-        widgets={},performance=ResourceStats(app),frames=FrameStats()}
+        widgets={},performance=ResourceStats(app),frames=FrameStats(),framesWall=VOX_QA_FRAME_WALL.Drain()}
+    if VOX_QA_FRAME_PIPELINE then data.framePipeline=VOX_QA_FRAME_PIPELINE.Snapshot() end
+    if VOX_QA_DRIVE_SECTIONS then
+        data.driveSections=VOX_QA_DRIVE_SECTIONS.Snapshot()
+        VOX_QA_DRIVE_SECTIONS.Emit()
+    end
     if pendingBattleObjects then
         pendingBattleObjects=false;local sceneRequested=pendingSceneObjects;pendingSceneObjects=false
         data.performance.battleObjects=BattleObjectState(s,sceneRequested)
@@ -665,7 +738,15 @@ local function DumpTrial(app)
         data.practice={alive=s.practice.player.alive,life=s.practice.player:Life(),parts=s.practice.player.bp:Size(),playerCount=count}
     end
     data.salvageInventory=SalvageInventory(app)
+    data.salvageReturn=SalvageReturnState(app)
+    data.debugPanel,data.performanceControls=SettingsDebugState(app)
     data.camera.firstPerson=s.firstPerson==true
+    local ownFx=s.view.view.weaponEffects
+    data.scopePresentation={supported=s.effects.SetFirstPerson~=nil,firstPerson=s.effects.firstPerson==true,
+        ownsWeapons=s.effects.ownWeapons==s.weapons,weaponFx=ownFx and {visible=ownFx.visible,batches={}} or false}
+    if ownFx then for kind,batch in pairs(ownFx.batches) do
+        data.scopePresentation.weaponFx.batches[kind]={count=batch.count,enabled=batch.mesh.enabled}
+    end end
     local visible,models=0,0
     for _,model in ipairs(s.view.view.root:GetComponents('StaticModel',true)) do
         models=models+1;if model.enabledEffective then visible=visible+1 end
@@ -731,6 +812,7 @@ local function DumpTrial(app)
         for id,button in pairs(s.hud.touchControls.buttons) do local r=button:GetAbsoluteLayoutForHitTest();data.touchRects[id]={r.x,r.y,r.w,r.h} end
     end
     data.mouse={x=mouse.x,y=mouse.y,scale=UI.GetScale(),hit=hit and hit.props.text or 'other',overlay=UI.GetTopOverlay()~=nil}
+    data.overlayState=OverlayState(app)
     local function Walk(widget)
         if not widget:IsVisible() then return end
         if widget.props.onClick then local r=widget:GetAbsoluteLayoutForHitTest()
@@ -783,6 +865,13 @@ local function DumpTrial(app)
         data.matchHud={scale=k,touch=s.touch==true,sourceCompassOffset=100*k,
             minimap=mm and {frames=mm.frames,base=mm.base~=nil,style=mm.style,
                 rect={14*k,52*k,236*k,236*k},disposed=mm.disposed==true} or false}
+        local board=s.hud.match and s.hud.match.scoreboardScroll
+        if board then
+            local rect=board:GetAbsoluteLayoutForHitTest()
+            local sx,sy=board:GetScroll();local cw,ch=board:GetContentSize()
+            data.matchHud.scoreboard={visible=board:IsVisible(),rect={rect.x,rect.y,rect.w,rect.h},
+                scrollX=sx,scrollY=sy,contentWidth=cw,contentHeight=ch}
+        end
         local feedback=require('ui.MatchFeedback')
         local count,scale,alpha=feedback.CountState(s.battle)
         data.matchHud.feedback={prepCount=s.battle.prepCount or 0,prepCountAt=s.battle.prepCountAt,
@@ -853,16 +942,17 @@ local function DumpTrial(app)
     data.boundary=s.boundary and {walls=#s.boundary.spec.walls,ceiling=s.boundary.spec.ceiling~=nil,enabled=s.boundary.root.enabled} or false
     data.wing={count=#s.view.wings,telemetry=s.vehicle.telemetry,state=s.vehicle.wingState and s.vehicle.wingState.phase}
     data.intro=s.intro and {active=not s.intro.done,shot=s.intro.index,time=s.intro.time,full=s.intro.full,skipRect=s.intro.page and s.intro.page.skipRect} or false
-    if G0_StoryRouteState and data.story then data=G0_StoryRouteState(data) end
+    if G0_StoryRouteState and data.story then data=G0_StoryRouteState(data,s) end
     print('OUTGAME_STATE '..cjson.encode(data))
 end
 local function Dump(app)
     local w,h=UI.GetViewportSize()
     local home=require('ui.GarageHud').GetState()
-    local data={width=w,height=h,physical={graphics:GetWidth(),graphics:GetHeight()},dpr=graphics:GetDPR(),
+    local data={width=w,height=h,physical={graphics:GetWidth(),graphics:GetHeight()},dpr=graphics:GetDPR(),hallGeneration=app.generation,
         touch=require('controls.TouchMode').Enabled(),tab=home and home.tab or '',build=app.build~=nil,
         inventory=app.build and app.build.inventoryPanel~=nil or false,dialog=(app.build and app.build.dialog~=nil or home and home.dialog~=nil) or false,blueprint=app.blueprint.name,parts=app.blueprint:Size(),
         widgets={},quality=require('render.Quality').current.name}
+    if VOX_QA_FRAME_PIPELINE then data.framePipeline=VOX_QA_FRAME_PIPELINE.Snapshot() end
     data.device={platform=GetPlatform(),native=GetNativePlatform and GetNativePlatform() or nil,
         emulation=input.touchEmulation,compact=require('controls.TouchMode').Compact()}
     data.matchProfile=app.store:Read('match-profile',require('combat.Matchmaker').Valid)
@@ -870,6 +960,8 @@ local function Dump(app)
     data.storage=require('storage.CloudStorage').Snapshot()
     data.audioSettings=AudioState(app.build or home,app);data.pauseMenu=PauseState(app.build or home)
     data.salvageInventory=SalvageInventory(app)
+    data.salvageReturn=SalvageReturnState(app)
+    data.debugPanel,data.performanceControls=SettingsDebugState(app)
     data.performance=ResourceStats(app);data.performance.batches=renderer.numBatches;data.performance.primitives=renderer.numPrimitives
     data.performance.mapTransition=app.mapTransition and app.mapTransition:Snapshot() or nil
     if not app.scene or not app.camera or not app.hangar then
@@ -1090,6 +1182,7 @@ local function Dump(app)
     if preview then data.preview={ready=preview.ready,cursor=preview.cursor,total=#preview.parts,complete=preview.ready and preview.cursor>#preview.parts} end
     local mouse=input.mousePosition;local hit=UI.FindWidgetAt(mouse.x/UI.GetScale(),mouse.y/UI.GetScale())
     data.mouse={x=mouse.x,y=mouse.y,scale=UI.GetScale(),hit=hit and hit.props.text or 'other',overlay=UI.GetTopOverlay()~=nil}
+    data.overlayState=OverlayState(app,home)
     local function Walk(widget,shown)
         shown=shown and widget:IsVisible()
         if not shown then return end
@@ -1172,6 +1265,11 @@ local function Dump(app)
         if r.w>0 and r.h>0 then data.widgets[#data.widgets+1]={text='关闭',rect={r.x,r.y,r.w,r.h}} end
     end
     data.frames=FrameStats()
+    data.framesWall=VOX_QA_FRAME_WALL.Drain()
+    if VOX_QA_DRIVE_SECTIONS then
+        data.driveSections=VOX_QA_DRIVE_SECTIONS.Snapshot()
+        VOX_QA_DRIVE_SECTIONS.Emit()
+    end
     if VOX_QA_HOME_ROUTE then
         print('OUTGAME_STATE '..cjson.encode(VOX_QA_HOME_ROUTE.Project(data)))
         return
@@ -1195,28 +1293,37 @@ local function Dump(app)
 end
 Dump=TimedCall('probe.Dump',Dump)
 function HandleUpdate(et,ed)
+    local updateWall=Time:GetSystemTime()
     local timingApp=VOX_HANGAR and VOX_HANGAR.app or VOX_TRIAL and VOX_TRIAL.app or lastObservedApp
-    if input:GetKeyPress(KEY_F15) then SetBattleTiming(not battleTiming.enabled) end
+    if VOX_QA_DRIVE_SECTIONS then
+        if input:GetKeyPress(KEY_SCROLLLOCK) then VOX_QA_DRIVE_SECTIONS.Toggle() end
+    end
+    if not VOX_QA_FRAME_PIPELINE and input:GetKeyPress(KEY_F15) then SetBattleTiming(not battleTiming.enabled) end
     EnsureBattleTiming(timingApp)
     EnsureUpdateTiming(timingApp)
+    if VOX_QA_DRIVE_SECTIONS then VOX_QA_DRIVE_SECTIONS.BeginFrame(timingApp) end
     original(et,ed)
+    if VOX_QA_DRIVE_SECTIONS then VOX_QA_DRIVE_SECTIONS.EndFrame() end
     local app=VOX_HANGAR and VOX_HANGAR.app or VOX_TRIAL and VOX_TRIAL.app or lastObservedApp
     EnsureBattleTiming(app)
     if not app or app.stopped then return end
     lastObservedApp=app
+    local wallModeNow=app.opening and app.opening.active and 'opening'
+        or app.trial and app.trial.map.id or app.build and 'build' or 'hangar'
+    VOX_QA_FRAME_WALL.Observe(updateWall,wallModeNow,app.loadingFlow.active or wallModeNow=='opening' or not app.scene)
     EnsureUpdateTiming(app)
     -- F13 reads the presentation ring once; ordinary F8/automatic dumps stay compact.
     if app.trial and app.trial.story and input:GetKeyPress(KEY_F13) then pendingPresentationHistory=true end
     frames=frames+1
     if not app.trial and (not app.scene or not app.camera or not app.hangar) then
         samples={};sampleMode='loading'
-        if frames%30==0 or input:GetKeyPress(KEY_F8) then Dump(app) end
+        if not VOX_QA_FRAME_PIPELINE and frames%30==0 or input:GetKeyPress(KEY_F8) then Dump(app) end
         return
     end
     if app.opening and app.opening.active then
         local I=app.opening;local w,h=UI.GetViewportSize()
         local openingTiming=MeasureOpening(I)
-        if frames%30==0 or input:GetKeyPress(KEY_F8) then
+        if not VOX_QA_FRAME_PIPELINE and frames%30==0 or input:GetKeyPress(KEY_F8) then
             local session=I.host.state and I.host.state.session
             local sortieStatus=I.ready and session and session.combat and session.combat.player and session.combat.easy and I.host.SortieStatus and I.host.SortieStatus(I) or nil
             if sortieStatus and sortieStatus.target and session then
@@ -1392,7 +1499,7 @@ function HandleUpdate(et,ed)
         if input:GetKeyPress(KEY_F8) then pendingBattleObjects=true end
         if input:GetKeyPress(KEY_F14) then pendingBattleObjects=true;pendingSceneObjects=true end
         local key=app.loadingFlow.phase..':'..tostring(app.trial.pointer.captured)..':'..tostring(app.trial.pointer.pending)
-        if frames%30==0 and not G0_StoryRouteState or input:GetKeyPress(KEY_F8) or pendingPresentationHistory or pendingSceneObjects then previous=key;pendingTrialDump=app end
+        if not VOX_QA_FRAME_PIPELINE and frames%30==0 and not G0_StoryRouteState or input:GetKeyPress(KEY_F8) or pendingPresentationHistory or pendingSceneObjects then previous=key;pendingTrialDump=app end
         return
     end
     if input:GetKeyPress(KEY_F2) then
@@ -1507,7 +1614,7 @@ function HandleUpdate(et,ed)
     key=key..':'..tostring(home and home.workshop and home.workshop.selected)..':'..tostring(home and home.workshop and home.workshop.pending)..':'..tostring(home and home.musicBox~=nil)
     local mb=home and home.musicBox
     if mb then key=key..':'..tostring(mb.player.pending)..':'..tostring(mb.player:Track() and mb.player:Track().id)..':'..mb.filter..':'..mb.query..':'..tostring(mb.player.userPaused)..':'..mb.player.playMode..':'..tostring(mb.modeMenu:IsVisible())..':'..tostring(mb.player.volume) end
-    if not VOX_QA_HOME_ROUTE and frames%30==0 and key~=previous or input:GetKeyPress(KEY_F8) then previous=key;Dump(app) end
+    if not VOX_QA_FRAME_PIPELINE and not VOX_QA_HOME_ROUTE and frames%30==0 and key~=previous or input:GetKeyPress(KEY_F8) then previous=key;Dump(app) end
 end
 local originalPostUpdate=HandlePostUpdate
 function HandlePostUpdate(et,ed)

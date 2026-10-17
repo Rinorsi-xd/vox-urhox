@@ -198,8 +198,8 @@ function Weapons:Fire(w,state,env)
     end
     if s.hitscan then self:Beam(w,m,aimDir,state,env);return end
     w.cool=w.cool+1/math.max(w.rate*s.minFrac,w.spinRate);w.shots=(w.shots or 0)+1
-    local spread=s.spreadMax and s.spread+(s.spreadMax-s.spread)*(w.bloom or 0) or s.spread
-    if s.spreadMax then w.bloom=math.min(1,(w.bloom or 0)+1/(s.rate*s.bloomTime)) end
+    local spread=(s.spreadMax and s.spread+(s.spreadMax-s.spread)*(w.bloom or 0) or s.spread)*(self.aimed and .45 or 1)
+    if s.spreadMax then w.bloom=math.min(1,(w.bloom or 0)+(self.aimed and .6 or 1)/(s.rate*s.bloomTime)) end
     local d=M.Jitter(aimDir,spread,self.random)
     self.projectiles[#self.projectiles+1]={w=w,s=s,pos={table.unpack(m.pos)},vel=M.Scale(d,s.speed),
         life=(s.reach or s.range)/s.speed,dist=0,fx=s.fx,bright=w.shots%(s.tier==5 and 3 or 4)==0,seed=self.random()}
@@ -220,8 +220,10 @@ function Weapons:Integrate(dt,state,env)
     for i=#self.projectiles,1,-1 do
         local p=self.projectiles[i];p.life=p.life-dt
         if p.s.homing then p.vel=M.Scale(M.Sub(Missiles.Curve(p,dt),p.pos),1/dt) end
-        local step=M.Scale(p.vel,dt);local length=M.Length(step)
-        local dir=M.Scale(step,length>0 and 1/length or 1)
+        local sx,sy,sz=p.vel[1]*dt,p.vel[2]*dt,p.vel[3]*dt
+        local length=math.sqrt(sx*sx+sy*sy+sz*sz)
+        local inverse=length>0 and 1/length or 1
+        local dir={sx*inverse,sy*inverse,sz*inverse}
         local hit=env.castRay(p.pos,dir,length,p.exclude or state.body)
         if hit then
             if p.s.homing then Missiles.Blast(self,p,hit.point,hit,dir,env)
@@ -232,7 +234,7 @@ function Weapons:Integrate(dt,state,env)
             end
             table.remove(self.projectiles,i)
         else
-            p.pos=M.Add(p.pos,step);p.dist=p.dist+length
+            p.pos={p.pos[1]+sx,p.pos[2]+sy,p.pos[3]+sz};p.dist=p.dist+length
             if p.trail then Missiles.Trail(p) end
             if p.s.homing and p.arrived then Missiles.Blast(self,p,p.pos,nil,dir,env);table.remove(self.projectiles,i)
             elseif p.life<=0 or p.pos[2]<(env.killHeight or -80) then

@@ -23,6 +23,13 @@ package.loaded['parts.Dependencies']={FromBlueprint=function() return {} end}
 package.loaded['ui.VoxTheme']={Thumbnail=function(id) return id end}
 package.loaded['core.ResourceData']={Read=function() return {items={['part:cube']={part='cube'}}} end}
 package.loaded['ui.GarageHud']={Refresh=function() end}
+-- Hoisted imports are outside this lobby task; fail if they are actually used.
+for _,name in ipairs({'ui.MatchLobby','audio.BattleFlow','render.CombatWarmup',
+ 'render.HangarFxWarmup','ui.CommsWarmup','story.TutorialFirstLine','scene.HangarAtmosphere'})do
+ package.loaded[name]=setmetatable({}, {__index=function(_,key)
+  error('unused lobby fixture dependency accessed: '..name..'.'..tostring(key))
+ end})
+end
 local switchCount=0
 package.loaded['app.SalvageLobby']={VehicleData=function() return {parts={}} end,Switch=function(app,mode) switchCount=switchCount+1;app.lobby=mode;return true end}
 local activation=0
@@ -87,6 +94,9 @@ flow:Back();check(not lobby.active,'failure can return')
 -- Real Web mask ownership, with enough drawables for multiple render batches.
 package.loaded['app.SalvageLobby'].Switch=function(app,mode) switchCount=switchCount+1;app.lobby=mode;return true end
 package.loaded['render.SceneWarmup']=nil
+-- Reload the consumer too: its hoisted dependency still points at the mock.
+package.loaded['app.LoadingFlow']=nil
+Flow=require 'app.LoadingFlow'
 web=true
 OUTSIDE=0
 local function sceneFor()

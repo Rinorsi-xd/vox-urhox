@@ -85,7 +85,8 @@ for name, viewport, top, bottom in [('pc', 697, 18, 16), ('20x9', 392, 8, 12)]:
 
 # Verify the actual InventoryPanel restore statements call the corrected extent.
 panel = (ROOT / 'scripts/ui/InventoryPanel.lua').read_text(encoding='utf-8')
-assert "self.detailScroll=require('ui.InventoryDetailScroll'){" in panel
+assert re.search(r"local InventoryDetailScroll\s*=\s*require\s*\(?\s*['\"]ui\.InventoryDetailScroll['\"]", panel)
+assert 'self.detailScroll=InventoryDetailScroll{' in panel
 match = re.search(r'local extent=self.detail.props.height[^\n]+\n\s*self.detailScroll:SetScrollDirect\([^\n]+', panel)
 assert match
 scroller, _ = lua.globals().Fixture(lua.globals().SCROLL, 392, 8, 12, 1200)

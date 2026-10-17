@@ -39,6 +39,10 @@ function inputs(){
 }
 function baseline(){const b=JSON.parse(read('docs/migration/outgame-baseline.json'));return{branch:b.branch,commit:b.commit,contentSha256:b.contentSha256};}
 function assert(ok,message){if(!ok)throw Error(message);}
+function runtimeIdentity(executable){
+ const resolved=fs.realpathSync(path.resolve(root,executable||'.cli/UrhoXRuntime.exe')),bytes=fs.readFileSync(resolved);
+ return {executable:resolved,sha256:sha(bytes),bytes:bytes.length};
+}
 function reclassifyLifetime(meta,current){
  assert(meta.inputSha256===sha(Buffer.from(JSON.stringify(meta.inputs))),'Original capture input manifest hash invalid');
  const content={},implementation={...meta.captureImplementationInputs},checks={...meta.runtimeChecks};
@@ -54,7 +58,7 @@ async function main(){const mode=process.argv[2]||'check';
  if(mode==='prepare'){
   const stamp=new Date().toISOString().replace(/[:.]/g,'-'),out='.tmp/match-map-bake-'+stamp;
   fs.mkdirSync(path.join(root,out),{recursive:true});
-  const request={version:1,out,source:baseline(),inputs:inputs(),scene:'Scenes/Crater.xml',image:out+'/base.png',result:out+'/native.json',validation:out+'/validation.json',size:1024,half:320};
+  const request={version:1,out,source:baseline(),inputs:inputs(),runtime:runtimeIdentity(process.argv[3]),scene:'Scenes/Crater.xml',image:out+'/base.png',result:out+'/native.json',validation:out+'/validation.json',size:1024,half:320};
   fs.writeFileSync(path.join(root,'.tmp/match-map-bake-request.json'),JSON.stringify(request,null,2)+'\n');
   fs.writeFileSync(path.join(root,out+'/request.json'),JSON.stringify(request,null,2)+'\n');console.log(JSON.stringify({out,inputs:Object.keys(request.inputs).length}));return;
  }
@@ -62,6 +66,9 @@ async function main(){const mode=process.argv[2]||'check';
   const request=JSON.parse(read('.tmp/match-map-bake-request.json')),actualInputs=inputs();
   assert(JSON.stringify(request.inputs)===JSON.stringify(actualInputs),'Bake inputs changed during capture');
   assert(JSON.stringify(request.source)===JSON.stringify(baseline()),'Active source changed during capture');
+  assert(JSON.stringify(request.runtime)===JSON.stringify(runtimeIdentity(request.runtime?.executable)),'Actual Runtime executable changed during capture');
+  const launch=JSON.parse(read(request.out+'/runtime-launch.json').toString('utf8').replace(/^\uFEFF/,''));
+  assert(JSON.stringify(launch.runtime)===JSON.stringify(request.runtime),'Runtime launch identity differs from frozen request');
   const native=JSON.parse(read(request.result).toString('utf8').replace(/\0+$/,''));
   assert(native.result==='PASSED','Native bake pixel/lifecycle assertions failed');
   assert(native.textureFilter==='trilinear'&&native.textureAnisotropy===1,'Native capture filtering differs from production');
@@ -77,10 +84,16 @@ async function main(){const mode=process.argv[2]||'check';
   }
   for(const [file,value]of Object.entries(native.checksums))assert(runtimeChecks[file]?.checksum===value,'Native checksum algorithm differs: '+file);
   const captureImplementationInputs=Object.fromEntries([...lifetimeInputs].filter(exists).map(file=>{const b=read(file);return[file,{sha256:sha(b),bytes:b.length,checksum:checksum(b)}];}));
+  const evidence='docs/migration/evidence/'+path.basename(request.out).replace(/^match-map-bake-/,'minimap-bake-');
+  assert(!fs.existsSync(path.join(root,evidence)),'Capture archive already exists; preserve the original evidence');
+  const archiveFiles=['request.json','base.png','native.json','validation.json','runtime-launch.json','stdout.log','stderr.log'];
+  for(const file of archiveFiles)assert(exists(request.out+'/'+file),'Missing real capture evidence: '+file);
+  fs.mkdirSync(path.join(root,evidence),{recursive:true});
+  for(const file of archiveFiles)fs.copyFileSync(path.join(root,request.out,file),path.join(root,evidence,file));
   const meta={version:1,revision:'crater-static-v1',scene:request.scene,image:'Crater/Minimap.bin',size:1024,half:320,dependencyPolicy,captureImplementationInputs,
    source:request.source,inputs:actualInputs,inputSha256:sha(Buffer.from(JSON.stringify(actualInputs))),runtimeChecks,
    imageSha256:sha(bytes),pixelsSha256:sha(data),colors:colors.size,bakedAt:new Date().toISOString(),
-   capture:{height:1200,far:3000,views:5,tone:'production MatchMapShot.Process',environmentTime:1,randomSeed:1337,textureFilter:native.textureFilter,textureAnisotropy:native.textureAnisotropy,scope:'Authored static map with environment lighting; no session vehicles, objectives, combat or animated particle snapshot.'},nativeEvidence:request.result,validationEvidence:request.validation};
+   capture:{height:1200,far:3000,views:5,tone:'production MatchMapShot.Process',environmentTime:1,randomSeed:1337,textureFilter:native.textureFilter,textureAnisotropy:native.textureAnisotropy,runtime:request.runtime,runtimeLaunchEvidence:evidence+'/runtime-launch.json',scope:'Authored static map with environment lighting; no session vehicles, objectives, combat or animated particle snapshot. Runtime identity is the actual executable; .cli/build.json is only a separately signed resource input.'},nativeEvidence:evidence+'/native.json',validationEvidence:evidence+'/validation.json'};
   fs.writeFileSync(path.join(root,'assets/Crater/Minimap.bin'),bytes);fs.writeFileSync(metaPath,JSON.stringify(meta,null,2)+'\n');
   console.log(JSON.stringify({result:'PASSED',asset:meta.image,bytes:bytes.length,colors:colors.size,inputSha256:meta.inputSha256,nativeEvidence:request.result}));return;
  }
@@ -106,5 +119,5 @@ async function main(){const mode=process.argv[2]||'check';
  }
  throw Error('Expected prepare, publish, check or reclassify-lifetime');
 }
-module.exports={reclassifyLifetime,inputs,lifetimeInputs};
+module.exports={reclassifyLifetime,inputs,lifetimeInputs,runtimeIdentity};
 if(require.main===module)main().catch(e=>{console.error(e.stack);process.exitCode=1;});

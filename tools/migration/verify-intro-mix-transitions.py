@@ -79,11 +79,14 @@ wall=550;cut:Update(.05,true);Check(old.playing and old.gain>0,'resumed cut adva
 cut:StopSfx(old,.1,token);cut:Update(.05,true);Check(old.gain>0,'explicit stop replaces pending stop from current level')
 cut:Dispose();Check(not old.playing,'cancellation immediately stops pending delayed fade')
 local reuse=Blank();local prior,priorToken=reuse:Sfx('scribble',{vol=.4,loop=true});reuse:StopSfx(prior,.1,priorToken)
-prior:StopImmediate();local nextSource,nextToken=reuse:Sfx('tv_cut',{vol=.5})
-Check(prior==nextSource and priorToken~=nextToken,'fixture actually reuses old fading slot')
+prior:StopImmediate();local pending=reuse:Sfx('tv_cut',{vol=.5})
+Check(prior~=pending,'non-playing source with an owned pending fade is reserved')
+reuse:Update(.121,true);local nextSource,nextToken=reuse:Sfx('tv_cut',{vol=.5})
+Check(prior==nextSource and priorToken~=nextToken,'fixture reuses only a fully completed fading slot')
 Check(not reuse:StopSfx(prior,.1,priorToken),'late signature stop cannot stop a reused slot')
 reuse:Update(.3,true);Check(nextSource.playing,'slot reuse removes prior stop deadline');reuse:Dispose()
 package.loaded['urhox-libs/UI']={GetFocus=function()end};package.loaded['core.Coord']={}
+for _,name in ipairs({'ui.IntroTypography','app.ResourceGate','ui.IntroPage','intro.IntroImpact','intro.IntroSortie'})do package.loaded[name]={}end
 local Session=require 'intro.IntroSession'
 for _,row in ipairs(REFERENCE.heartbeat)do
  local sound=Blank();local source,token=sound:Sfx('heartbeat',{vol=.5,loop=true})
@@ -105,6 +108,7 @@ local Page
 local UI={Widget={Extend=function()Page={};return Page end},GetScale=function()return 1 end}
 package.loaded['urhox-libs/UI']=UI;graphics={GetDPR=function()return 1 end}
 for _,name in ipairs({'ui.SourceDraw','ui.IntroFrame','ui.SourceParagraph','ui.WorkshopPaint','urhox-libs/UI/Core/ImageCache','ui.IntroContractLayout','ui.IntroOpacity','ui.IntroGateMotion','ui.IntroGateFx'})do package.loaded[name]={}end
+package.loaded['ui.IntroPage']=nil
 require 'ui.IntroPage'
 local signing=Blank();local owner={shot='contract',strokes={},ink=0,audio=signing}
 local page=setmetatable({owner=owner,buttons={},pointers={},signatureRect={x=0,y=0,w=100,h=100},k=1},{__index=Page})

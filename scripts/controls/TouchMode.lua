@@ -13,6 +13,9 @@ function M.Compact()
     end
     local native=GetNativePlatform and GetNativePlatform() or GetPlatform()
     touch=touch or native=='Android' or native=='iOS' or native=='HarmonyOS' or input.touchEmulation
+    -- Web（手机浏览器、云真机）上 native 不一定报移动系统；沿用 Enabled() 的视口判断，
+    -- 明确是桌面系统的浏览器不算。源 homeScale.js 的条件同为「触屏 + 屏幕短边 ≤ 600」。
+    if not touch and GetPlatform()=='Web' and native~='Windows' and native~='Mac' then touch=M.Enabled() end
     local dpr=math.max(1,graphics:GetDPR())
     -- Lua exposes native platform, not browser screen/pointer media queries.
     -- Freeze the initial CSS viewport/device decision as homeScale.js does.

@@ -39,8 +39,8 @@ local function Layout(model)
     end
     return table.concat(key,':')
 end
-local function Candidate(group,layouts)
-    if group.kind~='StaticModel' then return nil,nil,'kind-'..group.kind end
+local function Candidate(group,layouts,allowGroup)
+    if group.kind~='StaticModel' and not (allowGroup and group.kind=='StaticModelGroup') then return nil,nil,'kind-'..group.kind end
     local drawable=group.items[1].drawable
     local model=drawable.model
     if not model then return nil,nil,'missing-model' end
@@ -70,6 +70,10 @@ local function Candidate(group,layouts)
         singles[#singles+1]=tostring(model:GetGeometry(slot,0))..'|'..tostring(material)
     end
     return table.concat(key,'|'),singles
+end
+function M.GroupProbeCandidate(group,layouts)
+    if group.kind~='StaticModelGroup' then return nil,nil,'kind-'..group.kind end
+    return Candidate(group,layouts or {},true)
 end
 function M.Compact(groups)
     local result,keyed,layouts={},{},{}

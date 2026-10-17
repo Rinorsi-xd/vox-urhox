@@ -73,7 +73,7 @@ function M.Extraction(s)
     V.assert(not cine.approach and not cine.view.nodes.ship.enabled,'cancelled approach removes transport')
     run.rules:Emit('extracted',{exit=exit});run.rules.finished=true;run:Events()
     V.assert(cine.current.name=='extract' and not run.result and not run.committed,'extraction event defers result and persistence')
-    V.assert(not run:Return() and run:Key(KEY_T) and run:Key(KEY_ESCAPE) and not run.result,'exit keys cannot bypass pending extraction settlement')
+    V.assert(not run:Key(KEY_T) and not run:Key(KEY_ESCAPE) and not run.result,'source extraction leaves exit keys available to session without settling during key observation')
     for _=1,35 do cine:Update(.1);s:PostUpdate(.1) end
     V.assert(not run.result and cine.heldNative~=nil and s.vehicle.native.kinematic,'actual player is suspended during extraction')
     for _=1,29 do cine:Update(.1);s:PostUpdate(.1) end

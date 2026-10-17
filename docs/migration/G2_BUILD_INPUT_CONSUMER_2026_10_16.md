@@ -135,3 +135,30 @@ center target a multi-part group, that particular group assertion is also
 OPEN. Real phone input/frame pacing and human visual comparison stay OPEN.
 An otherwise successful run uses `PASS_WITH_OPEN`, not a blanket parity PASS.
 Actual input or prerequisite failures retain FAIL and the full last state.
+
+## 2026-10-17 actual desktop acceptance
+
+Root executed the prepared tool against frozen `manifest-0baeef97.json`,
+QA4581, at 1920x1080/DPR1. Evidence is
+`evidence/build-input-web-manifest-0baeef97-2026-10-17T03-19-01-585Z/`.
+Runner exited 0 with `PASS_WITH_OPEN`, 71 checks, no runtime/HTTP/probe
+errors. The seven-module description above is historical; this tool actually
+pins eight current production modules and the served identity stayed unchanged.
+
+Actual public inputs placed one structural part, painted and undid it to
+populate redo history, selected the part, and entered selected-face stretch.
+Negative/positive one-pixel wheels changed height immediately; Shift/Ctrl
+took priority without changing first-person orbit distance or the hotbar.
+Ctrl+Z, Ctrl+Shift+Z and Ctrl+Y each cancelled only the uncommitted preview
+while preserving the actual blueprint and both history directions. Subsequent
+ordinary undo/redo still removed/restored the placed part. Public F made a
+real multi-part group, right click deselected the entire target group without
+deletion, middle pick left paint/selection and chose the actual hit type.
+Final undo restored the original 209-part authored blueprint exactly.
+
+Root inspected `stretch-wheel.png`, `right-group-deselect.png` and
+`finished.png`; they show the actual game, selection/extrusion feedback and
+restored vehicle. These are interaction/visibility checks, not H5 pixel parity.
+The four explicit OPEN entries remain orbit modifier zoom, orbit press/release
+hit behavior, real mobile input and full visual parity. This run closes the
+reachable desktop consumer checks above, not all E01-E10 or G2.

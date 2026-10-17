@@ -4,6 +4,13 @@ local function eq(a,b,label)assert(a==b,(label or 'equality')..': '..tostring(a)
 package.loaded['urhox-libs/UI']={}
 package.loaded['urhox-libs/UI/Core/ImageCache']={Release=function()end}
 package.loaded['urhox-libs.Platform.PlatformUtils']={IsWebPlatform=function()return true end}
+package.loaded['scene.HangarAtmosphere']={Update=function()end}
+package.loaded['render.HangarFxWarmup']={New=function()error('combat must never warm hall effects')end}
+package.loaded['ui.CommsWarmup']={Begin=function()error('combat must never warm hall portrait')end}
+package.loaded['story.TutorialFirstLine']={Pick=function()return nil end}
+for _,id in ipairs({'combat.ArenaData','combat.Matchmaker','app.DriveMaps','audio.BattleFlow','ui.MatchLobby'})do
+ package.loaded[id]={}
+end
 package.loaded['app.ResourceGate']={New=function()return {Start=function(_,_,cb)cb(true)end,Cancel=function()end}end}
 package.loaded['ui.LoadingPage']={New=function()return {Open=function()end,Close=function()end,Dispose=function()end}end}
 local clock=5

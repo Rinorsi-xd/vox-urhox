@@ -166,7 +166,7 @@ function M:BeforeStep(dt,command,aim)
         local cmd,target,fire=command,aim,command.firing==true;local driverInfo
         if u~=p then if p.alive and not u.airdropActive then cmd,target,fire,driverInfo=entry.driver:Step(dt,p,r.charge,self.shieldTarget) else cmd,target,fire=PARK,u:Position(),false end end
         DriverActions.Apply(u,driverInfo)
-        local v=u.vehicle;v:StepRotors(target,cmd.rotorStep,dt);RotorMotion.Weapons(v.rotors,u.weapons);v:Step(cmd,dt);self:Airdrop(u,dt)
+        local v=u.vehicle;v:StepRotors(target,cmd.rotorStep,dt);RotorMotion.Weapons(v.rotors,u.weapons);v:Step(cmd,dt);u:RegenerateStructure(dt);self:Airdrop(u,dt)
         local pos,vel=v.body.translation(),v.body.linvel()
         u.weapons:Step(dt,{firing=fire,aim=target or u:Position(),pos={pos.x,pos.y,pos.z},quat=v.body.rotation(),vel={vel.x,vel.y,vel.z},body=v.body,team=u.team,live=true,salvo=driverInfo and driverInfo.salvo},entry.env)
         for _,fx in ipairs(u.weapons.fx) do Raider.ArmExplosion(u,fx) end
@@ -180,8 +180,8 @@ function M:AfterStep(dt)
         for j=#self.world.units,1,-1 do if self.world.units[j]==u then table.remove(self.world.units,j);break end end
     end end
     if not self.player.alive and not self.handledDeath then self.handledDeath=true;self.run:LoseLife() end
-    if self.player.alive then self.handledDeath=false;for _,id in ipairs(self.run.dropOrder) do local drop=self.run.pendingDrops[id];if drop and V.Length(V.Sub(drop.pos,self.player:Position()))<=C.pickupRadius then self.run:PickupDrop(id) end end end
-    self:Events();self.view:Update(self,dt)
+    if self.player.alive then self.handledDeath=false end
+    self:Events();self.view:Update(self,dt);self:Events()
 end
 function M:Events()
     local banners=EndlessBanner;local tierAnnouncement=''
@@ -242,7 +242,14 @@ function M:HandleKey(key)
     elseif key==KEY_RETURN or key==KEY_KP_ENTER then self:NextWave();return true
     elseif key==KEY_BACKSPACE or key==KEY_N or key==KEY_T then return true end;return false
 end
-function M:Update(dt) self.audio:Update(dt,self.run,self.session.camera:GetNode(),self.session.feedbackAudio.volume);if self.edit then self.edit:Update(dt) end end
+function M:Update(dt)
+    -- Restored checkpoints do not emit waveClear; keep their supply cards usable.
+    if self.run.state=='rest' and #self.run.supplies>0 and (self.session.pointer.captured or self.session.pointer.pending) then
+        self.session:Pause()
+    end
+    self.audio:Update(dt,self.run,self.session.camera:GetNode(),self.session.feedbackAudio.volume)
+    if self.edit then self.edit:Update(dt) end
+end
 function M:RestorePresentation() self.spawnPresentation:Restore() end
 function M:Present()
     if self.disposed or self.edit or not self.player.alive then return end

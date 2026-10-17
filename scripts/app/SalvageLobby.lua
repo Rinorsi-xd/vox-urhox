@@ -34,6 +34,11 @@ end
 function M:Loose(id,usage) return math.max(0,self:Owned(id)-((usage or self:Usage())[id] or 0)) end
 function M:Save() return self.store:Write('stash',self.data,Valid) end
 function M:Shortfall(usage) return Stash.Shortfall(self.data.items,usage or self:Usage()) end
+function M:DeploymentShortfall(usage)
+    -- Debug departures test authored vehicles without granting persistent stock.
+    if self.app.debugEnabled==true then return {} end
+    return self:Shortfall(usage)
+end
 function M:BuyAll(list)
     local result=Stash.Buy(self.data,list);if not result.ok then return result end
     local previous=self.data;self.data=result.data
@@ -92,8 +97,14 @@ function M:Trade(id,qty,sell)
     local item=Data.items[id];qty=math.floor(qty)
     if not item or qty<1 then return false,'数量无效' end
     local price=sell and math.max(1,math.floor(item.price*Rules.sellRate)) or item.price
-    if sell and self:Loose(id)<qty then return false,'库存不足' end
-    if not sell and self.data.credits<price*qty then return false,'信用点不足' end
+    if sell and self:Loose(id)<qty then
+        return false,(self:Usage()[id] or 0)>0 and '装在车上的不能卖，先从车上拆下来' or '库存不够'
+    end
+    if not sell and self.data.credits<price*qty then
+        local digits=string.format('%.0f',price*qty-self.data.credits)
+        local missing=digits:reverse():gsub('(%d%d%d)','%1,'):reverse():gsub('^,','')
+        return false,'信用点不够（还差 '..missing..'）'
+    end
     if not sell then
         local usage=self:Usage();local loose=self:Loose(id,usage);local stack=Rules.stack[id] or 1
         if self:Cells(usage)-math.ceil(loose/stack)+math.ceil((loose+qty)/stack)>Rules.cells then return false,'仓库放不下了' end

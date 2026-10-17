@@ -2,6 +2,9 @@ local checks={}
 local function Check(ok,name) assert(ok,name);checks[#checks+1]=name end
 local function Copy(t) if type(t)~='table' then return t end;local out={};for k,v in pairs(t) do out[k]=Copy(v) end;return out end
 package.path='scripts/?.lua;'..package.path
+dofile('tools/migration/g5-offline-imports.lua').Salvage()
+dofile('tools/migration/g5-offline-imports.lua').Exclude({'construction.Prefab','construction.Blueprint',
+    'construction.Garage','ui.SourceButtonMotion','ui.SalvageLootMotion'})
 package.loaded['core.ResourceData']={Read=function(path) return resources[path] or {} end}
 package.loaded['combat.CarUnit']={};package.loaded['salvage.Drops']={}
 local Run=require 'salvage.Run'

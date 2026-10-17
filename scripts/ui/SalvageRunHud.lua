@@ -141,9 +141,17 @@ function Panel:Render(vg)
     SalvageLootMotion.Draw(run,vg,w,h,Icon,slotPositions)
     nvgRestore(vg)
 end
-function M.Result(session)
-    local run=session.salvage;local result=run.result
-    local m=Host.Open(session,result.ok and '撤离成功' or '行动失败',function() session.wantsReturn=true end,{width=780})
+function M.Result(session,settlement,onDismiss)
+    local run=settlement or session.salvage;local result=run.result
+    local function Acknowledge()
+        if settlement then Host.Close(session)
+        else session.wantsReturn=true end
+    end
+    local m=Host.Open(session,result.ok and '撤离成功' or '行动失败',function()
+        if settlement then
+            if run.committed then if onDismiss then onDismiss() end else run.shown=false end
+        else session.wantsReturn=true end
+    end,{width=780})
     m.DrawHeading=function(vg,x,y,w,title)
         local color=result.ok and {61,220,132,255} or {255,90,60,255}
         D.Rect(vg,x,y,4,74,color);D.Rect(vg,x,y+73,w,1,{255,255,255,20})
@@ -169,7 +177,7 @@ function M.Result(session)
     end
     local error=T{text=run.saveError or '',fontSize=14,width='100%',height=24,color={255,106,77,255}};m:AddContent(error)
     local button=SourceButton{text=run.committed and '回大厅' or '重试保存',sourceKind='primary',width=120,height=40,onClick=function()
-        if run:Commit() then session.wantsReturn=true else error.props.text=run.saveError or '保存失败' end
+        if run:Commit() then Acknowledge() else error.props.text=run.saveError or '保存失败' end
     end}
     m:AddContent(UI.Panel{width='100%',flexDirection='row',justifyContent='flex-end',marginTop=20,children={button}})
     return m
@@ -186,7 +194,10 @@ function M.Attach(session,root)
             run.hudObjective=r:Objective(run.player:Position())
         end
         layer:SetVisible(not r.finished)
-        if run.result and not session.dialog and not session.wantsReturn then M.Result(session) end
+        if run.result and not session.wantsReturn then
+            run.returnDelay=math.max(0,(run.returnDelay or 0)-math.max(0,dt or 0))
+            if run.returnDelay==0 then session.wantsReturn=true end
+        end
     end
     return state
 end

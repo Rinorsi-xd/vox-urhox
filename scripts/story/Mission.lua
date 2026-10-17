@@ -217,10 +217,10 @@ function M:BeforeStep(dt,command,aim)
             if u.alive then
                 local v=u.vehicle
                 if u~=self.player and not self.player.alive and entry.target~='truck' then
-                    v:Step(cmd,dt);v:StepRotors(nil,nil,dt)
+                    v:Step(cmd,dt);v:StepRotors(nil,nil,dt);u:RegenerateStructure(dt)
                 else
                     v:StepRotors(target,cmd.rotorStep,dt);RotorMotion.Weapons(v.rotors,u.weapons)
-                    v:Step(cmd,dt);local p,velocity=v.body.translation(),v.body.linvel()
+                    v:Step(cmd,dt);u:RegenerateStructure(dt);local p,velocity=v.body.translation(),v.body.linvel()
                     local eye=u==self.player and self.session.camera:GetNode().worldPosition or nil
                     u.weapons:Step(dt,{firing=firing,salvo=driverInfo and driverInfo.salvo,aim=target,pos={p.x,p.y,p.z},quat=v.body.rotation(),vel={velocity.x,velocity.y,velocity.z},body=v.body,team=u.team,
                         eye=eye and {-eye.x,eye.y,eye.z}},entry.env)
@@ -318,7 +318,7 @@ function M:Events()
         elseif e.type=='dropIntel' then self.view:AddIntel(e.id,e.pos)
         elseif e.type=='hideBeacon' then self.view:HideBeacon()
         elseif e.type=='siteCaptured' then self.view:SiteCaptured(e.id);local site=self.view.sites[e.id];if site then local p=site.flag.root.position;StoryStomp.Emit(self.session.effects,{-p.x,p.y,p.z},.6) end
-        elseif e.type=='scrub' then self.radio:Play('pickup');self.view:Scrub(e.id)
+        elseif e.type=='scrub' then self.view:Scrub(e.id);self.radio:Play('pickup')
         elseif e.type=='radio' then
             if self.choiceView and e.choice then self.choiceView:Pick(e.choice,e.index) end
             self.radio:Play(e.cue)
@@ -335,10 +335,11 @@ function M:Events()
         elseif e.type=='clear' then if e.timeout then self:ClearEnemies() end;self.view:AddIntel('log',e.pos)
         elseif e.type=='dead' then self.session.controls:Clear()
         elseif e.type=='respawn' then self.radio:Play('drop');self.player:Spawn();self:Place(e.at);self.regen=0;self.sizeKey=nil;self.voice:Say(self.level.respawn,true)
-        elseif e.type=='complete' then self.radio:Play('done');self:ClearEnemies();self.view:Objective(nil,nil)
+        elseif e.type=='complete' then self.view:HideBeacon();self:ClearEnemies();self.view:Objective(nil,nil)
             if self.choiceView then self.choiceView:Cancel() end
             if self.objective then self.objective:Done() end
             self:Banner('任务 '..self.level.no..' · '..self.level.name,'任务完成','MISSION COMPLETE','ok',5200)
+            self.radio:Play('done')
         elseif e.type=='result' then
             self.voice:PrepareResultQuote(self:Quote())
             self.session:Pause();local store=self.session.app.store

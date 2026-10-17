@@ -1,0 +1,27 @@
+const fs = require('node:fs'), path = require('node:path'), assert = require('node:assert/strict'), crypto = require('node:crypto');
+const {analyze, inspectWasm, summary} = require('./analyze-salvage-6f-oom.cjs');
+const dir = path.resolve('docs/migration/evidence/salvage-natural-manifest-6f9297a9-2026-10-16T21-44-02-714Z');
+const files = ['salvage-natural-web.log', 'salvage-natural-web.json'];
+const hash = file => crypto.createHash('sha256').update(fs.readFileSync(path.join(dir, file))).digest('hex');
+const before = files.map(hash), result = analyze(dir); let checks = 0;
+const check = (condition, label) => { checks++; assert.ok(condition, label); };
+check(JSON.stringify(before) === JSON.stringify(files.map(hash)), 'Analysis preserves original artifacts');
+check(result.stateRows === 1185 && result.salvageRows === 937, 'All actual states parsed');
+check(result.allStateMeasurements.length === 1185, 'All-mode measurements retained separately');
+check(result.parseErrors.length === 0 && result.fatal.line === 3578 && result.last.line === 3577, 'Exact failure boundary');
+check(result.route.shutdown.status === 'CLOSED' && result.route.result === 'FAIL', 'Actual failure and cleanup retained');
+check(result.identity.monitorDisabled && !result.identity.perfMonitor && result.monitorRecordLines.length === 0, 'Disabled monitor distinguished from QA observers');
+check(result.metrics['cache.modelBytes'].changes === 3 && result.metrics['cache.modelBytes'].max.time < 23, 'Model plateau not assigned as late allocation');
+check(result.metrics.luaKiB.decreases === 451, 'Lua falls retained instead of called monotonic');
+check(result.metrics['weaponAudio.voices'].max.value === 0 && result.metrics['effects.smoke'].max.value === 54, 'Independent voice and FX counters');
+check(result.metrics['playerMotion.wheels'].max.value === 0 && result.metrics['playerMotion.mechLegs'].max.value === 2, 'Player wheel scope remains distinct from all enemies');
+check(result.wallFrames.duplicateSamples === 0 && result.wallFrames.inconsistentSamples.length === 0 && result.wallFrames.count === 9873, 'Wall samples deduplicated');
+check(result.wasm.customSections.length === 0 && result.wasm.stack.every(frame => frame.debugName === null && frame.owner === 'unknown'), 'Absent native symbols are not invented');
+check(result.wasm.stack.find(frame => frame.index === 767).javascriptBindings.some(binding => binding.javascriptName === '_malloc'), 'Malloc name is actual JS binding only');
+check(result.olderComparison.sameCapturedWasmStack, 'Old and new allocation stack indices and byte offsets actually match');
+check(result.javascript.sourceMapDirectives.length === 0 && result.sidecars.every(file => !file.exists), 'Inspected local map availability recorded');
+check(summary([{line: 1, time: 0, metrics: {x: 5}}, {line: 2, time: 1, metrics: {x: 3}}, {line: 3, time: 2, metrics: {x: 4}}], 'x').decreases === 1, 'Decrease arithmetic negative fixture');
+check(summary([], 'missing').samples === 0, 'Missing measurement stays missing');
+let rejected = false; try { inspectWasm('.tmp/web-engine/UrhoXRuntime.wasm', [{index: 767, offset: 1}]); } catch { rejected = true; }
+check(rejected, 'Mismatched WASM offset negative control rejected');
+console.log(JSON.stringify({result: 'PASS', checks, inputHashes: before}));

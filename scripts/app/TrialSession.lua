@@ -324,7 +324,14 @@ function M:ConsumeWorldEvents()
     self.combatView:Consume(self.world);self.combatView:SavePose()
     self.effects:Consume(self.world.fx);self.world.fx={}
 end
+function M:ScopePivot()
+    local group=self.weapons:Group()
+    local w=self.scope and group and group.weapons[1]
+    return w and (w.pivot or w.muzzle),group
+end
 function M:Tick(dt,command)
+    local pivot=self:ScopePivot()
+    self.effects:SetFirstPerson(pivot~=nil and pivot~=false and (not self.combat or self.combat.player.alive),self.weapons,self.view.view)
     if self.endless and (self.endless.run.state=='editing' or self.endless.run.state=='over') then self.accumulator=0;if self.hud then self.hud.Update(self,dt) end;return end
     if self.battle and self.battle.rules.state=='over' then if self.hud then self.hud.Update(self,dt) end;return end
     local speaking=self.combat and self.combat.voice and self.combat.voice.card~=nil
@@ -519,6 +526,8 @@ function M:PostUpdate(dt)
     dt=self.frameDt or dt
     local root=self.view.view.root;local p=root.position
     if self.combat and not self.combat.player.alive then
+        self.effects:SetFirstPerson(false)
+        if self.view.view.weaponEffects then self.view.view.weaponEffects:SetVisible(false) end
         self.cameraFeedback:Discard()
         self.drillSpeed:Clear()
         NodeVisibility.Set(self.restoreFlash.root,false,true)
@@ -543,14 +552,15 @@ function M:PostUpdate(dt)
         if self.salvage then self.salvage.cine:Camera() end
         if self.environment then self.environment:Update(dt,self.camera:GetNode()) end;return
     end
-    local group=self.weapons:Group()
-    local w=group and group.weapons[1];local pivot=w and (w.pivot or w.muzzle)
+    local pivot,group=self:ScopePivot()
     local eye=self.scope and pivot and root.position+root.rotation*Coord.Vec(pivot[1],pivot[2]+.6,pivot[3])
     local pose=self.chase:Pose(dt,self:CameraCenter(),self.yaw,self.pitch,function(origin,dir,distance)
         return self:CameraObstacle(origin,dir,distance)
     end,eye and {-eye.x,eye.y,eye.z})
     ChaseCamera.Apply(self.camera,self.target,dt,pose,self.yaw,self.pitch)
     self.firstPerson=eye~=nil and eye~=false;NodeVisibility.Set(root,not self.firstPerson,true);self.weapons.aimed=self.scope and group~=nil
+    self.effects:SetFirstPerson(self.firstPerson,self.weapons,self.view.view)
+    if self.view.view.weaponEffects then self.view.view.weaponEffects:SetVisible(not self.firstPerson and root.enabled) end
     NodeVisibility.Set(self.restoreFlash.root,root.enabled,true)
     self.drillSpeed:Update(dt,self.camera:GetCamera(),self.weapons,self.pointer.captured and (not self.combat or self.combat.player.alive))
     local c=self.camera:GetCamera()
@@ -601,6 +611,7 @@ function M:Dispose(checkpoint)
     if self.aimLines then self.aimLines:Dispose() end
     if self.boundary then self.boundary:Dispose() end
     if checkpoint then checkpoint() end
+    DriveAim.Clear(self)
     self.weapons=nil;self.aimHit=nil
     if self.view then self.view:Dispose() end
     if checkpoint then checkpoint() end

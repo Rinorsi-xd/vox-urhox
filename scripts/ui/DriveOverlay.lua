@@ -66,7 +66,7 @@ function M:AimMarker()
     local aim=s.aimPoint or s:Aim();local distance=Math.Length(Math.Sub(aim,muzzle.pos))
     local hit=s.world:CastRay(muzzle.pos,muzzle.dir,math.min(500,distance+2),s.vehicle.body)
     local aligned=w:Aligned(part)
-    local blocked=aligned and hit and hit.dist<distance-math.max(1.5,distance*.04) and not (s.aimHit and hit.owner and s.aimHit.owner and hit.owner.ref==s.aimHit.owner.ref)
+    local blocked=aligned and hit and hit.dist<distance-math.max(1.5,distance*.04) and not (s.aimRef and hit.owner and hit.owner.ref==s.aimRef)
     local state=not aligned and (part.limited and 'limited' or 'turning') or blocked and 'blocked' or 'ok'
     local pos=Math.Add(muzzle.pos,Math.Scale(muzzle.dir,hit and math.min(hit.dist,distance) or distance))
     local x,y=self:Project(pos);self.aim.visible=x~=nil

@@ -17,6 +17,7 @@ local Coord = require "core.Coord"
 local Assets = require "parts.PartAssets"
 local Rig = require "render.PartRig"
 local JoinedSurface=require 'render.JoinedSurface'
+local RotorDisc=require 'render.RotorDisc'
 
 ---@class PartVisual
 ---@field node Node
@@ -132,6 +133,7 @@ function VehicleView:Repaint(part)
     if not vis then return end
     vis.part=part
     if vis.joined then self.joined:Repaint(part);return end
+    RotorDisc.Bind(vis,part)
     local color = Config.HexLinear(part.color, Variation(part.id))
     for _, sm in ipairs(vis.models) do sm.instanceColor = color end
     if #vis.shellSlots>0 then
@@ -232,12 +234,12 @@ function VehicleView:SetVisible(visible)
     if not visible and self.weaponEffects then self.weaponEffects:Reset() end
 end
 
-function VehicleView:UpdateIdle(dt,time,skipWings)
+function VehicleView:UpdateIdle(dt,time,skipWings,skipWeapons)
     self.joined:Update()
     for _,mesh in pairs(self.rotorJoined or {}) do mesh:Update() end
     self.livery:Update()
     for _,vis in pairs(self.visuals) do
-        if vis.weaponMotion then WeaponPresentation.Update(vis,dt,time) end
+        if vis.weaponMotion and not skipWeapons then WeaponPresentation.Update(vis,dt,time) end
         if vis.rig.wing and not skipWings then WingRig.Update(vis,nil,time,dt) end
     end
 end

@@ -1,6 +1,8 @@
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http'),crypto=require('node:crypto');
 const {chromium}=require('C:/Users/XD/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
 const root=path.resolve(__dirname,'../..'),out=path.join(root,'docs/migration/evidence');
+const prefix=process.env.VOX_SOURCE_MOBILE_OUTPUT||'source-mobile-editor';
+if(!/^[a-z0-9-]+$/i.test(prefix))throw Error('Source capture prefix must be a filename stem.');
 const baseline=JSON.parse(fs.readFileSync(path.join(root,'docs/migration/outgame-baseline.json'))),source=baseline.snapshot,checked={};
 (async()=>{
  const server=http.createServer((req,res)=>{
@@ -25,10 +27,10 @@ const baseline=JSON.parse(fs.readFileSync(path.join(root,'docs/migration/outgame
   for(const state of ['tap','aim','tools','more','paint']){
    await page.evaluate(state=>{fixture.touch.prefs.build=state==='aim'?'aim':'tap';fixture.touch.me.sheet=['tools','more','paint'].includes(state)?state:null;fixture.touch.me.sig=null;fixture.touch.update();},state);
    sample.states[state]=await page.evaluate(()=>[...document.querySelectorAll('.me button,.me-dock,.me-sheet,.me-hint,.me-split .lb')].flatMap(el=>{const r=el.getBoundingClientRect();if(!r.width||!r.height)return[];return[{action:el.dataset.touch||el.dataset.sheet||el.className,index:el.dataset.i,value:el.dataset.v,tool:el.dataset.tool,hex:el.dataset.hex,rect:[r.x,r.y,r.width,r.height],text:el.textContent}];}));
-   if(v.width===840)await page.screenshot({path:path.join(out,'source-mobile-editor-'+state+'.png')});
+   if(v.width===840||v.width===640)await page.screenshot({path:path.join(out,prefix+(v.width===840?'':'-'+v.width)+'-'+state+'.png')});
   }
   report.layouts.push(sample);await page.close();
  }
- report.sourceHashes=checked;fs.writeFileSync(path.join(out,'source-mobile-editor.json'),JSON.stringify(report,null,2));console.log(JSON.stringify({layouts:report.layouts.length,states:20,sourceHashes:Object.keys(checked).length}));
+ report.sourceHashes=checked;fs.writeFileSync(path.join(out,prefix+'.json'),JSON.stringify(report,null,2));console.log(JSON.stringify({layouts:report.layouts.length,states:20,sourceHashes:Object.keys(checked).length}));
  }finally{await browser.close();await new Promise(r=>server.close(r));}
 })().catch(e=>{console.error(e);process.exitCode=1;});

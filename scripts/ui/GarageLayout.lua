@@ -2,7 +2,9 @@ local HomeNewMenu=require("ui.HomeNewMenu")
 
 local M={}
 function M.Apply(s,w,h,safe)
-    s.width=w;s.height=h;s.safe=safe or {};s.cardWidth=184;s.cardHeight=90
+    s.width=w;s.height=h;s.safe=safe or {}
+    -- 源 mobile.css：手机紧凑界面车位卡 168×74
+    s.cardWidth=s.compact and 168 or 184;s.cardHeight=s.compact and 74 or 90
     local left=math.max(28,s.safe.left or 0);local right=math.max(28,s.safe.right or 0);local top=s.safe.top or 0;local bottom=s.safe.bottom or 0
     s.navHeight=(s.tab=='hangar' and 64 or 60)+top;s.infoWidth=292
     local function Place(widget,x,y,width,height) widget:SetStyle({position='absolute',left=x,top=y,width=width,height=height}) end
@@ -12,31 +14,40 @@ function M.Apply(s,w,h,safe)
     for i,id in ipairs({'hangar','livery','workshop','shop'}) do s.buttons[id].props.headerHangar=home;Place(s.buttons[id],x,top,widths[i],s.navHeight-top);x=x+widths[i] end
     if s.buttons.intro then Place(s.buttons.intro,w-(home and 273 or 263),top+(home and 12 or 10),151,40) end
     Place(s.buttons.help,w-(home and 116 or 106),top+(home and 12 or 10),40,40);Place(s.buttons.settings,w-(home and 70 or 60),top+(home and 12 or 10),40,40)
-    s.buttons.help:SetVisible(true)
+    -- 源 mobile.css：顶栏「？」是键位说明（H），触屏不显示
+    s.buttons.help:SetVisible(not s.touch)
     local stripY=h-bottom-115
-    local ctaWidth=672
-    local ctaHeight=74
-    local ctaY=s.tab=='hangar' and h-bottom-225 or h-bottom-98
+    -- 手机紧凑界面：车是主角。改装/出战/试车整组缩到 .72 并贴到车位条上方，模式切换挪到车位条右侧，
+    -- 不再压在战车上（按钮按 sourceScale 等比绘制，点击区域跟着布局一起缩）
+    local k=s.compact and .72 or 1
+    local ctaWidth=672*k
+    local ctaHeight=74*k
+    local ctaY=s.tab=='hangar' and (s.compact and stripY-8-ctaHeight or h-bottom-225) or h-bottom-98
     Place(s.cta,(w-ctaWidth)/2,ctaY,ctaWidth,ctaHeight)
     if s.tab=='shop' then Place(s.cta,(w-ctaWidth)/2,h-bottom-98,ctaWidth,ctaHeight) end
+    local modeWidth=434*k
     if s.modeStrip then
-        local modeWidth=434
-        Place(s.modeStrip,(w-modeWidth)/2,h-bottom-279,modeWidth,51)
-        Place(s.buttons.arena,0,0,215,51);Place(s.buttons.salvage,219,0,215,51)
+        if s.compact then Place(s.modeStrip,w-right-modeWidth,stripY+(100-51*k)/2,modeWidth,51*k)
+        else Place(s.modeStrip,(w-modeWidth)/2,h-bottom-279,modeWidth,51) end
+        Place(s.buttons.arena,0,0,215*k,51*k);Place(s.buttons.salvage,219*k,0,215*k,51*k)
     end
-    Place(s.buttons.edit,0,0,174,74);Place(s.buttons.battle,160,0,352,74);Place(s.buttons.trial,498,0,174,74)
+    Place(s.buttons.edit,0,0,174*k,74*k);Place(s.buttons.battle,160*k,0,352*k,74*k);Place(s.buttons.trial,498*k,0,174*k,74*k)
+    for _,id in ipairs({'edit','battle','trial','arena','salvage'}) do if s.buttons[id] then s.buttons[id].props.sourceScale=k end end
     local infoHeight=math.min(s.detailsOpen and 585 or 332.96875,math.max(48,h-top-bottom-290))
     Place(s.info,left,top+88,s.infoWidth,infoHeight)
     Place(s.loadout,w-right-254,top+88,254,math.min(infoHeight,s.loadoutHeight or 168))
     Place(s.actions,w-321,h-bottom-183,283,58)
     if s.musicConsole then
         local cw=graphics:GetWidth()/graphics:GetDPR();local k=w/cw
-        s.musicConsole.small=cw<=760;s.musicConsole.consoleScale=k
-        if cw<=760 then Place(s.musicConsole,12*k,h-180*k,218*k,70*k)
+        s.musicConsole.small=cw<=760 or s.compact==true;s.musicConsole.consoleScale=k
+        -- 源 mobile.css：手机紧凑界面把音乐盒缩成左下一条小卡（left 18 / bottom 168 / 250×66），不压改装按钮
+        -- 16:9 一类较窄的屏上居中的改装/出战/试车会伸到左下，音乐盒相应缩窄，不压按钮
+        if s.compact then s.musicConsole.consoleScale=1;Place(s.musicConsole,18,ctaY+ctaHeight-66,math.max(150,math.min(250,(w-ctaWidth)/2-26)),66)
+        elseif cw<=760 then Place(s.musicConsole,12*k,h-180*k,218*k,70*k)
         else Place(s.musicConsole,28,h-262,336,98) end
     end
     if s.buttons.manage then Place(s.buttons.manage,w-158,h-bottom-150,122,32) end
-    local stripWidth=math.min(math.max(190,#(s.cards or {})*193-3),w-36*2-30*2-102-24)
+    local stripWidth=math.min(math.max(190,#(s.cards or {})*(s.cardWidth+9)-3),w-36*2-30*2-102-24-(s.compact and modeWidth+right+16 or 0))
     Place(s.leftArrow,36,stripY,30,100);Place(s.bayScroll,74,stripY,stripWidth,100)
     Place(s.rightArrow,82+stripWidth,stripY,30,100);Place(s.buttons.new,120+stripWidth,stripY,102,100)
     s.bayStrip:SetStyle({height=100,width=math.max(190,#(s.cards or {})*193-3),paddingTop=5,paddingLeft=3,gap=9})

@@ -2,6 +2,7 @@
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -64,6 +65,7 @@ console.log(JSON.stringify({baseline:{branch:baseline.branch,commit:baseline.com
 '''
 reference = json.loads(subprocess.check_output(['node', '-e', source_script], encoding='utf-8'))
 lua = LuaRuntime(unpack_returned_tuples=True)
+lua.globals().MissionDependencies=lua.table_from(re.findall(r'require\s*\(?\s*[\'"]([^\'"]+)',(root/'scripts/story/Mission.lua').read_text(encoding='utf-8-sig')))
 
 
 def convert(value):
@@ -79,9 +81,10 @@ levels = {f's{i}': json.loads((root / f'assets/Story/Mission/Level{i}.json').rea
 lua.globals().Levels = convert(levels)
 runner = lua.execute(r'''
 package.path='scripts/?.lua;'..package.path
-for _,id in ipairs({'story.MissionData','combat.ArenaData','combat.CarUnit','combat.EnemyDriver','core.Math3','drive.SpawnSpecCache'})do
- package.preload[id]=function()return {}end
+for _,id in ipairs(MissionDependencies)do
+ if id~='story.MissionRules' then package.preload[id]=function()return {}end end
 end
+package.preload['render.StoryStomp']=function()return {Emit=function()end}end
 local Mission=require 'story.Mission';local Rules=require 'story.MissionRules'
 package.loaded['combat.ArenaData'].prefabs={['red:1:assault:0']={}}
 local seeds={}
@@ -89,7 +92,6 @@ package.loaded['combat.EnemyDriver'].New=function(_,_,_,_,opts)seeds[#seeds+1]=o
 package.loaded['combat.CarUnit'].New=function()
  return {spec={bounds={min={0,0,0},max={1,1,1}}},vehicle={Place=function()end},SavePose=function()end,Dispose=function()end}
 end
-package.preload['render.StoryStomp']=function()return {Emit=function()end}end
 return {
  seed=function(test)
   seeds={};local beat={t=1,tag=test.tag,spawn={{at={1,2,3}},{at={4,5,6}}}}
@@ -121,7 +123,7 @@ return {
   local noop=function()end
   local m=setmetatable({level={id='s2',no='02',name='物资车'},rules={time=120,Drain=function()return events end},
    radio={Play=function(_,name)out[#out+1]='radio:'..name end},voice={PrepareResultQuote=noop},
-   player={alive=true},ClearEnemies=noop,Banner=noop,Quote=function()return ''end,view={Objective=noop},
+   player={alive=true},ClearEnemies=noop,Banner=noop,Quote=function()return ''end,view={Objective=noop,HideBeacon=noop},
    session={Pause=noop,app={store={Read=function()return {}end,Write=function()return true end}}}},Mission)
   m:Events();return out
  end}

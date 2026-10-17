@@ -17,6 +17,7 @@ local Data=require 'combat.ArenaData'
 local BP=require 'construction.Blueprint'
 local Unit=require 'combat.CarUnit'
 local Driver=require 'combat.EnemyDriver'
+local SpawnSpecCache=require 'drive.SpawnSpecCache'
 local M={};M.__index=M
 function M.Dependencies(bp,roster,mode)
     local tier=(bp:Stats().fitTier or {id=5}).id;local parts={}
@@ -44,6 +45,7 @@ function M.New(session,bp,checkpoint)
     self.mode=session.map.battleMode or 'elimination'
     self.baseDamage=self.world.RecordDamage;self.baseKill=self.world.RecordKill
     session.battle=self;session.combat=self
+    self.spawnSpecCache=SpawnSpecCache.New()
     self.sounds=BattleFlow.New()
     self.sounds:Prepare(false,function() if checkpoint then checkpoint(0) end end)
     self.objectives=BattleObjectives.New(self,self.mode);self.rules=self.objectives:Rules()
@@ -55,7 +57,9 @@ function M.New(session,bp,checkpoint)
         local source=member.player and bp:ToTable() or Data.prefabs[team..':'..self.tier..':'..member.role..':'..(member.variant or 0)]
         local spawn=self:SpawnAt(team,i)
         local progress=checkpoint and function(p) checkpoint((#self.entries+p*.95)/(#self.roster.blue+#self.roster.red)) end or nil
-        local unit=Unit.New(self.world,source,{name=member.name,spawn=spawn,team=team,autoRespawn=false,externalControl=true,externalView=member.player,combat=true},progress,function(candidate)
+        -- Prepare immutable templates during loading; each spawn receives a clone.
+        self.spawnSpecCache:Prepare(source,progress and function() progress(0) end or nil)
+        local unit=Unit.New(self.world,source,{name=member.name,spawn=spawn,team=team,autoRespawn=false,externalControl=true,externalView=member.player,combat=true,spawnSpecCache=self.spawnSpecCache},progress,function(candidate)
             self.world.units[#self.world.units+1]=candidate
         end)
         assert(unit.alive,'Invalid battle vehicle '..member.name)
@@ -235,6 +239,7 @@ function M:Snapshot()
         radio={ready=self.voice.ready,queued=#self.voice.queue,card=self.voice.card},mvp=self.mvpShow and self.mvpShow:Snapshot()}
 end
 function M:Dispose()
+    if self.spawnSpecCache then self.spawnSpecCache:Dispose();self.spawnSpecCache=nil end
     if self.mvpShow then self.mvpShow:Dispose();self.mvpShow=nil end
     if self.sounds then self.sounds:Dispose() end
     if self.voice then self.voice:Dispose() end

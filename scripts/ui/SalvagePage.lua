@@ -28,7 +28,7 @@ local Stash=require 'salvage.StashRules'
 local M={}
 local tabs={{'loadout','整备',86},{'ops','行动',86},{'market','商人',86},{'garage','车库',86},{'workshop','创意工坊',154}}
 function M.Deploy(s)
-    local shortage=Stash.ShortfallInfo(s.app.salvageLobby:Shortfall())
+    local shortage=Stash.ShortfallInfo(s.app.salvageLobby:DeploymentShortfall())
     if shortage.kinds>0 then
         s.app.toasts:Push(shortage.tip..'（'..shortage.details..'）','bad');s.revision=-1;return false
     end
@@ -86,7 +86,7 @@ function M.Create(s)
     local sv=s.salvage;sv.shopCategory=sv.shopCategory or 'part';sv.sort=sv.sort or 'rarity';sv.query=sv.query or '';sv.gear=sv.gear or {}
     local lobby=s.app.salvageLobby;local w,h=s.width,s.height
     M.Leave(s)
-    local usage=lobby:Usage();local short=lobby:Shortfall(usage);local shortage=Stash.ShortfallInfo(short);sv.loose={};for id in pairs(Data.items) do sv.loose[id]=lobby:Loose(id,usage) end
+    local usage=lobby:Usage();local short=lobby:Shortfall(usage);local shortage=Stash.ShortfallInfo(lobby:DeploymentShortfall(usage));sv.loose={};for id in pairs(Data.items) do sv.loose[id]=lobby:Loose(id,usage) end
     local gear={};for _,id in ipairs(sv.gear) do if (sv.loose[id] or 0)>0 then gear[#gear+1]=id end end;sv.gear=gear
     local nameSize=utf8.len(s.app.blueprint.name)>8 and 48 or utf8.len(s.app.blueprint.name)>5 and 60 or 72
     local sectionTop=150+nameSize*1.05+10+26+26

@@ -121,6 +121,10 @@ end
 function Page:Render(vg)
     if not self.owner.active then return end
     D.Begin(vg);local w,h=UI.GetViewportSize()
+    local flow=self.owner
+    if flow.commsWarmup and flow.pageVisible and not flow.failed and (flow.phase=='loading' or flow.phase=='ready') then
+        flow.commsWarmup:Draw(vg)
+    end
     -- Drive HUD may switch its scale; the loading surface retains source 1080p.
     local k=math.min(w/1920,h/1080);local logicalW,logicalH=w/k,h/k
     self.backRect=nil;self.cancelRect=nil

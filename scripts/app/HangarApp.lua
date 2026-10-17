@@ -52,6 +52,7 @@ local StoryComms=require("audio.StoryComms")
 local IntroAudioTail=require("audio.IntroAudioTail")
 local GameMusicState=require("audio.GameMusicState")
 local Warehouse=require("scene.Warehouse")
+local SalvageResultReturn=require("salvage.ResultReturn")
 -- Load optional/cyclic dependencies once, without changing first-use order.
 local DeferredModules=setmetatable({},{__index=function(modules,name)
     local module=require(name)
@@ -284,7 +285,10 @@ function App:Reload()
     if self.trial or not self.scene then
         if self.trial then self.trial:Pause() end
         self.loadingFlow:Open({id='hangar',name='轨道改装机库',boot=not self.scene,loadingArt='UI/Salvage/depot.jpg',loadingBrand='返回机库',
-            loadingSub='战车、车库与改装'},function() self.loader:Cancel() end)
+            loadingSub='战车、车库与改装'},function()
+                if self.trial and self.loadingFlow.failed then self:Reload()
+                else self.loader:Cancel() end
+            end)
     end
     print("[HangarApp] Loading authored scene "..SCENE)
     self.loader:Load(SCENE,function(scene)
@@ -341,8 +345,8 @@ function App:EnterTrial(mapId,battleMode,roster,reuseLoading)
         for _,p in ipairs(self.blueprint:List()) do local it=items.items['part:'..p.type];if it then value=value+it.price end end
         local op=items.ops[self.salvageLobby.data.op or 1]
         if value<op.minValue then self.toasts:Push('带入价值不足 '..tostring(op.minValue),'bad');return false end
-        for id,n in pairs(self.salvageLobby:Usage()) do
-            if n>self.salvageLobby:Owned(id) then self.toasts:Push('仓库缺少 '..(items.items[id] and items.items[id].name or id),'bad');return false end
+        for id in pairs(self.salvageLobby:DeploymentShortfall()) do
+            self.toasts:Push('仓库缺少 '..(items.items[id] and items.items[id].name or id),'bad');return false
         end
     end
     if battleMode then
@@ -518,7 +522,7 @@ function App:Install(scene)
     if oldSwitch then oldSwitch:Dispose() end
     if oldCar then oldCar:Dispose() end
     if oldHangar then oldHangar:Dispose() end
-    if oldTrial then oldTrial:Dispose() end
+    if oldTrial then oldTrial:Dispose();SalvageResultReturn.RecordRelease(self,oldTrial) end
     if oldScene then oldScene:Dispose() end
     self.trial=nil;self.mode="hangar";_G.VOX_TRIAL=nil
     if oldTrial then
@@ -689,6 +693,9 @@ function App:Update(dt)
         if self.loadingFlow.pageVisible and not self.loadingFlow.finished and not self.loadingFlow.keepSceneVisible then self.graphicsSettings:SetSceneVisible(false) end
         return
     end
+    if self.pendingSalvageResult then
+        SalvageResultReturn.Update(self,Hud.GetState(),dt,DeferredModules['ui.SalvageRunHud'].Result)
+    end
     if self.mode~='trial' and self.scene and self.hangar then
         if self.lobby=='salvage' then
             self.warehouse=self.warehouse or Warehouse.New(self);self.warehouse:Update()
@@ -779,7 +786,14 @@ function App:PostUpdate(dt)
     if not self.stopped then self.graphicsSettings:PostUpdate() end
 end
 function App:CancelMapLoad(fromFlow)
-    if not self.pendingMap then return false end
+    if not self.pendingMap then
+        -- Installation transfers loader ownership before render warmup finishes.
+        if fromFlow and self.loadingFlow and self.loadingFlow.failed then
+            if self.mapPreview then self.mapPreview:Return();return true end
+            if self.trial then self:Reload();return true end
+        end
+        return false
+    end
     if not fromFlow and self.loadingFlow and self.loadingFlow.active then self.loadingFlow:Back();return true end
     self.loader:Cancel()
     self:DeferAssetRelease(function() cache:ReleaseAllResources(false) end)

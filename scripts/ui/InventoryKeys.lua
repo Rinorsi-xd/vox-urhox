@@ -3,13 +3,17 @@ local Inventory=require("construction.Inventory")
 
 local UI=require 'urhox-libs/UI'
 local M={}
+local function CanFocusPart(owner,id)
+    -- Salvage stock is buyable; endless out-of-stock cards are disabled.
+    return owner.stockRemaining~=nil or not owner:Unavailable(id)
+end
 function M.Stops(owner)
     local stops={{widget=owner.search},{widget=owner.closeButton}}
     for _,widget in ipairs(owner.categoryBar.children) do stops[#stops+1]={widget=widget} end
     if owner.materialBar:IsVisible() then
         for _,material in ipairs(Inventory.materials) do stops[#stops+1]={widget=owner.matButtons[material.id]} end
     end
-    for index,def in ipairs(owner.results) do stops[#stops+1]={part=def.id,index=index} end
+    for index,def in ipairs(owner.results) do if CanFocusPart(owner,def.id) then stops[#stops+1]={part=def.id,index=index} end end
     if owner.detail.more then stops[#stops+1]={widget=owner.detail.more} end
     for _,slot in ipairs(owner.hotbar.slots) do stops[#stops+1]={widget=slot.widget} end
     stops[#stops+1]={widget=owner.footer.children[1].children[1]}
@@ -17,6 +21,7 @@ function M.Stops(owner)
 end
 function M.Focus(owner,stop)
     if stop.part then
+        if not CanFocusPart(owner,stop.part) then return false end
         local row=math.floor((stop.index-1)/owner.columns)+1
         local offset=owner.list.scrollOffset_;local inset=owner.list.props.topInset or 16
         local top=inset+(row-1)*owner.list.rowHeight_

@@ -1,7 +1,11 @@
 local TouchPreferences=require("controls.TouchPreferences")
 local AimAssist=require("combat.AimAssist")
+local AimReach=require 'combat.AimReach'
 
 local M={}
+function M.Clear(s)
+    s.aimReach=nil;s.aimReachVehicle=nil;s.aimReachSystem=nil
+end
 function M.Resolve(s,origin,direction,hit)
     local group=s.weapons:Group();local stats
     if not s.weapons.offline then for _,w in ipairs(group and group.weapons or {}) do if w.stats.assist then stats=w.stats;break end end end
@@ -12,7 +16,11 @@ function M.Resolve(s,origin,direction,hit)
     end
     local prefs=TouchPreferences.Get(s.app)
     local wide=(s.scope and 1.8 or 1)*(s.touch and prefs.assist and 2.2 or 1)
-    s.assist=AimAssist.Apply(origin,direction,hit,player,s.world.combatUnits or s.world.units,function(...) return s.world:CastRay(...) end,stats,wide)
+    if not s.aimReach or s.aimReachVehicle~=s.vehicle or s.aimReachSystem~=s.weapons then
+        s.aimReach=AimReach.New(s.weapons,s.vehicle)
+        s.aimReachVehicle=s.vehicle;s.aimReachSystem=s.weapons
+    end
+    s.assist=AimAssist.Apply(origin,direction,hit,player,s.world.combatUnits or s.world.units,function(...) return s.world:CastRay(...) end,stats,wide,s.aimReach)
     s.aimRef=s.assist and s.assist.ref or hit and hit.owner and hit.owner.ref
     return s.assist and s.assist.point
 end

@@ -33,11 +33,13 @@ Scene=function()
    self.frequency=frequency==0 and sound:GetFrequency()or frequency;self.gain=gain;self.playing=true
   end
   function source:Seek()end
+  function source:Remove()self.detached=true end
+  function source:Dispose()Check(self.detached and not self.playing,'source detached and stopped before explicit disposal');self.disposed=true end
   scene.sources[#scene.sources+1]=source;return source
  end}end
  function scene:Dispose()
   Check(not self.disposed,'dedicated scene disposed once');self.disposed=true
-  for _,source in ipairs(self.sources)do Check(not source.playing,'playing source stopped before owning scene disposal');source.disposed=true end
+  for _,source in ipairs(self.sources)do Check(not source.playing and source.disposed,'retained source explicitly released before owning scene disposal')end
  end
  scenes[#scenes+1]=scene;return scene
 end

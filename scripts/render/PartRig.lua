@@ -8,6 +8,7 @@ local Coord=require "core.Coord"
 local Materials=require "parts.Materials"
 local Config=require "Config"
 local WeaponPresentation=require 'render.WeaponPresentation'
+local RotorDisc=require 'render.RotorDisc'
 local M={}
 local function Vec(v) return Coord.Vec(v[1],v[2],v[3]) end
 local function Group(parent,name,p)
@@ -117,6 +118,7 @@ function M.Build(node,data,part,vis)
         end
         Parts(r.head,s.parts)
         if s.pod then r.pod=Group(r.head,'Pod');Add(r.pod,s.pod);Parts(r.pod,s.podParts) end
+        RotorDisc.Bind(vis,part)
     end
 end
 function M.SetTrack(vis,distance)

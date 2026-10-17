@@ -29,7 +29,8 @@ end
 function M.New(app)
     local self=setmetatable({},M);self:init(app);return self
 end
-function M:init(_app)
+function M:init(app)
+    self.app=app
     self.disposed=false;self.elapsed=refreshInterval;self.snapshot={}
     self.width=0;self.top=0;self.right=0;self.alert=false;self.stageAlert=false
     self.enabled=false;self.visible=true
@@ -88,6 +89,12 @@ function M:Layout()
     -- Keep even the expanded panel entirely to the right of the reticle.
     local width=math.max(1,math.min(274,w*.44-right))
     local top=116+(safe.top or 0)
+    local session=self.app and self.app.trial
+    local settings=session and session.hud and session.hud.buttons and session.hud.buttons.settings
+    if settings and settings:IsVisible() then
+        local rect=settings:GetAbsoluteLayoutForHitTest()
+        if rect.w>0 and rect.h>0 then top=math.max(top,rect.y+rect.h+10) end
+    end
     if width~=self.width or right~=self.right or top~=self.top then
         self.width=width;self.right=right;self.top=top
         self.panel:SetStyle{width=width,right=right,top=top}
@@ -139,6 +146,7 @@ end
 
 function M:Dispose()
     if self.disposed then return end
+    self.app=nil
     self.disposed=true;UI.PopOverlay(self.root);UI.UnregisterGlobalComponent('vox-performance')
     self.root:Destroy();self.snapshot={}
 end

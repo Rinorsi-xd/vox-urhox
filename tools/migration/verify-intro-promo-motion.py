@@ -21,6 +21,7 @@ package.loaded['ui.SourceDraw']={
 package.loaded['ui.SourceParagraph']={New=function()return {
  Measure=function()return {height=20}end,Draw=function()Event('caption')end}end}
 package.loaded['ui.IntroTypography']={face='game',Begin=function()end}
+for _,name in ipairs({'IntroBrand','IntroComic','IntroComicBurst','IntroComicText','IntroFamiliar','IntroGalaxyText','IntroSortieUi'})do package.loaded['ui.'..name]={}end
 package.loaded['ui.IntroFilm']={Under=function()Event('under')end,Over=function()Event('over')end}
 package.loaded['ui.IntroTitleCard']={Plan=function(id,text)return {id=id,text=text}end,
  Draw=function()Event('title')end}

@@ -1,6 +1,11 @@
 // Executes frozen H5 class methods with recording render sinks, not hand-copied formulas.
-const fs=require('node:fs'),vm=require('node:vm');
-const base='.tmp/outgame-source-2026-10-14T10-09-50-505Z/three/src/';
+const fs=require('node:fs'),vm=require('node:vm'),path=require('node:path'),crypto=require('node:crypto');
+const baseline=JSON.parse(fs.readFileSync('docs/migration/outgame-baseline.json','utf8'));
+const base=path.join(baseline.snapshot,'three/src/');
+for(const name of ['drive/weaponFx.js','drive/effects.js']){
+ const bytes=fs.readFileSync(path.join(base,name));
+ if(crypto.createHash('sha256').update(bytes).digest('hex')!==baseline.files['three/src/'+name].sha256)throw new Error('Frozen source hash mismatch: '+name);
+}
 let seed=146982;const random=()=>{seed=seed*48271%2147483647;return seed/2147483647};
 const context=vm.createContext({Math:Object.assign(Object.create(Math),{random}),THREE:{Quaternion:class{},Vector3:class{},Matrix4:class{}}});
 function load(path,name){const text=fs.readFileSync(base+path,'utf8').replace(/^import .*;\r?\n/gm,'').replace(/export class /g,'class ');return vm.runInContext(`(()=>{${text};return ${name}})()`,context)}

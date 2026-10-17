@@ -13,6 +13,19 @@ for _,name in ipairs({'construction.Blueprint','construction.Prefab','render.Veh
     'render.TargetFeedback'}) do package.loaded[name]={} end
 package.loaded['urhox-libs/UI']={}
 package.loaded['ui.GarageHud']={}
+package.loaded['storage.BlueprintStore']={New=function()error('storage is outside the PostUpdate warmup fixture')end}
+-- Hoisted constructor dependencies must remain unused in this lifecycle fixture.
+-- Fail on every access rather than allowing an empty/no-op implementation through.
+for _,name in ipairs({'render.HangarPreview','construction.BuildEditor','construction.Garage','app.BuildSession',
+    'controls.HomeStations','parts.Dependencies','ui.EndlessSelect','intro.IntroSession','app.OpeningHost',
+    'scene.HangarResources','ui.WeaponIconResources','combat.BattleController','story.Mission','app.EndlessSession',
+    'app.MapPreview','ui.LiveryPage','app.HomeVehicleSwitch','render.PartsGallery','app.OpeningRetirement','scene.Warehouse',
+    'render.MechView','ui.LoadingPage','ui.MatchLobby','story.Tutorial','drive.VehicleSpec',
+    'salvage.Run','app.PracticeSession','render.RestoreFlash','app.MatchIntro','audio.StoryComms','drive.RotorMotion'}) do
+    package.loaded[name]=setmetatable({}, {__index=function(_,field)
+        error('constructor-only dependency used in PostUpdate fixture: '..name..'.'..tostring(field))
+    end})
+end
 package.loaded['controls.ChaseCamera']={Apply=noop}
 local App=assert(load(APP_SOURCE,'@scripts/app/HangarApp.lua'))()
 local Trial=require'app.TrialSession'

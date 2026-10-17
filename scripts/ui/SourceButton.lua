@@ -45,7 +45,7 @@ function Button:Render(vg)
         D.Text(vg,'未完成',x+125.5,y+12.5,11,D.ink,'vox-body',NVG_ALIGN_CENTER)
     elseif kind=='mode' then
         if p.salvage then
-            self:RenderBackgroundImage(vg,'UI/Salvage/map.jpg',r,'cover',nil)
+            self:RenderBackgroundImage(vg,'UI/Salvage/map.jpg',{x=x,y=y,w=w,h=h},'cover',nil)
             D.Rect(vg,x,y,w,h,{16,34,55,192})
         elseif p.selected then Relief.Draw(vg,x,y,w,h,false,true,{x,y,x+w,y,x+w,y+h,x,y+h},true)
         else D.Rect(vg,x,y,w,h,{16,34,55,255}) end
@@ -75,7 +75,9 @@ function Button:Render(vg)
             nvgSave(vg);nvgIntersectScissor(vg,x,y,w*sweep,h);D.Path(vg,points)
             nvgFillColor(vg,nvgRGBA(255,255,255,26));nvgFill(vg);nvgRestore(vg)
         end
-        local kw=D.Width(vg,p.key or '',12,nil,.5)+12
+        -- 触屏不显示键位（源 touch-controls.css：.touch-input .home-cta kbd { display:none }）
+        local hasKey=p.key~=nil and p.key~=''
+        local kw=hasKey and D.Width(vg,p.key,12,nil,.5)+12 or 0
         local iconSize=main and 33 or 24;local titleSize=main and 36 or 25;local subSize=main and 11 or 10
         local tracking=main and 3 or 0
         local span=math.max(D.Width(vg,p.text,titleSize,nil,tracking),D.Width(vg,p.subtitle or '',subSize,'vox-body'))
@@ -86,8 +88,10 @@ function Button:Render(vg)
         D.Text(vg,p.subtitle or '',tx,y+(main and 52 or 47),subSize,main and {228,244,255,255} or {195,222,244,255},'vox-body')
         local kx=main and tx+span+12 or x+w-18-kw
         local ky=y+(h-19)/2
-        D.Rect(vg,kx,ky,kw,19,main and {22,61,103,102} or {19,36,58,255});nvgBeginPath(vg);nvgRect(vg,kx+.5,ky+.5,kw-1,18);nvgStrokeWidth(vg,1);nvgStrokeColor(vg,nvgRGBA(0,0,0,0));nvgStroke(vg)
-        D.Text(vg,p.key or '',kx+kw/2,ky+1,12,color,nil,NVG_ALIGN_CENTER,.5,false,17)
+        if hasKey then
+            D.Rect(vg,kx,ky,kw,19,main and {22,61,103,102} or {19,36,58,255});nvgBeginPath(vg);nvgRect(vg,kx+.5,ky+.5,kw-1,18);nvgStrokeWidth(vg,1);nvgStrokeColor(vg,nvgRGBA(0,0,0,0));nvgStroke(vg)
+            D.Text(vg,p.key,kx+kw/2,ky+1,12,color,nil,NVG_ALIGN_CENTER,.5,false,17)
+        end
     elseif kind=='pause' then
         if hover and not p.disabled then x=x+4 end
         Relief.Draw(vg,x,y,w,h,false,true,{x,y,x+w,y,x+w,y+h,x,y+h},false)

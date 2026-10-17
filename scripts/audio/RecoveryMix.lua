@@ -32,6 +32,6 @@ function M:Consume(events,unit,emit)
         emit('repair_done',position,1);self.repairing=false;self.healedAt=-math.huge
     end
     self.amount=unit.alive and now-self.healedAt<.45 and M.Amount(hp) or 0
-    self.rate=M.Rate(hp);self.position=position
+    self.rate=M.Rate(hp);self.health=hp;self.position=position
 end
 return M

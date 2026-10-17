@@ -30,6 +30,7 @@ local function Check(ok,message) checks=checks+1;assert(ok,message) end
 local disposed=0
 Scene=function() return {CreateChild=function() return {CreateComponent=function() return {
  SetSoundType=function() end,StopImmediate=function(self) self.playing=false end,
+ Remove=function(self) self.detached=true end,Dispose=function(self) assert(self.detached and not self.playing);self.disposed=true end,
  Play=function(self,sound,frequency,gain) self.sound=sound;self.frequency=frequency;self.gain=gain;self.playing=true end,
  Seek=function() end,
 } end} end,Dispose=function() disposed=disposed+1 end} end
@@ -76,10 +77,14 @@ for _,row in ipairs(SOURCE_AUDIO.repeatedStops) do
  Check(math.abs(repeated.gain-row.gain)<1e-10,'repeated stop or volume slider must keep the source current fade level')
  Check((not repeated.playing)==row.stopped,'repeated stop schedules the final tail correctly')
 end
-for _,slot in ipairs(p.sources) do slot.source.playing=false end
+for _,slot in ipairs(p.sources) do slot.source.playing=false;slot.stopAt=nil;slot.fadeWallAt=nil end
 local stale,staleToken=p:Sfx('alarm',{loop=true});p:StopSfx(stale,.2,staleToken)
-for i=1,10 do p:Sfx('blip',{loop=true}) end
-Check(stale.playing and p.sources[1].token~=staleToken,'pool pressure deliberately reuses the old fading source')
+local capacity=#p.sources
+for i=1,capacity do p:Sfx('blip',{loop=true}) end
+Check(stale.playing and p.sources[1].token==staleToken,'pool pressure preserves the owned fading source')
+p:Update(.23,true);Check(not stale.playing,'owned fade completes before its source can be reused')
+local replacement,newToken=p:Sfx('blip',{loop=true})
+Check(replacement==stale and newToken~=staleToken,'fully idle source is reused with a fresh token')
 Check(not p:StopSfx(stale,.1,staleToken),'stale handle token cannot fade a replaced sound')
 local replacedGain=stale.gain;p:Update(.3,true)
 Check(stale.playing and stale.gain==replacedGain,'old scheduled fade cannot stop a replacement in the reused slot')

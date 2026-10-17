@@ -134,6 +134,17 @@ function M.Tick()
     for _,portrait in pairs(portraits) do portrait:Queue() end
 end
 function M.GetPortrait(who) return portraits[who] end
+function M.RetainWarmPortrait(portrait,context,expected,face)
+    if not portrait or portrait.disposed or (portrait.who~='nono' and portrait.who~='huhu')
+        or not context or Images.GetContext()~=context or portraits[portrait.who]~=expected then return false end
+    if expected and expected~=portrait then return false end
+    local handles=portrait.images[context]
+    local closed=portrait.who=='huhu' and 'smug' or 'smile'
+    if not portrait.ready or not handles or #handles~=2 or handles[1]<=0 or handles[2]<=0
+        or #portrait.textures~=2 or #portrait.materials~=2 or not portrait.faces[face] or not portrait.faces[closed] then return false end
+    if expected~=portrait then portrait:ResetPresentation();portraits[portrait.who]=portrait end
+    return true
+end
 function M.AdoptPortrait(portrait,context)
     if not portrait or portrait.disposed or portrait.who~='nono' or not context or Images.GetContext()~=context then return false end
     if portraits.nono==portrait then return true end

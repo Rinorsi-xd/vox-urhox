@@ -1,6 +1,8 @@
 -- Loading-only draws use the live effect owner without simulation events or RNG.
 -- Call Presented only after a rendered frame; Dispose before disposing the scene.
 local FlashWarmup=require("render.FlashWarmup")
+local EquipmentWarmup=require('render.EquipmentWarmup')
+local MapWarmupProbes=require('render.MapWarmupProbes')
 
 local M={};M.__index=M
 local WarmupSignature=require('render.WarmupSignature')
@@ -73,13 +75,21 @@ function M:init(options)
     table.sort(self.groups,function(a,b)return a.key<b.key end)
     self.originalGroups=#self.groups
     if options.groupEquivalent~=false then self.groups,self.signatureStats=WarmupSignature.Compact(self.groups) end
+    self.volumeGroups={}
+    for _,group in ipairs(self.groups) do self.volumeGroups[#self.volumeGroups+1]=group end
+    local mapProbes;mapProbes,self.mapProbeStats=MapWarmupProbes.Collect(self.groups)
+    for _,group in ipairs(mapProbes) do self.volumeGroups[#self.volumeGroups+1]=group end
     self.owned=owned
     self.flashWarmup=FlashWarmup.New(self.session)
+    self.equipmentWarmup=EquipmentWarmup.New(self.session)
     self:Effects(4);self.phase='effects-instanced'
     local stats=self.signatureStats or {eligible=0,rejected=0,errors=0}
     print('[CombatWarmup] begin groups='..#self.groups..' originalGroups='..self.originalGroups..' chips='..#fx.chips.slots..' missiles='..#fx.missiles.view.slots
         ..' signatureEligible='..stats.eligible..' signatureRejected='..stats.rejected..' signatureErrors='..stats.errors
-        ..' firstReject='..tostring(stats.firstReject)..' firstError='..tostring(stats.firstError))
+        ..' firstReject='..tostring(stats.firstReject)..' firstError='..tostring(stats.firstError)
+        ..' mapSingleProbes='..self.mapProbeStats.probes..' mapProbeRejected='..self.mapProbeStats.rejected
+        ..' mapProbeErrors='..self.mapProbeStats.errors..' mapProbeFirstReject='..tostring(self.mapProbeStats.firstReject)
+        ..' mapProbeFirstError='..tostring(self.mapProbeStats.firstError))
 end
 function M:Hide()
     if not self.hidden then
@@ -91,6 +101,7 @@ function M:Hide()
     if self.session.aimLines then self.session.aimLines:Hide() end
     for _,proxy in ipairs(self.proxies) do proxy.node.enabled=false end
     if self.flashWarmup then self.flashWarmup:Show(0) end
+    if self.equipmentWarmup then self.equipmentWarmup:Show(0) end
 end
 function M:Expose(item)
     item.drawable.viewMask=item.mask
@@ -100,6 +111,19 @@ function M:Flashes(copies)
     self:Hide();self.effects.light.light.enabled=false
     self.flashWarmup:Show(copies)
     self.phase=copies>1 and 'flash-instanced' or 'flash-single'
+end
+function M:Equipment(copies)
+    self:Hide();self.effects.light.light.enabled=false
+    self.equipmentWarmup:Show(copies)
+    self.phase=copies>1 and 'equipment-instanced' or 'equipment-single'
+end
+function M:WorldStart()
+    if self.equipmentWarmup then self:Equipment(4);return false end
+    return self:WorldContinue()
+end
+function M:WorldContinue()
+    if #self.groups==0 then self.completed=true;self:Dispose();return true end
+    self:LightBatch();return false
 end
 function M:Effects(copies,pointLight)
     self:Hide()
@@ -159,9 +183,9 @@ function M:VolumeBatch()
     self.effects.light.node.position=center;light.range=4;light.brightness=140;light.enabled=true
     if not self.proxyRoot then self.proxyRoot=self.session.scene:CreateChild('CombatWarmupProbes') end
     local count=0;local used={}
-    while self.index<#self.groups do
-        local group=self.groups[self.index+1]
-        local copies=group.kind=='StaticModel' and (self.singleVolume and 1 or 4) or 0
+    while self.index<#self.volumeGroups do
+        local group=self.volumeGroups[self.index+1]
+        local copies=group.kind=='StaticModel' and (self.singleVolume and 1 or not group.singleVolumeOnly and 4 or 0) or 0
         if count>0 and count+copies>self.batchSize then break end
         if copies>0 and self.singleVolume and not WarmupSignature.CanAppend(group,used,count) then break end
         self.index=self.index+1
@@ -179,7 +203,7 @@ function M:VolumeBatch()
                 local d=proxy.drawable;d.model=model
                 for j=0,model.numGeometries-1 do d:SetMaterial(j,source:GetMaterial(j)) end
                 for _,key in ipairs({'viewMask','lightMask','shadowMask','zoneMask','castShadows','maxLights',
-                    'useInstanceColor','useInstanceCustomData','instanceColor','instanceCustomData'}) do d[key]=source[key] end
+                    'instanceColor','instanceCustomData','useInstanceColor','useInstanceCustomData'}) do d[key]=source[key] end
                 -- The source is masked while warming; retain its pre-warm view mask.
                 d.viewMask=group.items[1].mask
                 proxy.node.rotation=Quaternion.IDENTITY;proxy.node:SetScale(scale)
@@ -204,14 +228,14 @@ function M:Advance()
     elseif self.phase=='effects-point-instanced' then self:Effects(1,true);self.phase='effects-point-single'
     elseif self.phase=='effects-point-single' then
         if self.flashWarmup then self:Flashes(4)
-        elseif #self.groups==0 then self.completed=true;self:Dispose();return true
-        else self:LightBatch() end
+        else return self:WorldStart() end
     elseif self.phase=='flash-instanced' then self:Flashes(1)
     elseif self.phase=='flash-single' then
-        if #self.groups==0 then self.completed=true;self:Dispose();return true end
-        self:LightBatch()
+        return self:WorldStart()
+    elseif self.phase=='equipment-instanced' then self:Equipment(1)
+    elseif self.phase=='equipment-single' then return self:WorldContinue()
     elseif self.phase=='point-volume-instanced' or self.phase=='point-volume-single' then
-        if self.index<#self.groups then self:VolumeBatch()
+        if self.index<#self.volumeGroups then self:VolumeBatch()
         elseif not self.singleVolume then self.singleVolume=true;self.index=0;self:VolumeBatch()
         else self.completed=true;self:Dispose();return true end
     elseif self.index<#self.groups then self:LightBatch()
@@ -223,6 +247,7 @@ function M:Dispose()
     if self.disposed then return end;self.disposed=true
     if self.session.aimLines then self.session.aimLines:Hide() end
     if self.flashWarmup then self.flashWarmup:Dispose();self.flashWarmup=nil end
+    if self.equipmentWarmup then self.equipmentWarmup:Dispose();self.equipmentWarmup=nil end
     if self.proxyRoot then self.proxyRoot:Dispose();self.proxyRoot=nil end
     for _,item in ipairs(self.all) do item.drawable.viewMask=item.mask end
     for _,state in ipairs(self.batchStates) do
@@ -244,6 +269,7 @@ function M:Dispose()
 end
 function M:Snapshot()
     return {phase=self.phase,frames=self.frames,groups=#self.groups,group=self.index,completed=self.completed,disposed=self.disposed,
-        probes=#self.proxies,chips=#self.effects.chips.slots,missiles=self.effects.missiles.view and #self.effects.missiles.view.slots or 0}
+        probes=#self.proxies,chips=#self.effects.chips.slots,missiles=self.effects.missiles.view and #self.effects.missiles.view.slots or 0,
+        equipment=self.equipmentWarmup and self.equipmentWarmup:Snapshot(),mapProbes=self.mapProbeStats}
 end
 return M

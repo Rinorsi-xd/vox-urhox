@@ -13,6 +13,7 @@ function M.New(root,kind,limit,shaderDirectory)
     self.limit=limit;self.count=0;self.kind=kind
     self.points={{0,0,0},{0,0,0},{0,0,0},{0,0,0}}
     self.uvs={{0,0},{0,0},{0,0},{0,0}};self.params={0,0,0}
+    self.nativePoints={};self.nativeUVs={}
     return self
 end
 function M:Begin(camera,time)
@@ -30,9 +31,16 @@ function M:Quad(points,uvs,color,alpha,params)
     local tint=Color(color[1]*intensity/16,color[2]*intensity/16,color[3]*intensity/16,math.min(1,alpha))
     local normal=Vector3(params and params[1] or 0,params and params[2] or 0,params and params[3] or 0)
     local tangent=self.kind=='Streak' and Vector4(params and params[4] or .85,0,0,1)
+    -- The two triangles share corners 2 and 3. Convert each corner once while
+    -- preserving the original six submissions and every vertex attribute.
+    local nativePoints,nativeUVs=self.nativePoints,self.nativeUVs
+    for i=1,4 do
+        local point,uv=points[i],uvs[i]
+        nativePoints[i]=Coord.Vec(point[1],point[2],point[3]);nativeUVs[i]=Vector2(uv[1],uv[2])
+    end
     for _,i in ipairs(order) do
-        self.mesh:DefineVertex(Coord.Vec(table.unpack(points[i])))
-        self.mesh:DefineNormal(normal);self.mesh:DefineColor(tint);self.mesh:DefineTexCoord(Vector2(table.unpack(uvs[i])))
+        self.mesh:DefineVertex(nativePoints[i])
+        self.mesh:DefineNormal(normal);self.mesh:DefineColor(tint);self.mesh:DefineTexCoord(nativeUVs[i])
         if tangent then self.mesh:DefineTangent(tangent) end
     end
 end

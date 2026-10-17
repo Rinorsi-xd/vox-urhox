@@ -23,12 +23,19 @@ function M.Restore()
     end
     restoreRequested=false
 end
+-- Keep mode entry and the actual collector step separately measurable.
+function M.EnterIncremental()
+    if not previousMode then previousMode=collectgarbage('incremental') end
+end
+function M.Advance(size)
+    return collectgarbage('step',size or 128)
+end
 function M.Step(size)
     if stepping then return false end
     stepping=true
     local ok,completed=pcall(function()
-        if not previousMode then previousMode=collectgarbage('incremental') end
-        return collectgarbage('step',size or 128)
+        M.EnterIncremental()
+        return M.Advance(size)
     end)
     stepping=false
     if not ok then M.Restore();error(completed,0) end

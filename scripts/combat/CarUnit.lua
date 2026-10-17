@@ -55,7 +55,7 @@ function M:Build(spec)
 end
 function M:Spawn(checkpoint)
     self:DisposeVehicle();self.bp=BP.New():Load(self.source)
-    local spec=self.spawnSpecCache and self.spawnSpecCache:Get(self.source)
+    local spec=self.spawnSpecCache and self.spawnSpecCache:Get(self.source,self.bp)
     if not spec then spec=Spec.Build(self.bp,checkpoint and function(p) checkpoint(p*.75) end or nil) end
     if spec.ok then
         local keep={};for _,id in ipairs(spec.partIds) do keep[id]=true end

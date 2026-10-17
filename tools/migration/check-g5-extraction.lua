@@ -7,6 +7,9 @@ local function Same(a,b)
     for k in pairs(b) do if a[k]==nil then return false end end;return true
 end
 package.path='scripts/?.lua;'..package.path
+dofile('tools/migration/g5-offline-imports.lua').Salvage()
+package.loaded['salvage.Cinematics']=nil
+dofile('tools/migration/g5-offline-imports.lua').Exclude({'render.CineDeathFilter','render.SalvageCineDust'})
 package.loaded['core.ResourceData']={Read=function(name) return resources[name] end}
 package.loaded['combat.CarUnit']={};package.loaded['salvage.Drops']={}
 package.loaded['ui.SourceDraw']={};package.loaded['ui.SalvageLootMotion']={Event=function() end}
@@ -69,6 +72,8 @@ package.loaded['endless.Data']={config={}};package.loaded['endless.Run']={}
 package.loaded['combat.EnemyDriver']={};package.loaded['combat.DrillRaiderDriver']={}
 package.loaded['combat.ShieldQuery']={Contains=function() return false end};package.loaded['construction.Blueprint']={}
 package.loaded['parts.Defs']={PARTS={laser={name='激光炮'}}}
+dofile('tools/migration/g5-offline-imports.lua').Exclude({'endless.Audio','drive.SpawnSpecCache','endless.View',
+    'endless.SpawnPresentation','drive.VehicleSpec','render.NodeVisibility','Config'})
 local Session=require 'app.EndlessSession';local Toasts=require 'ui.SourceToasts'
 local toasts=Toasts.New()
 local endless=setmetatable({run={state='rest',Drain=function() return fixtures.events end},

@@ -126,6 +126,31 @@ for i=1,1027 do
     bounded:EndFrame{}
 end
 check(#bounded.window==1024 and bounded.sampleDrops==2,'per-frame stage storage preserves 1024-frame window bound')
+local reuseClock=0
+local reused=Monitor.New{clock=function()return reuseClock end,session='reuse',noFile=true,sink=function()end}
+reused:BeginFrame(.016)
+local firstToken=reused:Begin('first');reuseClock=2;reused:End(firstToken)
+reused:EndFrame{};reuseClock=16;reused:BeginFrame(.016)
+local nextToken=reused:Begin('next')
+check(firstToken==nextToken,'closed scope token reused across frames')
+check(nextToken.frame==2 and nextToken.name=='next' and nextToken.children==0,'reused timing fields reset')
+reuseClock=19;reused:End(nextToken)
+check(reused.stages.next.ms==3 and reused.scriptMs==3,'reused token keeps exact frame duration')
+local yielding={Child=function()reuseClock=reuseClock+1 end}
+function yielding.Run()coroutine.yield();yielding.Child();coroutine.yield();return 'closed' end
+reused:Wrap(yielding,'Run','yielding');reused:Wrap(yielding,'Child','yield-child')
+local paused=coroutine.create(yielding.Run);assert(coroutine.resume(paused))
+local oldToken=reused.stacks[paused].tokens[1]
+reused:EndFrame{};reuseClock=32;reused:BeginFrame(.016)
+local rootToken=reused:Begin('root')
+check(oldToken.active and oldToken.frame==2,'suspended scope token remains owned by original frame')
+local resumed=coroutine.resume(paused)
+check(resumed and oldToken.frame==2 and oldToken.active,'active yielded token is not overwritten by resumed child')
+check(reused.stacks[paused].tokens[1]~=oldToken,'new frame child uses an independent scope token')
+local closed,resumeResult=coroutine.resume(paused)
+check(closed and resumeResult=='closed' and not oldToken.active,'cross-frame yielded scope still closes safely')
+reuseClock=34;reused:End(rootToken)
+check(reused.scriptMs==2 and reused.discardedAsyncSpans==1,'reused slots do not charge suspended wait')
 return checks
 ''')
 files = list((root / 'scripts').rglob('*.lua'))

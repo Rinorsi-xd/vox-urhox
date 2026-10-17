@@ -2,6 +2,7 @@
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -17,16 +18,18 @@ legacy=ROOT/'.tmp/outgame-cached-1792115578618/scripts/story/Mission.lua'
 def runner(code):
     lua=LuaRuntime(unpack_returned_tuples=True)
     lua.globals().MissionCode=code
+    lua.globals().MissionDependencies=lua.table_from(re.findall(r'require\s*\(?\s*[\'"]([^\'"]+)',code))
     run=lua.execute(r'''
 package.path='scripts/?.lua;'..package.path
-for _,name in ipairs({'story.MissionData','combat.ArenaData','combat.CarUnit','combat.EnemyDriver','core.Math3','drive.SpawnSpecCache'})do package.preload[name]=function()return {}end end
+for _,name in ipairs(MissionDependencies)do package.preload[name]=function()return {}end end
+package.preload['combat.DriverActions']=function()return {Apply=function()end}end
 local sample
 package.preload['drive.RotorMotion']=function()return {Weapons=function()sample.rotorWeapons=sample.rotorWeapons+1 end}end
 local Mission=assert(load(MissionCode))()
 return function(alive,target,convoy,trigger)
  sample={driver=0,physics=0,rotors=0,rotorWeapons=0,weapons=0,firing=0,fx=0,audio=0}
  local player={alive=alive}
- local enemy={alive=true,Flush=function()end,Position=function()return {1,2,3}end,team='red'}
+ local enemy={alive=true,Flush=function()end,RegenerateStructure=function()end,Position=function()return {1,2,3}end,team='red'}
  enemy.vehicle={rotors={},StepRotors=function(_,aim)sample.rotors=sample.rotors+1;sample.rotorAim=aim end,
   Step=function(_,command)sample.physics=sample.physics+1;sample.throttle=command.throttle;sample.handbrake=command.handbrake end,
   body={translation=function()return {x=1,y=2,z=3}end,linvel=function()return {x=0,y=0,z=0}end,rotation=function()return {}end}}

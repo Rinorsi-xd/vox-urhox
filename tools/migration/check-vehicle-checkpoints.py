@@ -53,11 +53,16 @@ if suite == 'damage-rebuild':
 boundary = ('Actual production pointer, chase-state and FOV Lua against executable frozen H5 input and camera fixtures. '
             'Native Node/ScriptObject, input and timing APIs are stubbed; camera poses are source-space state output. '
             'No actual Web/native event bridge, rendered ThirdPersonCamera adapter or frame-time acceptance.') if suite == 'scope-input' else 'Actual production geometry/range/blueprint Lua and source JSON fixtures. Native vehicle creation is stubbed; no Web frame-time acceptance.'
+if suite == 'spawn-cache':
+    boundary += (' Actual Mission.PrepareSpawnSpecs, Spawn and Dispose run against real data/spec/CarUnit code. '
+                 'Unused native presentation imports render.SpawnViewCache and ui.Epilogue are fail-fast boundaries; '
+                 'visual preparation, UI, effects and actual native vehicle bodies are not tested.')
 report = {'result': 'PASS', 'runtime': lua.lua_implementation,
           'source_fixture_differences': plain(lua.globals().checkpoint_source_differences),
           'sources': {name: hashlib.sha256((root / 'scripts' / (name + '.lua')).read_bytes()).hexdigest() for name in sources},
           'checks': [checks[i] for i in range(1, len(checks) + 1)],
           'isolated_benchmarks': plain(lua.globals().damage_benchmarks),
+          'presentation_boundaries': plain(lua.globals().spawn_cache_presentation_boundaries) if suite == 'spawn-cache' else None,
           'reference_sources': {name: hashlib.sha256(source.encode('utf-8')).hexdigest() for name, source in lua.globals().damage_before.items()} if suite == 'damage-rebuild' else None,
           'boundary': boundary}
 out = root / 'docs/migration/evidence' / (suite + '-' + datetime.now(timezone.utc).strftime('%Y-%m-%dT%H-%M-%S-%fZ'))

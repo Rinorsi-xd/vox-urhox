@@ -70,6 +70,13 @@ function M.Open(owner,options)
     local childOptions=options.unified and {onDone=function() DeferredModules['ui.GameSettings'].Open(owner) end} or nil
     Add('graphics','画面设置','gear','画质、泛光、曝光、环境光遮蔽',function() GraphicsPanel.Open(owner,childOptions) end)
     Add('audio','声音与音乐','sliders','音乐、音效音量与场景曲目',function() DeferredModules['ui.AudioSettings'].Open(owner,childOptions) end)
+    Add('debug','调试 / 性能','sliders','调试功能、性能面板、卡顿标记',function()
+        -- Debug suspends the owner's updates, so retire the old card now.
+        Host.Dispose(owner)
+        local app=owner.app
+        if not app.debugPanel or app.debugPanel.disposed then app.debugPanel=DeferredModules['ui.DebugPanel'].New(app) end
+        app.debugPanel:OpenSettings(owner,function() DeferredModules['ui.GameSettings'].Open(owner) end)
+    end)
     if touch then Add('touch','触屏操作','sliders','灵敏度、按钮大小、瞄准辅助、建造方式',function() TouchSettings.Open(owner,childOptions) end)
     else Add('keys','键位设置','sliders','开发中',function() end,true) end
     local count=0;for _ in pairs(buttons) do count=count+1 end

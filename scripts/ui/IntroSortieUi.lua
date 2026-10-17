@@ -22,6 +22,10 @@ local function Circle(vg,x,y,r,c)
 end
 local function Tokens(s)
  if s.pending then return {{text='完成！'}} end
+ -- 触屏没有 W / 左键：换成左下摇杆与开火键（拖动屏幕或按住开火键拖动都能瞄准）
+ local touch=require('controls.TouchMode').Enabled()
+ if s.step==1 and touch then return s.elapsed>=4 and {{text='把左下的 ',color=cyan},{text='摇杆',key=true},{text=' 往前推 · 车就会往前开'}} or {{text='摇杆',key=true},{text=' 往前推 冲过去 · 车会朝'},{text='准星',color=cyan},{text='的方向开'}} end
+ if s.step==2 and touch then return s.elapsed>=6 and {{text='拖动屏幕把准星对准红色'},{text='「打它！」',color={255,107,94,255}},{text='· '},{text='按住',color=cyan},{text=' '},{text='开火键',key=true}} or {{text='开火键',key=true},{text=' 按住开火 · 打掉冲在最前面那辆！'}} end
  if s.step==1 then return s.elapsed>=4 and {{text='按住键盘上的 ',color=cyan},{text='W',key=true},{text=' · 车就会往前开'}} or {{text='按住 '},{text='W',key=true},{text=' 冲过去 · 车会朝'},{text='准星',color=cyan},{text='的方向开'}} end
  if s.step==2 then return s.elapsed>=6 and {{text='把准星对准红色'},{text='「打它！」',color={255,107,94,255}},{text='· '},{text='按住',color=cyan},{text=' '},{text='左键',key=true}} or {{text='左键',key=true},{text=' 开火 · 打掉冲在最前面那辆！'}} end
  if s.step==3 then return {{text='暴走战车群盯上你了',color={255,107,94,255}},{text=' · 撑住！援军到达还有 '},{text=tostring(math.ceil(s.left or 10)),color={255,211,106,255},number=true},{text=' 秒'}} end
@@ -136,7 +140,9 @@ function M.Brief(vg,w,h,u,time)
  D.Rect(vg,tx,y+15.5*u,4.8*u,2.4*u,cyan);D.Text(vg,'任务',tx+2.4*u,y+15.9*u,1.6*u,{3,20,31,255},'vox-title',NVG_ALIGN_CENTER)
  D.Text(vg,'保护矿车，坚持到援军到达',tx+6*u,y+15.7*u,2*u,white,'vox-title')
  local cursor=tx
- for _,run in ipairs({{'W','前进'},{'鼠标','瞄准 · 车朝准星开'},{'左键','开火'}}) do
+ local legend=require('controls.TouchMode').Enabled() and {{'摇杆','前进'},{'拖屏幕','瞄准 · 车朝准星开'},{'开火键','开火'}}
+  or {{'W','前进'},{'鼠标','瞄准 · 车朝准星开'},{'左键','开火'}}
+ for _,run in ipairs(legend) do
   local kw=D.Width(vg,run[1],1.62*u,'vox-tabular')+1.78*u
   D.Rect(vg,cursor,y+19.6*u,kw,2.6*u,cyan);D.Text(vg,run[1],cursor+kw/2,y+20.09*u,1.62*u,{3,20,31,255},'vox-tabular',NVG_ALIGN_CENTER)
   D.Text(vg,run[2],cursor+kw+.8*u,y+20*u,1.8*u,{201,220,239,255},'vox-title');cursor=cursor+kw+.8*u+D.Width(vg,run[2],1.8*u,'vox-title')+2.4*u

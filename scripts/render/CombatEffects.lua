@@ -87,15 +87,15 @@ function M:Puff(p,n,size,life,gray)
             size=size*(.7+math.random()*.6),grow=size*1.4,life=life*(.7+math.random()*.6),age=0,drag=1.5,grav=0},self.maxSmoke)
     end
 end
-function M:EquipmentEmit(kind,p)
+function M:EquipmentEmit(kind,p,sourceView)
     if kind=='fizzle' then self:Burst(p,10,4,{3,4.5,8},nil,.04,.35,5);self:Puff(p,2,.25,1,.35)
     elseif kind=='boot' then self:Flash(p,.5,.1,SourceFx.Color(0x9fd4ff));self:Burst(p,4,2,{2,4,8},nil,.03,.25,0)
     elseif kind=='spark' then
         Add(self.particles,{pos=p,vel={(math.random()-.5)*3,math.random()*2,(math.random()-.5)*3},color=BOLT.spark,
-            size=.03+math.random()*.02,life=.15+math.random()*.15,age=0,drag=3,grav=3},self.maxParticles)
+            size=.03+math.random()*.02,life=.15+math.random()*.15,age=0,drag=3,grav=3,sourceView=sourceView},self.maxParticles)
     elseif kind=='mote' then
         Add(self.particles,{pos=p,vel={(math.random()-.5)*.4,.3+math.random()*.5,(math.random()-.5)*.4},color=LASER.spark,
-            size=.04,life=.5+math.random()*.4,age=0,drag=1.5,grav=-.3},self.maxParticles)
+            size=.04,life=.5+math.random()*.4,age=0,drag=1.5,grav=-.3,sourceView=sourceView},self.maxParticles)
     end
 end
 function M:Flare(p,d,n,len,width,color,spread,life)
@@ -169,14 +169,43 @@ function M:Hit(e)
         if math.random()<.4 then self:Puff(p,1,.22,.6,.45) end
     end
 end
+function M:SetFirstPerson(active,ownWeapons,ownView)
+    self.firstPerson=active==true
+    self.ownWeapons=self.firstPerson and ownWeapons or nil
+    self.ownView=self.firstPerson and ownView or nil
+end
+function M:Projectiles(projectiles)
+    if not self.firstPerson or not self.ownWeapons then return projectiles end
+    local owned={};for _,p in ipairs(self.ownWeapons.projectiles) do owned[p]=true end
+    local visible={}
+    for _,p in ipairs(projectiles) do
+        if not owned[p] then visible[#visible+1]=p
+        else
+            local near=p.fx=='missile' and 6 or 12
+            if p.dist>near then
+                local copy={};for k,v in pairs(p) do copy[k]=v end
+                copy.adsOwnProjectile=p.fx=='bolt'
+                copy.dist=p.dist-near;visible[#visible+1]=copy
+            end
+        end
+    end
+    return visible
+end
 function M:Consume(events,remote)
+    local own=self.firstPerson and (remote==false or self.ownWeapons and events==self.ownWeapons.fx)
     for _,e in ipairs(events) do
         if self.onEvent then self.onEvent(e,remote) end
         self.events=self.events+1
         if e.type=='drill' then DrillEffects.Event(self,e)
-        elseif e.type=="shot" then self:Shot(e)
+        elseif e.type=="shot" then if not own then self:Shot(e) end
         elseif e.type=='blast' and e.kind=='missile' then self.missiles:Blast(e)
-        elseif e.type=="beam" then self:Beam(e)
+        elseif e.type=="beam" then
+            if own and e.from and e.to then
+                -- H5 cam.eye: keep the beam and hit, move only its near end.
+                local copy={};for k,v in pairs(e) do copy[k]=v end
+                copy.from=At(e.from,e.dir,math.min(10,V.Length(V.Sub(e.to,e.from))*.5))
+                self:Beam(copy)
+            else self:Beam(e) end
         elseif e.type=="impact" then
             local t=e.tier or 3;local n=e.normal or V.Scale(e.dir,-1);local p=At(e.pos,n,.03)
             self:Flash(p,(.6+t*.09)*(e.bright and 1.4 or 1),.09,SourceFx.Color(0xffd080))
@@ -233,6 +262,7 @@ function M:Helix(b,tip,len,radius,width,color,alpha,spin)
 end
 function M:Update(dt,projectiles,camera)
     if self.disposed then return end
+    projectiles=self:Projectiles(projectiles)
     self.time=self.time+dt
     self.chips:Update(dt)
     local p=camera.worldPosition;local cam={-p.x,p.y,p.z}
@@ -309,6 +339,8 @@ function M:Update(dt,projectiles,camera)
                 if e.pos[2]<floor then e.pos[2]=floor;e.vel[2]=e.vel[2]*-.3 end
             end
             e.size=e.size+(e.grow or 0)*dt;local t=e.age/e.life
+            -- Hidden rig sparks still age and bounce; ADS changes drawing only.
+            if self.firstPerson and self.ownView and e.sourceView==self.ownView then return end
             if smoke then b.Smoke:Disc(e.pos,e.size,e.color,math.min(1,t*6)*(1-t),right,up)
             else b.Glow:Disc(e.pos,e.size,e.color,1-t*t,right,up,nil,1) end
         end)
@@ -319,7 +351,7 @@ function M:Update(dt,projectiles,camera)
 end
 function M:Dispose()
     if self.disposed then return end
-    self.disposed=true;self:Clear()
+    self.disposed=true;self.ownWeapons=nil;self.ownView=nil;self.firstPerson=false;self:Clear()
     self.chips:Dispose()
     self.missiles:Dispose()
     self.light:Dispose()

@@ -5,12 +5,17 @@ ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT/'.tmp/nav-python-deps'))
 from lupa.lua54 import LuaRuntime
 FILES=['app/TrialSession','controls/DrivePointer','controls/MouseDeltaFilter','ui/GameSettings','ui/PauseMenu','ui/DialogHost','combat/MatchActions']
-def run(old=False):
+def run(old=False,t_only=False):
  lua=LuaRuntime(unpack_returned_tuples=True)
  codes={n:(ROOT/('scripts/'+n+'.lua')).read_text(encoding='utf-8-sig') for n in FILES}
  if old:
   # Frozen submitted baseline rather than a moving working-tree expectation.
   codes['app/TrialSession']=subprocess.check_output(['git','show','48ef15f2c9c95c400f91ee6e34309399d02b3733:scripts/app/TrialSession.lua'],cwd=ROOT).decode()
+ if t_only:
+  before='if self.dialog then\n        if self:KeyPressed(KEY_ESCAPE) then self:Escape() end'
+  after='if self.dialog then\n        if self:KeyPressed(KEY_T) then self:HandleKey(KEY_T) end\n        if self:KeyPressed(KEY_ESCAPE) then self:Escape() end'
+  assert before in codes['app/TrialSession']
+  codes['app/TrialSession']=codes['app/TrialSession'].replace(before,after)
  lua.globals().codes=lua.table_from(codes)
  deps=set()
  for code in codes.values(): deps.update(re.findall(r"require\s*\(?\s*['\"]([^'\"]+)",code))
@@ -95,6 +100,7 @@ for _,mode in ipairs({'battle','story','practice','endless','salvage'})do
   local m=s.dialog;Check(m and m.unifiedSettings,'first Escape opens unified menu: '..mode)
   Check(not s.pointer.captured and not s.pointer.pending and not s.controls.held.fire,'release clears held fire/capture')
   Check(not s.wantsReturn,'Escape consumes simultaneous T')
+  presses={T=true};s:PollKeys(false);presses={};Check(not s.wantsReturn and s.dialog==m,'actual open dialog blocks later T-only return: '..mode)
   Check(m.actions.resume and m.actions['return'] and m.actions.audio and m.actions.graphics,'single menu has all direct entries')
   Check(Settings.Open(s)==m,'repeated open preserves identical modal')
   Frame(s);Check(s.dialog==m,'held/no-new-edge frame preserves menu')
@@ -137,5 +143,8 @@ checks,cases=run()
 try:run(True);negative={'detected':False}
 except Exception as e:negative={'detected':True,'error':str(e).splitlines()[0]}
 assert negative['detected']
-report={'status':'PASS','checks':checks,'modePlatformScenarios':cases,'baseline':'2026-10-15/b276064942ae09c0227ec28d4cfda1d5ff006455','negativeControl':negative,'sha256':{n:hashlib.sha256((ROOT/('scripts/'+n+'.lua')).read_bytes()).hexdigest() for n in FILES},'boundary':'Actual Lua Update/PollKeys/Pointer events/Host/PauseMenu executed; CPU engine/UI adapters, no browser lock API, rendering, audio, GPU or mobile performance acceptance.'}
+try:run(t_only=True);t_only_negative={'detected':False}
+except Exception as e:t_only_negative={'detected':True,'error':str(e).splitlines()[0]}
+assert t_only_negative['detected']
+report={'status':'PASS','checks':checks,'modePlatformScenarios':cases,'baseline':'2026-10-15/b276064942ae09c0227ec28d4cfda1d5ff006455','negativeControl':negative,'tOnlyNegativeControl':t_only_negative,'sha256':{n:hashlib.sha256((ROOT/('scripts/'+n+'.lua')).read_bytes()).hexdigest() for n in FILES},'boundary':'Actual Lua Update/PollKeys/Pointer events/Host/PauseMenu executed; T-only is rejected by the actual open-dialog gate, real return button preserves mode return/confirmation behavior. CPU engine/UI adapters, no browser lock API, rendering, audio, GPU or mobile performance acceptance.'}
 out=ROOT/'docs/migration/evidence/unified-pause-input-offline.json';out.write_text(json.dumps(report,ensure_ascii=False,indent=2),encoding='utf-8');print(json.dumps(report,ensure_ascii=False,indent=2))

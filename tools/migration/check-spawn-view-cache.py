@@ -70,6 +70,10 @@ modules['parts.Materials'].New=function(shader)local m=Material:new();m:SetSurfa
 modules['parts.Materials'].DynamicEmission=function(slot)return 'emission:'..slot end
 modules['render.WeaponView']={}
 modules['render.PartHitFlash']={New=function()return {Consume=function()end,Dispose=function()end}end}
+-- Device selection is outside this assembly-only fixture; fail if it is used.
+modules['controls.TouchMode']=setmetatable({},{__index=function(_,key)error('Unexpected touch policy access: '..key)end})
+modules['urhox-libs.Platform.PlatformUtils']={IsDesktopPlatform=function()return true end}
+function GetArguments()return {}end
 local nativeRequire=require
 require=function(name)
  if modules[name] then return modules[name]end
@@ -270,6 +274,11 @@ modules['render.SalvageExplosion']={New=function(_,_,options)
  local result=Owner();if options.retain then options.retain(result)end
  if options.checkpoint then options.checkpoint(1)end;return result
 end}
+for _,name in ipairs({'parts.Dependencies','combat.StoryBoss','ui.Epilogue','render.StoryStomp',
+ 'combat.DrillRaiderDriver','combat.DriverActions','drive.RotorMotion','story.EnemyRules','combat.PlayerViewSync'})do
+ local dependency=name
+ modules[name]=setmetatable({},{__index=function(_,key)error('Unexpected non-preparation dependency: '..dependency..'.'..key)end})
+end
 local Mission=require 'story.Mission'
 local level={steps={
  {enemies={{source=source},{source=source},{role='heavy'}},role='assault'},

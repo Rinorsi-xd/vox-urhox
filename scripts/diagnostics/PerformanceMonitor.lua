@@ -66,7 +66,8 @@ function M:Begin(name)
     if not stack then stack={depth=0,tokens={}};self.stacks[thread]=stack end
     stack.depth=stack.depth+1
     local token=stack.tokens[stack.depth]
-    if not token or token.frame~=self.frame then token=setmetatable({monitor=self},scopeMetatable);stack.tokens[stack.depth]=token end
+    -- Closed scopes can reuse their slot; yielded scopes still own their token.
+    if not token or token.active then token=setmetatable({monitor=self},scopeMetatable);stack.tokens[stack.depth]=token end
     self.tokenOrder=self.tokenOrder+1
     token.frame=self.frame;token.start=self.clock();token.children=0;token.name=name;token.stack=stack
     token.order=self.tokenOrder;token.active=true;token.externalParent=nil

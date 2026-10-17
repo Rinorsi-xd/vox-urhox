@@ -1,6 +1,7 @@
 [
   "Crater/Boulders.json",
   "Crater/Dynamics.json",
+  "Crater/DrivingCollision.json",
   "Crater/Layout.json",
   "Crater/Layout/blocks-000.json",
   "Crater/Layout/blocks-001.json",

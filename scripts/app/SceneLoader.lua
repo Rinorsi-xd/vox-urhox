@@ -164,7 +164,7 @@ function Loader:Update(dt)
         self.warmPending=nil
         print('[SceneLoader] Prepared '..item.name..' bytes='..resource.memoryUse..' cache='..cache:GetTotalMemoryUse())
         self.elapsed=0
-        self.warmIndex=self.warmIndex+1;self.warmWait=3
+        self.warmIndex=self.warmIndex+1;self.warmWait=(item.type=='Model' and 0 or 3)
         self.progress=.35+.1*(self.warmIndex-1)/#resources
         return
     end

@@ -45,9 +45,9 @@ function Page:Render(vg)
     local dx,dy=Motion.Offset(layer,h,wall);nvgSave(vg);nvgTranslate(vg,dx,dy)
     for _,entry in ipairs(layer.panels) do
         local p=entry.panel;local age=r.time-entry.at;local q=p.rect;local x,y,pw,ph=q[1]*w/100,q[2]*h/100,q[3]*w/100,q[4]*h/100
-        local enter=math.min(1,age/.32);local eased=1-(1-enter)^3;local from=p.fromParts or {0,-40,'vh'}
+        local eased,rotation,enter=Motion.Panel(age);local from=p.fromParts or {0,-40,'vh'}
         x=x+(1-eased)*from[1]*(from[3]=='vw' and w or h)/100;y=y+(1-eased)*from[2]*(from[3]=='vw' and w or h)/100
-        nvgSave(vg);nvgTranslate(vg,x,y);nvgRotate(vg,(-4*(1-eased))*math.pi/180);nvgGlobalAlpha(vg,screenAlpha*fade*layerAlpha*enter)
+        nvgSave(vg);nvgTranslate(vg,x+pw/2,y+ph/2);nvgRotate(vg,rotation*math.pi/180);nvgTranslate(vg,-pw/2,-ph/2);nvgGlobalAlpha(vg,screenAlpha*fade*layerAlpha*enter)
         local clip=Poly(p,pw,ph,0)
         for _,frame in ipairs({{h*.008,1.5*h/100,{0,0,0,184}},{h*.008,0,{11,11,13,255}},{h*.005,0,{255,255,255,255}}}) do nvgSave(vg);nvgTranslate(vg,frame[2],frame[2]);D.Path(vg,Poly(p,pw,ph,frame[1]));nvgFillColor(vg,D.Color(frame[3]));nvgFill(vg);nvgRestore(vg) end
         local path=nil
@@ -61,8 +61,8 @@ function Page:Render(vg)
             D.Path(vg,clip);nvgFillPaint(vg,nvgImagePattern(vg,(pw-iw*k)/2,(ph-ih*k)/2,iw*k,ih*k,0,handles[path],1));nvgFill(vg)
         end
         if p.chr then local c=p.chr;local portrait=Resource.images[c.src=='chairman' and 'chairman_cut' or c.src].path;nvgSave(vg);nvgIntersectScissor(vg,0,0,pw,ph)
-            if c.zoom then local handle=Images.Get(portrait);local iw,ih=Images.GetSize(portrait);if handle and iw>0 then local cw=c.zoom[3]*pw/100;local ch=cw*ih/iw;D.Path(vg,clip);nvgFillPaint(vg,nvgImagePattern(vg,c.zoom[1]*pw/100,c.zoom[2]*ph/100,cw,ch,0,handle,1));nvgFill(vg) end
-            else Contain(vg,portrait,{x=c.left*pw/100,y=c.top*ph/100+(1-math.min(1,age/1.6))*ph*.02,w=c.width*pw/100,h=(100-c.top-c.bottom)*ph/100},clip) end;nvgRestore(vg)
+            if c.zoom then local handle=Images.Get(portrait);local iw,ih=Images.GetSize(portrait);if handle and iw>0 then local cw=c.zoom[3]*pw/100;local ch=cw*ih/iw;D.Path(vg,clip);nvgFillPaint(vg,nvgImagePattern(vg,c.zoom[1]*pw/100,c.zoom[2]*ph/100+Motion.Character(age,ph),cw,ch,0,handle,1));nvgFill(vg) end
+            else local ch=(100-c.top-c.bottom)*ph/100;Contain(vg,portrait,{x=c.left*pw/100,y=c.top*ph/100+Motion.Character(age,ch),w=c.width*pw/100,h=ch},clip) end;nvgRestore(vg)
         end
         if p.shot then for yy=0,ph,4 do D.Line(vg,0,yy,pw,yy,{0,0,0,46},2) end;Text(vg,'● REC',pw*.96,ph*.05,h*.018,{255,74,74,age%1>.5 and 64 or 255},'vox-display',NVG_ALIGN_RIGHT,2) end
         if p.deal then nvgSave(vg);nvgTranslate(vg,pw*.09,ph*.08);nvgRotate(vg,-2.5*math.pi/180);local cw,ch=pw*.82,ph*.84;D.Rect(vg,0,0,cw,ch,{244,239,228,255})
@@ -76,7 +76,7 @@ function Page:Render(vg)
             D.Rect(vg,lx,ly,tw+h*.04,size*1.5,p.labelCls=='dark' and {17,17,17,255} or {255,255,255,255});Text(vg,p.label,lx+h*.02,ly+size*.15,size,p.labelCls=='dark' and {255,255,255,255} or {17,17,17,255},Typography.face)
         end
         local sfxDelay=p.deal and 1.65 or .16
-        if p.sfx and age>sfxDelay then local fx=p.sfxParts or {right=12,bottom=10};local text=p.sfx[1];nvgSave(vg);nvgTranslate(vg,pw*(1-fx.right/100),ph*(1-fx.bottom/100));nvgRotate(vg,(p.sfx[4] or -6)*math.pi/180);local scale=1+1.4*(1-math.min(1,(age-sfxDelay)/.22))^3;nvgScale(vg,scale,scale)
+        if p.sfx and age>sfxDelay then local fx=p.sfxParts or {right=12,bottom=10};local text=p.sfx[1];local scale,angle,alpha=Motion.Impact(age,sfxDelay,p.sfx[4]);nvgSave(vg);nvgGlobalAlpha(vg,screenAlpha*fade*layerAlpha*enter*alpha);nvgTranslate(vg,pw*(1-fx.right/100),ph*(1-fx.bottom/100));nvgRotate(vg,angle*math.pi/180);nvgScale(vg,scale,scale)
             Text(vg,text,4,4,h*.09,{11,11,13,255},Typography.face,NVG_ALIGN_RIGHT);Text(vg,text,0,0,h*.09,p.sfx[2]=='red' and {255,59,48,255} or {255,211,106,255},Typography.face,NVG_ALIGN_RIGHT);nvgRestore(vg)
         end;nvgRestore(vg)
     end;nvgRestore(vg)

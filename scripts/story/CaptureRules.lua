@@ -8,8 +8,8 @@ function M:Update(r,dt,world)
         self.phase='cap';r:Emit('spawn',{enemies=s.guards,tag='guard'})
         spawned=s.guards
         r:Emit('banner',{kick='遭遇守卫',title=s.guardTitle or '海盗守点队',sub=#s.guards..' 辆 · 狐狐海盗团',kind='enemy',ms=2600})
-        r:Emit('say',{lines=s.alert,urgent=true});r:Emit('hideBeacon')
-        r:Emit('radio',{cue='alert'})
+        r:Emit('say',{lines=s.alert,urgent=true});r:Emit('radio',{cue='alert'})
+        r:Emit('hideBeacon')
     end
     r.inside=false;r.blocked=false;r.retitle=s.title
     if self.phase=='cap' then
@@ -28,8 +28,8 @@ function M:Update(r,dt,world)
             r.inside=false;r:Emit('siteCaptured',{id=s.site});r.stats.sites=(r.stats.sites or 0)+1
             r.checkpoint={pos={s.pos[1],s.pos[2]+1.5,s.pos[3]+8},yaw=0}
             r:Emit('banner',{kick='夺回采集器',title='采集器 '..s.site,sub=r.stats.sites..' / 3 · 狐狐的旗子已拔',kind='install',ms=2400})
-            r:Emit('say',{lines=s.capLines,urgent=true})
             r:Emit('radio',{cue='install'})
+            r:Emit('say',{lines=s.capLines,urgent=true})
             if s.counter then self.phase='counter';r:Emit('spawn',{enemies=s.counter,tag='counter'})
                 counterAdded=#s.counter
                 r:Emit('banner',{kick='海盗反扑',title=s.counterTitle or '反扑',sub='把采集器守住',kind='enemy',ms=2600})

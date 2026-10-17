@@ -85,7 +85,9 @@ function M.Render(vg,o,l)
     end
 end
 function M.Plate(vg,o,l,f,e)
-    local k=l.k;local x=f.x+f.half+22*k;local y=f.y-f.half*.8-16*k;local endX=x+168*k
+    local cx=f.missile and l.cx+(f.x-l.cx)*e or f.x
+    local cy=f.missile and l.cy+(f.y-l.cy)*e or f.y
+    local k=l.k;local x=cx+f.half+22*k;local y=cy-f.half*.8-16*k;local endX=x+168*k
     local low=f.hp<.3;local blink=low and math.floor(o.session.world.time/.22)%2==1
     local red={255,59,48,255};local warning={255,210,74,255};local label={255,138,128,255};local sub={255,138,128,176}
     nvgSave(vg);nvgGlobalAlpha(vg,(e-.5)*2)

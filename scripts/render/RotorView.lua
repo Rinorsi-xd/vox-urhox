@@ -1,12 +1,12 @@
 -- Absolute source poses avoid parenting drift. Joined surfaces and decals are
 -- partitioned once at bind time; animation changes transforms, never vertices.
 local JoinedMesh=require("render.JoinedMesh")
-local Defs=require("parts.Defs")
 
 local R=require 'construction.Rotors'
 local Coord=require 'core.Coord'
 local V=require 'core.Math3'
 local CELL=require('Config').CELL
+local RotorDisc=require 'render.RotorDisc'
 local M={};M.__index=M
 local function Quat(q) return Quaternion(q.w,q.x,-q.y,-q.z) end
 function M.New(view,vehicle)
@@ -27,8 +27,7 @@ function M:init(view,vehicle)
             end;mesh:Add(p)
         end
         if R.Is(p.type) and vis.head then
-            vis.rotorOffset=Defs.PARTS[p.type].rotor=='aim' and R.AimOffset(p) or 0
-            vis.head.rotation=Quaternion(-vis.rotorOffset*180/math.pi,Vector3.UP)
+            RotorDisc.Bind(vis,p)
         end
     end
     view.joined:Update();for _,mesh in pairs(view.rotorJoined) do mesh:Update() end
@@ -52,7 +51,7 @@ function M:Update(alpha)
     end
     for _,r in ipairs(rotors) do local vis=self.view.visuals[r.partId]
         if vis and vis.head then local a=r.prev+(r.angle-r.prev)*alpha
-            vis.head.rotation=Quaternion(-(a*r.sign+(vis.rotorOffset or 0))*180/math.pi,Vector3.UP)
+            RotorDisc.Update(vis,a,r.sign)
         end
     end
     for owner,mesh in pairs(self.view.rotorJoined) do local pose=self.poses[owner]

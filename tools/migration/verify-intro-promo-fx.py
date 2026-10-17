@@ -17,6 +17,8 @@ package.loaded['ui.IntroFilm']={Under=function()E('under')end,Over=function()E('
 package.loaded['ui.IntroTitleCard']={Plan=function()return {}end,Draw=function()E('title')end}
 package.loaded['ui.IntroMotto']={Draw=function()E('motto')end}
 package.loaded['ui.IntroPromoMotion']={Salvage=function()return false end,Motto=function()return 1,1,1 end}
+package.loaded['ui.IntroDecisionFx']={Below=function()return {brightness=1}end,Hero=function(_,_,name,x,y,w,h)E('image',{name=name,x=x,y=y,w=w,h=h})end}
+for _,name in ipairs({'IntroBrand','IntroComic','IntroComicBurst','IntroComicText','IntroFamiliar','IntroGalaxyText','IntroSortieUi'})do package.loaded['ui.'..name]={}end
 package.loaded['ui.IntroPage']={Image=function(_,_,name,x,y,w,h)E('image',{name=name,x=x,y=y,w=w,h=h})end}
 package.loaded['urhox-libs/UI/Core/ImageCache']={Get=function()return 0 end}
 function nvgSave()DEPTH=DEPTH+1;STACK[DEPTH]=ALPHA end

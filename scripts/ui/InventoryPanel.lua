@@ -184,11 +184,11 @@ function M:ListAnchor()
     local def=self.list.props.data[row] and self.list.props.data[row][1];return def and def.id
 end
 function M:Detail(id)
-    if not Defs.PARTS[id] or self.shown==id then return end;self.shown=id;self.detail:SetPart(id);self.detailScroll:ScrollToTop()
+    if not Defs.PARTS[id] or self.shown==id then return end;self.shown=id;self.detail:SetPart(id)
 end
 function M:Digit(i)
     local focus=UI.GetFocus();local id=focus and focus.inventoryOwner==self and focus.props.partType or self.hoverType
-    if id then self.session:AssignHotbar(i,id) else self.session:SelectHotbar(i) end
+    if id and not self:Unavailable(id) then self.session:AssignHotbar(i,id) else self.session:SelectHotbar(i) end
     if not self.closed then self.hotbar.Refresh() end
 end
 function M:Keys()

@@ -45,6 +45,12 @@ function M:Update(session,dt)
         if not item.collectedAt then
             local ground=session.world:GroundAt(drop.pos[1],drop.pos[3]);local y=type(ground)=='table' and ground.h or ground or drop.pos[2];item.root.position=Coord.Vec(drop.pos[1],y+.1,drop.pos[3]);item.pivot.position=Vector3(0,1.1+math.sin(now*2)*.12,0)
             geom:Beam({drop.pos[1],y+.1,drop.pos[3]},.55,.15,3.2,color,drop.credits and .14 or .12)
+            -- H5 picks up at the displayed ground root, not the airborne death pose.
+            if session.player.alive then
+                local p=session.player:Position();local at=item.root.position
+                local dx,dy,dz=p[1]+at.x,p[2]-at.y,p[3]-at.z
+                if dx*dx+dy*dy+dz*dz<=D.config.pickupRadius^2 then session.run:PickupDrop(id) end
+            end
         else
             local t=math.min(1,(now-item.collectedAt)/item.duration);local target=Coord.Vec(table.unpack(session.player.pos or drop.pos));item.root.position=item.start+(target-item.start)*(t*t);item.root:SetScale(1-t*.85)
             if t>=1 then if item.visual then item.visual:Dispose() end;item.root:Dispose();self.drops[id]=nil end

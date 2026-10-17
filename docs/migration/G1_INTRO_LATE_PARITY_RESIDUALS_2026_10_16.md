@@ -25,3 +25,9 @@ Line references below describe the inspected source and target snapshot. They ar
 The four montage stages are present in order (`scripts/intro/IntroSession.lua:167-176`), including the 5.2 s missile firing window and narration completion wait. The n14 three-part word cadence is implemented at 42%, 34%, then 24% plus 50 ms (`scripts/intro/IntroSession.lua:178-185`). The principal gate sound/wait sequence is present (`scripts/intro/IntroSession.lua:214-222`). This source audit does not establish rendered equivalence or timing under GPU load.
 
 Additional small transition residual: source salvage artwork exits over 200 ms (`three/src/intro/intro.js:1206`); target `scripts/ui/IntroPromo.lua:126-145` implements its 280 ms entrance but drops the artwork when the shot changes. No broad visual-polish inventory was attempted.
+
+## 2026-10-17 source-state recheck
+
+The seven observations above describe the earlier inspected package, not the current production files. Current `IntroSession`, `IntroPage`, `IntroGateMotion`, `IntroGateFx`, and `IntroPromoMotion` contain the final fade, seam/steam, travelling lock halves, delayed rotation, overlapping contract/stamp exit, motto reveal and salvage exit. These were not reimplemented. This recheck establishes presence in source, not a new natural-playback acceptance.
+
+A later bounded comparison found a separate active omission in `actDecide`: its progress-controlled cone and the decided character's rotating speed layer. The implemented change and isolated source/Lua evidence are recorded in [G4_INTRO_DECISION_LAYERS_2026_10_17.md](G4_INTRO_DECISION_LAYERS_2026_10_17.md).

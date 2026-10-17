@@ -135,14 +135,17 @@ end
 function M:Hit(unit,hit,damage)
     local o=hit.owner;if self.id~='conquest' or not o then return false end
     if o.type=='shield' then local env=self.battle.session.environment;if env then env.effects.shields[o.team=='blue' and 1 or 2]:Hit(hit.point) end;return true end
-    if o.type=='reactor' then self.battle.rules:Steal(unit.team,damage);return true end
+    if o.type=='reactor' then
+        if self.battle.rules:Steal(unit.team,damage)>0 and self.view then self.view:HitReactor(o.team) end
+        return true
+    end
     return false
 end
 function M:Explode(unit,point,radius,damage)
     if self.id~='conquest' then return end
     local team=Other(unit.team);local base=self.bases[team]
     if not self.battle.rules.shield[team] and math.max(0,V.Length(V.Sub(point,base.aim))-4)<radius then
-        self.battle.rules:Steal(unit.team,damage*.6)
+        if self.battle.rules:Steal(unit.team,damage*.6)>0 and self.view then self.view:HitReactor(team) end
     end
 end
 function M:UnitTick(entry,dt)

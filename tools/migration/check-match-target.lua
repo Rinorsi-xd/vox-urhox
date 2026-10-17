@@ -1,6 +1,15 @@
 package.path='scripts/?.lua;'..package.path
 package.loaded['core.Coord']={}
 package.loaded['combat.ArenaData']={escort=golden.escort}
+-- Goal/At and target selection do not construct vehicles, renderers or rules.
+-- Hoisted constructor dependencies must fail loudly if this fixture uses them.
+for _,name in ipairs({'combat.EnemyDriver','render.ObjectiveView','combat.ConquestRules',
+    'combat.EscortRules','combat.EliminationRules','construction.Blueprint',
+    'drive.VehicleSpec','render.VehicleView','parts.Defs'}) do
+    package.loaded[name]=setmetatable({},{__index=function(_,key)
+        error('Unused constructor dependency accessed: '..name..'.'..tostring(key))
+    end})
+end
 local Nav=require 'combat.EnemyDriverNav'
 local Target=require 'combat.MatchTarget'
 local Objectives=require 'combat.BattleObjectives'

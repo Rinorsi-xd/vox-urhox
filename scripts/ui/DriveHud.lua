@@ -54,9 +54,10 @@ function M.Create(session)
     state.meter=DriveMeter{position='absolute',left=12,bottom=50,width=400,height=110,pointerEvents='none'};state.meter.session=session;root:AddChild(state.meter)
     state.detailPanel=DriveDetails{position='absolute',left=12,top=72,width=280,height=260,pointerEvents='none',visible=false};state.detailPanel.session=session;root:AddChild(state.detailPanel)
     state.vitals=MechReticle{position='absolute',left=0,top=0,width='100%',height='100%',pointerEvents='none'};state.vitals.session=session;root:AddChild(state.vitals)
-    state.overlay=DriveOverlay.New(session,root,state.vitals)
     state.missile=MissileHud{position='absolute',width='100%',height='100%',pointerEvents='none'}
-    state.missile.session=session;state.missile.overlay=state.overlay;root:AddChild(state.missile)
+    state.missile.session=session;root:AddChild(state.missile)
+    state.overlay=DriveOverlay.New(session,root,state.vitals)
+    state.missile.overlay=state.overlay
     state.resetProgress=ResetProgress.Attach(session,root)
     if session.combat then state.sniper=SniperThreat.Attach(session,root) end
     local total=math.max(1,#weapons.groups)*50-4

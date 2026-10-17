@@ -21,6 +21,7 @@ local P=require 'ui.SourceParagraph'
 local Typography=require 'ui.IntroTypography'
 local Motion=require 'ui.IntroPromoMotion'
 local Fx=require 'ui.IntroPromoFx'
+local Decision=require 'ui.IntroDecisionFx'
 local Opacity=require 'ui.IntroOpacity'
 local nvgGlobalAlpha=Opacity.Set
 local M={};local white={255,255,255,255};local red={255,59,48,255};local gold={255,211,106,255}
@@ -143,14 +144,20 @@ function M.Draw(page,vg,w,h,u)
   DeferredModules['ui.IntroPayslip'].Draw(vg,I,w,h,u,page,true)
  elseif id=='decide' or id=='decided' then
   D.Rect(vg,0,0,w,h,{0,0,0,255});local q=id=='decided' and 1 or I.holdProgress or 0
-  nvgSave(vg);nvgGlobalAlpha(vg,id=='decided' and 1 or .18+q*.8)
+  local decision=Decision.Below(vg,I,w,h)
+  nvgSave(vg)
   local scale=Fx.Plan(I).heroScale
   nvgTranslate(vg,w/2-10.15*u,h*.68);nvgScale(vg,scale,scale);nvgTranslate(vg,-(w/2-10.15*u),-h*.68)
-  Image(page,vg,id=='decided' and 'machinist_hero' or 'machinist_idle',w/2-62.3*u,h*.16,104.3*u,104*u);nvgRestore(vg)
+  Decision.Hero(page,vg,id=='decided' and 'machinist_hero' or 'machinist_idle',w/2-62.3*u,h*.16,104.3*u,104*u,decision.brightness);nvgRestore(vg)
   if id=='decide' and I.deciding then
-   nvgBeginPath(vg);nvgCircle(vg,w/2,h*.75,4.4*u);nvgStrokeColor(vg,nvgRGBA(255,255,255,51));nvgStrokeWidth(vg,.6*u);nvgStroke(vg)
-   nvgBeginPath(vg);nvgArc(vg,w/2,h*.75,4.4*u,-math.pi/2,-math.pi/2+q*math.pi*2,NVG_CW);nvgStrokeColor(vg,nvgRGBA(122,216,255,255));nvgStrokeWidth(vg,.6*u);nvgStroke(vg)
-   D.Text(vg,'按住',w/2,h*.737,2.2*u,white,'vox-title',NVG_ALIGN_CENTER);D.Text(vg,'按住 鼠标左键 / 空格 · 做出决定',w/2,h*.84,2.6*u,white,'vox-title',NVG_ALIGN_CENTER)
+   -- Source .hold anchors the entire SVG + gap + instruction above bottom:16vh.
+   local svg,gap,size=11*u,1.6*u,2.6*u;local top=h-16*u-svg-gap-size;local cy=top+svg*.5
+   nvgSave(vg);nvgLineCap(vg,NVG_ROUND)
+   nvgBeginPath(vg);nvgCircle(vg,w/2,cy,svg*.44);nvgStrokeColor(vg,nvgRGBA(255,255,255,51));nvgStrokeWidth(vg,svg*.06);nvgStroke(vg)
+   nvgBeginPath(vg);nvgArc(vg,w/2,cy,svg*.44,-math.pi/2,-math.pi/2+q*math.pi*2,NVG_CW);nvgStrokeColor(vg,nvgRGBA(122,216,255,255));nvgStrokeWidth(vg,svg*.06);nvgStroke(vg)
+   D.Text(vg,'按住',w/2,top+svg*.58,svg*.22,white,'vox-title',NVG_ALIGN_CENTER,0,true)
+   D.Text(vg,'按住 鼠标左键 / 空格 · 做出决定',w/2,top+svg+gap,size,white,'vox-title',NVG_ALIGN_CENTER,size*.14,false,size)
+   nvgRestore(vg)
   end
  elseif id=='sortie-countdown' then Big(vg,I.countdown or '',w/2,h*.4,12*u,t,white)
  elseif id=='sortie-brief' or I.playing then

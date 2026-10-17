@@ -25,6 +25,10 @@ environmentBakeCache={ClearCache=noop};cache={};renderer={};input={}
 print=noop
 RT=assert(load(RT_SOURCE,'@render/RenderTargetLifetime.lua'))()
 package.loaded['render.RenderTargetLifetime']=RT
+-- Hoisted app dependencies are outside these release/stop scenarios.
+for name in APP_SOURCE:gmatch('require%s*%(?%s*[\'"]([%w./-]+)[\'"]') do
+ if name~='core.CollectionCycle' and not package.loaded[name] then package.loaded[name]={} end
+end
 App=assert(load(APP_SOURCE,'@app/HangarApp.lua'))()
 function NewApp()
  return setmetatable({mapTransition={Stop=noop},vehicleGate={Cancel=noop},
@@ -250,9 +254,31 @@ def plain(value):
     return value
 
 
-historical = ROOT / '.tmp/outgame-cached-1792103454037/scripts'
-old_app = (historical / 'app/HangarApp.lua').read_text(encoding='utf-8')
-old_rt = (historical / 'render/RenderTargetLifetime.lua').read_text(encoding='utf-8')
+def fixture_sha256(path):
+    # Git checkouts may use CRLF; pin the original Lua source with LF endings.
+    source = path.read_text(encoding='utf-8').replace('\r\n', '\n')
+    return hashlib.sha256(source.encode('utf-8')).hexdigest()
+
+
+historical = {
+    'manifest': 'manifest-e41f909a.json',
+    'targetCommit': '9541dc59ef2f281cafa5126762a57550189e04dc',
+    'dirtyExport': True,
+    'fixtureHashEncoding': 'UTF-8 with LF line endings',
+    'originalExportSha256': {
+        'app/HangarApp.lua': '3c045877fb2a0280e99da235c5aca5a7ec9b436b7c7644b8a1f663527c6f1fb8',
+        'render/RenderTargetLifetime.lua': '305d9583c3b4ef5f01adae2457f33939cf32de740b53bc28f1d78de29fe24485',
+    },
+    'fixtures': {
+        'tools/migration/fixtures/e41-hangar-release.lua': '2696728466e27fd63bcc7d1bdd0351cfc38d05321045e2fe6bb81fc8d285f4a2',
+        'tools/migration/fixtures/e41-render-target-lifetime.lua': '7d5ca6946a892e78f6ff1faa6e8d520479bb2a0a22df3db75e4fb20d5d98bf05',
+    },
+    'boundary': 'Exact exported app release methods plus the full exported retirement module; unrelated app methods omitted.',
+}
+for fixture, expected in historical['fixtures'].items():
+    assert fixture_sha256(ROOT / fixture) == expected, fixture
+old_app = (ROOT / 'tools/migration/fixtures/e41-hangar-release.lua').read_text(encoding='utf-8')
+old_rt = (ROOT / 'tools/migration/fixtures/e41-render-target-lifetime.lua').read_text(encoding='utf-8')
 negative = plain(runtime(old_app, old_rt).eval('Run')("generational", 10000, 12))
 assert negative['finalized'] == 20012 and negative['released'] == 0
 assert negative['pending'] and negative['retired'] == 12
@@ -263,6 +289,7 @@ app = app_path.read_text(encoding='utf-8')
 rt = rt_path.read_text(encoding='utf-8')
 paths = ['scripts/app/HangarApp.lua', 'scripts/render/RenderTargetLifetime.lua',
          'scripts/core/CollectionCycle.lua', 'tools/migration/check-intro-gc-fence.py',
+         *historical['fixtures'],
          'tools/migration/fixtures/render-target-lifetime-before-clear-fence.lua',
          'tools/migration/fixtures/collection-cycle-before-finalizer-restore.lua']
 hashes = {p: hashlib.sha256((ROOT / p).read_bytes()).hexdigest() for p in paths}
@@ -276,7 +303,7 @@ for mode in ('incremental', 'generational'):
     cases[mode] = result
 
 unsafe_path = ROOT / 'tools/migration/fixtures/render-target-lifetime-before-clear-fence.lua'
-assert hashlib.sha256(unsafe_path.read_bytes()).hexdigest() == '7c1295960f14142c2cb663f6d84ab65f8ec93629dbd64c435025350360eea0b4'
+assert fixture_sha256(unsafe_path) == '7c1295960f14142c2cb663f6d84ab65f8ec93629dbd64c435025350360eea0b4'
 unsafe = plain(runtime(app, unsafe_path.read_text(encoding='utf-8')).eval('BorrowerCrossCycle')())
 assert unsafe['early'] and unsafe['surfaceFinalized'] and unsafe['disposed'], unsafe
 safe = plain(runtime(app, rt).eval('BorrowerCrossCycle')())
@@ -299,7 +326,7 @@ fence_cases['unguardedFullReentryUnsafe'] = unsafe_reentry
 fence_cases['fullFinalizerReentry'] = safe_reentry
 fence_cases['fullFinalizerQueuesOwner'] = runtime(app, rt).eval('FullFinalizerQueuesOwner')()
 old_collection_path = ROOT / 'tools/migration/fixtures/collection-cycle-before-finalizer-restore.lua'
-assert hashlib.sha256(old_collection_path.read_bytes()).hexdigest() == 'f7630ac50ca64d427f5f2b285d2c35f147009b446c582060996d3974d7a3595b'
+assert fixture_sha256(old_collection_path) == 'f7630ac50ca64d427f5f2b285d2c35f147009b446c582060996d3974d7a3595b'
 old_collection = old_collection_path.read_text(encoding='utf-8')
 for action in ('stop', 'upgrade'):
     unsafe_restore = plain(runtime(app, rt, old_collection).eval('FinalizerRestore')(action))
@@ -364,7 +391,7 @@ return {stop=stop,synchronousUpgrade=upgrade,callbackReentry=reentry,callbackErr
 assert hashes == {p: hashlib.sha256((ROOT / p).read_bytes()).hexdigest() for p in paths}
 report = {
     'result': 'PASS', 'checks': 1 + len(cases) + len(ownership) + len(fence_cases),
-    'checkUnit': 'named scenarios', 'historicalNegative': negative,
+    'checkUnit': 'named scenarios', 'historicalNegative': negative, 'historicalFixture': historical,
     'cases': cases, 'ownership': ownership, 'fenceCases': fence_cases,
     'productionHashes': hashes,
     'boundary': 'Actual Lua 5.4 collector and full production App/RenderTargetLifetime modules, with table finalizers and controlled native service adapters. Historical e41 reproduces reclaimed objects with a permanently pending generational fence. No WASM collector-mode, native userdata finalizer, GPU, browser, memory-residency or timing acceptance.'}

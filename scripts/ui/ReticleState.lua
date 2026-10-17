@@ -8,8 +8,7 @@ M.Clamp=Clamp
 M.zoom={laser=2.2,mg=1.4,sniper=5,missile=2.8}
 function M.ScopeFov(base,kind) return 2*math.atan(math.tan(base*math.pi/360)/(M.zoom[kind] or 2))*180/math.pi end
 function M.Compact()
-    local dpr=math.max(1,graphics:GetDPR())
-    return TouchMode.Enabled() and math.min(graphics:GetWidth()/dpr,graphics:GetHeight()/dpr)<=600
+    return TouchMode.Compact()
 end
 function M.Layout(w,h,compact)
     if compact==nil then compact=M.Compact() end

@@ -6,7 +6,7 @@ function M.Calculate(width,height,cssWidth,cssHeight,safe,size,aim,chipWidth)
     local w,h=cssWidth-sx-(safe.right or 0)/k,cssHeight-sy-(safe.bottom or 0)/k
     local u=math.max(.78,math.min(1.35,math.min(w,h)/390))*(size or 1)
     local s=k*u;local narrow=cssWidth<=760
-    local out={k=k,u=u,s=s,cssWidth=cssWidth,cssHeight=cssHeight,width=width,height=height,narrow=narrow,buttons={},slots={},sheets={},slotCount=narrow and 8 or 10}
+    local out={k=k,u=u,s=s,cssWidth=cssWidth,cssHeight=cssHeight,width=width,height=height,narrow=narrow,buttons={},slots={},sheets={},slotCount=10}
     local function Rect(x,y,rw,rh) return {left=sx*k+x*s,top=sy*k+y*s,width=rw*s,height=rh*s} end
     local function Add(id,x,y,rw,rh) out.buttons[id]=Rect(x,y,rw,rh) end
     local right=w/u-10;local top=8
@@ -29,7 +29,8 @@ function M.Calculate(width,height,cssWidth,cssHeight,safe,size,aim,chipWidth)
     railY=railY+spacer+4
     if aim then Add('primary',railX,railY,48,buttonHeight);railY=railY+buttonHeight+4;Add('erase',railX,railY,48,buttonHeight);railY=railY+buttonHeight+4 end
     Add('up',railX,railY,48,buttonHeight);railY=railY+buttonHeight+4;Add('down',railX,railY,48,buttonHeight)
-    local dw=narrow and 504 or 588;local dockWidth=(narrow and 505 or 587)+2/u;local dx=(w/u-dockWidth)/2;local dy=h/u-8-52
+    -- Source specificity keeps all ten slots visible; --dw only anchors sheets.
+    local dw=narrow and 504 or 588;local dockWidth=587+2/u;local dx=(w/u-dockWidth)/2;local dy=h/u-8-52
     out.dock=Rect(dx,dy,dockWidth,52);x=dx+6
     Add('me-tools',x,dy+4,50,44);x=x+54
     out.separators={Rect(x+1,dy+9,1/u,34)};x=x+6+1/u

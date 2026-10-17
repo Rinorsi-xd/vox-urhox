@@ -17,7 +17,16 @@ V.atFrame(20,function()
                 local actual=l.buttons[r.action];for i,v in ipairs({actual.left/k,actual.top/k,actual.width/k,actual.height/k}) do Near(v,r.rect[i],'original right rail '..view.width..' '..mode..' '..r.action..' '..i) end
             end
         end
-        V.assert(l.slotCount==(view.width<=760 and 8 or 10),'source narrow design eight slots / normal ten')
+        local slots=0
+        for _,r in ipairs(view.states[mode]) do
+            if r.action=='me-slot' then
+                slots=slots+1
+                local actual=l.slots[slots]
+                V.assert(actual~=nil,'source visible slot '..slots)
+                if actual then for i,v in ipairs({actual.left/k,actual.top/k,actual.width/k,actual.height/k}) do Near(v,r.rect[i],'source slot rectangle '..view.width..' '..slots..' '..i,1) end end
+            end
+        end
+        V.assert(l.slotCount==slots,'actual source visible slot count '..view.width)
         for id,r in pairs(l.buttons) do V.assert(r.left>=0 and r.top>=0 and r.left+r.width<=view.width*k+1 and r.top+r.height<=view.height*k+1,'landscape control fits '..view.width..' '..id) end
     end end end
 end)

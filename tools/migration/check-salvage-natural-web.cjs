@@ -1,11 +1,36 @@
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const {chromium}=require('C:/Users/XD/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright');
 const port=Number(process.env.VOX_QA_PORT||4271),base='http://127.0.0.1:'+port;
-const gp=require('../../assets/Salvage/Gameplay.json'),delay=ms=>new Promise(r=>setTimeout(r,ms));
+let gp=require('../../assets/Salvage/Gameplay.json');
+const delay=ms=>new Promise(r=>setTimeout(r,ms));
 const flat=(a,b)=>Math.hypot(a[0]-b[0],a[2]-b[2]);
 const wrap=a=>Math.atan2(Math.sin(a),Math.cos(a));
 const {NaturalProgress}=require('./salvage-natural-progress.cjs');
 const {RoadFollower,assertNetResult,assertSavedInventory,assertCountdown}=require('./salvage-natural-navigation.cjs');
+const {aimDelta}=require('./check-destruction-web.cjs');
+const {isRuntimeFatal,recordRuntimeFatal,createRuntimeWatchdog,guardPage,closeRuntime}=require('./salvage-runtime-watchdog.cjs');
+const {assertReturnedSurface,assertLobbyRoundTrip,assertResultInReturnedHall,assertResultAcknowledgement}=require('./salvage-return-acceptance.cjs');
+const settlement=s=>s?.salvageReturn||s?.salvageRun;
+function observedUniqueDeath(before,after,name){
+ const named=s=>(s.aimTargets||[]).filter(t=>t.team==='red'&&t.name===name);
+ return named(before).length===1&&named(after).length===0&&after.salvageRun.kills>before.salvageRun.kills;
+}
+function assertEnemySearchPickup(before,after,search,name){
+ assert.equal(search.title,name+' 残骸箱','Search is the defeated enemy cache, not nearby map loot');
+ assert.equal(search.done,true,'Actual enemy cache search finished');
+ assert.ok(search.items.length>0,'Real generated enemy drop table is nonempty');
+ const picked={};
+ for(const item of search.items){
+  assert.ok(Number.isInteger(item.n)&&item.n>0,'Generated drop quantity is positive');
+  assert.ok(item.state==='shown'||item.state==='full','Every drop has passed real search reveal');
+  const left=item.left||0;assert.ok(Number.isInteger(left)&&left>=0&&left<=item.n,'Actual leftover is bounded');
+  if(item.n>left)picked[item.id]=(picked[item.id]||0)+item.n-left;
+ }
+ assert.ok(Object.values(picked).some(n=>n>0),'At least one real enemy drop was collected');
+ for(const id of new Set([...Object.keys(before),...Object.keys(after),...Object.keys(picked)]))
+  assert.equal(after[id]||0,(before[id]||0)+(picked[id]||0),'Cargo contains exactly enemy search pickup '+id);
+ return picked;
+}
 function sourceRoadRoute(from,to,options={}){
  const nodes=gp.nav.nodes,ids=Object.keys(nodes),adj=new Map(ids.map(id=>[id,[]]));
  for(const [a,b,width] of gp.nav.edges){if(!nodes[a]||!nodes[b])continue;const rise=Math.abs(nodes[a][1]-nodes[b][1]),run=flat(nodes[a],nodes[b]);if(options.maxSlope&&Math.atan2(rise,run)>options.maxSlope*Math.PI/180)continue;const center=nodes[a].map((v,i)=>(v+nodes[b][i])/2),threat=options.avoidThreats&&gp.encounters.some(e=>flat(center,[-e.x,e.y,e.z])<(e.aggroR||140));const cost=Math.hypot(...nodes[a].map((v,i)=>v-nodes[b][i]))+(threat?160:0);adj.get(a).push([b,cost,width]);adj.get(b).push([a,cost,width]);}
@@ -36,30 +61,70 @@ function sourceRaidRoute(from){
  assert.ok(candidates.length,'A source-connected raid route exists');return candidates.sort((a,b)=>a.score-b.score)[0];
 }
 async function run(){
+ const combatLoot=process.argv.includes('--combat-loot');
+ const returnOnly=process.argv.includes('--return-only');
+ const heapSparse=process.argv.includes('--heap-sparse');
+ const heapDiagnostics=process.argv.includes('--heap-diagnostics')||heapSparse,heapWindow=process.argv.includes('--heap-window');
+ assert.ok(!heapSparse||(!heapWindow&&!returnOnly&&!combatLoot),'Sparse OOM diagnostic uses the unchanged natural route');
+ assert.ok(!heapWindow||heapDiagnostics,'--heap-window requires --heap-diagnostics');
+ assert.ok(!heapWindow||(!combatLoot&&!process.env.VOX_NATURAL_EXTRACT&&!process.env.VOX_NATURAL_DEATH),'Bounded heap window cannot claim natural loot/extraction/death acceptance');
+ assert.ok(!returnOnly||(!heapWindow&&!combatLoot&&!process.env.VOX_NATURAL_EXTRACT&&!process.env.VOX_NATURAL_DEATH),'Return-only window cannot claim natural loot/extraction/death acceptance');
+ const combatKills=Number(process.env.VOX_NATURAL_COMBAT_KILLS||2);
+ assert.ok(Number.isInteger(combatKills)&&combatKills>=2&&combatKills<=4,'Combat consumer check requires two to four deaths');
  const identity=await fetch(base+'/identity.json').then(r=>r.json());assert.ok(identity.qa);
+ const reference=require('./salvage-frozen-reference.cjs').loadFrozenReference(identity);gp=reference.gameplay;
+ if(heapDiagnostics)assert.equal(identity.monitorDisabled,true,'Heap diagnosis requires separate explicit monitor-disabled QA build');
  const out=path.resolve('docs/migration/evidence/salvage-natural-'+path.basename(identity.manifest_path,'.json')+'-'+new Date().toISOString().replace(/[:.]/g,'-'));
  fs.mkdirSync(out,{recursive:true});console.log('Evidence: '+out);
+ const heapHttpIdentity=heapDiagnostics?await require('./verify-heap-http.cjs').verifyHeapHttp(base,identity):null;
+ if(heapHttpIdentity)fs.writeFileSync(path.join(out,'heap-http-identity.json'),JSON.stringify(heapHttpIdentity,null,2));
  const browserOptions={headless:true,channel:'chrome',args:['--use-angle=d3d11']};
  const profile=process.env.VOX_NATURAL_PROFILE&&path.resolve(process.env.VOX_NATURAL_PROFILE);
  const profileExistedBefore=Boolean(profile&&fs.existsSync(profile));
  const browser=profile?await chromium.launchPersistentContext(profile,{...browserOptions,viewport:{width:1600,height:900}}):await chromium.launch(browserOptions);
- const page=profile?await browser.newPage():await browser.newPage({viewport:{width:1600,height:900}}),prefix='salvage-natural-web';
- let state,seq=0,inventoryBefore,mouseX=800;const held=new Set();
+ const rawPage=profile?await browser.newPage():await browser.newPage({viewport:{width:1600,height:900}}),prefix='salvage-natural-web';
+ let state,seq=0,inventoryBefore,mouseX=800,mouseY=450,firing=false;const held=new Set();
  const aimDriven=()=>Object.keys(inventoryBefore?.installed||{}).some(id=>/^part:(mech|leg|hover)\d/.test(id));
  const report={identity,result:'RUNNING',shutdown:'PENDING',checks:[],errors:[],probeErrors:[],samples:[],boundary:'Only F8 reads QA state. Route uses held W/A/D/Space and E, no teleport, cargo, death or clock fixture. Parallel functional run, not isolated performance measurement.',startedAt:new Date().toISOString()};
+ report.reference=reference.audit;
+ if(heapDiagnostics)report.heap={stage:'startup',samples:0,successful:0,unavailable:0,maxDurationMs:0,intervalMs:5000,boundedWindow:heapWindow,httpIdentity:heapHttpIdentity,boundary:'Default-OFF browser QA only. Actual Module.__heapInfo raw dlmalloc bytes; no arbitrary heap offsets, forced GC, allocator hooks, heap growth or gameplay mutation. Aggregate bytes do not attribute allocation owners.'};
+ if(combatLoot)report.combatLoot={result:'RUNNING',requiredDeaths:combatKills,deaths:[],pickups:[],samples:[],boundary:'Optional --combat-loot uses real mouse aiming and held firing, then E search of observed enemy remnant caches. No QA damage, teleport, inventory injection or clock edits. Sequential observed consumers; not proof of simultaneous death ordering, kill attribution, natural win rate or performance.'};
  report.economyBoundary='UI/SalvageRules.json in the frozen package sets testFill:999; existing stock and purchase flow are functional evidence, not real-account economy or earned-stock evidence.';
  report.browser={persistent:Boolean(profile),profile:profile||null,profileExistedBefore,network:{requests:0,responses:0,diskCacheResponses:0,cacheResponses:0,serviceWorkerResponses:0,encodedBytes:0}};
  function persist(){report.lastState=state;fs.writeFileSync(path.join(out,prefix+'.json'),JSON.stringify(report,null,2));}
- persist();await page.bringToFront();
- const network=await page.context().newCDPSession(page),cached=new Set();await network.send('Network.enable');
+ const watchdog=createRuntimeWatchdog({onFatal:event=>recordRuntimeFatal(report,event,persist)}),page=guardPage(rawPage,watchdog);
+ let sparseShutdown=null,sparseTotalDeadline=null,sparseRaidDeadline=null;
+ function closeSparse(reason){
+  if(!heapSparse)return;
+  if(reason&&!watchdog.fatal)watchdog.fail('sparse-deadline',reason);
+  if(!sparseShutdown)sparseShutdown=closeRuntime(rawPage,browser);
+  return sparseShutdown;
+ }
+ if(heapSparse){
+  report.heap.mode='sparse';report.heap.intervalMs=null;report.heap.allocatorLimit=4;
+  report.heap.boundary+=' Capacity-only RAF observations; allocator only loaded/raid80/raid140/returned. All sample frames excluded; this diagnostic run is not an FPS baseline. 180s raid wall deadline and 300s total wall deadline.';
+  sparseTotalDeadline=setTimeout(()=>closeSparse('Sparse heap diagnostic total wall deadline 300s'),300000);
+ }
+ async function observeNetwork(){
+ const network=await watchdog.operation('network.session',()=>rawPage.context().newCDPSession(rawPage)),cached=new Set();await watchdog.operation('network.enable',()=>network.send('Network.enable'));
  network.on('Network.requestWillBeSent',()=>report.browser.network.requests++);
  network.on('Network.requestServedFromCache',e=>{cached.add(e.requestId);report.browser.network.cacheResponses=cached.size;});
  network.on('Network.responseReceived',e=>{const n=report.browser.network;n.responses++;if(e.response.fromDiskCache){n.diskCacheResponses++;cached.add(e.requestId);n.cacheResponses=cached.size;}if(e.response.fromServiceWorker)n.serviceWorkerResponses++;});
  network.on('Network.loadingFinished',e=>report.browser.network.encodedBytes+=e.encodedDataLength);
+ }
  fs.writeFileSync(path.join(out,prefix+'.log'),'');
- page.on('console',m=>{const t=m.text();fs.appendFileSync(path.join(out,prefix+'.log'),t+'\n');const at=t.indexOf('OUTGAME_STATE ');if(at>=0){try{state=JSON.parse(t.slice(at+14));if(state.loading)report.latestLoading=structuredClone(state.loading);seq++;}catch(e){report.probeErrors.push({message:e.message,length:t.length});persist();}}if(/ERROR:|Execute Lua|stack traceback|Aborted\(|Shader compilation failed/.test(t)){report.errors.push(t);persist();}});
- page.on('pageerror',e=>{report.errors.push(e.stack||e.message);persist();});
- page.on('crash',()=>{report.errors.push('Browser page crashed');persist();});
+ rawPage.on('console',m=>{const t=m.text();fs.appendFileSync(path.join(out,prefix+'.log'),t+'\n');const at=t.indexOf('OUTGAME_STATE ');if(at>=0){try{state=JSON.parse(t.slice(at+14));if(state.loading)report.latestLoading=structuredClone(state.loading);seq++;}catch(e){report.probeErrors.push({message:e.message,length:t.length});persist();}}if(/ERROR:|Execute Lua|stack traceback|Aborted\(|Shader compilation failed/.test(t)){report.errors.push(t);persist();}if(isRuntimeFatal(t))watchdog.fail('console',t);});
+ rawPage.on('pageerror',e=>{const message=e.stack||e.message;report.errors.push(message);persist();if(isRuntimeFatal(message))watchdog.fail('pageerror',message);});
+ if(heapDiagnostics)rawPage.on('console',m=>{const text=m.text(),prefix='VOX_HEAP_SAMPLE ';if(!text.startsWith(prefix))return;try{
+  const sample=JSON.parse(text.slice(prefix.length)),observed=state?.performance,row={...sample,receivedAt:new Date().toISOString(),stage:report.heap.stage,gameTime:state?.salvageRun?.time??null,mode:state?.mode??null,
+   lastQaState:{receivedSequence:seq,luaKiB:observed?.luaKiB??null,resourceBytes:observed?.resourceBytes??null,battleObjects:observed?.battleObjects??null},stateBoundary:'Last F8 snapshot, not an atomic allocator/resource snapshot. Lua and resources overlap WASM totals; do not sum.'};
+  fs.appendFileSync(path.join(out,'heap-samples.jsonl'),JSON.stringify(row)+'\n');report.heap.samples++;
+  if(sample.status==='OK'){report.heap.successful++;report.heap.latest=row;}else if(sample.kind==='sample')report.heap.unavailable++;
+  report.heap.maxDurationMs=Math.max(report.heap.maxDurationMs,sample.durationMs||0);persist();
+ }catch(error){report.probeErrors.push({heap:true,message:error.message});persist();}});
+ if(heapSparse)rawPage.on('console',m=>{const message=m.text(),prefix='VOX_SPARSE_HEAP ';if(message.startsWith(prefix)){try{fs.appendFileSync(path.join(out,'heap-capacity-and-markers.jsonl'),message.slice(prefix.length)+'\n');}catch(error){report.probeErrors.push({sparseHeap:true,message:error.message});}}if(isRuntimeFatal(message))closeSparse();});
+ rawPage.on('crash',()=>{report.errors.push('Browser page crashed');watchdog.fail('crash','Browser page crashed');if(heapSparse)closeSparse();});
+ if(heapSparse)rawPage.on('pageerror',error=>{if(isRuntimeFatal(error.stack||error.message))closeSparse();});
  async function wait(fn,label,limit=240000){const start=Date.now();let probe=0;while(!state||!fn(state)){if(report.errors.length)throw Error(report.errors.join('\n'));if(state?.loadingFlow?.failed)throw Error('Actual loading failure: '+state.loadingFlow.error);if(Date.now()-start>limit)throw Error('Timeout '+label);if(Date.now()-probe>800){probe=Date.now();await page.keyboard.press('F8');}await delay(100);}return state;}
  async function dump(){const before=seq;await page.keyboard.press('F8');await wait(()=>seq>before,'fresh state',15000);return state;}
  const widgets=()=>Array.isArray(state?.widgets)?state.widgets:[];
@@ -68,13 +133,38 @@ async function run(){
  async function keys(next=[]){for(const k of held)if(!next.includes(k)){await page.keyboard.up(k);held.delete(k);}for(const k of next)if(!held.has(k)){await page.keyboard.down(k);held.add(k);}}
  const check=(ok,label)=>{assert.ok(ok,label);report.checks.push(label);persist();};
  async function shot(name){persist();await page.screenshot({path:path.join(out,prefix+'-'+name+'.png'),timeout:15000});}
+ async function heapSample(stage){if(!heapDiagnostics||heapSparse&&stage!=='returned')return;report.heap.stage=stage;return watchdog.operation('heap.sample.'+stage,()=>rawPage.evaluate(({tag,sparse})=>sparse?window.__voxSparseHeap.returned():window.__voxHeapProbe.sample(tag),{tag:stage,sparse:heapSparse}));}
+ async function installHeap(){
+  if(!heapDiagnostics)return;
+  await watchdog.operation('heap.install.script',()=>rawPage.addScriptTag({path:path.join(__dirname,'wasm-heap-diagnostics.js')}));
+  if(heapSparse){
+   await watchdog.operation('heap.sparse.script',()=>rawPage.addScriptTag({path:path.join(__dirname,'sparse-heap-observer.js')}));
+   await watchdog.operation('heap.sparse.install',()=>rawPage.evaluate(()=>{window.__voxSparseHeap=window.VoxSparseHeapObserver.create(window);}));
+   return;
+  }
+  await watchdog.operation('heap.install',()=>rawPage.evaluate(()=>{window.__voxHeapProbe=window.VoxWasmHeapDiagnostics.createProbe(window,{enabled:true,intervalMs:5000});}));
+  const first=await heapSample('hall');
+  assert.equal(first.status,'OK','Actual Runtime emitted a validated raw allocator sample: '+first.reason);
+  await watchdog.operation('heap.start',()=>rawPage.evaluate(()=>window.__voxHeapProbe.start()));
+ }
+ async function verifyReturnedInput(resultBefore){
+  await wait(s=>s.mode==='hangar'&&!s.loadingFlow?.active,'actual result return',60000);await dump();
+  const before=structuredClone(state);report.returnInput={result:'PENDING',before};persist();
+  if(resultBefore)report.resultAcknowledgement=assertResultAcknowledgement(resultBefore,before);
+  assertReturnedSurface(before);
+  await click('车库');await wait(s=>s.salvage?.tab==='garage','real returned garage mouse input',15000);await dump();
+  const garage=structuredClone(state);report.returnInput.garage=garage;persist();
+  await click('整备');await wait(s=>s.salvage?.tab==='loadout','real returned loadout mouse input',15000);await dump();
+  report.returnInput={...report.returnInput,...assertLobbyRoundTrip(before,garage,state),result:'PASS',loadout:structuredClone(state)};persist();
+ }
  function settlementInventory(){
   assert.ok(inventoryBefore&&state.salvageInventory,'Actual read-only before/after inventory is available');
-  const before=inventoryBefore,after=state.salvageInventory,result=state.salvageRun.result;
+  const before=inventoryBefore,after=state.salvageInventory,result=settlement(state).result;
   const all=new Set([...Object.keys(before.items),...Object.keys(after.items)]);
   for(const id of all){const expected=result.ok?(before.items[id]||0)+(result.cargo[id]||0):Math.max(0,(before.items[id]||0)-(result.keepCar?0:(before.installed[id]||0)));assert.equal(after.items[id]||0,expected,'Natural settlement actual stock '+id);}
-  check(true,result.ok?'Natural extraction adds exactly committed cargo to real stash':'Natural death deducts every original installed part and discards all cargo');
+  check(true,result.ok?'Natural extraction adds exactly committed cargo to real stash':result.keepCar?'Natural abandonment preserves original stock and discards all cargo':'Natural death deducts every original installed part and discards all cargo');
   check(after.stats.raids===before.stats.raids&&after.stats[result.ok?'extracted':'lost']===(before.stats[result.ok?'extracted':'lost']||0)+1,'Natural settlement counts outcome once without double counting raid start');
+  check(after.credits===before.credits,'Settlement keeps source credit balance; carried goods are not automatically sold');
   check(after.lastRun===after.lastStartedRun,'Natural settlement saves the actual started run transaction');report.inventoryAfter=structuredClone(after);
  }
  async function drive(target,seconds=150,passing=false){const started=Date.now(),progress=new NaturalProgress();
@@ -131,18 +221,74 @@ async function run(){
   throw Error('Natural extraction did not complete its original countdown');
  }
  function checkAlive(){if(state.salvageRun?.result)throw Error('Natural route ended '+JSON.stringify(state.salvageRun.result));if(!state.vehicle||!state.vehicle.position)throw Error('Natural vehicle destroyed during route; await actual death settlement');if(report.errors.length)throw Error(report.errors.join('\n'));}
+ async function combatDrops(){
+  check(Array.isArray(state.aimTargets)&&state.camera?.position&&state.reticle.groups>0,'Actual enemy and armed vehicle observers available for combat loot');
+  const defs=reference.runData.enemies;
+  const names=kind=>defs[kind]?.[0]?.name;
+  const encounters=gp.encounters.filter(e=>e.squad.length>=combatKills&&new Set(e.squad.map(names)).size===e.squad.length&&e.kind!=='elite').sort((a,b)=>flat(position(),[-a.x,a.y,a.z])-flat(position(),[-b.x,b.y,b.z]));
+  assert.ok(encounters.length,'Source encounter has multiple distinct observable enemy names');
+  const encounter=encounters[0],at=[-encounter.x,encounter.y,encounter.z];
+  report.combatLoot.encounter=encounter.id;
+  await drive(at,240,{width:40,radius:Math.max(50,(encounter.aggroR||140)*.65)});await keys();
+  await wait(s=>s.aimTargets?.some(t=>t.team==='red'),'actual source encounter spawn',30000);
+  await page.keyboard.press('1');await dump();
+  const initialShots=state.weapons.shots,initialKills=state.salvageRun.kills,started=Date.now();
+  while(report.combatLoot.deaths.length<combatKills&&Date.now()-started<300000){
+   await dump();checkAlive();
+   const red=state.aimTargets.filter(t=>t.team==='red');
+   const target=red.filter(t=>red.filter(v=>v.name===t.name).length===1&&!report.combatLoot.deaths.some(v=>v.name===t.name)).sort((a,b)=>flat(position(),a.pos)-flat(position(),b.pos))[0];
+   assert.ok(target,'Unique living source enemy is available; name-only observer cannot certify ambiguous duplicates');
+   let previous=structuredClone(state),last=structuredClone(target),killed=false;
+   const fight=Date.now();
+   try{
+    while(Date.now()-fight<120000){
+     const current=state.aimTargets.find(t=>t.team==='red'&&t.name===target.name);
+     if(!current){killed=observedUniqueDeath(previous,state,target.name);break;}
+     last=structuredClone(current);
+     const delta=aimDelta(state.camera,current,[0,-.5,-1,.5][Math.floor((Date.now()-fight)/5000)%4]);
+     mouseX+=delta.mouseX;mouseY+=delta.mouseY;await page.mouse.move(mouseX,mouseY,{steps:2});
+     if(!firing){await page.mouse.down();firing=true;}
+     previous=structuredClone(state);await delay(250);await dump();checkAlive();
+     report.combatLoot.samples.push({time:state.salvageRun.time,name:target.name,pos:last.pos,parts:current.parts,kills:state.salvageRun.kills,shots:state.weapons.shots,hits:state.weapons.hits,hp:state.reticle.hp});
+     if(observedUniqueDeath(previous,state,target.name)){killed=true;break;}
+     if(state.weapons.energy<5){await page.mouse.up();firing=false;await delay(1200);await dump();}
+    }
+   }finally{if(firing){await page.mouse.up();firing=false;}}
+   check(killed,'Observed unique enemy disappears with actual Run kill counter: '+target.name);
+   report.combatLoot.deaths.push({name:target.name,lastPosition:last.pos,kills:state.salvageRun.kills,boundary:'Last observed living pose; cache interaction below independently confirms defeated enemy remnant.'});
+   await shot('enemy-death-'+report.combatLoot.deaths.length);
+   const cargoBefore=structuredClone(state.salvageRun.cargo),expected=target.name+' 残骸箱';
+   await drive(last.pos,120);await keys();
+   await wait(s=>s.salvageRun.prompt?.title===expected,'actual generated enemy remnant prompt '+expected,20000);
+   await page.keyboard.press('e');
+   await wait(s=>s.salvageRun.search?.title===expected,'actual E enemy cache search',15000);
+   let completed;const searchStarted=Date.now();
+   while(Date.now()-searchStarted<30000){await dump();checkAlive();if(state.salvageRun.search?.title===expected&&state.salvageRun.search.done){completed=structuredClone(state.salvageRun.search);break;}await delay(100);}
+   assert.ok(completed,'Actual generated enemy search reaches done before auto-close');
+   const picked=assertEnemySearchPickup(cargoBefore,state.salvageRun.cargo,completed,target.name);
+   report.combatLoot.pickups.push({name:target.name,picked,search:completed,before:cargoBefore,after:structuredClone(state.salvageRun.cargo)});
+   check(true,'Real enemy drop reveal enters cargo with exact quantity and leftovers: '+target.name);await shot('enemy-loot-'+report.combatLoot.pickups.length);
+   if(!completed.items.some(item=>item.state==='full'))await wait(s=>!s.salvageRun.search,'actual enemy search auto-close',15000);
+  }
+  check(report.combatLoot.deaths.length>=combatKills&&state.salvageRun.kills>=initialKills+combatKills,'Multiple real enemy deaths create searchable remnant caches');
+  check(state.weapons.shots>initialShots,'Public held mouse fire actually emitted weapon shots');
+  check(report.combatLoot.pickups.length===report.combatLoot.deaths.length,'Every confirmed enemy remnant yielded actual cargo pickup');
+  report.combatLoot.result='CONSUMERS_PASS_RETURN_PENDING';persist();
+ }
  try{
+  persist();await observeNetwork();await page.bringToFront();
   await page.goto(base+'/outgame.html?-game_url='+base+'/game-dist/&-log=info&cached=1');await wait(s=>s.tab==='hangar'&&!s.loadingFlow?.active,'hall');
+  await installHeap();
   await click('打捞行动');await wait(s=>s.tab==='salvage'&&!s.loadingFlow?.active&&!s.vehicleLoading?.busy,'salvage');
   if(process.env.VOX_NATURAL_STRONG==='1'){
-   const originalVehicle=process.env.VOX_NATURAL_VEHICLE||'量产机兵 · 突击';assert.ok(require('../../assets/UI/Workshop.json').prefabs.some(v=>v.name===originalVehicle),'Vehicle exists in frozen source workshop');
+   const originalVehicle=process.env.VOX_NATURAL_VEHICLE||'量产机兵 · 突击';assert.ok(reference.workshop.prefabs.some(v=>v.name===originalVehicle),'Vehicle exists in frozen source workshop');
    const existing=state.garage.slots.findIndex(v=>v&&v.name===originalVehicle);
    if(existing>=0){
     if(state.blueprint!==originalVehicle){await click('车库');await click(originalVehicle);await wait(s=>s.blueprint===originalVehicle&&!s.vehicleLoading?.busy,'actual existing garage vehicle selection');}
     check(state.blueprint===originalVehicle&&state.garage.active===existing+1,'Original vehicle legitimately restored and selected from actual local garage');await shot('reused-original-vehicle');
    }else{
    const used=state.garage.used,starterParts=state.parts;await click('创意工坊');await wait(()=>widgets().some(w=>w.text==='查看全部'&&w.entrance?.opacity>.9),'actual workshop visible feature shelf',20000);check(state.workshop.caption.elapsed>0&&state.workshop.shelf.elapsed>0,'Actual nested workshop source animation clocks and visible shelf advance');
-   if(!widgets().some(w=>w.text===originalVehicle)){await click('查看全部');await wait(s=>s.workshop?.view==='browse','actual full source workshop',20000);const sourceVehicle=require('../../assets/UI/Workshop.json').prefabs.find(v=>v.name===originalVehicle);const groupLabels={mech:'机甲',wheel:'轮式',track:'履带',plane:'飞机',pirate:'海盗',blank:'底盘'};if(groupLabels[sourceVehicle.group]){await click(groupLabels[sourceVehicle.group]);await wait(s=>s.workshop.group===sourceVehicle.group,'actual original vehicle group',20000);}}
+   if(!widgets().some(w=>w.text===originalVehicle)){await click('查看全部');await wait(s=>s.workshop?.view==='browse','actual full source workshop',20000);const sourceVehicle=reference.workshop.prefabs.find(v=>v.name===originalVehicle);const groupLabels={mech:'机甲',wheel:'轮式',track:'履带',plane:'飞机',pirate:'海盗',blank:'底盘'};if(groupLabels[sourceVehicle.group]){await click(groupLabels[sourceVehicle.group]);await wait(s=>s.workshop.group===sourceVehicle.group,'actual original vehicle group',20000);}}
    await wait(()=>widgets().some(w=>w.text===originalVehicle),'existing official vehicle card',20000);
    await click(originalVehicle);await wait(s=>s.workshop?.view==='detail'&&!s.vehicleLoading?.busy,'actual official vehicle detail');await delay(900);
    await click('购买整车');await wait(s=>s.dialog&&widgets().some(w=>w.text==='购买整车'),'actual vehicle purchase');
@@ -152,14 +298,35 @@ async function run(){
    }
    await click('整备');await wait(()=>widgets().some(w=>w.text==='出发'),'actual selected vehicle loadout');
   }
+  await heapSample('loadout');
+  if(heapDiagnostics)report.heap.stage='loading';
   await click('出发');
-  await wait(s=>s.salvageRun&&!s.loadingFlow?.active,'loaded actual raid',600000);report.loadingAtEntry=structuredClone(state.loading||report.latestLoading);report.loadingFlowAtEntry=structuredClone(state.loadingFlow);report.networkAtEntry=structuredClone(report.browser.network);await shot('drop');
+  await wait(s=>s.salvageRun&&!s.loadingFlow?.active,'loaded actual raid',600000);
+  if(heapSparse){
+   sparseRaidDeadline=setTimeout(()=>closeSparse('Sparse heap diagnostic raid wall deadline 180s'),180000);
+   report.heap.raidLoadedAt=new Date().toISOString();report.heap.stage='loaded';persist();
+   const first=await watchdog.operation('heap.sparse.loaded',()=>rawPage.evaluate(()=>window.__voxSparseHeap.loaded()));
+   assert.equal(first.status,'OK','Actual Runtime emitted a validated sparse allocator sample: '+first.reason);
+  }
+  report.loadingAtEntry=structuredClone(state.loading||report.latestLoading);report.loadingFlowAtEntry=structuredClone(state.loadingFlow);report.networkAtEntry=structuredClone(report.browser.network);await shot('drop');
   inventoryBefore=structuredClone(state.salvageInventory);report.inventoryBefore=inventoryBefore;
   await wait(s=>s.salvageRun&&!s.salvageRun.cine.playing,'natural drop completion',60000);await page.bringToFront();await page.mouse.click(800,450);await wait(s=>s.pointer.captured,'actual input capture');
+  await heapSample('live');
   check(Number.isFinite(state.vehicle.yaw),'Actual vehicle yaw available for observed keyboard steering');
   if(process.env.VOX_NATURAL_SAFE_ROUTE==='1')check(Array.isArray(state.vehicle.center),'Read-only actual center of mass is available for source interaction and navigation');
-  const start=position();const crates=gp.loot.filter(o=>o.tier===0&&Math.abs(o.y-start[1])<15).map(o=>({...o,g:[-o.x,o.y,o.z]})).sort((a,b)=>flat(a.g,start)-flat(b.g,start));
-  const plan=process.env.VOX_NATURAL_SAFE_ROUTE==='1'?sourceRaidRoute(start):null;
+  const start=position();let plan=null;
+  if(heapWindow||returnOnly){
+   const seconds=returnOnly?5:30;
+   const window={startedAt:new Date().toISOString(),startGameTime:state.salvageRun.time,seconds,boundary:'Held W and left mouse for explicit bounded window, then original abandonment. Not eleven-car stress, kill/drop acceptance or allocation-owner attribution.'};
+   if(heapDiagnostics)report.heap.window=window;report.returnWindow=window;
+   try{await keys(['w']);await page.mouse.down();const begun=Date.now();while(Date.now()-begun<seconds*1000){await delay(1000);await dump();checkAlive();}}
+   finally{if(!watchdog.fatal){await keys();await page.mouse.up();}}
+   window.finishedAt=new Date().toISOString();window.endGameTime=state.salvageRun.time;await heapSample('live-end');
+  }
+  else if(combatLoot)await combatDrops();
+  else{
+  const crates=gp.loot.filter(o=>o.tier===0&&Math.abs(o.y-start[1])<15).map(o=>({...o,g:[-o.x,o.y,o.z]})).sort((a,b)=>flat(a.g,start)-flat(b.g,start));
+  plan=process.env.VOX_NATURAL_SAFE_ROUTE==='1'?sourceRaidRoute(start):null;
   const crate=plan?plan.crate:crates[0];assert.ok(crate);report.target={id:crate.id,g:crate.g};
   if(plan){
    report.sourcePlan={crate:crate.id,exit:plan.exit.id,roadDistance:plan.road.distance,steepFallback:Boolean(plan.road.steepFallback),approach:plan.approach,exposed:plan.exposed,boundary:'Offline original-road search prefers edges at most 35 degrees; actual terrain clearance, enemy damage and extraction remain runtime checks.'};
@@ -170,6 +337,7 @@ async function run(){
   check(flat(position(),start)>30,'Held keyboard commands move actual player through map');
   await page.keyboard.press('e');await wait(s=>s.salvageRun.search,'natural E search',20000);await wait(s=>s.salvageRun.used>0,'natural source loot enters cargo',30000);await shot('looted');
   check(state.salvageRun.used>0&&state.salvageRun.opened>=0,'Actual nearby crate search reveals and collects source loot');
+  }
   check(state.salvageRun.objective?.text,'Original core/extraction guide is visible in running raid');
   if(process.env.VOX_NATURAL_DEATH==='1'){
    const threat=state.salvageRun.threat;
@@ -177,8 +345,8 @@ async function run(){
    await keys();report.cargoBeforeLoss=structuredClone(state.salvageRun.cargo);
    await wait(s=>s.salvageRun.cine.name==='death','actual enemy caused death cinematic',240000);await shot('natural-death-cinematic');
    check(!state.salvageRun.result&&!state.salvageRun.committed,'Enemy damage death plays original cinematic before settlement');
-   await wait(s=>s.salvageRun.result,'actual natural enemy death settlement',45000);
-   check(!state.salvageRun.result.ok&&!state.salvageRun.result.keepCar&&state.salvageRun.committed,'Actual enemy death commits cargo and original car loss');settlementInventory();
+   await wait(s=>settlement(s)?.result,'actual natural enemy death settlement',45000);
+   check(!settlement(state).result.ok&&!settlement(state).result.keepCar&&settlement(state).committed,'Actual enemy death commits cargo and original car loss');
   }else if(process.env.VOX_NATURAL_EXTRACT==='1'){
    const p=position(),exits=state.salvageRun.extracts.filter(e=>!e.openAt||e.openAt<=state.salvageRun.time).filter(e=>!e.needs||state.salvageRun.cargo[e.needs]>0).sort((a,b)=>flat(a.g,p)-flat(b.g,p));
    assert.ok(exits.length,'Open exit');const exit=plan?exits.find(e=>e.id===plan.exit.id):exits[0];assert.ok(exit,'Planned source extraction remains actually open');report.exit=exit.id;
@@ -191,17 +359,21 @@ async function run(){
    await extractHold(exit);await keys();await shot('extract');
    report.countdown=assertCountdown(report.extractionHold,exit,process.env.VOX_NATURAL_STRICT==='1');
    if(report.countdown.samples)check(true,'Observed original extraction countdown decreases without reset');
-   await wait(s=>s.salvageRun.result,'natural extraction result',45000);check(state.salvageRun.result.ok&&state.salvageRun.committed,'Natural extraction commits cargo');
-   report.expectedNet=assertNetResult(state.salvageRun.result,report.cargoBeforeExtraction,exit,require('../../assets/UI/Outgame.json').items);
-   check(true,'Natural success result independently matches gross cargo, one exit ticket and exact net value');settlementInventory();
+   await wait(s=>settlement(s)?.result,'natural extraction result',45000);check(settlement(state).result.ok&&settlement(state).committed,'Natural extraction commits cargo');
+   report.expectedNet=assertNetResult(settlement(state).result,report.cargoBeforeExtraction,exit,reference.catalogue.items);
+   check(true,'Natural success result independently matches gross cargo, one exit ticket and exact net value');
   }else{
-   await keys();await page.keyboard.press('t');await wait(s=>s.salvageRun?.result,'actual abandonment',20000);
-   check(!state.salvageRun.result.ok&&state.salvageRun.result.keepCar&&state.salvageRun.committed,'Actual early return records cargo loss and keeps original car');
+   await keys();await page.keyboard.press('t');await wait(s=>settlement(s)?.result,'actual abandonment',60000);
+   check(!settlement(state).result.ok&&settlement(state).result.keepCar&&settlement(state).committed,'Actual early return records cargo loss and keeps original car');
   }
-  await shot('result');await click('回大厅');await wait(s=>s.mode==='hangar'&&!s.loadingFlow?.active&&!s.mouse.overlay,'actual result return and overlay release');await shot('returned');
-  check(state.lobby==='salvage'&&!state.mouse.overlay,'Natural route releases result overlay and restores original salvage lobby');check(report.errors.length===0,'No runtime errors on natural route');
+  await wait(s=>s.mode==='hangar'&&!s.loadingFlow?.active&&s.dialog&&s.salvageReturn?.shown,'actual hall-owned result after battle disposal',90000);await dump();
+  report.resultPresentation=assertResultInReturnedHall(state);report.resultState=structuredClone(state);settlementInventory();
+  check(true,'Original result appears only in restored hall after old trial resources are disposed');
+  await shot('result');await click('回大厅');await verifyReturnedInput(report.resultState);await shot('returned');
+  await heapSample('returned');
+  check(report.returnInput.result==='PASS','Natural route releases owned result modal and original lobby accepts garage/loadout mouse input');check(report.errors.length===0,'No runtime errors on natural route');
   if(report.inventoryAfter){assert.deepEqual(state.salvageInventory.items,report.inventoryAfter.items);check(state.salvageInventory.lastRun===report.inventoryAfter.lastRun,'Actual return keeps committed inventory without another settlement');}
-  if(process.env.VOX_NATURAL_EXTRACT==='1'){
+  if(process.env.VOX_NATURAL_EXTRACT==='1'||combatLoot){
    await dump();
    if(state.salvageInventory?.saved||process.env.VOX_NATURAL_STRICT==='1'){
     report.savedGeneration=assertSavedInventory(state.salvageInventory);report.readback={status:'PASS',generation:report.savedGeneration};
@@ -209,28 +381,36 @@ async function run(){
    }else report.readback={status:'OPEN',reason:'Old package probe exposes live inventory only; actual saved store readback is unavailable.'};
    report.persistenceBoundary='Same WASM session actual local file readback only; browser refresh, cloud recovery and real-account economy remain unverified.';
   }
+  if(combatLoot){report.combatLoot.result='PASS';check(true,'Enemy drop consumers complete actual settlement and return without duplicate inventory mutation');}
   report.result='PASS';
  }catch(e){
-  report.result='FAIL';report.failure=e.stack;persist();await shot('failure').catch(()=>{});
-  if(!report.errors.length&&state.salvageRun&&state.reticle.hp<.15){
+  if(combatLoot){report.combatLoot.result='FAIL';report.combatLoot.failure=e.stack;}
+  report.result='FAIL';report.failure=e.stack;persist();
+  if(!watchdog.fatal)await shot('failure').catch(error=>{report.failureScreenshotError=error.stack;persist();});
+  else{report.failureScreenshotSkipped='Runtime fatal; renderer may be unresponsive. Existing screenshots preserved.';persist();}
+  if(!watchdog.fatal&&!report.errors.length&&state?.salvageRun&&state.reticle.hp<.15){
    await keys();
    try{
-    await wait(s=>s.salvageRun?.result,'natural enemy damage death after failed extraction route',45000);
+    await wait(s=>s.mode==='hangar'&&!s.loadingFlow?.active&&s.salvageReturn?.shown,'natural enemy damage death after failed extraction route',90000);
     report.deathState=state;await shot('natural-death-result');
-    check(!state.salvageRun.result.ok&&!state.salvageRun.result.keepCar&&state.salvageRun.committed,'Actual enemy damage death cinematic commits original cargo/car loss');settlementInventory();
-    await click('回大厅');await wait(s=>s.mode==='hangar'&&!s.loadingFlow?.active&&!s.mouse.overlay,'natural death actual lobby return');
+    assertResultInReturnedHall(state);
+    check(!settlement(state).result.ok&&!settlement(state).result.keepCar&&settlement(state).committed,'Actual enemy damage death cinematic commits original cargo/car loss');settlementInventory();
+    const deathResult=structuredClone(state);await click('回大厅');await verifyReturnedInput(deathResult);
     await shot('natural-death-returned');check(state.lobby==='salvage','Actual natural death returns to original salvage lobby');
    }catch(deathError){report.deathFailure=deathError.stack;persist();}
   }
  }
  finally{
+  clearTimeout(sparseTotalDeadline);clearTimeout(sparseRaidDeadline);
+  if(heapDiagnostics&&!watchdog.fatal){try{await watchdog.operation('heap.dispose',()=>rawPage.evaluate(sparse=>sparse?window.__voxSparseHeap?.dispose():window.__voxHeapProbe?.dispose(),heapSparse));report.heap.disposed=true;}catch(error){report.heap.disposeError=error.message;}}
   report.finishedAt=new Date().toISOString();persist();
-  await keys().catch(()=>{});persist();
-  try{try{await page.close();}finally{await browser.close();}report.shutdown='CLOSED';}
-  catch(error){report.shutdown='FAILED';report.shutdownError=error.stack;throw error;}
-  finally{persist();}
+  report.inputCleanup='Closing the disposable browser/context releases input; no renderer acknowledgement awaited after failure.';
+  report.shutdown='CLOSING';persist();
+  report.shutdownDetails=await (sparseShutdown||closeRuntime(rawPage,browser));report.shutdown=report.shutdownDetails.status;
+  if(report.shutdown!=='CLOSED'){report.result='FAIL';report.failure=report.failure||'Runtime cleanup '+report.shutdown;}
+  persist();
  }
  console.log(JSON.stringify({result:report.result,checks:report.checks.length,errors:report.errors.length,target:report.target}));if(report.result!=='PASS')throw Error(report.failure);
 }
-module.exports={sourceRoadRoute,sourceRaidRoute};
-if(require.main===module)run().catch(e=>{console.error(e);process.exitCode=1;});
+module.exports={sourceRoadRoute,sourceRaidRoute,observedUniqueDeath,assertEnemySearchPickup};
+if(require.main===module)run().catch(e=>{console.error(e);process.exit(1);});

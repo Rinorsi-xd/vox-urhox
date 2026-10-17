@@ -11,16 +11,31 @@ local RectLightLookup=require("render.RectLightLookup")
 local DebugPanel=require("ui.DebugPanel")
 local PerformanceMonitor=require 'diagnostics.PerformanceMonitor'
 local PerformanceBindings=require 'diagnostics.PerformanceBindings'
+local PlayerMarker=require 'diagnostics.PlayerMarker'
 local PerformancePanel=require 'ui.PerformancePanel'
 local PlatformUtils=require 'urhox-libs.Platform.PlatformUtils'
 local performance=nil ---@type table|nil
 local performancePanel=nil ---@type table|nil
 local showPerformance=true
 
+-- Web 音频由主线程上的 ScriptProcessor 回调混音，引擎默认每块 4096 采样（48 kHz 约 85 ms）。
+-- 主线程卡顿超过一块的时长，浏览器会反复播放上一块，BGM 听起来「当当当」地卡住。
+-- 启动时把缓冲加到约 170 ms（8192 采样），可容忍的卡顿翻倍；代价是音效多约 85 ms 延迟。
+local function WebAudioBuffer()
+    if not PlatformUtils.IsWebPlatform() or not audio or not audio:IsInitialized() then return end
+    for _,arg in ipairs(GetArguments()) do if arg=='-vox-audio-buffer=0' then return end end
+    local rate,stereo,interp=audio:GetMixRate(),audio:IsStereo(),audio:GetInterpolation()
+    local ok=audio:SetMode(170,rate,stereo,interp)
+    print(string.format('[Audio] Web buffer 170 ms @%d Hz: %s',rate,tostring(ok)))
+    if not ok or not audio:IsInitialized() then audio:SetMode(85,rate,stereo,interp) end
+end
 function Start()
     running=true
-    local enabled=true
-    for _,arg in ipairs(GetArguments()) do if arg=='-vox-perf=0' then enabled=false end end
+    WebAudioBuffer()
+    -- 发布版默认关闭逐帧性能监控与 PERF 面板（订阅全部日志并逐帧记录，本身有 CPU/GC 开销）；
+    -- 诊断时用 -vox-perf=1 打开
+    local enabled=false
+    for _,arg in ipairs(GetArguments()) do if arg=='-vox-perf=1' then enabled=true elseif arg=='-vox-perf=0' then enabled=false end end
     performance=PerformanceMonitor.New({enabled=enabled,noFile=PlatformUtils.IsWebPlatform()})
     if enabled then SubscribeToEvent('LogMessage','HandlePerformanceLog') end
     SubscribeToEvent('EndFrame','HandleFramePresented')
@@ -36,6 +51,19 @@ function Start()
             app=App.New()
             app:Start()
             if performance.enabled then performancePanel=PerformancePanel.New(app) end
+            app.performanceControls={
+                IsVisible=function() return showPerformance end,
+                SetVisible=function(visible)
+                    showPerformance=visible==true
+                    if performancePanel then performancePanel:SetVisible(showPerformance) end
+                end,
+                Mark=function()
+                    if not performance or not performance.enabled then return false,'性能监控未开启' end
+                    local context=PerformanceBindings.Context(app)
+                    context.playerMarker=PlayerMarker.Capture(app)
+                    performance:Marker('user-mark',context);return true
+                end,
+            }
             if app.debugEnabled then app.debugPanel=DebugPanel.New(app) end
             SubscribeToEvent("PostUpdate","HandlePostUpdate")
             SubscribeToEvent("EndAllViewsRender","HandleViewsRendered")
@@ -55,6 +83,7 @@ function Stop()
     if performancePanel then performancePanel:Dispose();performancePanel=nil end
     if performance then performance:Dispose();performance=nil end
     if app then
+        app.performanceControls=nil
         if app.debugPanel then app.debugPanel:Dispose();app.debugPanel=nil end
         app:Stop();app=nil
     end
@@ -89,7 +118,7 @@ function HandleUpdate(eventType,eventData)
         PerformanceBindings.Attach(performance,app)
         performance.monitorMs=performance.monitorMs+(performance.clock()-started)%4294967296
         if input:GetKeyPress(KEY_F6) then showPerformance=not showPerformance end
-        if input:GetKeyPress(KEY_F10) then performance:Marker('user-mark',PerformanceBindings.Context(app)) end
+        if input:GetKeyPress(KEY_F10) and app and app.performanceControls then app.performanceControls.Mark() end
         if performancePanel then
             performancePanel:SetVisible(showPerformance)
             if showPerformance then performancePanel:Update(performance:Snapshot(),dt) end

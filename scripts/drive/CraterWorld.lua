@@ -1,5 +1,6 @@
 -- Shared trial/combat contract, source crater layout. Physics uses the original
--- 2 m heightfield and authored hulls; visual terrain retains the 1 m detail mesh.
+-- 2 m heightfield, structural hulls and visible rock/debris triangle meshes;
+-- visual terrain retains the 1 m detail mesh.
 local HeightField=require("core.HeightField")
 local CraterLayout=require("drive.CraterLayout")
 local TrialMetrics=require("drive.TrialMetrics")

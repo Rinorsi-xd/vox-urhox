@@ -6,8 +6,14 @@ local DAMAGE={vehicleCollision='vehicle_collision',unitKilled='vehicle_destroy',
 local DAMAGE_CUES={vehicle_collision=true,vehicle_destroy=true,part_break=true,part_detach=true,shield_up=true,shield_hit=true,shield_down=true}
 local Levels=require 'audio.AudioLevels'
 local M={};M.__index=M
+-- 源 RecoveryMix.pitchLine：维修时叠一根很轻的正弦「音调线」，随血量从 E4 升到 E5（repairPitchHz = 330·2^h），
+-- 音量 0.045 × repairAmount，不做空间化。采样是 330 Hz 的 11 个整周期（1470 个采样 @44.1 kHz，单声道 16 位），
+-- 循环无缝，音高靠播放频率调整。
+local LINE_HZ,LINE_RATE,LINE_PATH=330,44100,'Sounds/CombatFeedback/repair_pitch_line.wav'
+-- 源 WebAudio setTargetAtTime 的逐帧近似（与原有维修循环的增益平滑一致，按 60 fps 推进）
+local function Approach(current,target,tc) return current+(target-current)*(1-math.exp(-1/60/tc)) end
 function M.Dependencies()
-    local paths={};for _,cue in pairs(Data.cues) do paths[#paths+1]=cue.path end;return paths
+    local paths={};for _,cue in pairs(Data.cues) do paths[#paths+1]=cue.path end;paths[#paths+1]=LINE_PATH;return paths
 end
 function M.New(scene) local self=setmetatable({},M);self:init(scene);return self end
 function M:init(scene)
@@ -17,6 +23,7 @@ function M:init(scene)
     self.focus=function() return input.focus and not input.minimized end
     self.emit=function(id,point,rate) local gain,pan=self:Spatial(point,18);self:Play(id,gain,pan,rate) end
     for id,cue in pairs(Data.cues) do local sound=assert(cache:GetResource('Sound',cue.path),cue.path);sound.looped=cue.loop;self.sounds[id]=sound end
+    self.lineSound=assert(cache:GetResource('Sound',LINE_PATH),LINE_PATH);self.lineSound.looped=true
 end
 function M:Source(name)
     local source=self.root:CreateChild(name):CreateComponent('SoundSource');source:SetSoundType('VoxFeedback');return source
@@ -69,6 +76,7 @@ function M:Stop()
     if self.silent then return end;self.silent=true
     for _,voice in ipairs(self.voices) do voice.source:StopImmediate();Levels.SetGain(voice.source,0) end
     if self.loop then self.loop:StopImmediate();Levels.SetGain(self.loop,0) end
+    if self.line then self.line:StopImmediate();Levels.SetGain(self.line,0) end
     self.pending={};self.mix:Reset()
 end
 function M:SetActive(active)
@@ -103,18 +111,41 @@ function M:Consume(events,unit)
     end end
     self.mix:Consume(events,unit,self.emit)
     local amount=self.mix.amount
+    local sound=self.sounds.repair_loop
     if amount>.005 then
         if not self.loop then self.loop=self:Source('Repair') end
-        local gain,pan=self:Spatial(self.mix.position,18);local sound=self.sounds.repair_loop
+        local gain,pan=self:Spatial(self.mix.position,18)
         local volume=Data.cues.repair_loop.gain*amount*gain*self.volume
-        if not self.loop.playing then Levels.Play(self.loop,sound,sound:GetFrequency()*self.mix.rate,0,pan,nil,'feedback') end
-        local previous=Levels.RawGain(self.loop);Levels.SetGain(self.loop,previous+(volume-previous)*(1-math.exp(-1/60/.12)))
-        self.loop.frequency=sound:GetFrequency()*self.mix.rate;self.loop.panning=pan
-    elseif self.loop then self.loop:StopImmediate();Levels.SetGain(self.loop,0) end
+        local target=sound:GetFrequency()*self.mix.rate
+        if not self.loop.playing then Levels.Play(self.loop,sound,target,0,pan,nil,'feedback') end
+        Levels.SetGain(self.loop,Approach(Levels.RawGain(self.loop),volume,.12))
+        self.loop.frequency=Approach(self.loop.frequency,target,.12);self.loop.panning=pan
+    elseif self.loop and self.loop.playing then
+        -- 源 setLoop 收尾：增益按 0.06 s 时间常数淡出后再停，不硬切
+        local faded=Approach(Levels.RawGain(self.loop),0,.06);Levels.SetGain(self.loop,faded)
+        if faded<1e-4 then self.loop:StopImmediate();Levels.SetGain(self.loop,0) end
+    end
+    self:PitchLine(amount>.005,self.mix.health or 1)
+end
+function M:PitchLine(on,health)
+    if on and not (self.line and self.line.playing) then
+        if not self.line then self.line=self:Source('RepairPitch') end
+        Levels.Play(self.line,self.lineSound,LINE_RATE*2^math.max(0,math.min(1,health)),0,0,nil,'feedback')
+    end
+    if not self.line or not self.line.playing then return end
+    if on then
+        local h=math.max(0,math.min(1,health))
+        Levels.SetGain(self.line,Approach(Levels.RawGain(self.line),.045*Mix.Amount(h)*self.volume,.06))
+        self.line.frequency=Approach(self.line.frequency,LINE_RATE*2^h,.06)
+    else
+        local faded=Approach(Levels.RawGain(self.line),0,.05);Levels.SetGain(self.line,faded)
+        if faded<1e-4 then self.line:StopImmediate();Levels.SetGain(self.line,0) end
+    end
 end
 function M:Snapshot()
     return {active=self:Audible(),counts=self.counts,voices=#self.voices,pending=#self.pending,
-        repair={playing=self.loop and self.loop.playing or false,gain=self.loop and self.loop.gain or 0,rate=self.mix.rate,amount=self.mix.amount}}
+        repair={playing=self.loop and self.loop.playing or false,gain=self.loop and self.loop.gain or 0,rate=self.mix.rate,amount=self.mix.amount,
+            line=self.line and self.line.playing or false,lineHz=self.line and self.line.playing and self.line.frequency/LINE_RATE*LINE_HZ or 0}}
 end
 function M:Dispose()
     if self.disposed then return end;self:Stop();self.disposed=true;self.root:Dispose();self.sounds={};self.voices={}

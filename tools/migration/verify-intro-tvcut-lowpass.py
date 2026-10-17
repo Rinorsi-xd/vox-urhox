@@ -40,6 +40,8 @@ Scene=function()
   function source:StopImmediate()self.sound=nil;self.playing=false end
   function source:Play(sound,frequency,gain)self.sound=sound;self.frequency=frequency;self.gain=gain;self.playing=true end
   function source:Seek()end
+  function source:Remove()self.detached=true end
+  function source:Dispose()Check(self.detached and not self.playing,'retained source explicitly released');self.disposed=true end
   return source
  end}end
  function scene:Dispose()end

@@ -60,6 +60,7 @@ function M:Enter()
     end
     self.sourceTier=Config.TIERS[5];Config.TIERS[5]=Inv.Limits(c.run.tier)
     self.build=DeferredModules['app.BuildSession'].New(host)
+    self:ConfigureStock()
     self.build.ghost.root.position=self.root.position;self.build.ghost.root.rotation=self.root.rotation
     self.build.inspection.view.node.position=self.root.position;self.build.inspection.view.node.rotation=self.root.rotation
     local build=self.build
@@ -94,6 +95,28 @@ function M:Enter()
     else WindowViewports.Set(0,Viewport:new(s.scene,host.camera.camera)) end
     build:Refresh()
 end
+function M:CanSelect(id)
+    return not Inv.Limited(id) or (Inv.Remaining(self.controller.run.inventory,self.host.blueprint)[id] or 0)>0
+end
+function M:ConfigureStock()
+    local build=self.build
+    local function Available(id)
+        if self:CanSelect(id) then return true end
+        build:Notify('本局仓库没有这个零件','bad');return false
+    end
+    local pick,assign,open=build.PickHotbar,build.AssignHotbar,build.OpenInventory
+    build.PickHotbar=function(session,id)
+        if not Available(id) then return false end
+        return pick(session,id)
+    end
+    build.AssignHotbar=function(session,slot,id)
+        if not Available(id) then return false end
+        return assign(session,slot,id)
+    end
+    build.OpenInventory=function(session,...)
+        local panel=open(session,...);self:StockCards();return panel
+    end
+end
 function M:ConfigureHud()
     local build=self.build
     local name=build.hud.name
@@ -112,7 +135,9 @@ end
 function M:StockCards()
     self.remaining=Inv.Remaining(self.controller.run.inventory,self.host.blueprint)
     local panel=self.build.inventoryPanel;if not panel then return end
+    panel.Unavailable=function(_,id) return not self:CanSelect(id) end
     for _,row in pairs(panel.list.pool_.inUse) do for _,cell in ipairs(row.cells) do
+        cell.root.props.disabled=Inv.Limited(cell.type) and (self.remaining[cell.type] or 0)<=0
         if not cell.root.endlessStock then
             local card=cell.root;local render=card.Render;card.endlessStock=true
             card.Render=function(widget,vg)

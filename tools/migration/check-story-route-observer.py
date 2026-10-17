@@ -31,7 +31,7 @@ def table(value):
 
 
 required = {'mode', 'map', 'width', 'height', 'touch', 'loadingFlow', 'sceneVisible',
-            'pointer', 'camera', 'vehicle', 'widgets', 'aimTargets', 'wing', 'story'}
+            'pointer', 'camera', 'vehicle', 'widgets', 'aimTargets', 'wing', 'story', 'weapons'}
 memory = {'luaKiB', 'resourceBytes', 'api', 'desktop', 'modelBytes', 'arrayBytes',
           'texture2DBytes', 'imageBytes', 'materialBytes', 'xmlBytes', 'soundBytes',
           'jsonBytes', 'retiredTargets', 'batches', 'primitives', 'fixedSteps',
@@ -74,23 +74,24 @@ check('Replay includes more than 100 actual old full observations', replayed > 1
 check('Projection reduces actual serialized diagnostic bytes by at least 40%', projected_bytes < original_bytes * .6)
 check('Projection tolerates no performance counters without inventing values', len(project(lua.table()).performance) == 0)
 for name, before, after in [('target loss', "'widgets','aimTargets','wing','story'", "'widgets','wing','story'"),
+                            ('weapon counters loss', 'out.weapons=data.weapons', 'out.weapons=nil'),
                             ('memory loss', "'texture2DBytes','imageBytes','materialBytes'", "'texture2DBytes','imageBytes'")]:
     mutated = LuaRuntime(unpack_returned_tuples=True)
     mutated.execute(source.replace(before, after))
-    specimen = mutated.table_from({'aimTargets': 7, 'performance': mutated.table_from({'materialBytes': 19})})
+    specimen = mutated.table_from({'aimTargets': 7, 'weapons': 23, 'performance': mutated.table_from({'materialBytes': 19})})
     result = mutated.globals().G0_StoryRouteState(specimen)
-    check('Reject negative control ' + name, result.aimTargets != 7 or result.performance.materialBytes != 19)
+    check('Reject negative control ' + name, result.aimTargets != 7 or result.weapons != 23 or result.performance.materialBytes != 19)
 probe = ROOT / 'tools/migration/probe-outgame-web.lua'
 server = ROOT / 'tools/migration/serve-outgame.cjs'
 runner = ROOT / 'tools/migration/check-story-natural-web.cjs'
 check('Only explicit QA opt-in loads projection', "const storyRoute=qa&&process.argv.includes('--story-route');" in server.read_text(encoding='utf-8'))
-check('Projection remains restricted to story trial dumps', 'if G0_StoryRouteState and data.story then data=G0_StoryRouteState(data) end' in probe.read_text(encoding='utf-8'))
+check('Projection remains restricted to story trial dumps', 'if G0_StoryRouteState and data.story then data=G0_StoryRouteState(data,s) end' in probe.read_text(encoding='utf-8'))
 check('Route mode stops automatic duplicate dumps but retains explicit full-history and object requests', 'frames%30==0 and not G0_StoryRouteState or input:GetKeyPress(KEY_F8) or pendingPresentationHistory or pendingSceneObjects' in probe.read_text(encoding='utf-8'))
 files = [helper, Path(__file__), probe, server, runner]
-report = {'result': 'PASS', 'checks': len(checks), 'negativeControls': 2,
+report = {'result': 'PASS', 'checks': len(checks), 'negativeControls': 3,
           'replayedStates': replayed, 'originalBytes': original_bytes, 'projectedBytes': projected_bytes,
           'inputs': {str(p.relative_to(ROOT)).replace('\\', '/'): hashlib.sha256(p.read_bytes()).hexdigest() for p in files},
-          'boundary': 'Actual Lua projection against historical full runtime states and two rejected mutations. Same story/camera/targets/control/memory references, not gameplay or allocator changes. No GPU/OOM, complete UI audit or sustained performance acceptance.'}
+          'boundary': 'Actual Lua projection against historical full runtime states and three rejected mutations. Same story/camera/targets/control/memory references plus existing weapon counters, not gameplay or allocator changes. No GPU/OOM, complete UI audit or sustained performance acceptance.'}
 out = ROOT / 'docs/migration/evidence/story-route-observer-offline.json'
 out.write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
 print(json.dumps(report, indent=2))

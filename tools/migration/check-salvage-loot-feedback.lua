@@ -7,6 +7,10 @@ local function Same(a,b)
     for k in pairs(b) do if a[k]==nil then return false end end;return true
 end
 package.path='scripts/?.lua;'..package.path
+dofile('tools/migration/g5-offline-imports.lua').Salvage()
+package.loaded['salvage.Cinematics']=nil
+dofile('tools/migration/g5-offline-imports.lua').Exclude({'render.CineDeathFilter','render.SalvageCineDust','ui.SourceDraw'})
+package.loaded['ui.SourceButtonMotion']={Step=function() end}
 package.loaded['core.ResourceData']={Read=function(name) return resources[name] end}
 package.loaded['combat.CarUnit']={};package.loaded['salvage.Drops']={}
 package.loaded['ui.SalvageLootMotion']={Event=function() end}

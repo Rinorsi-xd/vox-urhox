@@ -1,4 +1,7 @@
 package.path='scripts/?.lua;scripts/?/init.lua;'..package.path
+for name,source in pairs(PRODUCTION_OVERRIDES or {})do
+ package.preload[name]=assert(load(source,'@scripts/'..name:gsub('%.','/')..'.lua'))
+end
 local checks={}
 local function check(ok,label) assert(ok,label);checks[#checks+1]=label end
 local function none()end
@@ -14,6 +17,18 @@ package.loaded['urhox-libs/UI']=UI
 local context={};local activeContext=context
 package.loaded['urhox-libs/UI/Core/ImageCache']={GetContext=function()return activeContext end}
 for _,name in ipairs({'ui.SourceDraw','ui.IntroFrame','ui.SourceParagraph','ui.WorkshopPaint','ui.CommsFrame','construction.Blueprint','core.Coord','audio.UiSound','story.TutorialRules'})do package.loaded[name]={}end
+-- These eager imports belong to rendering/physics paths not exercised here.
+-- Keep the actual ownership modules below; reject accidental use of a stub.
+for _,name in ipairs({'parts.Dependencies','ui.WeaponIconResources','render.MissileView',
+ 'scene.Crater','app.OpeningRetirement','intro.IntroWarmup','render.VehicleView',
+ 'intro.IntroAssembly','intro.IntroGarage','drive.CraterWorld','drive.CraterPhysics',
+ 'intro.IntroSortieCar','intro.IntroBattle','ui.IntroSortieUi','intro.IntroMontagePool',
+ 'intro.IntroShots','ui.ReticleState','controls.DriveAim','controls.ChaseState',
+ 'intro.IntroStrike','intro.IntroSceneCapture','ui.IntroImageWarmup','ui.SourceRichText',
+ 'ui.IntroTerminalFx','urhox-libs/UI/Core/Theme','ui.IntroTypography','ui.IntroWipe',
+ 'controls.TouchMode','ui.TutorialPage'})do
+ package.loaded[name]=setmetatable({},{__index=function(_,key)error('Unused boundary invoked: '..name..'.'..tostring(key))end})
+end
 package.loaded['ui.IntroComic']={Dispose=function(page)page.comicReleased=true end}
 package.loaded['ui.GarageHud']={Dispose=none}
 package.loaded['app.SceneLoader']={New=function()return {}end}
@@ -24,6 +39,10 @@ package.loaded['audio.StoryCommsCues']={Dependencies=function()return {'Sounds/c
  New=function()return {Dispose=none}end}
 local resources={};local available={};local downloadMode='success';local pending={}
 cache={Exists=function(_,path)return available[path]==true end,
+ GetFile=function(_,path)
+  local text=READ_RESOURCE(path)
+  return {size=#text,Read=function()return {ReadString=function()return text end,Clear=none}end,Dispose=none}
+ end,
  GetResource=function(_,kind,path)
   assert(kind=='Texture2D');counts.decode=counts.decode+1
   if not resources[path]then resources[path]={width=1856,height=2304,path=path,Dispose=function()counts.sourceDispose=counts.sourceDispose+1 end}end

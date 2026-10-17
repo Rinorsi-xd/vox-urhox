@@ -8,12 +8,18 @@ const entryOnly=process.env.VOX_STORY_ENTRY_ONLY==='1';
 const ambienceCheck=process.env.VOX_STORY_AMBIENCE==='1';
 const logOnly=process.env.VOX_STORY_LOG_ONLY==='1';
 const convoyCheck=process.env.VOX_STORY_CONVOY==='1';
+const holdCheck=process.env.VOX_STORY_HOLD==='1';
 const battleTimingCheck=process.env.VOX_STORY_BATTLE_TIMING==='1';
 const spawnDiagnostic=process.env.VOX_STORY_SPAWN_DIAGNOSTIC==='1';
 const convoyAcceptance=require('./story-convoy-acceptance.cjs');
+const holdAcceptance=require('./story-hold-acceptance.cjs');
+const holdDefense=require('./story-hold-defense-input.cjs');
+const {createStopController,returnThroughPublicInput}=require('./story-natural-stop.cjs');
+const {isRuntimeFatal,recordRuntimeFatal,createRuntimeWatchdog,guardPage,closeRuntime}=require('./salvage-runtime-watchdog.cjs');
 const {findRoadConnector,evaluateTerrainConnector}=require('./story-road-connector.cjs');
 assert(!logOnly||levelNo===1&&!entryOnly,'Log acceptance requires level1 and full natural entry');
 assert(!convoyCheck||levelNo===2&&!entryOnly&&!logOnly,'Convoy acceptance requires full natural S2');
+assert(!holdCheck||levelNo===3&&!entryOnly&&!logOnly&&!convoyCheck&&!spawnDiagnostic,'Hold acceptance requires full natural S3');
 assert(!spawnDiagnostic||battleTimingCheck&&!entryOnly&&!logOnly&&!convoyCheck,'Spawn diagnostic requires explicit F15 timing and full natural entry without other acceptance modes');
 const base=process.env.VOX_QA_BASE||'http://127.0.0.1:'+Number(process.env.VOX_QA_PORT||4283);
 const level=require('../../assets/Story/Mission/Level'+levelNo+'.json').level;
@@ -140,27 +146,37 @@ async function main(){
   const sha=crypto.createHash('sha256').update(fs.readFileSync(path.join(referenceRoot,name))).digest('hex');
   assert.equal(identity.identity.scripts[name],sha,'Frozen actual mission payload '+name);production[name]=sha;
  }
- const observerPrefix=identity.storyRoute?fs.readFileSync(path.join(__dirname,'story-route-observer.lua'),'utf8')+'\n':'';
- const probeSha=crypto.createHash('sha256').update(observerPrefix).update(fs.readFileSync(path.join(__dirname,'probe-outgame-web.lua'))).digest('hex');
+ const observerPrefix=identity.storyRoute?fs.readFileSync(path.join(__dirname,'story-combat-observer.lua'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'story-route-observer.lua'),'utf8')+'\n':'';
+ assert(!identity.homeRoute&&!identity.loadProfile&&!identity.combatProfile&&!identity.driveSectionsProfile&&!identity.loadingFailureTest&&!identity.renderExperiment,'Natural story run requires its ordinary read-only QA projection');
+ const probeSha=crypto.createHash('sha256').update(observerPrefix)
+  .update(fs.readFileSync(path.join(__dirname,'qa-frame-wall-observer.lua'))).update('\n')
+  .update(fs.readFileSync(path.join(__dirname,'probe-outgame-web.lua')))
+  .update(identity.monitorDisabled?'\n'+fs.readFileSync(path.join(__dirname,'monitor-disabled-observer.lua'),'utf8'):'').digest('hex');
  assert.equal(identity.probeSha256,probeSha,'Actual server uses current read-only observer');
  const out=path.resolve('docs/migration/evidence/story-natural-s'+levelNo+'-'+path.basename(identity.manifest_path,'.json')+'-'+new Date().toISOString().replace(/[:.]/g,'-'));
  fs.mkdirSync(out,{recursive:true});console.log('Evidence: '+out);
  const report={identity,production,referenceRoot,toolSha256:crypto.createHash('sha256').update(fs.readFileSync(__filename)).digest('hex'),inputHelperSha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(__dirname,'story-natural-input.cjs'))).digest('hex'),level:level.id,entryOnly,logOnly,sharedGpu:process.env.VOX_QA_SHARED_GPU==='1',result:'RUNNING',checks:[],errors:[],probeErrors:[],samples:[],objectSamples:[],transitions:[],routes:[],battleTiming:{requested:battleTimingCheck,result:battleTimingCheck?'PENDING':'NOT_REQUESTED',keyRequests:0,samples:[]},startedAt:new Date().toISOString(),
   boundary:'Actual source story selection and keyboard/mouse operation. F8 reads compact state; F14 reads scene counts once at trial/story screenshots and immediately freezes the actual sample. No teleport, phase/clock/HP changes, enemy destruction, voice skipping or synthetic completion. Automated road following may fail; that alone is not proof of a gameplay defect. Functional run, not isolated performance or physical mobile evidence.'};
  if(report.sharedGpu)report.boundary+=' Shared-machine concurrent GPU functional route: frame rate and loading duration are not isolated measurements and must not be used for performance comparison.';
- if(identity.storyRoute)report.boundary+=' Explicit story-route QA projection preserves complete story, controls, camera, targets, route and memory counters; unrelated UI/weapon diagnostic fields are omitted. Not a complete UI/HUD audit.';
+ if(identity.storyRoute)report.boundary+=' Explicit story-route QA preserves story, controls, camera, target IDs, raw hull/structure and at most four instantaneous center-shot muzzle rays per requested dump. Rays are post-update queries without spread or projectile integration, not actual shot/hit results. This functional diagnostic must not be used as a timing window or complete UI/HUD audit.';
  if(battleTimingCheck)report.boundary+=' VOX_STORY_BATTLE_TIMING=1 requests real F15 CPU instrumentation. Inclusive nested wall milliseconds include instrumentation and scheduling; do not sum or use as GPU, isolated benchmark or mobile performance evidence. At most five units are sampled; combat vehicle views are wrapped without scanning parts. New/rebuilt objects bind on the next QA update.';
  if(spawnDiagnostic){report.spawnDiagnostic={result:'WAITING_ZERO',durationWallMs:12000};report.boundary+=' First-spawn diagnostic only: requires an actual zero-to-positive enemy observation after F15 acknowledgement, then at least 12 wall-clock seconds of normal commands and normal return. PASS is diagnostic capture and terrain release, never whole-mission completion or performance acceptance.';}
  if(logOnly){report.logAcceptance={result:'NOT_REACHED'};report.boundary+=' Log-only route checks natural three kills, visible target state and actual pickup. It cannot observe exact within-frame last-death ordering or prove pixel appearance; the offline death-order oracle and screenshot review remain separate. No filesystem memory scan. Does not claim complete mission.';}
  if(convoyCheck){report.convoyAcceptance=convoyAcceptance.create(level);report.boundary+=' S2 functional acceptance requires both real non-default dialogue choices, two checkpoint states and complete transport delivery. Enemy counts in progress windows are diagnostic only: a surviving enemy can cross windows. Three-wave identity and presentation remain OPEN even when this functional run passes.';}
+ if(holdCheck){report.holdAcceptance=holdAcceptance.create(level);report.boundary+=' S3 functional acceptance requires the actual complete hold countdown, non-default surrender/lunch keys, coupon pickup and source result grade. Five-wave identities remain OPEN.';}
  report.bossInputHelperSha256=crypto.createHash('sha256').update(fs.readFileSync(path.join(__dirname,'story-boss-natural-input.cjs'))).digest('hex');
  const persist=()=>fs.writeFileSync(path.join(out,'result.json'),JSON.stringify(report,null,2));persist();
+ const stop=createStopController({file:process.env.VOX_STORY_STOP_FILE,maxHoldFailures:holdCheck?2:Infinity});
+ const stopSignal=()=>stop.request('SIGINT requested public pause and return');process.on('SIGINT',stopSignal);
+ const assertContinue=()=>{const event=stop.poll(state);if(event)throw Object.assign(Error(event.reason),{code:'NATURAL_ROUTE_STOP',stopEvent:event});};
  if(levelNo===4){loadRoadTerrain(layout);report.roadConnector={enabled:true,scope:'S4 source terrain entry only; original graph edges and target selection unchanged',helperSha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(__dirname,'story-road-connector.cjs'))).digest('hex'),heights:layout.terrain.heights.length};persist();}
  const browser=await chromium.launch({headless:true,channel:'chrome',args:['--use-angle=d3d11']});
- const page=await browser.newPage({viewport:{width:1600,height:900}});const objectInput=await page.context().newCDPSession(page);let state,seq=0,objectRequest;const held=new Set();let firing=false;
- page.on('console',m=>{const line=m.text();fs.appendFileSync(path.join(out,'runtime.log'),line+'\n');const at=line.indexOf('OUTGAME_STATE ');if(at>=0){try{state=JSON.parse(line.slice(at+14));seq++;recordBattleObjects(objectRequest,state,seq,report,persist);}catch(e){report.probeErrors.push(e.message);}}if(/ERROR:|Execute Lua|stack traceback|Aborted\(|Shader compilation failed/.test(line))report.errors.push(line);});
- page.on('pageerror',e=>{report.errors.push(e.message);persist();});page.on('crash',()=>{report.errors.push('Renderer crashed');persist();});
- async function wait(fn,label,timeout=240000){const start=Date.now();let probe=0;while(!state||!fn(state)){if(report.errors.length)throw Error(report.errors.join('\n'));if(Date.now()-start>timeout)throw Error('Timeout '+label);if(Date.now()-probe>800){probe=Date.now();await readKey();}await sleep(20);}return state;}
+ const rawPage=await browser.newPage({viewport:{width:1600,height:900}});
+ const watchdog=createRuntimeWatchdog({onFatal:event=>recordRuntimeFatal(report,event,persist)}),page=guardPage(rawPage,watchdog);
+ const rawInput=await rawPage.context().newCDPSession(rawPage),objectInput={send:(...args)=>watchdog.operation('CDP.'+args[0],()=>rawInput.send(...args))};let state,seq=0,objectRequest;const held=new Set();let firing=false;
+ rawPage.on('console',m=>{const line=m.text();fs.appendFileSync(path.join(out,'runtime.log'),line+'\n');const at=line.indexOf('OUTGAME_STATE ');if(at>=0){try{state=JSON.parse(line.slice(at+14));seq++;recordBattleObjects(objectRequest,state,seq,report,persist);}catch(e){report.probeErrors.push(e.message);}}if(/ERROR:|Execute Lua|stack traceback|Aborted\(|Shader compilation failed/.test(line))report.errors.push(line);if(isRuntimeFatal(line))watchdog.fail('console',line);});
+ rawPage.on('pageerror',e=>{report.errors.push(e.message);if(isRuntimeFatal(e.message))watchdog.fail('pageerror',e.message);persist();});rawPage.on('crash',()=>{report.errors.push('Renderer crashed');watchdog.fail('crash','Browser page crashed');persist();});
+ async function wait(fn,label,timeout=240000,ignoreStop=false){const start=Date.now();let probe=0;while(!state||!fn(state)){if(!ignoreStop)assertContinue();if(report.errors.length)throw Error(report.errors.join('\n'));if(Date.now()-start>timeout)throw Error('Timeout '+label);if(Date.now()-probe>800){probe=Date.now();await readKey();}await sleep(20);}return state;}
  async function readKey(){
   if(report.errors.length)throw Error(report.errors.join('\n'));
   let deadline;
@@ -171,6 +187,32 @@ async function main(){
  async function keys(next=[]){for(const key of held)if(!next.includes(key)){await page.keyboard.up(key);held.delete(key);}for(const key of next)if(!held.has(key)){await page.keyboard.down(key);held.add(key);}}
  async function fire(value){if(value===firing)return;firing=value;if(value)await page.mouse.down();else await page.mouse.up();}
  async function click(text){await dump();await wait(s=>Array.isArray(s.widgets)&&s.widgets.some(w=>w.text===text&&w.rect[2]>0&&w.rect[3]>0),'button '+text,30000);const b=state.widgets.find(w=>w.text===text),[x,y,w,h]=b.rect;await page.mouse.click((x+w/2)/state.width*1600,(y+h/2)/state.height*900);}
+ async function returnViaUi(timeout){
+  const deadline=Date.now()+timeout,actions=[],observations=[];let nextClickAt=0;
+  report.publicReturnControls={result:'WAITING',actions,observations};persist();
+  while(Date.now()<deadline){
+   const before=seq;await readKey();await wait(()=>seq>before,'fresh public return controls',Math.max(1,deadline-Date.now()),true);
+   const rows=Array.isArray(state.widgets)?state.widgets:[];
+   const buttons=rows.filter(w=>['确定','返回车库'].includes(w.text)&&w.rect[2]>0&&w.rect[3]>0);
+   observations.push({at:Date.now(),sequence:seq,mode:state.mode,loading:state.loadingFlow?.active,
+    arrayBytes:state.performance?.arrayBytes,pointer:structuredClone(state.pointer),buttons:structuredClone(buttons)});
+   if(state.mode==='hangar'&&!state.loadingFlow?.active){report.publicReturnControls.result='OBSERVED_HALL';persist();return state;}
+   // A delivered browser click is not an acknowledgement from the game.
+   // Retry only the same freshly observed public control, with a bounded count.
+   const button=buttons.find(w=>w.text==='确定')||buttons.find(w=>w.text==='返回车库');
+   if(button&&Date.now()>=nextClickAt&&actions.filter(a=>a.label===button.text).length<3){
+    const [x,y,w,h]=button.rect;
+    const action={at:Date.now(),sequence:seq,label:button.text,rect:[...button.rect],
+     point:[(x+w/2)/state.width*1600,(y+h/2)/state.height*900],delayMs:120,result:'DISPATCHING'};
+    actions.push(action);persist();
+    await page.mouse.click(...action.point,{delay:action.delayMs});
+    action.result='BROWSER_DISPATCHED';nextClickAt=Date.now()+750;persist();
+   }
+   await sleep(40);
+  }
+  report.publicReturnControls.result='TIMEOUT';persist();
+  throw Error('Timeout observed pause-page return controls');
+ }
  async function sampleBattleObjects(name){
   if(state?.mode!=='trial'||!state.story)return;
   const request={stage:name,storyId:state.story.id,afterSequence:seq};assert(!objectRequest,'Only one explicit scene request may be pending');objectRequest=request;
@@ -196,7 +238,7 @@ async function main(){
    const timings=Object.fromEntries(Object.entries(state.performance.updateTiming||{}).filter(([label])=>label.startsWith('battle.')));
    report.battleTiming.samples.push(structuredClone({stage:name,observedAt:Date.now(),state:state.performance.battleTiming,timings}));persist();
   }
-  if(!logOnly){report.memory??=[];report.memory.push({stage:name,...await memoryProbe.read(page)});persist();}await page.screenshot({path:path.join(out,name+'.png'),timeout:15000});
+  if(!logOnly){report.memory??=[];report.memory.push({stage:name,...await watchdog.operation('memory.read',()=>memoryProbe.read(rawPage))});persist();}await page.screenshot({path:path.join(out,name+'.png'),timeout:15000});
  }
  const check=(value,label)=>{assert.ok(value,label);report.checks.push(label);};
  async function ambience(id,label){
@@ -206,7 +248,7 @@ async function main(){
  }
  try{
   await page.goto(base+'/outgame.html?-game_url='+base+'/game-dist/&-log=info&cached=1');
-  await wait(s=>s.mode==='hangar'&&s.tab==='hangar'&&!s.loadingFlow.active,'hall');if(!logOnly)report.initialMemory=await memoryProbe.install(page);
+  await wait(s=>s.mode==='hangar'&&s.tab==='hangar'&&!s.loadingFlow.active,'hall');if(!logOnly)report.initialMemory=await watchdog.operation('memory.install',()=>memoryProbe.install(rawPage));
   if(ambienceCheck){await page.mouse.click(800,450);await ambience('amb_hangar','initial hall ambience');}
   await click('出战');await click('剧情模式');
   await wait(s=>s.tab==='story'&&s.story?.ready,'story selector');await click(level.no+'  '+level.name);await click('开始任务');
@@ -219,12 +261,13 @@ async function main(){
   check(state.sceneVisible&&state.loadingFlow.warmFrames>=2,'real mission revealed after source loading and rendered warmup');await shot('entered');
   if(ambienceCheck)await ambience('amb_crater','captured mission ambience');
   if(entryOnly){check(state.story.alive&&state.vehicle,'source mission entry has live player vehicle and original rules');report.result='PASS';report.boundary+=' Entry-only run: does not claim mission completion.';}
- const begun=Date.now();let transition='',route=[],progress={},routeAnchor,mouseX=800,mouseY=450,aimTracking={},bossTargetKey,completedCampaign=false;
+ const begun=Date.now();let transition='',route=[],progress={},routeAnchor,mouseX=800,mouseY=450,aimTracking={},bossTargetKey,completedCampaign=false,holdDefenseMemory={};
   while(!entryOnly&&Date.now()-begun<limit*1000){
-   await dump();const s=state.story;if(!s)throw Error('Story session disappeared');
+   await dump();assertContinue();const s=state.story;if(!s)throw Error('Story session disappeared');
    const current=s.step+':'+s.phase+':'+(s.cap?.phase||'')+':'+(s.boss?.flow||'');
    if(current!==transition){transition=current;route=[];progress={};routeAnchor=undefined;aimTracking={};report.transitions.push({at:Date.now()-begun,story:structuredClone(s),vehicle:structuredClone(state.vehicle)});persist();await shot('stage-'+report.transitions.length);}
    const sample={at:Date.now()-begun,story:structuredClone(s),vehicle:structuredClone(state.vehicle),keys:[...held],firing,
+    weapons:structuredClone(state.weapons||null),pointer:structuredClone(state.pointer||null),storyCombat:structuredClone(state.storyCombat||null),
     resources:Object.fromEntries(Object.entries(state.performance||{}).filter(([key])=>['luaKiB','resourceBytes','modelBytes','arrayBytes','texture2DBytes','imageBytes','materialBytes','soundBytes','retiredTargets'].includes(key)))};report.samples.push(sample);
    if(spawnDiagnostic){
     const previousResult=report.spawnDiagnostic.result;
@@ -233,12 +276,14 @@ async function main(){
     if(captured){check(true,'Diagnostic captured actual first enemy spawn and at least 12 wall-clock seconds of detailed timing');await keys();await fire(false);await shot('first-spawn-window');report.result='PASS';break;}
    }
    if(convoyCheck)convoyAcceptance.observe(report.convoyAcceptance,s,sample.at,check);
+   if(holdCheck)holdAcceptance.observe(report.holdAcceptance,s,sample.at,check);
    if(logOnly&&observeLog(report.logAcceptance,s,check)){report.result='PASS';await keys();await fire(false);await shot('log-picked');break;}
    if(s.finished){check(!spawnDiagnostic,'Diagnostic window cannot be replaced by whole-mission completion');check(!logOnly,'Log acceptance cannot be replaced by whole-mission completion');check(true,'complete mission reached through natural commands and original rules');completedCampaign=levelNo===5;report.result='PASS';await shot('result');break;}
-   if(s.choice){await keys();await fire(false);const choiceKey=convoyCheck?convoyAcceptance.option(report.convoyAcceptance,s.choice,Date.now()-begun):'1';await page.keyboard.press(choiceKey);await sleep(500);continue;}
+   if(s.choice){await keys();await fire(false);const choiceKey=convoyCheck?convoyAcceptance.option(report.convoyAcceptance,s.choice,Date.now()-begun):holdCheck?holdAcceptance.option(report.holdAcceptance,s.choice,Date.now()-begun):'1';await page.keyboard.press(choiceKey);await sleep(500);continue;}
    if(!s.alive||!state.vehicle){await keys();await fire(false);await sleep(500);continue;}
+   if(holdCheck&&s.failing){await keys();await fire(false);holdDefenseMemory={};await sleep(200);continue;}
    if(!state.pointer.captured){await page.mouse.click(800,450);await sleep(400);continue;}
-   const p=state.vehicle.position,step=level.steps[s.index-1],hold=naturalInput.holdPlan(step,p,state.aimTargets),boss=bossPlan(state),target=boss?.goal||hold?.goal||s.target;
+   const p=state.vehicle.position,step=level.steps[s.index-1],hold=holdCheck?holdDefense.defensePlan(step,p,state.aimTargets,holdDefenseMemory,Date.now(),{nav:layout.nav,health:s.health}):naturalInput.holdPlan(step,p,state.aimTargets),boss=bossPlan(state),target=boss?.goal||hold?.goal||s.target;
    if(boss){
     assert.notEqual(boss.reason,'missing-read-only-boss-observer','Boss acceptance requires actual cockpit and braced observers');
     sample.bossInput=boss;
@@ -265,18 +310,23 @@ async function main(){
     support:telemetry&&{contact:telemetry.contact,wheelSupport:telemetry.wheelSupport,groundDrive:telemetry.groundDrive,altitude:telemetry.altitude,totalSpeed:telemetry.totalSpeed}};
    const kind=step?.kind;
    if(fireTarget){
+    if(hold?.focusChanged)aimTracking={};
     const aim=naturalInput.aimSolution(state.camera,fireTarget,aimTracking,Date.now());sample.aim={target:[...fireTarget],...aim};
     mouseX+=aim.dx;mouseY+=aim.dy;
-    await page.mouse.move(mouseX,mouseY);await fire(true);
+    await page.mouse.move(mouseX,mouseY);await fire(!holdCheck||holdDefense.alignedForFire(aim));
    }else{aimTracking={};await fire(false);}
-   sample.navigation.hold=hold&&{park:hold.park,target:hold.target};
+   sample.navigation.hold=hold&&{park:hold.park,target:hold.target,targetParts:hold.targetParts,targetId:hold.targetId,reason:hold.reason,lineOfSight:hold.lineOfSight,goalNodeId:hold.goalNodeId,health:s.health};
    const inputDelay=fireTarget||hold?60:250;
    if(hold?.park||boss?.firing&&!route.length&&distance<boss.stopRange||!route.length&&d<6&&Math.abs(p[1]-target[1])<18){sample.navigation.command=['Space',...(['install','capture'].includes(kind)?['g']:[])];await keys(sample.navigation.command);await sleep(inputDelay);continue;}
    sample.navigation.command=navigationCommand({enemy,distance,speed:state.vehicle.speed||0,goalDistance:d,reversing,angle,routeFollowing:route.length>0});
    await keys(sample.navigation.command);await sleep(inputDelay);
   }
-  if(report.result==='RUNNING'){report.result='INCOMPLETE';report.failure='Natural command route deadline; inspect captured transitions and screenshots before attributing to game logic.';report.lastState=state;await shot('deadline');}
-  await keys();await fire(false);if(!state.story?.finished)await page.keyboard.press('Escape');await page.keyboard.press('t');
+  if(report.result==='RUNNING'){
+   report.result='INCOMPLETE';report.failure='Natural command route deadline; inspect captured transitions and screenshots before attributing to game logic.';report.lastState=state;await shot('deadline');
+   report.deadlineReturn=await returnThroughPublicInput({state,release:async()=>{await keys();await fire(false);},press:key=>page.keyboard.press(key),returnViaUi});
+  }else{
+   await keys();await fire(false);if(!state.story?.finished)await page.keyboard.press('Escape');await page.keyboard.press('t');
+  }
   if(completedCampaign){
    const observed=new Set();report.epilogue=[];const endingAt=Date.now();
    while(state.mode==='trial'&&Date.now()-endingAt<180000){
@@ -289,9 +339,14 @@ async function main(){
   await wait(s=>s.mode==='hangar'&&!s.loadingFlow.active,'actual return',180000);check(state.performance.arrayBytes===0,'natural attempt return releases terrain arrays');
   if(ambienceCheck){await ambience('amb_hangar','returned hall ambience');await shot('returned-hall');}
  }catch(e){report.result='FAIL';report.failure=e.stack;report.lastState=state;
+  if(e.code==='NATURAL_ROUTE_STOP'){
+   report.requestedStop={...e.stopEvent,observedAt:new Date().toISOString()};persist();
+   try{report.stopReturn=await returnThroughPublicInput({state,release:async()=>{await keys();await fire(false);},press:key=>page.keyboard.press(key),returnViaUi});}
+   catch(stopError){report.stopReturn={result:'FAIL',error:stopError.stack};}
+  }
   persist();
   if(!report.errors.some(s=>/Aborted\(OOM\)|renderer crashed/i.test(s)))await shot('failure').catch(()=>{});}
- finally{report.finishedAt=new Date().toISOString();persist();await Promise.race([browser.close().catch(()=>{}),sleep(5000)]);}
+ finally{process.removeListener('SIGINT',stopSignal);report.finishedAt=new Date().toISOString();persist();report.shutdown=await closeRuntime(rawPage,browser);persist();}
  console.log(JSON.stringify({result:report.result,checks:report.checks.length,errors:report.errors.length,transitions:report.transitions.length,out}));if(report.result!=='PASS')process.exitCode=1;
 }
 module.exports={observeLog,loadRoadTerrain,roadRoute,advanceRoute,navigationProgress,routeHeightError,navigationCommand,needsRoad,configureBattleTiming,observeSpawnDiagnostic};

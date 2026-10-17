@@ -1,6 +1,7 @@
 -- Scene-owned pristine specs. Runtime instances must never share mutable poses.
 local BP=require 'construction.Blueprint'
 local Spec=require 'drive.VehicleSpec'
+local TurretRange=require 'construction.TurretRange'
 local M={VERSION='spawn-spec-1'};M.__index=M
 local function Clone(value,memo,checkpoint)
     if value==cjson.null then return value end
@@ -38,7 +39,7 @@ local function Signature(value,stack,checkpoint)
     return table.concat(out)
 end
 function M.New()
-    return setmetatable({entries={},disposed=false,hits=0,misses=0,prepared=0},M)
+    return setmetatable({entries={},turretCaches={},disposed=false,hits=0,misses=0,prepared=0},M)
 end
 function M:Prepare(source,checkpoint)
     if self.disposed then return false end
@@ -48,20 +49,25 @@ function M:Prepare(source,checkpoint)
     if not signature or self.disposed then return false end
     local key=M.VERSION..signature
     if self.entries[key] then return true end
-    local spec=Spec.Build(BP.New():Load(snapshot),checkpoint and function() checkpoint() end or nil)
+    local blueprint=BP.New():Load(snapshot)
+    local spec=Spec.Build(blueprint,checkpoint and function() checkpoint() end or nil)
     if not spec.ok or self.disposed then return false end
-    self.entries[key]=spec;self.prepared=self.prepared+1
+    local turretCache=TurretRange.Capture(blueprint,spec.rotorOf,checkpoint)
+    if self.disposed then return false end
+    self.entries[key]=spec;self.turretCaches[key]=turretCache;self.prepared=self.prepared+1
     return true
 end
-function M:Get(source)
+function M:Get(source,actualBlueprint)
     if self.disposed then return nil end
     local signature=Signature(source,{})
-    local template=signature and self.entries[M.VERSION..signature]
+    local key=signature and M.VERSION..signature
+    local template=key and self.entries[key]
     if not template then self.misses=self.misses+1;return nil end
     self.hits=self.hits+1
+    if actualBlueprint then TurretRange.Adopt(actualBlueprint,template.rotorOf,self.turretCaches[key]) end
     return Clone(template,{})
 end
 function M:Dispose()
-    self.entries={};self.disposed=true
+    self.entries={};self.turretCaches={};self.disposed=true
 end
 return M

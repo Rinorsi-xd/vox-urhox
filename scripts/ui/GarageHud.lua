@@ -61,7 +61,8 @@ function M.GetState() return state end
 function M.Refresh() if state then state.revision=-1 end end
 local function Build(app)
     TouchMode.Apply('home');local w,h=UI.GetViewportSize()
-    local s={app=app,revision=-1,tab=app.homeTab or 'hangar',buttons={},cards={},width=w,height=h,pointers={}}
+    local s={app=app,revision=-1,tab=app.homeTab or 'hangar',buttons={},cards={},width=w,height=h,pointers={},
+        touch=require('controls.TouchMode').Enabled(),compact=require('controls.TouchMode').Compact()}
     if app.homeWorkshopState then
         s.workshop={elapsed=0}
         for _,key in ipairs({'view','selected','group','sort','from'}) do s.workshop[key]=app.homeWorkshopState[key] end
@@ -152,9 +153,9 @@ local function Build(app)
     s.navHeight=64
     s.page=DeferredModules['ui.HomePages'].Create(s);s.root:InsertChild(s.page,1)
     s.cta=UI.Panel{position='absolute',pointerEvents='box-none'}
-    AddButton(s.cta,'edit','改装','wrench','cta-left',function() app:EnterBuild() end,{subtitle='进编辑页搭车',key='E'})
-    AddButton(s.cta,'trial','试车','wheel','cta-right',function() app:EnterTrial() end,{subtitle='直接开去试车场',key='T'})
-    AddButton(s.cta,'battle','出战','battle','cta-main',function() if s.tab=='battle' then app:EnterTrial(app.selectedMap) else s.SetTab('battle') end end,{key='F'})
+    AddButton(s.cta,'edit','改装','wrench','cta-left',function() app:EnterBuild() end,{subtitle='进编辑页搭车',key=not s.touch and 'E' or nil})
+    AddButton(s.cta,'trial','试车','wheel','cta-right',function() app:EnterTrial() end,{subtitle='直接开去试车场',key=not s.touch and 'T' or nil})
+    AddButton(s.cta,'battle','出战','battle','cta-main',function() if s.tab=='battle' then app:EnterTrial(app.selectedMap) else s.SetTab('battle') end end,{key=not s.touch and 'F' or nil})
     s.actions=UI.Panel{position='absolute',flexDirection='row',gap=6,padding=8,backgroundColor='#112337',borderWidth=1,borderColor='#6286a5'}
     AddButton(s.actions,'copy','复制','copy','action',function() s.Run(function(d) return app.bays:Copy(d) end) end,{width=80,height=38})
     AddButton(s.actions,'export','分享','share','action',function() Dialogs.Code(s,false) end,{width=80,height=38})
@@ -199,7 +200,7 @@ local function Rebuild(s)
     s.buttons.copy:SetDisabled(used==20);s.buttons.new:SetDisabled(used==20);s.buttons.delete:SetDisabled(not app.bays.active)
     Clear(s.info);Clear(s.loadout);HomeStats.Fill(s.info,app,s)
     for _,id in ipairs({'hangar','livery','workshop','shop'}) do s.buttons[id].props.selected=s.tab==id end
-    s.buttons.battle:SetText(s.tab=='battle' and '开始战斗' or '出战');s.buttons.battle.props.key=s.tab=='battle' and 'Enter' or 'F'
+    s.buttons.battle:SetText(s.tab=='battle' and '开始战斗' or '出战');s.buttons.battle.props.key=not s.touch and (s.tab=='battle' and 'Enter' or 'F') or nil
     local mode=ResourceData.Read('UI/Outgame.json').modes[s.modeChoice or 'elimination']
     s.buttons.battle.props.subtitle=mode and (mode.name..' · '..mode.size..'v'..mode.size) or '单人 · 不计战绩'
     if not (s.tab=='livery' and s.page.session) then

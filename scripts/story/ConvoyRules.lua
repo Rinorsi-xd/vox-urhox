@@ -44,8 +44,8 @@ function M:Update(r,dt,world)
         self.cp=self.cp+1;self.cpD=self.d;self.cpHp=self.hp;r.stats.checkpoints=self.cp
         r.checkpoint={pos={world.pos[1],world.pos[2]+1,world.pos[3]},yaw=self.yaw}
         r:Emit('banner',{kick='检查点',title='检查点 '..self.cp,sub=string.format('运输车耐久 %d%% · 已存档',math.floor(self.hp*100+.5)),kind='install',ms=2400})
-        r:Emit('say',{lines=s.cpLines[self.cp]})
         r:Emit('radio',{cue='install'})
+        r:Emit('say',{lines=s.cpLines[self.cp]})
     end
     r.retitle=self.blocked and '击退拦截运输车的海盗' or self.far and '跟上运输车（它在等你）' or s.title
     if self.d>=self.total then r.stats.checkpoints=#s.checkpoints+1;r.stats.truckHp=self.hp;return world.alive end

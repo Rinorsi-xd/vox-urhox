@@ -27,7 +27,8 @@ const grades=[];for(const deaths of [0,1,2])for(const fails of [0,1])for(const t
 process.stdout.write(JSON.stringify({commit:b.commit,sourceHashes:hashes,clearKeys:trace,grades}));})();
 '''
 golden = json.loads(subprocess.check_output(['node', '-e', SOURCE], text=True, encoding='utf-8'))
-paths = ['scripts/app/DebugActions.lua', 'scripts/ui/DebugPanel.lua', 'scripts/main.lua', 'scripts/app/HangarApp.lua']
+paths = ['scripts/app/DebugActions.lua', 'scripts/ui/DebugPanel.lua', 'scripts/main.lua', 'scripts/app/HangarApp.lua',
+         'scripts/diagnostics/PerformanceMonitor.lua', 'scripts/diagnostics/PerformanceBindings.lua']
 hashes = {p: hashlib.sha256((ROOT / p).read_bytes()).hexdigest() for p in paths}
 lua = LuaRuntime(unpack_returned_tuples=True)
 def table(value):
@@ -97,9 +98,9 @@ local W,H=1920,1080;local globals,overlays={},{};local ui={Widget=Widget,GetView
 package.loaded['urhox-libs/UI']=ui;package.loaded['ui.SourceDraw']={Begin=function() end,Rect=function() end,Text=function() end,Width=function(_,text,size) return #text*size*.5 end}
 function nvgSave() end;function nvgRestore() end;function nvgIntersectScissor() end
 local pressed=false;input={GetKeyPress=function() local v=pressed;pressed=false;return v end};KEY_F8=8;MM_ABSOLUTE=1;local platform='Web';function GetPlatform() return platform end
-local Panel=require 'ui.DebugPanel';local panel=Panel.New(app);Check(globals['vox-debug']==panel.page and overlays[panel.page],'one global widget registered and overlay attached')
+local Panel=require 'ui.DebugPanel';local panel=Panel.New(app);Check(globals['vox-debug']==panel.page and not overlays[panel.page],'one global widget registered without closed overlay')
 panel:Layout();Check(panel.toggleRect.x==1838 and panel.toggleRect.y==64,'source PC70x44 top-right placement')
-Check(not panel.page:HitTest(10,500) and panel.page:HitTest(1840,70),'closed widget passes through playfield')
+Check(not panel.page:HitTest(10,500) and not panel.page:HitTest(1840,70),'closed widget has no floating toggle or playfield target')
 pressed=true;panel:Update(.016);Check(panel.open and app.trial.paused and input.mouseMode==MM_ABSOLUTE,'F8 opens and releases gameplay input')
 VOX_SKIP_TUTORIAL=true;VOX_CLOUD_VALIDATION=true;pressed=true;panel:Update(.016);Check(panel.open and pressed,'QA F8 remains unconsumed for probe');pressed=false;VOX_SKIP_TUTORIAL=nil;VOX_CLOUD_VALIDATION=nil
 panel.maxScroll=1000;panel.scroll=400;panel.page:OnWheel(0,100);Check(panel.scroll==360,'Web100 delta scrolls40px');platform='Windows';panel.page:OnWheel(0,1);Check(panel.scroll==320,'desktop1 delta scrolls40px')
@@ -108,11 +109,12 @@ for _,vp in ipairs({{1920,1080},{2560,1080},{1280,576},{1024,768},{800,360}}) do
  Check(r.x>=0 and r.x+r.w<=W and r.y>=0 and r.y+r.h<=H,'panel fits '..W..'x'..H)
  for _,row in ipairs(panel.buttons) do Check(row.x>=r.x and row.x+row.w<=r.x+r.w and row.y>=r.y and row.y+row.h<=r.y+r.h,'clipped button fits '..W..'x'..H..' '..row.id) end end
 W,H=1920,1080;touch=true;panel:Layout();Check(panel.toggleRect.x==12 and panel.toggleRect.y==518,'touch landscape left-center placement');touch=false
-panel:SetOpen(false);panel:Layout();local x,y=panel.toggleRect.x+5,panel.toggleRect.y+5;local event={pointerId=1,pointerType='mouse',x=x,y=y}
-panel.page:OnPointerDown(event);panel.page:OnPointerMove({pointerId=1,x=x+3,y=y+3});panel.page:OnPointerUp(event);Check(panel.open,'under6px motion remains click')
-panel.page:OnClick(event);Check(panel.open,'synthetic click suppressed after pointerup')
-panel.page:OnPointerDown(event);panel.page:OnPointerMove({pointerId=1,x=-100,y=-100});panel.page:OnPointerUp({pointerId=1,x=-100,y=-100});panel:Layout()
-Check(panel.open and panel.toggleRect.x==4 and panel.toggleRect.y==4 and writes[#writes].key=='debug-position','drag clamps and persists normalized position without toggling')
+panel:SetOpen(true);panel:Layout();panel.page:Render(1);local close=panel.buttons[1];local x,y=close.x+5,close.y+5;local event={pointerId=1,pointerType='mouse',x=x,y=y}
+panel.page:OnPointerDown(event);panel.page:OnPointerMove({pointerId=1,x=x+3,y=y+3});panel.page:OnPointerUp(event);Check(not panel.open and not overlays[panel.page],'under6px mouse close removes actual overlay')
+panel.page:OnClick(event);Check(not panel.open,'synthetic click cannot reopen after close pointerup')
+panel:SetOpen(true);panel.maxScroll=500;panel.scroll=100;local r=panel.panelRect
+panel.page:OnPointerDown({pointerId=1,x=r.x+10,y=r.y+50});panel.page:OnPointerMove({pointerId=1,x=r.x+10,y=r.y+10});panel.page:OnPointerUp({pointerId=1,x=r.x+10,y=r.y+10})
+Check(panel.open and panel.scroll==140,'content drag scrolls without toggling or changing saved position')
 local page=panel.page;panel:Dispose();panel:Dispose();Check(not globals['vox-debug'] and not overlays[page] and page.destroyed,'idempotent dispose removes renderer overlay and widget')
 local bootApp={debugEnabled=true,Start=function(s) s.started=true end,Stop=function(s) s.stopped=true end,Update=function(s) s.updated=true end}
 local order={};local debugOwner={Update=function(_,dt) order[#order+1]='debug';Check(dt==.02,'main forwards real event timestep') end,Dispose=function() order[#order+1]='dispose' end}
@@ -120,10 +122,17 @@ package.loaded['app.HangarApp']={New=function() return bootApp end}
 package.loaded['ui.DebugPanel']={New=function(a) Check(a.started,'debug installed after app UI bootstrap');return debugOwner end}
 package.loaded['storage.CloudStorage']={Boot=function(fn) fn() end,Update=function() order[#order+1]='storage' end,Stop=function() order[#order+1]='storage-stop' end}
 package.loaded['render.RectLightLookup']={Ensure=function(fn) fn(true) end};package.loaded['render.MatchMapShot']={Initialize=function() end,Shutdown=function() end}
-_tr=true;function SubscribeToEvent() end;function UnsubscribeFromEvent() end
+-- Exercise the real monitor's disabled lifecycle without injecting file/JSON/UI services.
+local clockCalls=0;Time={GetSystemTime=function() clockCalls=clockCalls+1;return clockCalls end}
+GetArguments=function() return {'-vox-perf=0'} end
+package.loaded['ui.PerformancePanel']={New=function() error('Disabled monitor installed a performance panel') end}
+local subscriptions={}
+_tr=true;function SubscribeToEvent(name) subscriptions[name]=true end;function UnsubscribeFromEvent(name) subscriptions[name]=nil end
 assert(loadfile('scripts/main.lua'))();Start();Check(bootApp.debugPanel==debugOwner,'real main attaches user debug module')
+Check(clockCalls>0 and not subscriptions.LogMessage,'actual disabled monitor initializes without diagnostic logging')
 HandleUpdate(nil,{GetFloat=function() return .02 end});Check(order[1]=='storage' and order[2]=='debug' and bootApp.updated,'main debug input precedes app gameplay update')
 Stop();Check(bootApp.stopped and bootApp.debugPanel==nil and order[3]=='dispose' and order[4]=='storage-stop','main disposes panel before host storage shutdown')
+Check(next(subscriptions)==nil,'main shutdown removes every registered event')
 bootApp.debugEnabled=false;Start();Check(bootApp.debugPanel==nil,'production debug off installs no widget');Stop()
 return checks
 ''').values())
@@ -132,7 +141,7 @@ report = {'result': 'PASS', 'sourceCommit': golden['commit'], 'sourceHashes': go
           'checks': checks, 'sourceCases': len(golden['grades']) + 3,
           'resources': {'assets/UI/Tutorial.json': hashlib.sha256((ROOT / 'assets/UI/Tutorial.json').read_bytes()).hexdigest()},
           'testInputs': {'tools/migration/check-debug-panel.py': hashlib.sha256(Path(__file__).read_bytes()).hexdigest()},
-          'boundary': 'Real frozen H5 debug installation/actions and result method executed in Node; actual Lua actions, tutorial/mission rules, widget input/layout/disposal executed. Engine, storage, draw, application scene hosts adapted. No browser/GPU/native visual acceptance; debug test pages, HUD checks, tuning and URL flags remain unported.'}
+          'boundary': 'Real frozen H5 debug installation/actions and result method executed in Node; actual Lua actions, tutorial/mission rules, widget input/layout/disposal and main bootstrap with the real disabled PerformanceMonitor executed. Engine clock/events, storage, draw, application scene hosts adapted; performance panel construction is forbidden in this disabled-monitor fixture. No browser/GPU/native visual or performance acceptance; debug test pages, HUD checks, tuning and URL flags remain unported.'}
 output = ROOT / 'docs/migration/evidence/debug-panel-offline.json'
 output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
 print(json.dumps({'result': 'PASS', 'checks': len(checks), 'sourceCases': report['sourceCases']}))

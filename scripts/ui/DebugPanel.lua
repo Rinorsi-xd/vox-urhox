@@ -1,4 +1,4 @@
--- Frozen H5 debugPanel.js dimensions, colors, F8 and draggable toggle.
+-- Existing debug commands, opened from the shared settings card.
 local TouchMode=require("controls.TouchMode")
 
 local UI=require 'urhox-libs/UI'
@@ -16,8 +16,17 @@ function M:init(app)
     self.app=app;self.open=false;self.disposed=false;self.scroll=0;self.maxScroll=0;self.fps=60;self.clock=0;self.refresh=0
     self.state={god=false};self.buttons={};self.savedPosition=app.store:Read('debug-position',ValidPosition)
     self.page=Page{pointerEvents='auto',focusable=false};self.page.owner=self
-    UI.RegisterGlobalComponent('vox-debug',self.page);UI.PushOverlay(self.page)
-    self:Refresh();print('[Debug] 点击 Debug 或按 F8 打开调试面板')
+    UI.RegisterGlobalComponent('vox-debug',self.page)
+    self:Refresh();print('[Debug] 设置 → 调试 / 性能')
+end
+function M:OpenSettings(owner,onClose)
+    self.settingsOwner=owner;self.settingsGeneration=self.app.generation;self.onSettingsClose=onClose;self:SetOpen(true)
+end
+function M:CloseSettings()
+    local owner,close,generation=self.settingsOwner,self.onSettingsClose,self.settingsGeneration
+    self:SetOpen(false)
+    if close and owner and not owner.disposed and generation==self.app.generation and
+        (owner==self.app.trial or owner==self.app.build or not self.app.trial and not self.app.build) then close() end
 end
 function M:Refresh()
     self.sections,self.contextName,self.context=Actions.Sections(self.app,self.state)
@@ -26,6 +35,9 @@ end
 function M:SetOpen(on)
     if self.disposed then return end
     self.open=on;self.drag=nil
+    if not on then
+        UI.PopOverlay(self.page);self.settingsOwner=nil;self.settingsGeneration=nil;self.onSettingsClose=nil
+    end
     if on then
         UI.ClearFocus();if self.app.trial then self.app.trial:Pause() end
         if self.app.build and self.app.build.buildCamera then self.app.build.buildCamera:Release() end
@@ -39,14 +51,15 @@ function M:Update(dt)
     if dt>0 then self.fps=self.fps+(1/dt-self.fps)*.05 end
     -- The QA bootstrap owns F8 for compact snapshots, never user debug actions.
     local qa=rawget(_G,'VOX_SKIP_TUTORIAL')==true and rawget(_G,'VOX_CLOUD_VALIDATION')==true
-    if not qa and input:GetKeyPress(KEY_F8) then self:SetOpen(not self.open) end
+    if not qa and input:GetKeyPress(KEY_F8) then if self.open then self:CloseSettings() else self:SetOpen(true) end end
     Actions.Update(self.app,self.state,elapsed)
     if self.open and self.refresh>=.25 then
         local context=Actions.Context(self.app);if context~=self.context then self.scroll=0 end;self:Refresh()
     end
 end
 function M:Activate(id)
-    self:SetOpen(false)
+    local keepOpen=id=='perfVisible' or id=='perfMark'
+    if not keepOpen then self:SetOpen(false) end
     local ok,result,err=pcall(Actions.Execute,self.app,self.state,id)
     if not ok or result==false then
         local message=not ok and tostring(result) or err or '当前状态不能执行此操作'
@@ -63,20 +76,23 @@ function M:Layout()
     if self.dragPosition then x=self.dragPosition[1];y=self.dragPosition[2] end
     x=math.max(4,math.min(w-bw-4,x));y=math.max(4,math.min(h-bh-4,y))
     self.toggleRect={x=x,y=y,w=bw,h=bh}
-    local pw=math.min(330,w-24);local py=y+bh+8;if py>h*.6 then py=12 end
-    self.panelRect={x=math.max(12,math.min(w-pw-12,x+bw-pw)),y=py,w=pw,h=math.max(40,h-py-12)}
+    local left=math.max(12,safe.left or 0);local right=w-math.max(12,safe.right or 0)
+    -- Leave the existing performance panel accessible even after toggling it on.
+    if self.app.performanceControls then right=right-math.max(1,math.min(274,w*.44-math.max(12,safe.right or 0)))-12 end
+    local pw=math.max(1,math.min(330,right-left));local ph=math.min(760,h-math.max(12,safe.top or 0)-math.max(12,safe.bottom or 0))
+    self.panelRect={x=math.max(left,math.min((w-pw)/2,right-pw)),y=math.max(12,(h-ph)/2),w=pw,h=ph}
     return w,h
 end
 function Page:GetAbsoluteLayout() local w,h=UI.GetViewportSize();return {x=0,y=0,w=w,h=h} end
 function Page:GetAbsoluteLayoutForHitTest() return self:GetAbsoluteLayout() end
 function Page:HitTest(x,y)
     local o=self.owner;if o.disposed then return false end;o:Layout()
-    return Inside(o.toggleRect,x,y) or o.open and Inside(o.panelRect,x,y)
+    return o.open and Inside(o.panelRect,x,y)
 end
 function Page:OnPointerDown(e)
     local o=self.owner;o:Layout()
     o.drag={id=e.pointerId,kind=e.pointerType,x=e.x,y=e.y,dx=e.x-o.toggleRect.x,dy=e.y-o.toggleRect.y,
-        toggle=Inside(o.toggleRect,e.x,e.y),scroll=o.scroll,moved=false}
+        toggle=false,scroll=o.scroll,moved=false}
     return true
 end
 function Page:OnPointerMove(e)
@@ -100,23 +116,20 @@ end
 function Page:OnPointerCancel() self.owner.drag=nil;return true end
 function Page:ActivateAt(x,y)
     local o=self.owner
-    for _,row in ipairs(o.buttons) do if Inside(row,x,y) then if row.id=='close' then o:SetOpen(false) else o:Activate(row.id) end;return true end end
+    for _,row in ipairs(o.buttons) do if Inside(row,x,y) then if row.id=='close' then o:CloseSettings() else o:Activate(row.id) end;return true end end
     return true
 end
 function Page:OnClick(e)
     local o=self.owner;if o.clock<(o.suppressClickUntil or 0) then return true end
-    if e and Inside(o.toggleRect,e.x,e.y) then o:SetOpen(not o.open) elseif e then self:ActivateAt(e.x,e.y) end;return true
+    if e then self:ActivateAt(e.x,e.y) end;return true
 end
 function Page:OnWheel(_,dy)
     local amount=GetPlatform and GetPlatform()=='Web' and .4 or 40
     local o=self.owner;if o.open then o.scroll=math.max(0,math.min(o.maxScroll,o.scroll-dy*amount)) end;return true
 end
 function Page:Render(vg)
-    local o=self.owner;if o.disposed then return end
-    D.Begin(vg);o:Layout();o.buttons={};local t=o.toggleRect
-    D.Rect(vg,t.x,t.y,t.w,t.h,ink);D.Rect(vg,t.x,t.y,t.w,1,o.open and cyan or {214,240,255,71})
-    D.Text(vg,'Debug',t.x+12,t.y+14,12,o.open and cyan or white,'vox-title')
-    if not o.open then return end
+    local o=self.owner;if o.disposed or not o.open then return end
+    D.Begin(vg);o:Layout();o.buttons={}
     local p=o.panelRect;D.Rect(vg,p.x,p.y,p.w,p.h,ink)
     D.Rect(vg,p.x,p.y,p.w,1,{214,240,255,71})
     D.Text(vg,'DEBUG',p.x+16,p.y+10,15,cyan,'vox-display')
@@ -153,7 +166,7 @@ function Page:Render(vg)
     end
 end
 function M:Dispose()
-    if self.disposed then return end;self.disposed=true;self.open=false
+    if self.disposed then return end;self.disposed=true;self.open=false;self.settingsOwner=nil;self.onSettingsClose=nil
     if self.drag then UI.CancelPointer(self.drag.id,self.drag.kind);self.drag=nil end
     UI.PopOverlay(self.page);UI.UnregisterGlobalComponent('vox-debug');self.page:Destroy();self.app=nil
 end

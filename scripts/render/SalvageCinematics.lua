@@ -36,8 +36,32 @@ function M.New(scene)
     for _,d in ipairs(Data.models) do
         local mesh=assert(self.nodes[d.motion]):CreateChild('Batch'):CreateComponent('StaticModel')
         mesh.model=assert(cache:GetResource('Model',d.model));mesh.material=self.materials[d.material+1];mesh.castShadows=d.shadow
+        if d.motion=='frame' and d.model=='SalvageCine/model-15.bin' then self:InitHookGuard(mesh) end
     end
     self:Hide();return self
+end
+---@param mesh StaticModel
+function M:InitHookGuard(mesh)
+    self.hookMesh=mesh;self.hookMin=mesh.model.boundingBox.min;self.hookMax=mesh.model.boundingBox.max;self.hookHidden=false
+end
+---@param cameraNode Node
+---@param active boolean
+function M:GuardCamera(cameraNode,active)
+    local mesh=self.hookMesh;if not mesh then return false end
+    local hidden=false
+    if active and self.nodes.holder.enabled then
+        -- This batch has an identity transform under the axis-scaled frame.
+        -- World distance to its box bounds the mask at corners as well as faces.
+        local p=mesh.node:WorldToLocal(cameraNode.worldPosition);local s=mesh.node.worldScale
+        local a,b=self.hookMin,self.hookMax
+        local dx=math.max(a.x-p.x,0,p.x-b.x)*math.abs(s.x)
+        local dy=math.max(a.y-p.y,0,p.y-b.y)*math.abs(s.y)
+        local dz=math.max(a.z-p.z,0,p.z-b.z)*math.abs(s.z)
+        local clearance=self.hookHidden and .6 or .4
+        hidden=dx*dx+dy*dy+dz*dz<=clearance*clearance
+    end
+    if hidden~=self.hookHidden then mesh:SetEnabled(not hidden);self.hookHidden=hidden end
+    return hidden
 end
 function M:HideShip() Enable(self.nodes.ship,false) end
 function M:Hide() self:HideShip();Enable(self.nodes.holder,false) end
@@ -57,10 +81,10 @@ function M:Drop(r,yaw,bounds)
 end
 function M:Snapshot()
     local p=self.nodes.ship.position;local h=self.nodes.holder.position
-    return {ship={-p.x,p.y,p.z},holder={-h.x,h.y,h.z},shipVisible=self.nodes.ship.enabled,frameVisible=self.nodes.holder.enabled,batches=#Data.models,triangles=5720}
+    return {ship={-p.x,p.y,p.z},holder={-h.x,h.y,h.z},shipVisible=self.nodes.ship.enabled,frameVisible=self.nodes.holder.enabled,hookVisible=self.hookMesh and self.hookMesh.enabled,hookGuarded=self.hookHidden==true,batches=#Data.models,triangles=5720}
 end
 function M:Dispose()
     if self.disposed then return end;self.disposed=true;self.root:Dispose()
-    for _,m in ipairs(self.materials) do m:Dispose() end;self.materials={};self.nodes={};self.root=nil
+    for _,m in ipairs(self.materials) do m:Dispose() end;self.materials={};self.nodes={};self.root=nil;self.hookMesh=nil;self.hookMin=nil;self.hookMax=nil
 end
 return M

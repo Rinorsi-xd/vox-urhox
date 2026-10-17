@@ -34,6 +34,7 @@ fixture = next(node.value.args[0].value for node in existing.body if isinstance(
 setup = fixture.split('for _,case in ipairs(REFERENCE.masterTails)do')[0]
 voice_fixture = setup + '''
 package.loaded['urhox-libs/UI']={GetFocus=function()end};package.loaded['core.Coord']={}
+for _,name in ipairs({'ui.IntroTypography','app.ResourceGate','ui.IntroPage','intro.IntroImpact','intro.IntroSortie'})do package.loaded[name]={}end
 local Session=require 'intro.IntroSession'
 local function NewVoice()
  local value=Audio.New({audio={},durations={}})

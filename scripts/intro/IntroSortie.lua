@@ -5,7 +5,11 @@ function M.New(intro)
 end
 function M:Next(step)
  self.step=step;self.elapsed=0;self.intro.audio:Sfx('blip',{vol=.5})
- self.tip=({'按住 W 冲过去 · 车会朝准星的方向开','左键 开火 · 打掉冲在最前面那辆！','暴走战车群盯上你了 · 撑住！援军到达还有 10 秒','援军已到达！友军火控：锁定目标中……','战车已损毁'})[step]
+ -- 触屏没有 W / 左键：提示换成摇杆与开火键（源 introSortie.js 只写了键鼠）
+ local touch=require('controls.TouchMode').Enabled()
+ self.tip=({touch and '摇杆往前推 冲过去 · 车会朝准星的方向开' or '按住 W 冲过去 · 车会朝准星的方向开',
+  touch and '按住开火键 · 打掉冲在最前面那辆！' or '左键 开火 · 打掉冲在最前面那辆！',
+  '暴走战车群盯上你了 · 撑住！援军到达还有 10 秒','援军已到达！友军火控：锁定目标中……','战车已损毁'})[step]
  if self.intro.host.SortieStep then self.intro.host.SortieStep(step,self.intro) end
 end
 function M:Complete(step)

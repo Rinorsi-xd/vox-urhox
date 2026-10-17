@@ -67,7 +67,7 @@ function M:Update(alpha,dt,context)
     for unit,view in pairs(self.units) do
         view:Update(unit.weapons and unit.weapons.drill:Latched() and 1 or alpha,dt,context)
         if unit.weapons then WeaponView.Update(view.view,unit.weapons,alpha,dt,context and context.time or 0) end
-        view.view:UpdateIdle(dt,context and context.time or 0,true)
+        view.view:UpdateIdle(dt,context and context.time or 0,true,unit.weapons~=nil)
         view.view:UpdateWeaponEffects(dt,context)
     end
     self.hitFlash:Update(dt,self.units)

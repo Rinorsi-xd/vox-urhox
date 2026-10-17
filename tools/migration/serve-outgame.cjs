@@ -67,13 +67,37 @@ const manifest=JSON.parse(fs.readFileSync(prepared.manifest_path,'utf8'));
 const main=manifest.files.find(f=>f.fs_path==='main.lua');
 const mainName=main.uuid+'-'+main.hash+main.ext;
 const qa=process.argv.includes('--qa');
+const qaAimEngine=process.argv.includes('--qa-aim-engine');
+if(qaAimEngine&&!qa)throw Error('Aim engine fixture requires explicit QA mode.');
+const qaSalvageStock=process.argv.includes('--qa-salvage-stock');
+if(qaSalvageStock&&!qa)throw Error('Salvage stock fixture requires explicit QA mode.');
+if(qaSalvageStock&&qaAimEngine)throw Error('Run independent QA fixtures separately.');
 const perfMonitor=process.argv.includes('--perf-monitor');
+const monitorDisabled=process.argv.includes('--monitor-disabled');
+const framePipelineProfile=process.argv.includes('--profile-frame-pipeline');
+const fixedStepPipelineProfile=process.argv.includes('--profile-fixed-step-pipeline');
+const presentationPipelineProfile=process.argv.includes('--profile-presentation-pipeline');
+const beforeStepPipelineProfile=process.argv.includes('--profile-before-step-pipeline');
+const vehiclePipelineProfile=process.argv.includes('--profile-vehicle-pipeline');
+require('./build-frame-pipeline-probe.cjs').validateFramePipelineOptions(process.argv);
+if(monitorDisabled&&!qa)throw Error('Monitor-disabled observation requires explicit QA mode.');
+const monitorOverride=monitorDisabled?'\n'+fs.readFileSync(path.join(__dirname,'monitor-disabled-observer.lua'),'utf8'):'';
 const storyRoute=qa&&process.argv.includes('--story-route');
 const homeRoute=qa&&process.argv.includes('--home-route');
 if(homeRoute&&storyRoute)throw Error('Select one QA route projection.');
 const homeRouteProbe=homeRoute?fs.readFileSync(path.join(__dirname,'home-route-observer.lua'),'utf8')+'\n':'';
+const storyRouteProbe=storyRoute?fs.readFileSync(path.join(__dirname,'story-combat-observer.lua'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'story-route-observer.lua'),'utf8')+'\n':'';
 const loadProfile=qa&&process.argv.includes('--profile-loads');
 const combatProfile=qa&&process.argv.includes('--profile-combat');
+const driveSectionsProfile=qa&&process.argv.includes('--profile-drive-sections');
+if(process.argv.includes('--profile-drive-sections')&&!qa)throw Error('Detailed drive scopes require explicit QA mode.');
+const trialSectionsProfile=process.argv.includes('--profile-trial-sections');
+if(trialSectionsProfile&&!driveSectionsProfile)throw Error('Trial sections require explicit QA drive scopes.');
+const afterStepProfile=process.argv.includes('--profile-after-step');
+if(afterStepProfile&&!trialSectionsProfile)throw Error('AfterStep sections require explicit QA trial scopes.');
+const loadingFailureTest=process.argv.includes('--loading-failure-test');
+if(loadingFailureTest&&!qa)throw Error('Controlled loading failure requires explicit QA mode.');
+const driveSectionsProbe=driveSectionsProfile?require('./build-drive-sections-probe.cjs').buildDriveSectionsProbe(prepared,{trialSections:trialSectionsProfile,afterStep:afterStepProfile})+'\n':'';
 const warmBatchArg=process.argv.find(arg=>arg.startsWith('--warm-batch-size='));
 const warmBatchSize=warmBatchArg?Number(warmBatchArg.split('=')[1]):null;
 if(warmBatchSize!==null&&(!loadProfile||!Number.isInteger(warmBatchSize)||warmBatchSize<1||warmBatchSize>64))throw Error('Warm-up batch size is a QA load-profile option, range 1..64');
@@ -83,16 +107,25 @@ const warmIntroExperiment=warmExperiment&&process.argv.includes('--warm-intro-ex
 const concurrencyArg=process.argv.find(arg=>arg.startsWith('--download-concurrency='));
 const downloadConcurrency=concurrencyArg?Number(concurrencyArg.split('=')[1]):null;
 if(downloadConcurrency!==null&&(!loadProfile||!Number.isInteger(downloadConcurrency)||downloadConcurrency<1||downloadConcurrency>16))throw Error('Download concurrency is a QA load-profile option, range 1..16');
-const probe=qa?(storyRoute?fs.readFileSync(path.join(__dirname,'story-route-observer.lua'),'utf8')+'\n':'')+(loadProfile?'G0_DOWNLOAD_CONCURRENCY='+(downloadConcurrency??'nil')+'\nG0_WARM_BATCH_SIZE='+(warmBatchSize??'nil')+'\n'+fs.readFileSync(path.join(__dirname,'profile-load-bindings.lua'),'utf8')+'\n':'')+(renderExperiment?'G0_WARM_EXPERIMENT='+String(warmExperiment)+'\nG0_WARM_INTRO_EXPERIMENT='+String(warmIntroExperiment)+'\n'+fs.readFileSync(path.join(__dirname,'probe-render-experiment.lua'),'utf8')+'\n':'')+fs.readFileSync(path.join(__dirname,'probe-outgame-web.lua'),'utf8')+(combatProfile?'\n'+fs.readFileSync(path.join(__dirname,'probe-combat-performance.lua'),'utf8'):''):'';
-const probeSha256=qa?require('node:crypto').createHash('sha256').update(homeRouteProbe+probe).digest('hex'):null;
+if(loadingFailureTest&&(storyRoute||homeRoute||loadProfile||combatProfile||driveSectionsProfile||trialSectionsProfile||renderExperiment))throw Error('Keep controlled loading failure separate from route projections and profiling experiments.');
+const failureProbe=loadingFailureTest?'\n'+fs.readFileSync(path.join(__dirname,'qa-loading-failure.lua'),'utf8'):'';
+const framePipelineProbe=framePipelineProfile?'\n'+require('./build-frame-pipeline-probe.cjs').buildFramePipelineProbe(prepared,{fixedSteps:fixedStepPipelineProfile,presentation:presentationPipelineProfile,beforeStep:beforeStepPipelineProfile,vehicle:vehiclePipelineProfile})+'\n'+fs.readFileSync(path.join(__dirname,'qa-frame-pipeline-control.lua'),'utf8'):'';
+const probe=qa?storyRouteProbe+(loadProfile?'G0_DOWNLOAD_CONCURRENCY='+(downloadConcurrency??'nil')+'\nG0_WARM_BATCH_SIZE='+(warmBatchSize??'nil')+'\n'+fs.readFileSync(path.join(__dirname,'profile-load-bindings.lua'),'utf8')+'\n':'')+(renderExperiment?'G0_WARM_EXPERIMENT='+String(warmExperiment)+'\nG0_WARM_INTRO_EXPERIMENT='+String(warmIntroExperiment)+'\n'+fs.readFileSync(path.join(__dirname,'probe-render-experiment.lua'),'utf8')+'\n':'')+fs.readFileSync(path.join(__dirname,'qa-frame-wall-observer.lua'),'utf8')+'\n'+driveSectionsProbe+fs.readFileSync(path.join(__dirname,'probe-outgame-web.lua'),'utf8')+(combatProfile?'\n'+fs.readFileSync(path.join(__dirname,'probe-combat-performance.lua'),'utf8'):'')+monitorOverride+failureProbe+framePipelineProbe:'';
+const aimEngineProbe=qaAimEngine?'\n'+fs.readFileSync(path.join(__dirname,'qa-aim-engine.lua'),'utf8'):'';
+const salvageStockProbe=qaSalvageStock?'\n'+fs.readFileSync(path.join(__dirname,'qa-salvage-stock.lua'),'utf8'):'';
+const fullProbe=probe+aimEngineProbe+salvageStockProbe;
+const probeSha256=qa?require('node:crypto').createHash('sha256').update(homeRouteProbe+fullProbe).digest('hex'):null;
 const port=Number(process.env.VOX_PREVIEW_PORT||4203);
 const perfLogs=perfMonitor?createPerfLogReceiver({port}):null;
 const sourceCache=require('./cached-engine-sources.cjs');
 const sourceBaseline=JSON.parse(fs.readFileSync(path.join(root,'docs/migration/outgame-baseline.json')));
 const sourceRoot=path.resolve(root,sourceBaseline.snapshot);
-const previewIdentity=()=>({...prepared,qa,perfMonitor,perfLogDirectory:perfLogs?.status().directory||null,storyRoute,homeRoute,loadProfile,combatProfile,downloadConcurrency,warmBatchSize,renderExperiment,warmExperiment,warmIntroExperiment,probeSha256,port,processId:process.pid,servedManifest:path.basename(prepared.manifest_path)});
+const previewIdentity=()=>({...prepared,qa,qaAimEngine,qaSalvageStock,perfMonitor,monitorDisabled,perfLogDirectory:perfLogs?.status().directory||null,storyRoute,homeRoute,loadProfile,combatProfile,driveSectionsProfile,trialSectionsProfile,afterStepProfile,framePipelineProfile,fixedStepPipelineProfile,...(presentationPipelineProfile?{presentationPipelineProfile:true}:{}),...(beforeStepPipelineProfile?{beforeStepPipelineProfile:true}:{}),...(vehiclePipelineProfile?{vehiclePipelineProfile:true}:{}),loadingFailureTest,downloadConcurrency,warmBatchSize,renderExperiment,warmExperiment,warmIntroExperiment,probeSha256,port,processId:process.pid,servedManifest:path.basename(prepared.manifest_path)});
 if(perfLogs)perfLogs.setIdentity(previewIdentity()).catch(error=>console.error('Performance identity write failed: '+error.message));
 const server=http.createServer((req,res)=>{
+ if(req.url.split('?')[0]==='/favicon.ico'){
+  res.writeHead(204,{'Cache-Control':'no-store'});res.end();return;
+ }
  if(perfLogs&&perfLogs.handle(req,res))return;
  if(perfMonitor&&req.url==='/__vox_perf_collector.js'){
   res.writeHead(200,{'Content-Type':'text/javascript','Cache-Control':'no-store','Cross-Origin-Resource-Policy':'same-origin'});
@@ -130,8 +163,8 @@ const server=http.createServer((req,res)=>{
  res.setHeader('Content-Type',({'.html':'text/html','.js':'text/javascript','.wasm':'application/wasm','.json':'application/json'})[path.extname(file)]||'application/octet-stream');
  res.setHeader('Cache-Control','no-store');
  if(perfMonitor&&file===path.join(__dirname,'preview-outgame.html')){res.end(fs.readFileSync(file,'utf8').replace(/<!doctype html>/i,'$&\n<script src="/__vox_perf_collector.js"></script>'));return;}
- if(qa&&file.endsWith(mainName)){res.end(fs.readFileSync(file,'utf8')+'\n'+homeRouteProbe+probe);return;}
- if(qa&&file===prepared.manifest_path){main.size=fs.statSync(path.join(dist,'assets',mainName)).size+Buffer.byteLength('\n'+homeRouteProbe+probe);res.end(JSON.stringify(manifest));return;}
+ if(qa&&file.endsWith(mainName)){res.end(fs.readFileSync(file,'utf8')+'\n'+homeRouteProbe+fullProbe);return;}
+ if(qa&&file===prepared.manifest_path){main.size=fs.statSync(path.join(dist,'assets',mainName)).size+Buffer.byteLength('\n'+homeRouteProbe+fullProbe);res.end(JSON.stringify(manifest));return;}
  fs.createReadStream(file).pipe(res);
 });
 server.listen(port,'127.0.0.1',()=>console.log(`Outgame preview: http://127.0.0.1:${port}/outgame.html?-game_url=http://127.0.0.1:${port}/game-dist/&-log=info`));

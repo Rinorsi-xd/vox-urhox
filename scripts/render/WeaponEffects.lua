@@ -21,7 +21,11 @@ local function NewMote(item,axis,life)
         w=(R()<.5 and -1 or 1)*(.8+R()*1.6),s=.05+R()*.05,ph=R()*6.28,life=life,dur=.5+R()*.6}
 end
 function M.New(view,random)
-    return setmetatable({view=view,items={},batches={},disposed=false,random=random},M)
+    return setmetatable({view=view,items={},batches={},disposed=false,random=random,visible=true},M)
+end
+function M:SetVisible(visible)
+    self.visible=visible==true
+    for _,b in pairs(self.batches) do b.mesh.enabled=self.visible and b.count>0 end
 end
 function M:Batch(kind)
     local b=self.batches[kind]
@@ -108,7 +112,7 @@ function M:Swirl(item,dt,m,head)
         batch:Quad({Point(a,false),Point(b,false),Point(a,true),Point(b,true)},{{a,0},{b,0},{a,1},{b,1}},{3.4,1.4,.35},1,{alpha,0,0})
     end
     if m.tier==5 and v>.5 and Random(item)<dt*14 and self.emitter then
-        self.emitter:EquipmentEmit('spark',World(head,m:Muzzle(-.2-Random(item)*.4)))
+        self.emitter:EquipmentEmit('spark',World(head,m:Muzzle(-.2-Random(item)*.4)),self.view)
     end
 end
 function M:SpawnArc(item,m)
@@ -188,7 +192,7 @@ function M:Update(dt,context,emitter)
         end
     end end
     self.items=retained
-    for _,b in pairs(self.batches) do b:Finish() end
+    for _,b in pairs(self.batches) do b:Finish();if not self.visible then b.mesh.enabled=false end end
 end
 function M:Reset()
     self.items={};for _,b in pairs(self.batches) do b.count=0;b.mesh.enabled=false end

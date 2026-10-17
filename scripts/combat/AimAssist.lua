@@ -1,9 +1,10 @@
 -- Frozen shared/combat/aimAssist.js: soft lock selects exposed cells, never a hull centre.
 local V=require 'core.Math3'
 local CELL=require('Config').CELL
+local Fallback=require 'combat.AimFallback'
 local M={}
 local function Position(u) return u.Position and u:Position() or u.pos end
-function M.Apply(origin,dir,hit,self,units,castRay,stats,wide)
+function M.Apply(origin,dir,hit,self,units,castRay,stats,wide,canReach)
     local assist=stats and stats.assist;if not assist or not self or not self.vehicle then return nil end
     local from=Position(self);local range=stats.range;wide=wide or 1
     local function enemy(u) return u and u~=self and u.alive and u.vehicle and u.team~=self.team end
@@ -37,7 +38,14 @@ function M.Apply(origin,dir,hit,self,units,castRay,stats,wide)
     table.sort(candidates,function(a,b)return a.ang<b.ang or a.ang==b.ang and a.ordinal<b.ordinal end)
     for i=1,math.min(4,#candidates) do local candidate=candidates[i];local d=V.Sub(candidate.point,origin);local length=V.Length(d)
         local h=castRay(origin,V.Scale(d,1/length),length+CELL*2,self.vehicle.body)
-        if h and h.owner and h.owner.ref==candidate.unit then return {point=h.point,ref=candidate.unit,partId=candidate.id,slow=assist.slow} end
+        if h and h.owner and h.owner.ref==candidate.unit then
+            local result={point=h.point,ref=candidate.unit,partId=candidate.id,slow=assist.slow}
+            if canReach and not canReach(h.point,candidate.unit) then
+                local selected={unit=candidate.unit,id=candidate.id,point=h.point}
+                return Fallback.Find(origin,dir,near,self,selected,candidates,castRay,stats,wide,canReach) or result
+            end
+            return result
+        end
     end
 end
 return M
