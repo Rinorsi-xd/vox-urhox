@@ -20,6 +20,15 @@ local showPerformance=true
 
 -- Web Audio 的 ScriptProcessor 输出回调固定使用 4096 个采样。
 -- 不在 Lua 侧调用 Audio:SetMode 改写缓冲长度，避免引擎期望值与回调目标尺寸不一致。
+-- 设置「调试 / 性能」打开面板或按 F6 时才启动监控：发布版默认不付逐帧监控的开销
+local function EnablePerformance()
+    if performance and performance.enabled then return end
+    if performance then performance:Dispose() end
+    performance=PerformanceMonitor.New({enabled=true,noFile=PlatformUtils.IsWebPlatform()})
+    SubscribeToEvent('LogMessage','HandlePerformanceLog')
+    if app and not performancePanel then performancePanel=PerformancePanel.New(app) end
+    print('[Performance] monitor enabled at runtime')
+end
 function Start()
     running=true
     -- 发布版默认关闭逐帧性能监控与 PERF 面板（订阅全部日志并逐帧记录，本身有 CPU/GC 开销）；
@@ -42,9 +51,10 @@ function Start()
             app:Start()
             if performance.enabled then performancePanel=PerformancePanel.New(app) end
             app.performanceControls={
-                IsVisible=function() return showPerformance end,
+                IsVisible=function() return showPerformance and performance~=nil and performance.enabled end,
                 SetVisible=function(visible)
                     showPerformance=visible==true
+                    if showPerformance then EnablePerformance() end
                     if performancePanel then performancePanel:SetVisible(showPerformance) end
                 end,
                 Mark=function()
@@ -102,12 +112,14 @@ end
 ---@param eventData UpdateEventData
 function HandleUpdate(eventType,eventData)
     local dt=eventData:GetFloat("TimeStep")
+    if input:GetKeyPress(KEY_F6) and app and app.performanceControls then
+        local controls=app.performanceControls;controls.SetVisible(not controls.IsVisible())
+    end
     if performance and performance.enabled then
         performance:BeginFrame(dt)
         local started=performance.clock()
         PerformanceBindings.Attach(performance,app)
         performance.monitorMs=performance.monitorMs+(performance.clock()-started)%4294967296
-        if input:GetKeyPress(KEY_F6) then showPerformance=not showPerformance end
         if input:GetKeyPress(KEY_F10) and app and app.performanceControls then app.performanceControls.Mark() end
         if performancePanel then
             performancePanel:SetVisible(showPerformance)
