@@ -46,10 +46,15 @@ function M:BuyAll(list)
     if not ok then self.data=previous;return {ok=false,cost=result.cost,reason=err} end
     return {ok=true,cost=result.cost}
 end
-function M:BeginRun(runId)
+function M:BeginRun(runId,pocket)
     if self.data.lastStartedRun==runId then return true end
     local previous=self.data;local nextData={};for k,v in pairs(previous) do nextData[k]=v end
     local stats=previous.stats or {};nextData.stats={};for k,v in pairs(stats) do nextData.stats[k]=v end
+    nextData.items={};for id,n in pairs(previous.items) do nextData.items[id]=n end
+    for id,n in pairs(pocket or {}) do
+        if n>(nextData.items[id] or 0) then return false,'道具库存不足' end
+        nextData.items[id]=nextData.items[id]-n
+    end
     nextData.stats.raids=(stats.raids or 0)+1;nextData.lastStartedRun=runId;self.data=nextData
     local ok,err=self:Save();if not ok then self.data=previous end;return ok,err
 end
@@ -62,6 +67,7 @@ function M:CommitRun(runId,result,originalParts)
     elseif not result.keepCar then
         for _,p in ipairs(originalParts) do if p[1]~='core' then local id='part:'..p[1];nextData.items[id]=math.max(0,(nextData.items[id] or 0)-1) end end
     end
+    if result.ok or result.keepCar then for id,n in pairs(result.pocket or {}) do nextData.items[id]=(nextData.items[id] or 0)+n end end
     nextData.lastRun=runId;self.data=nextData
     local ok,err=self:Save();if not ok then self.data=previous end;return ok,err
 end

@@ -13,7 +13,7 @@ function Space:init(scene)
     self.world=scene:GetComponent("PhysicsWorld") or scene:CreateComponent("PhysicsWorld")
     self.world.updateEnabled=false;self.world.interpolation=false;self.world.fps=60;self.world.maxSubSteps=1
     self.world.gravity=Vector3(0,-9.81,0);self.world.numIterations=12
-    self.bodies={};self.vehicleOwners=0
+    self.bodies={};self.vehicleOwners=0;self.stepIndex=0
 end
 function Space:Register(native,owner)
     local wrapper=Body.Wrap(native)
@@ -37,8 +37,12 @@ function Space:Unregister(native)
     end
     self.bodies[native.node:GetID()]=nil
 end
+-- Reused per call: Ray(Vector3,Vector3) built three userdata objects per ray.
+local rayScratch,originScratch,directionScratch=Ray(),Vector3(),Vector3()
 function Space:Raycast(origin,direction,length,excluded,skipOwnerType,fixedOnly,collisionMask)
-    local ray=Ray(Coord.Vec(origin[1],origin[2],origin[3]),Coord.Vec(direction[1],direction[2],direction[3]))
+    originScratch.x=-origin[1];originScratch.y=origin[2];originScratch.z=origin[3]
+    directionScratch.x=-direction[1];directionScratch.y=direction[2];directionScratch.z=direction[3]
+    local ray=rayScratch;ray:Define(originScratch,directionScratch)
     local results=self.world:Raycast(ray,length,collisionMask or 0xffff)
     for _,hit in ipairs(results) do
         local native=hit.body
@@ -55,6 +59,7 @@ function Space:Raycast(origin,direction,length,excluded,skipOwnerType,fixedOnly,
     return nil
 end
 function Space:Step(dt)
+    self.stepIndex=self.stepIndex+1
     self.world:Update(dt)
     -- Combat replaces vehicle ownership with car ownership; in that case the
     -- old full static-body scan cannot call PostStep. Keep its order otherwise.

@@ -390,12 +390,47 @@ function M:Flush()
         elseif self:LostCombatAbility() then self.kill='失去战斗力' end
     end
     if self.kill then self:Die(pose,Velocity);return end
-    local spec=Spec.Build(self.bp,nil,connected)
+    -- Turret clearance was the dominant synchronous cost of a part loss (up to
+    -- ~50 ms per hit on desktop). Rebuild with the previous ranges and refine
+    -- them in background slices; the result is identical, a few frames later.
+    local spec=Spec.Build(self.bp,nil,connected,{deferRanges=true})
     if not spec.ok then
         self.kill='无法战斗或移动';self:Die(pose,Velocity);return
     end
+    local previous={}
+    for _,w in ipairs(self.spec and self.spec.weapons or {}) do previous[w.partId]=w.range end
+    for _,w in ipairs(spec.weapons) do w.range=previous[w.partId] end
     self:DisposeVehicle();self:Build(spec);self.vehicle:SetState(state);self:Event("unitRebuilt")
+    self:StartRangeJob()
 end
+-- Background TurretRange.For, advanced by the world after each fixed step.
+-- Restarted on every rebuild. A slice never spans a blueprint edit; if damage
+-- lands between slices, the next Flush restarts from TurretRange's cache.
+M.RANGE_SLICE=.001
+function M:CancelRangeJob()
+    local job=self.rangeJob;self.rangeJob=nil
+    if job and coroutine.status(job.thread)~='dead' then coroutine.close(job.thread) end
+end
+function M:StartRangeJob()
+    self:CancelRangeJob()
+    local bp,owner=self.bp,self.spec.rotorOf;local job={}
+    local function Pause() if os.clock()>job.deadline then coroutine.yield() end end
+    job.thread=coroutine.create(function() job.ranges=TurretRange.For(bp,owner,Pause) end)
+    job.spec=self.spec;self.rangeJob=job
+end
+function M:StepRangeJob(slice)
+    local job=self.rangeJob;if not job then return end
+    if job.spec~=self.spec or not self.alive then self:CancelRangeJob();return end
+    job.deadline=os.clock()+(slice or M.RANGE_SLICE)
+    local ok,err=coroutine.resume(job.thread)
+    if not ok then self.rangeJob=nil;error(err) end
+    if coroutine.status(job.thread)~='dead' then return end
+    self.rangeJob=nil
+    local ranges=job.ranges
+    for _,w in ipairs(self.spec.weapons) do w.range=ranges[w.partId] end
+    if self.weapons then for _,g in ipairs(self.weapons.groups) do for _,w in ipairs(g.weapons) do w.range=ranges[w.id] end end end
+end
+function M:FinishRangeJob() while self.rangeJob do self:StepRangeJob(math.huge) end end
 function M:Die(pose,velocity)
     local pos=self:Position();local adj=self.bp:Graph();local random=self.env.random or math.random
     for _,group in ipairs(Components(Sorted(self.bp.parts),adj)) do
@@ -404,5 +439,19 @@ function M:Die(pose,velocity)
     end
     self:DisposeVehicle();self.alive=false;self.deadAt=self.env.time;self.env:RecordKill(self,pos);self:Event("unitKilled")
 end
-function M:Dispose() self:DisposeVehicle();self.spawnSpecCache=nil;self.alive=false;self:Event("unitRemoved") end
+-- One shared CPU slice per fixed step, round-robin over units with pending jobs.
+local rangeCursor=0
+function M.StepRangeJobs(units,slice)
+    local n=#units;if n==0 then return end
+    local deadline=os.clock()+(slice or M.RANGE_SLICE)
+    for k=1,n do
+        local u=units[(rangeCursor+k-1)%n+1]
+        if u.rangeJob then
+            rangeCursor=(rangeCursor+k)%n
+            u:StepRangeJob(deadline-os.clock())
+            if os.clock()>=deadline then return end
+        end
+    end
+end
+function M:Dispose() self:CancelRangeJob();self:DisposeVehicle();self.spawnSpecCache=nil;self.alive=false;self:Event("unitRemoved") end
 return M

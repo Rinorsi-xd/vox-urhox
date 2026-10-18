@@ -7,6 +7,8 @@ local M={}
 -- Slabs in shape-local space; offset avoids allocating a translated origin
 -- for every axis-aligned part. Inside hits retain the source -direction normal.
 -- Boundary contact is inclusive; parallel rays outside any slab miss.
+-- Returns distance, normal axis (0 = inside: normal is -dir) and its sign.
+-- Callers build the normal only for the final hit; no per-candidate tables.
 local function Box(origin,dir,half,maxDist,offset)
     local near,far=0,maxDist;local normalAxis,normalSign=0,0
     for axis=1,3 do
@@ -19,28 +21,46 @@ local function Box(origin,dir,half,maxDist,offset)
             far=math.min(far,b);if near>far then return end
         end
     end
-    local normal=nil ---@type number[]|nil
-    if normalAxis==0 then normal=V.Scale(dir,-1)
-    else normal={0,0,0};normal[normalAxis]=normalSign end
-    return near,normal
+    return near,normalAxis,normalSign
 end
-local function Cylinder(origin,dir,axis,radius,halfWidth,maxDist)
-    local o=V.Dot(origin,axis);local d=V.Dot(dir,axis)
-    local ro=V.Sub(origin,V.Scale(axis,o));local rd=V.Sub(dir,V.Scale(axis,d))
-    if math.abs(o)<=halfWidth and V.Dot(ro,ro)<=radius*radius then return 0,V.Scale(dir,-1) end
-    local best=maxDist+1;local normal={0,0,0};local a=V.Dot(rd,rd);local b=2*V.Dot(ro,rd);local c=V.Dot(ro,ro)-radius*radius
+-- Scalar form of the former V.Dot/Sub/Scale/Normalize expression, same order.
+-- Origin is (ox,oy,oz) relative to the wheel centre; returns t,nx,ny,nz.
+local function Cylinder(ox,oy,oz,dir,axis,radius,halfWidth,maxDist)
+    local a1,a2,a3=axis[1],axis[2],axis[3];local d1,d2,d3=dir[1],dir[2],dir[3]
+    local o=ox*a1+oy*a2+oz*a3;local d=d1*a1+d2*a2+d3*a3
+    local rox,roy,roz=ox-a1*o,oy-a2*o,oz-a3*o
+    local rdx,rdy,rdz=d1-a1*d,d2-a2*d,d3-a3*d
+    local roro=rox*rox+roy*roy+roz*roz
+    if math.abs(o)<=halfWidth and roro<=radius*radius then return 0,d1*-1,d2*-1,d3*-1 end
+    local best=maxDist+1;local nx,ny,nz=0,0,0
+    local a=rdx*rdx+rdy*rdy+rdz*rdz;local b=2*(rox*rdx+roy*rdy+roz*rdz);local c=roro-radius*radius
     local discriminant=b*b-4*a*c
     if a>1e-12 and discriminant>=0 then
         local root=math.sqrt(discriminant)
-        for _,t in ipairs({(-b-root)/(2*a),(-b+root)/(2*a)}) do
-            if t>=0 and t<best and math.abs(o+d*t)<=halfWidth then best=t;normal=V.Normalize(V.Add(ro,V.Scale(rd,t))) end
+        for i=1,2 do
+            local t=i==1 and (-b-root)/(2*a) or (-b+root)/(2*a)
+            if t>=0 and t<best and math.abs(o+d*t)<=halfWidth then
+                best=t
+                local vx,vy,vz=rox+rdx*t,roy+rdy*t,roz+rdz*t
+                local l=math.sqrt(vx*vx+vy*vy+vz*vz);local k=l>0 and 1/l or 1
+                nx,ny,nz=vx*k,vy*k,vz*k
+            end
         end
     end
-    if math.abs(d)>1e-9 then for _,sign in ipairs({-1,1}) do
-        local t=(sign*halfWidth-o)/d;local radial=V.Add(ro,V.Scale(rd,t))
-        if t>=0 and t<best and V.Dot(radial,radial)<=radius*radius then best=t;normal=V.Scale(axis,sign) end
+    if math.abs(d)>1e-9 then for sign=-1,1,2 do
+        local t=(sign*halfWidth-o)/d;local x,y,z=rox+rdx*t,roy+rdy*t,roz+rdz*t
+        if t>=0 and t<best and x*x+y*y+z*z<=radius*radius then best=t;nx,ny,nz=a1*sign,a2*sign,a3*sign end
     end end
-    if best<=maxDist then return best,normal end
+    if best<=maxDist then return best,nx,ny,nz end
+end
+-- Same operation order as V.Rotate(q,{vx,vy,vz}).
+local function RotateXYZ(q,vx,vy,vz)
+    local x,y,z,w=q.x,q.y,q.z,q.w
+    local ix=w*vx+y*vz-z*vy
+    local iy=w*vy+z*vx-x*vz
+    local iz=w*vz+x*vy-y*vx
+    local iw=-x*vx-y*vy-z*vz
+    return ix*w-iw*x-iy*z+iz*y,iy*w-iw*y-iz*x+ix*z,iz*w-iw*z-ix*y+iy*x
 end
 local function Grow(lo,hi,center,half)
     for i=1,3 do lo[i]=math.min(lo[i],center[i]-half[i]);hi[i]=math.max(hi[i],center[i]+half[i]) end
@@ -94,46 +114,85 @@ local function UnrotateInto(q,vx,vy,vz,out)
     out[1]=ix*w-iw*x-iy*z+iz*y;out[2]=iy*w-iw*y-iz*x+ix*z;out[3]=iz*w-iw*z-ix*y+iy*x
     return out
 end
-local noItems={}
+-- Pose is read once per physics step per vehicle. Every wrapper pose write
+-- bumps poseVersion and Space:Step bumps stepIndex, so a stale pose cannot match.
+local function Pose(vehicle,body)
+    local space=vehicle.space;local cache=vehicle.rayPose
+    if space and body.poseVersion then
+        local step,version=space.stepIndex,body.poseVersion()
+        if cache and cache.body==body and cache.step==step and cache.version==version then return cache.p,cache.q end
+        cache=cache or {};vehicle.rayPose=cache
+        cache.body=body;cache.step=step;cache.version=version;cache.p=body.translation();cache.q=body.rotation()
+        return cache.p,cache.q
+    end
+    return body.translation(),body.rotation()
+end
+local scratchL,scratchLD={0,0,0},{0,0,0}
+-- Per-cast state shared by Scan; Cast is not re-entrant.
+local castO,castD,castDD,limit
+local bestDist,bestAxis,bestSign,bestNx,bestNy,bestNz,bestQuat,bestId
+local function Scan(list)
+    local o,d,dd=castO,castD,castDD
+    for _,shape in ipairs(list) do
+        local c,h=shape.center,shape.half
+        if not SegmentMissesSphere(o,d,dd,c[1],c[2],c[3],h[1]*h[1]+h[2]*h[2]+h[3]*h[3],limit) then
+            local quat=shape.quat;local distance,axis,sign
+            if quat then
+                local lo=UnrotateInto(quat,o[1]-c[1],o[2]-c[2],o[3]-c[3],scratchL)
+                local ld=UnrotateInto(quat,d[1],d[2],d[3],scratchLD)
+                distance,axis,sign=Box(lo,ld,h,limit)
+                if distance and distance<=limit and axis==0 then bestNx,bestNy,bestNz=ld[1]*-1,ld[2]*-1,ld[3]*-1 end
+            else
+                distance,axis,sign=Box(o,d,h,limit,c)
+                if distance and distance<=limit and axis==0 then bestNx,bestNy,bestNz=d[1]*-1,d[2]*-1,d[3]*-1 end
+            end
+            if distance and distance<=limit then
+                limit=distance;bestDist=distance;bestAxis=axis;bestSign=sign;bestQuat=quat;bestId=shape.partId
+            end
+        end
+    end
+end
+local function AcceptWheel(distance,nx,ny,nz,id)
+    if distance and distance<=limit then
+        limit=distance;bestDist=distance;bestAxis=-1;bestNx,bestNy,bestNz=nx,ny,nz;bestQuat=nil;bestId=id
+    end
+end
+local DOWN={0,-1,0}
 function M.Cast(vehicle,origin,direction,length)
-    local body=vehicle.body;local p=body.translation();local q=body.rotation()
+    local body=vehicle.body;local p,q=Pose(vehicle,body)
     local o=UnrotateInto(q,origin[1]-p.x,origin[2]-p.y,origin[3]-p.z,scratchO)
     local d=UnrotateInto(q,direction[1],direction[2],direction[3],scratchD)
     vehicle.rayBounds=vehicle.rayBounds or Bounds(vehicle)
     local bounds=vehicle.rayBounds
     if not Box(o,d,bounds.half,length,bounds.center) then return end
-    local best=nil ---@type table|nil
-    local limit=length
-    local dd=d[1]*d[1]+d[2]*d[2]+d[3]*d[3]
-    local function Accept(distance,normal,id)
-        if distance and distance<=limit then limit=distance;best={dist=distance,normal=V.Rotate(q,normal),partId=id} end
-    end
-    for _,list in ipairs({vehicle.spec.boxes,vehicle.spec.hulls,vehicle.spec.sensors,vehicle.legHitboxes and vehicle.legHitboxes:Items() or noItems,vehicle.mechHitboxes and vehicle.mechHitboxes.items or noItems}) do for _,shape in ipairs(list) do
-        local c,h=shape.center,shape.half
-        if not SegmentMissesSphere(o,d,dd,c[1],c[2],c[3],h[1]*h[1]+h[2]*h[2]+h[3]*h[3],limit) then
-            local distance,normal
-            if shape.quat then
-                distance,normal=Box(V.Unrotate(shape.quat,V.Sub(o,shape.center)),V.Unrotate(shape.quat,d),shape.half,limit)
-            else distance,normal=Box(o,d,shape.half,limit,shape.center) end
-            if normal and shape.quat then normal=V.Rotate(shape.quat,normal) end
-            Accept(distance,normal,shape.partId)
-        end
-    end end
+    castO,castD,castDD,limit=o,d,d[1]*d[1]+d[2]*d[2]+d[3]*d[3],length;bestDist=nil;bestQuat=nil;bestId=nil
+    local spec=vehicle.spec
+    Scan(spec.boxes);Scan(spec.hulls);Scan(spec.sensors)
+    if vehicle.legHitboxes then Scan(vehicle.legHitboxes:Items()) end
+    if vehicle.mechHitboxes then Scan(vehicle.mechHitboxes.items) end
+    local dd=castDD
     for _,w in ipairs(vehicle.wheels) do if not w.track then
-        local down=w.down or {0,-1,0};local wc,drop=w.center,w.drop
+        local down=w.down or DOWN;local wc,drop=w.center,w.drop
         local cx,cy,cz=wc[1]+down[1]*drop,wc[2]+down[2]*drop,wc[3]+down[3]*drop
         local radius,half=w.radius,w.width*.5
         if not SegmentMissesSphere(o,d,dd,cx,cy,cz,radius*radius+half*half,limit) then
-            local distance,normal=Cylinder(V.Sub(o,{cx,cy,cz}),d,w.axle,radius,half,limit)
-            Accept(distance,normal,w.partId)
+            local distance,nx,ny,nz=Cylinder(o[1]-cx,o[2]-cy,o[3]-cz,d,w.axle,radius,half,limit)
+            AcceptWheel(distance,nx,ny,nz,w.partId)
         end
         local conn=w.conn;local r2,h2=radius*.9,w.width*.45
         if not SegmentMissesSphere(o,d,dd,conn[1],conn[2],conn[3],r2*r2+h2*h2,limit) then
-            local distance,normal=Cylinder(V.Sub(o,conn),d,w.axle,r2,h2,limit)
-            Accept(distance,normal,w.partId)
+            local distance,nx,ny,nz=Cylinder(o[1]-conn[1],o[2]-conn[2],o[3]-conn[3],d,w.axle,r2,h2,limit)
+            AcceptWheel(distance,nx,ny,nz,w.partId)
         end
     end end
-    if best then best.point=V.Add(origin,V.Scale(direction,best.dist));best.body=body end
-    return best
+    if not bestDist then return end
+    local nx,ny,nz
+    if bestAxis==-1 or bestAxis==0 then nx,ny,nz=bestNx,bestNy,bestNz
+    else nx,ny,nz=0,0,0;if bestAxis==1 then nx=bestSign elseif bestAxis==2 then ny=bestSign else nz=bestSign end end
+    if bestQuat then nx,ny,nz=RotateXYZ(bestQuat,nx,ny,nz) end
+    nx,ny,nz=RotateXYZ(q,nx,ny,nz)
+    local dist=bestDist;bestQuat=nil
+    return {dist=dist,normal={nx,ny,nz},partId=bestId,
+        point={origin[1]+direction[1]*dist,origin[2]+direction[2]*dist,origin[3]+direction[3]*dist},body=body}
 end
 return M

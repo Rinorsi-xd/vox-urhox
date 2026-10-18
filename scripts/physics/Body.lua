@@ -54,12 +54,16 @@ function M.Wrap(native)
     local function ReadMass() if not scoped then return native.mass end;if not bodyMass then bodyMass=native.mass end;return bodyMass end
     local function ReadLinear() if not scoped then return native.linearVelocity end;if not linear then linear=native.linearVelocity end;return linear end
     local function ReadAngular() if not scoped then return native.angularVelocity end;if not angular then angular=native.angularVelocity end;return angular end
+    -- Bumped by every pose write so callers may cache a pose between physics steps.
+    local poseVersion=0
     local function Position(p)
+        poseVersion=poseVersion+1
         local v=Polar(p);native.position=v
         if native.kinematic then native.node.position=v end
         pose=nil;worldCenter=nil
     end
     local function Rotation(q)
+        poseVersion=poseVersion+1
         local v=Quaternion(q.w,q.x,-q.y,-q.z);native.rotation=v
         if native.kinematic then native.node.rotation=v end
         orientation=nil;worldCenter=nil;inverseRotation=nil
@@ -106,6 +110,9 @@ function M.Wrap(native)
     wrapper={
         native=native,
         isValid=function() return valid end,
+        poseVersion=function() return poseVersion end,
+        -- Direct native pose writes bypass setTranslation; they must call this.
+        touchPose=function() poseVersion=poseVersion+1;pose=nil;orientation=nil;worldCenter=nil;inverseRotation=nil end,
         invalidate=function() pending=false;fx,fy,fz,tx,ty,tz=0.0,0.0,0.0,0.0,0.0,0.0;valid=false;scoped=false;ClearReads();native=nil;wrapper.native=nil end,
         beginReadScope=function() FlushForces();ClearReads();scoped=true;return readGuard end,
         endReadScope=EndReadScope,
@@ -121,6 +128,10 @@ function M.Wrap(native)
         rotation=function() local q=ReadRotation();return {x=q.x,y=-q.y,z=-q.z,w=q.w} end,
         linvel=function() return Unpolar(ReadLinear()) end,
         angvel=function() return Unaxial(ReadAngular()) end,
+        predictedAngvel=function(dt)
+            local total=Vector3(tx,ty,tz)
+            return Unaxial(ReadAngular()+InvInertia(total)*dt)
+        end,
         localCom=function() return Unpolar(ReadLocalCenter()) end,
         center=function() return Unpolar(Center()) end,
         impulseDenominator=function(point,direction)

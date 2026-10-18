@@ -1,3 +1,7 @@
+local Markers=require 'render.SalvageMarkers'
+local Raider=require 'combat.DrillRaiderDriver'
+local Rivals=require 'salvage.Rivals'
+local Gear=require 'salvage.Gear'
 local ImportedDependencies=require("parts.Dependencies")
 local SalvageFx=require("render.SalvageFx")
 local SalvageExplosion=require("render.SalvageExplosion")
@@ -29,6 +33,9 @@ function M.Dependencies()
     end end
     local paths=ImportedDependencies.FromBlueprint({parts=parts})
     paths[#paths+1]='Shaders/BLGL/Salvage/Signal.shader'
+    paths[#paths+1]='Shaders/BLGL/Salvage/PersistentMarker.shader'
+    paths[#paths+1]='Shaders/BLGL/Outgame/Alpha.shader'
+    paths[#paths+1]='Models/Sphere.mdl'
     for _,path in ipairs(SalvageFx.Dependencies()) do paths[#paths+1]=path end
     for _,path in ipairs(SalvageExplosion.Dependencies()) do paths[#paths+1]=path end;return paths
 end
@@ -43,11 +50,18 @@ function M:init(session,bp)
     self.player=Unit.New(self.world,self.original,{name=bp.name,spawn=self.spawn,team='blue',externalView=true,externalControl=true,autoRespawn=false,combat=true})
     assert(self.player.alive,'Invalid salvage vehicle');self:Center(self.player,self.spawn)
     self.world.units={self.player};self.entries[1]={unit=self.player,env=self:Environment(self.player)}
-    self.director=Director.New(self);self.view=SalvageView.New(self)
+    self.gear=Gear.New(self)
+    self.director=Director.New(self)
+    for _,station in ipairs({{'R1','北岸船坞维修站',575,430},{'R2','西坡加油站维修站',-665,-30},{'R3','编组场维修站',790,-470}}) do
+        local x,z=-station[3],station[4];local at=self.director:Surface(x,z,true) or {x,self.world:GroundAt(x,z),z}
+        self.rules.objects[#self.rules.objects+1]={id=station[1],name=station[2],kind='station',g=at}
+    end
+    self.rivals=Rivals.New(self)
+    self.view=SalvageView.New(self)
     self.fx=SalvageFx.New(session.scene)
     self.explosion=SalvageExplosion.New(session.scene)
     self.audio=SalvageAudio.New(session.scene)
-    self.cine=Cinematics.New(self)
+    self.cine=Cinematics.New(self);self.markers=Markers.New(self)
 end
 function M:Center(u,at)
     local a,b=u.spec.bounds.min,u.spec.bounds.max;local x,z=(a[1]+b[1])/2,(a[3]+b[3])/2;local yaw=at.yaw or 0
@@ -71,7 +85,10 @@ function M:Environment(shooter)
 end
 function M:Begin()
     if self.begun then return end;self.begun=true
-    local ok,err=self.session.app.salvageLobby:BeginRun(self.runId)
+    local lobby=self.session.app.salvageLobby
+    for _,id in ipairs(self.session.app.salvageGear or {}) do if Gear.CARRY[id] then self.gear.pocket[id]=math.min(Gear.CARRY[id],lobby:Owned(id)) end end
+    local ok,err=lobby:BeginRun(self.runId,self.gear.pocket)
+    if not ok then self.gear.pocket={} end
     if not ok then print('[SalvageRun] Cannot persist begun raid: '..tostring(err)) end
     self.cine:Drop()
 end
@@ -104,15 +121,21 @@ function M:TouchContext()
 end
 function M:BeforeStep(dt,command,aim)
     if not self.begun or self.rules.finished then return end
+    if self.gear.open then command.firing=false;self.session.firing=false end
     command=self.cine:Command(command)
     if self.cine.hold then self.cine:HoldCar();return end
     for _,entry in ipairs(self.entries) do local u=entry.unit;u:Flush()
-        if u.alive then
+        if u.alive and not Raider.StepExplosion(u,dt) then
             local cmd,target,firing=command,aim,command.firing==true;local driverInfo
             if u~=self.player then
                 if #u.spec.weapons==0 or u.spec.motion.load==0 or u.spec.motion.topSpeed==0 then
                     entry.why=#u.spec.weapons==0 and '武器全被打掉' or '动不了了';u.kill=entry.why;u.dirty=true;u:Flush()
-                else cmd,target,firing,driverInfo=entry.driver:Step(dt,self.director:Target(entry));if entry.enc and not entry.enc.alerted then firing=false end end
+                else
+                    local opponent=self.director:Target(entry)
+                    cmd,target,firing,driverInfo=entry.driver:Step(dt,opponent)
+                    if entry.enc and not entry.enc.alerted or entry.rival and entry.rival.state~='fight' or self.gear:Hidden() then firing=false end
+                    entry.engagingPlayer=opponent==self.player and (firing or driverInfo and driverInfo.visible and entry.driver.canEngage) or false
+                end
             end
             if u.alive then
                 if u==self.player then cmd.strafe=0 end -- E belongs to source salvage interaction.
@@ -120,6 +143,7 @@ function M:BeforeStep(dt,command,aim)
                 local v=u.vehicle;v:StepRotors(target,cmd.rotorStep,dt);RotorMotion.Weapons(v.rotors,u.weapons)
                 v:Step(cmd,dt);u:RegenerateStructure(dt);local p,velocity=v.body.translation(),v.body.linvel()
                 u.weapons:Step(dt,{firing=firing,aim=target,pos={p.x,p.y,p.z},quat=v.body.rotation(),vel={velocity.x,velocity.y,velocity.z},body=v.body,team=u.team,salvo=driverInfo and driverInfo.salvo},entry.env)
+                for _,fx in ipairs(u.weapons.fx) do Raider.ArmExplosion(u,fx) end
                 self.session.effects:Consume(u.weapons.fx,u~=self.player);self.session.weaponAudio:Consume(u.weapons.fx,u~=self.player)
                 if p.y< -300 then u.kill='掉出地图';u.dirty=true;u:Flush() end
             end
@@ -135,7 +159,10 @@ function M:AfterStep(dt)
         if not u.alive then
             self.explosion:Explode(u:Position(),math.min(5,(u.spec.bounds.radius or 3)*.8),u.elite)
             self.rules.kills=self.rules.kills+1
-            self.rules:AddExtra({id='K'..self.rules.kills,kind='kill',name=u.name,elite=u.elite,tier=1,g=u:Position(),loot=Drops[e.kind] or Drops.rat})
+            local drops={};for _,row in ipairs(Drops[e.kind] or Drops.rat) do drops[#drops+1]=row end
+            for _,row in ipairs(self.rivals:OnKill(e)) do drops[#drops+1]=row end
+            local fallen=u:Position();local ground=self.director:Surface(fallen[1],fallen[3],true,fallen[2]+2) or fallen
+            self.rules:AddExtra({id='K'..self.rules.kills,kind='kill',name=u.name,elite=u.elite,tier=u.elite and 3 or 1,g=ground,loot=drops})
             self:Feed(u.elite and '击毁精英' or '击毁',u.name..(e.why and ' · '..e.why..'，当场炸了' or '')..' · 残骸可以拆',u.elite and '#ff3420' or '#ff8a6a')
             self.rules:Heat(2)
             if e.enc then self.director:Alert(e.enc,'同伴被打爆') end;self.director:Remove(e)
@@ -152,19 +179,20 @@ function M:AfterStep(dt)
             self.lastPos[1],self.lastPos[2],self.lastPos[3]=pos[1],pos[2],pos[3]
         else self.lastPos={pos[1],pos[2],pos[3]} end
     end
-    self.rules:Step(dt,{alive=u.alive,pos=pos,speed=self.speed or 0,width=math.min(b.max[1]-b.min[1],b.max[3]-b.min[3]),
-        firing=self.session.firing,hold=self.session.pointer.captured and (self.session.controls.held.interact or input:GetKeyDown(KEY_E)),tap=self.tapE,swap=self.tapF})
+    self.gear:Update(dt)
+    self.rules:Step(dt,{stationBlocked=function(o) return self:StationBlocked(o) end,alive=u.alive,pos=pos,speed=self.speed or 0,width=math.min(b.max[1]-b.min[1],b.max[3]-b.min[3]),
+        firing=self.session.firing,hold=not self.gear.open and self.session.pointer.captured and (self.session.controls.held.interact or input:GetKeyDown(KEY_E)),tap=not self.gear.open and self.tapE,swap=self.tapF})
     self.tapE=false;self.tapF=false
     self:Events()
     self:TouchContext()
-    if not self.rules.finished then self.director:Step(dt) end
+    if not self.rules.finished then self.director:Step(dt);self.rivals:Update(dt) end
     self.weigh=(self.weigh or 0)+dt
     if self.weigh>=.5 and u.alive then self.weigh=0;local mass=Loot.Mass(self.rules.cargo)
         if self.weighBody~=u.vehicle.native or self.weighKg~=mass then
             u.vehicle.native.mass=u.vehicle.mass+mass;self.weighBody=u.vehicle.native;self.weighKg=mass
         end
     end
-    self.view:Update(dt)
+    self.view:Update(dt);self.markers:Update(dt)
     local search=self.rules.search;local cracking=search and search.crack and search.crack<8
     local target=not self.rules.finished and not self.rules.ex and (cracking and search.o or not search and self.rules.target) or nil
     self.fx:Target(target or nil,self.rules.prompt and self.rules.prompt.progress or 0,cracking)
@@ -174,7 +202,11 @@ function M:Events()
     for _,e in ipairs(self.rules:Drain()) do
         SalvageLootMotion.Event(self,e)
         self.audio:Event(e)
-        if e.type=='noise' then self.director:Noise(e.at,e.r)
+        if e.type=='emptyBox' then self:Feed(e.title,'空的，被人搜过了','#8a8f98')
+        elseif e.type=='repairStation' then
+            local back=self.player:RestoreMissing(math.huge);self.player:Heal(1);self.player:Flush();self:SyncPlayer()
+            self:Feed(e.object.name,'全车修满 · 修回 '..#back..' 块方块 · 用掉 1 个能量电池','#3ddc84')
+        elseif e.type=='noise' then self.director:Noise(e.at,e.r);self.rivals:Noise(e.at,e.r)
         elseif e.type=='hunt' then self.director:Hunt(e.n,e.at)
         elseif e.type=='crate' then self.view:Crate(e.object)
         elseif e.type=='hide' then self.view:Hide(e.id)
@@ -256,7 +288,7 @@ function M:Finish(ok,title,keepCar,exit,disposing)
         for id,n in pairs(need) do lostCar=lostCar+(items[id] and items[id].price or 0)*math.min(n,self.session.app.salvageLobby:Owned(id)) end
     end
     self.rules.finished=true;self.result={ok=ok,title=title,keepCar=keepCar,cargo=ok and cargo or {},value=ok and Loot.Value(cargo) or 0,
-        lost=not ok and Loot.Value(cargo)+lostCar or 0,time=self.rules.time,kills=self.rules.kills,opened=self.rules.openedCount}
+        pocket=self.gear.pocket,lost=not ok and Loot.Value(cargo)+lostCar or 0,time=self.rules.time,kills=self.rules.kills,opened=self.rules.openedCount}
     -- Source consumes the extraction token before showing cargo; failure clears
     -- the hold. Keep the finished world's inventory equal to its retained result.
     self.rules.cargo=self.result.cargo
@@ -276,14 +308,32 @@ function M:Return()
     return true
 end
 function M:Key(key)
+    if self.gear:Key(key) then return true end
     if self.cine.blocking then
         if key==KEY_SPACE then self.cine:Skip() end
         return key~=KEY_ESCAPE and key~=KEY_T
     end
     if self.rules.finished then if key==KEY_RETURN then self.session.wantsReturn=true end;return key~=KEY_ESCAPE and key~=KEY_T end
-    if key==KEY_E then self.tapE=true;return true end
+    if key==KEY_E then
+        if self.gear.open then self.gear:Tap()
+        elseif self.rules.search or self.rules:Target(self.player:Position()) then self.tapE=true
+        else self.gearPress={at=Time:GetSystemTime()} end
+        return true
+    end
     if key==KEY_F then self.tapF=true;return true end
     return key==KEY_N or key==KEY_BACKSPACE
+end
+function M:PollGear()
+    if not self.gearPress then return end
+    if not input:GetKeyDown(KEY_E) then
+        local elapsed=Time:GetSystemTime()-self.gearPress.at;self.gearPress=nil
+        if elapsed<220 and not self.rules.ex and not self.cine.blocking and self.session.pointer.captured then self.gear:Tap() end
+    end
+end
+function M:StationBlocked(o)
+    if self.player:Life()>.999 and not self.gear:Missing() then return '车况完好，用不着' end
+    if (self.rules.cargo.cell or 0)<1 then return '需要 1 个能量电池' end
+    if math.abs(self.player.vehicle.speed)>2 then return '停稳了才能修' end
 end
 function M:SyncPlayer() PlayerViewSync.Update(self) end
 function M:Snapshot() return {time=self.rules.time,heat=self.rules.heat,cargo=self.rules.cargo,used=Loot.Used(self.rules.cargo),mass=Loot.Mass(self.rules.cargo),value=Loot.Value(self.rules.cargo),
@@ -301,6 +351,7 @@ function M:Dispose()
     -- Cinematics must release the held Bullet body before units/world go away.
     if self.cine then self.cine:Dispose() end
     if self.audio then self.audio:Dispose() end
+    if self.markers then self.markers:Dispose() end
     if self.view then self.view:Dispose() end
     if self.fx then self.fx:Dispose() end
     if self.explosion then self.explosion:Dispose() end
@@ -311,6 +362,9 @@ function M:Dispose()
         self.director.entries={};self.director.encounters={};self.director.run=nil;self.director.world=nil
     end
     self.director=nil;self.cine=nil;self.audio=nil;self.view=nil;self.fx=nil;self.explosion=nil
+    if self.gear then self.gear.run=nil end
+    if self.rivals then self.rivals.run=nil;self.rivals.squads={} end
+    self.markers=nil;self.gear=nil;self.rivals=nil
     self.weighBody=nil;self.lastPos=nil;self.player=nil;self.world=nil;self.session=nil
 end
 return M

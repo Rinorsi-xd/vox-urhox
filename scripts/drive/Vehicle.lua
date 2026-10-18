@@ -12,6 +12,8 @@ local Contact=require "drive.ContactControl"
 local Stability=require 'drive.ChassisStability'
 local Hover=require "drive.HoverControl"
 local Thrusters=require "drive.ThrusterControl"
+local GroundBoost=require "drive.GroundBoost"
+local ObstacleSlide=require "drive.ObstacleSlide"
 local Legs=require "drive.LegControl"
 local LegHitboxes=require "drive.LegHitboxes"
 local RotorMotion=require 'drive.RotorMotion'
@@ -64,9 +66,11 @@ function Vehicle:init(space,spec)
     -- the object as static, even though later impulses change its velocity.
     b.mass=self.mass
     self.body=space:Register(b,{type="vehicle",ref=self})
+    ObstacleSlide.Install(self)
     local com=self.body.localCom();Setup.Handling(self,{com.x,com.y,com.z})
     self.suspension=Suspension.New(self);self.vc=self.suspension.api
     self.hoverStates={};self.thrusterOutputs={};self.thrusterDirections={}
+    self.groundBoost=GroundBoost.New(#spec.thrusters)
     self.speed=0;self.telemetry={speed=0,contact=0,wheels=#self.wheels,boosting=false}
     self.flightTarget=nil;self.liftTilt=0;self.landingTime=0;self.hoverHeightScale=1;self.disposed=false
     self.legControl=#spec.legs>0 and Legs.New(self) or nil
@@ -77,6 +81,7 @@ function Vehicle:init(space,spec)
     self.mechHitboxes=#(spec.mechLegs or {})>0 and MechHitboxes.New(self) or nil
 end
 function Vehicle:Place(pos,yaw)
+    self.groundBoost:Reset();self.slideStep=nil;self.staticContacts={};self.slideBefore=nil
     if self.drill then self.drill:Cancel() end
     self.body.setTranslation({x=pos[1],y=pos[2]-self.spec.bounds.min[2]+.15,z=pos[3]})
     self.body.setRotation({x=0,y=math.sin(yaw/2),z=0,w=math.cos(yaw/2)})
@@ -100,9 +105,11 @@ function Vehicle:GetState()
         flightTarget=self.flightTarget,liftTilt=self.liftTilt,hoverHeightScale=self.hoverHeightScale,
         legs=self.legControl and self.legControl:Snapshot() or nil,mech=self.mechControl and self.mechControl:Snapshot() or nil,
         chassis={vPrev=self.vPrev,aLong=self.aLong,aLat=self.aLat,airT=self.airT,drifting=self.drifting,landingTime=self.landingTime},
-        wing=self.wingState,rotors=RotorMotion.Snapshot(self.rotors)}
+        groundBoost=self.groundBoost:Snapshot(),wing=self.wingState,rotors=RotorMotion.Snapshot(self.rotors)}
 end
 function Vehicle:SetState(s)
+    self.groundBoost:Restore(s.groundBoost)
+    self.slideStep=nil;self.staticContacts={};self.slideBefore=nil;self.slideClearTime=0
     local b=self.body;b.setTranslation(s.p);b.setRotation(s.q);b.setLinvel(s.lv);b.setAngvel(s.av)
     self.steer=s.steer;self.flightTarget=s.flightTarget;self.liftTilt=s.liftTilt or 0
     self.hoverHeightScale=Math.Clamp(s.hoverHeightScale or 1,.6,1.7)
@@ -148,7 +155,7 @@ function Vehicle:ApplyRotors()
 end
 function Vehicle:Step(cmd,dt)
     if self.disposed then return end
-    if self.drill and self.drill:ControlsBody() then self.popBefore=nil;self:SyncDrillPose();return end
+    if self.drill and self.drill:ControlsBody() then self.groundBoost:Cancel();self.popBefore=nil;self:SyncDrillPose();return end
     local bodyReads <close> = self.body.beginReadScope()
     if self.mechControl then
         local up=Math.Rotate(self.body.rotation(),{0,1,0});local v=self.body.linvel()
@@ -168,11 +175,13 @@ function Vehicle:Step(cmd,dt)
     local lifts=false;for _,t in ipairs(self.spec.thrusters) do if t.dir[2]>.7 then lifts=true end end
     if self.hoverMode and not lifts then self.hoverHeightScale=Math.Clamp(self.hoverHeightScale+Math.Clamp(cmd.climb or 0,-1,1)*.6*dt,.6,1.7) end
     self.suspension:Sample()
+    cmd=self.groundBoost:Prepare(self,cmd,dt,frame)
     local ground=Contact.Step(self,cmd,dt,frame)
     local flyingWing=self.spec.wings and #self.spec.wings>0 and (ground.contact==0 or self.wingState and self.wingState.phase=='takeoff')
     if Stability.Wants(self) and not flyingWing then Stability.Step(self,dt,frame,ground.contact) end
     local hover=Hover.Step(self,ground.wheelSupport)
     local motion=Hover.Motion(self,cmd,frame)
+    Hover.Recovery(self,dt,up)
     local legs=self.legControl and self.legControl:Step(cmd,dt,ground.wheelSupport+hover.hoverForce) or {}
     self.legHitboxes:Update()
     local mech=self.mechControl and self.mechControl:Step(cmd,dt,ground.wheelSupport+hover.hoverForce+(legs.legVerticalSupport or 0)) or {}
@@ -186,14 +195,17 @@ function Vehicle:Step(cmd,dt)
         local x=over/20
         self.body.addForce({x=0,y=-self.mass*(9.81*1.8*x*x+math.max(0,velocity.y)*1.2*x),z=0},true)
     end
+    local burst=self.groundBoost:Apply(self,frame)
     self.suspension:Apply(dt)
     self.telemetry={speed=self.speed,totalSpeed=Math.Length(vel),vmax=self.spec.motion.topSpeed}
-    for _,values in ipairs({ground,hover,motion,legs,mech,flight,wing}) do for key,value in pairs(values) do self.telemetry[key]=value end end
-    self.telemetry.boosting=not not (flight.boosting or mech.boosting)
+    for _,values in ipairs({ground,hover,motion,legs,mech,flight,wing,burst}) do for key,value in pairs(values) do self.telemetry[key]=value end end
+    self.telemetry.boosting=not not (flight.boosting or mech.boosting or burst.groundBoost)
+    ObstacleSlide.Prepare(self,cmd,dt,frame)
 end
 -- Apply after Bullet integration and before visual pose capture. Ground impact
 -- may add at most the source 4 m/s upward; intentional flight/jumps are exempt.
 function Vehicle:PostStep()
+    ObstacleSlide.Finish(self)
     local before,t=self.popBefore,self.telemetry;self.popBefore=nil
     if self.disposed or not before or not before.grounded or t.legJumped or t.mechJet or t.mechBoost
         or t.boosting or (t.wingLift or 0)>0 or self.drill and self.drill:ControlsBody() then return end
@@ -213,6 +225,7 @@ function Vehicle:SyncDrillPose()
     if self.mechHitboxes then self.mechHitboxes:Update() end
     self.legHitboxes:Update();self.speed=Math.Dot(velocity,Math.RotateUnit(q,{0,0,1}))
     self.telemetry.speed=self.speed;self.telemetry.totalSpeed=Math.Length(velocity);self.telemetry.boosting=false;self.telemetry.legContacts=0
+    self.telemetry.groundBoost=false;self.telemetry.groundBoostFx=0;self.telemetry.obstacleSlide=nil
 end
 function Vehicle:WheelPose(index)
     local w,s=self.wheels[index],self.suspension.states[index]

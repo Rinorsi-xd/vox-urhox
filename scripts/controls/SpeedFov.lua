@@ -13,7 +13,7 @@ function M:Step(vehicle,dt,base,current,options)
     local top=feet and (telemetry.legSpeedLimit or motion.topSpeed) or math.max(motion.topSpeed or 0,motion.thrusterSpeed or 0)
     if not top or top<=0 then top=self.peak end
     local rel=Math.Clamp((self.speed/top-.55)/.45,0,1)
-    local want=o.scope or (base+12*rel*rel*(3-2*rel)+(o.rush or 0)*28-(o.charge or 0)*3+(o.punch or 0))
+    local want=o.scope or (base+12*rel*rel*(3-2*rel)+math.max((o.rush or 0)*28,(o.boost or 0)*10)-(o.charge or 0)*3+(o.punch or 0))
     local scoped=o.scope~=nil
     local smooth=(want-current)*(1-math.exp(-dt*((scoped or (self.scopeT or 0)>0) and 16 or 4)))
     self.scopeT=scoped and .5 or math.max(0,(self.scopeT or 0)-dt)

@@ -261,7 +261,9 @@ function M.BuildParts(parts,dropped,rotors,rotorOf,checkpoint)
     out.bounds={min=lo,max=hi,radius=Math.Length(Math.Sub(hi,lo))/2}
     return out
 end
-function M.Build(bp,checkpoint,connected)
+-- opts.deferRanges leaves weapon ranges unset; the caller computes them later
+-- with TurretRange.For(bp,spec.rotorOf,...) (combat rebuilds slice this work).
+function M.Build(bp,checkpoint,connected,opts)
     local stage=0
     local pause=checkpoint and function() checkpoint(stage) end or nil
     local adj=connected and connected.adj or bp:Graph(pause);stage=.15
@@ -273,7 +275,7 @@ function M.Build(bp,checkpoint,connected)
     local rotors,owner=Rotors.Spec(bp,adj,conn.reached,pause)
     stage=.4
     local out=M.BuildParts(parts,bp:Size()-#parts,rotors,owner,pause)
-    if out.ok then
+    if out.ok and not (opts and opts.deferRanges) then
         stage=.6
         local ranges=TurretRange.For(bp,owner,pause)
         for _,w in ipairs(out.weapons) do w.range=ranges[w.partId] end

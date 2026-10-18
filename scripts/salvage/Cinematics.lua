@@ -6,15 +6,17 @@ local Motion=require 'salvage.CineMotion'
 local View=require 'render.SalvageCinematics'
 local Tween=require 'ui.SourceButtonMotion'
 local Loot=require 'salvage.Loot'
+local CameraCollision=require 'controls.CameraCollision'
 local M={};M.__index=M
 local function Vec(a) return Vector3(a[1],a[2],a[3]) end
 local function TweenState() return {value=0,start=0,target=0,elapsed=0,duration=0} end
 function M.New(run)
     local self=setmetatable({},M);self.run=run;self.session=run.session;self.view=View.New(run.session.scene)
     self.shot=Motion.New();self.approachShot=Motion.New();self.bars=TweenState();self.hud=TweenState();self.caption=TweenState();self.skip=TweenState();self.namecard=TweenState()
-    self.time=0;self.flash=0;self.flashTime=0;self.shake=0;self.playing=false;self.blocking=false;return self
+    self.eliteQueue={};self.time=0;self.flash=0;self.flashTime=0;self.shake=0;self.playing=false;self.blocking=false;return self
 end
 function M:Start(name,len,block)
+    if name=='death' or name=='extract' then self.eliteQueue={} end
     self:ReleaseCar();self.current={name=name,t=0,len=len};self.playing=true;self.blocking=block;self.barsOn=true
     self.captionTitle=nil;self.skipOn=false;self.shot.w=0;return self.current
 end
@@ -24,7 +26,8 @@ function M:Drop()
     self:StepShot(c);self:HoldCar();print('[SalvageCine] drop begin')
 end
 function M:Elite(unit)
-    if self.blocking then return end;local c=self:Start('elite',3.2,false);c.unit=unit
+    for _,queued in ipairs(self.eliteQueue) do if queued==unit then return end end
+    self.eliteQueue[#self.eliteQueue+1]=unit
 end
 function M:Approach(exit,wait)
     self.approach={exit=exit,E=Vec(exit.g),t=0,wait=math.max(3,math.min(wait or exit.wait,6))}
@@ -65,7 +68,7 @@ function M:HoldCar()
     end
     local y=hold.y+(self.rawHold and 0 or -u.spec.bounds.min[2]+.15)
     native.position=Vector3(-hold.x,y,hold.z);native.rotation=View.Rotation(0,self.holdYaw,0)
-    native.linearVelocity=Vector3.ZERO;native.angularVelocity=Vector3.ZERO;native:ResetForces()
+    native.linearVelocity=Vector3.ZERO;native.angularVelocity=Vector3.ZERO;native:ResetForces();u.vehicle.body.touchPose()
     if self.session.view then self.session.view:ResetPose(false);self.session.view:Update(1,0) end
     u:SavePose();u.previous=u.current
 end
@@ -101,6 +104,10 @@ function M:LandingDust(at,approach)
 end
 function M:Update(dt)
     if self.disposed then return end
+    if not self.playing and not self.run.rules.finished and self.run.landed and #self.eliteQueue>0 then
+        local unit=table.remove(self.eliteQueue,1)
+        if unit.alive then local c=self:Start('elite',3.2,false);c.unit=unit;self:NameCard('精英 · '..unit.name,'敌方精英已出场',3.4);self:Flash(.2,.6) end
+    end
     local shot=self.current
     local advanceTime=not self.run.result and self.run.rules.finished and shot and (shot.name=='extract' or shot.name=='death')
     local presentationDt=math.max(0,dt)
@@ -146,6 +153,10 @@ function M:Camera()
     node.position=desired;node:LookAt(Vector3(-r.tgt.x,r.tgt.y,r.tgt.z));local target=node.rotation
     node.position=p:Lerp(node.position,r.w);node.rotation=q:Slerp(target,r.w);camera.fov=camera.fov+(r.fov-camera.fov)*r.w
     if self.shake>.02 then node.position=node.position+Vector3((math.random()-.5)*self.shake,(math.random()-.5)*self.shake,(math.random()-.5)*self.shake) end
+    local at=node.position
+    local safe=CameraCollision.Constrain(function(o,d,l) return CameraCollision.Cast(self.run.world.space,o,d,l,nil,1) end,
+        {r.tgt.x,r.tgt.y,r.tgt.z},{-at.x,at.y,at.z})
+    node.position=Vector3(-safe[1],safe[2],safe[3])
 end
 function M:CameraPosition(r)
     -- Aim -> scenery hit <- .85 m clearance <- authored camera.
@@ -156,8 +167,8 @@ function M:CameraPosition(r)
     p.y=math.max(p.y,world:GroundAt(-p.x,p.z)+1.2)
     local target=Vector3(-r.tgt.x,r.tgt.y,r.tgt.z);local delta=p-target;local length=delta:Length()
     if length>.01 then
-        local hit=world.space.world:RaycastSingle(Ray(target,delta/length),length,1)
-        if hit.body then p=target+delta/length*math.max(0,hit.distance-.85) end
+        local hit=world.space.world:SphereCast(Ray(target,delta/length),CameraCollision.RADIUS,length,1)
+        if hit.body then p=target+delta/length*math.max(0,hit.distance-CameraCollision.SKIN) end
     end
     self.cameraResolved=p;return p
 end
@@ -177,6 +188,7 @@ function M:Snapshot()
 end
 function M:Dispose()
     if self.disposed then return end;self.disposed=true;self:ReleaseCar();self.playing=false;self.blocking=false;self.current=nil;self.approach=nil
+    self.eliteQueue={}
     if self.filter then self.filter:Dispose();self.filter=nil end
     if self.dust then self.dust:Dispose();self.dust=nil end;self.view:Dispose()
     self.view=nil;self.run=nil;self.session=nil;self.shot=nil;self.approachShot=nil;self.cameraResolved=nil

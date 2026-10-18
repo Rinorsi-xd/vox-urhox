@@ -20,7 +20,7 @@ function Meter:Render(vg)
     end
     local info=self.motionText or ''
     if info~=self.infoKey then self.infoKey=info;self.infoLayout=info~='' and Rich.Layout(vg,{{{text=info,size=13,font='vox-body',color=D.white}}},366,17) or nil end
-    local h=95+self.baseLayout.height+(self.infoLayout and self.infoLayout.height or 0)
+    local h=(t.groundBoostAvailable and 130 or 95)+self.baseLayout.height+(self.infoLayout and self.infoLayout.height or 0)
     if self.props.height~=h then self:SetStyle({height=h});return end
     Draw.Panel(vg,x,y,w,h)
     local kmh=self.speedValue or 0;local speed=self.speedText or '0';local numWidth=math.max(D.Width(vg,'0',50,'vox-tabular')*2.4,D.Width(vg,speed,50,'vox-tabular'));local unit=Draw.Width(vg,'km/h',12,2)
@@ -31,6 +31,12 @@ function Meter:Render(vg)
     D.Rect(vg,x+17,y+71,366,4,{95,228,255,26});nvgBeginPath(vg);nvgRect(vg,x+17,y+71,fill,4);D.Gradient(vg,x+17,y+71,math.max(1,fill),4,{31,168,230,255},{127,240,255,255},true)
     D.Rect(vg,x+17+366*m.topSpeed*3.6/max,y+71,2,4,D.orange);Rich.Draw(vg,self.baseLayout,x+17+(366-self.baseLayout.width)/2,y+82,true)
     if self.infoLayout then Rich.Draw(vg,self.infoLayout,x+17,y+82+self.baseLayout.height) end
+    if t.groundBoostAvailable then
+        local charge=(t.groundBoostLeft or 0)/math.max(.001,t.groundBoostDuration or 1)
+        local label=t.groundBoost and '推进中' or t.groundBoostRecharging and '蓄能中' or (t.groundBoostRechargeDelay or 0)>0 and '等待充能' or 'Shift 推进'
+        D.Text(vg,label..string.format(' · %.0f%%',charge*100),x+17,y+h-32,12,D.white,'vox-body')
+        D.Rect(vg,x+17,y+h-12,366,4,{95,228,255,26});D.Rect(vg,x+17,y+h-12,366*charge,4,D.orange)
+    end
     local flags={};if t.boosting then flags[#flags+1]={'推进',D.orange,{29,10,0,255}} end
     if (t.contact or 0)==0 and (t.hovers or 0)==0 and (t.legContacts or 0)==0 then flags[#flags+1]={'离地',D.white,{2,22,35,255}} end
     if v.drifting then flags[#flags+1]={'手刹',{255,59,48,255},{42,0,0,255}} end

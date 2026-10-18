@@ -1,5 +1,6 @@
 -- Scene preparation and UI lifetime are separate: the overlay survives SetRoot.
 local ResourceGate=require("app.ResourceGate")
+local ResourceData=require("core.ResourceData")
 local LoadingPage=require("ui.LoadingPage")
 local ImageCache=require("urhox-libs/UI/Core/ImageCache")
 local ArenaData=require("combat.ArenaData")
@@ -61,6 +62,17 @@ function M:QueueBattle(mode,bp)
     self.sounds=BattleFlow.New();self.sounds:Prepare(true);self.sounds:Queue(true)
     -- The queue/loading mask absorbs the first battle track's download.
     if self.app.music and self.app.music.Prefetch then self.app.music:Prefetch('drive-combat') end
+    -- The 6-14 s queue used to idle the network. Start the map download now;
+    -- the native cache dedupes it with the loader's own request after roster.
+    -- The baked minimap is outside the map manifest, so fetch it here too.
+    local mapPaths=ResourceData.Read(map.resources)
+    mapPaths[#mapPaths+1]=map.scene
+    mapPaths[#mapPaths+1]='Crater/Minimap.json';mapPaths[#mapPaths+1]='Crater/Minimap.bin'
+    self.mapPrefetch=self.mapPrefetch or ResourceGate.New()
+    local prefetchStarted=Time:GetSystemTime()
+    self.mapPrefetch:Start(mapPaths,function(ok,failure)
+        print('[LoadingFlow] Map prefetch '..(ok and 'ready' or 'failed '..tostring(failure))..' after '..(Time:GetSystemTime()-prefetchStarted)..'ms')
+    end)
     local paths=MatchLobby.Dependencies(roster);local generation=self.generation
     self.artGate:Start(paths,function(ok)
         if not self.active or self.generation~=generation then return end
@@ -291,6 +303,7 @@ function M:Close()
     if self.renderWarmup then self.renderWarmup:Restore();self.renderWarmup=nil end
     self.active=false;self.pageVisible=false;self.phase='closed';self.onBack=nil
     if self.artGate then self.artGate:Cancel() end
+    if self.mapPrefetch then self.mapPrefetch:Cancel() end
     if self.sounds then self.sounds:Dispose();self.sounds=nil end
     if self.page then self.page:Close() end
     if wasActive then

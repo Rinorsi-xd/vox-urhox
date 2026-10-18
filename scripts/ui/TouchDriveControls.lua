@@ -9,6 +9,7 @@ local DeferredModules=setmetatable({},{__index=function(modules,name)
 end})
 
 local UI=require 'urhox-libs/UI'
+local GroundBoost=require 'drive.GroundBoost'
 local M={}
 function M.Create(session,root)
     local prefs=TouchPreferences.Get(session.app)
@@ -81,8 +82,9 @@ function M.Create(session,root)
             l.Relayout(keys,prefs.size)
             l.buttons.up.props.icon=keys and 'pitch-up' or v.legMode and 'jump' or (v.hoverMode or lifts) and 'up' or 'brake'
             l.buttons.up:SetVisible(not l.menu and not l.blocked and not point)
-            l.buttons.aux.props.icon=keys and 'pitch-down' or v.mechControl and l.aux=='boost' and 'boost' or 'down'
-            l.buttons.aux:SetVisible(not l.menu and not l.blocked and not point and (keys or v.hoverMode or lifts or v.mechControl or l.aux~='boost'))
+            local groundBoost=GroundBoost.Available(v)
+            l.buttons.aux.props.icon=keys and 'pitch-down' or (v.mechControl or groundBoost) and l.aux=='boost' and 'boost' or 'down'
+            l.buttons.aux:SetVisible(not l.menu and not l.blocked and not point and (keys or groundBoost or v.hoverMode or lifts or v.mechControl or l.aux~='boost'))
             for _,id in ipairs({'rudder-l','rudder-r'}) do l.buttons[id]:SetVisible(not l.menu and not l.blocked and keys) end
             l.buttons.scope.props.selected=session.scope
             local time=session.world.time or 0;local q=v.body.rotation();local inverted=1-2*(q.x*q.x+q.z*q.z)<.35

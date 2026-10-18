@@ -15,6 +15,7 @@ local MusicBoxVisual=require("ui.MusicBoxVisual")
 local HomeNewMenu=require("ui.HomeNewMenu")
 local HomeStats=require("ui.HomeStats")
 local ResourceData=require("core.ResourceData")
+local ResourceGate=require("app.ResourceGate")
 local HomeBay=require("ui.HomeBay")
 local Defs=require("parts.Defs")
 local HomeBattle=require("ui.HomeBattle")
@@ -35,11 +36,8 @@ local Config=require 'Config'
 local M={}
 ---@type table|false
 local state=false
--- 模式选择页一打开就要画的 7 张大图（900×1350 / 1920×1080 JPG）。第一次进页面时在主线程同步解码，
--- 实测首帧 96+77 ms；在机库里提前按 Texture2D 后台预读后降到 28+18 ms（NanoVG 建图复用缓存纹理）。
--- 每 0.25 秒排一张：Web 没有后台线程时退化为同步加载，分散开不会集中卡一下
--- 前 7 张是页面初始显示的；后面是点模式卡会用到的选中图、切走后的普通图、试车场地图，
--- 第一次点卡时同样会同步解码（实测 34–39 ms 一帧）。悬停图只在有鼠标时预读：触屏不显示悬停图（ModeCard）
+-- 分批预读模式选择页首屏及切换卡片时使用的大图，避免首次点击集中解码。
+-- 机库等待 1.5 秒后每 0.25 秒加载一张，进入模式页后继续未完成的队列。
 local battleArt={}
 local names={'elimination-selected','conquest-idle','escort-idle','crater-story','test-idle','crater-idle','crater-map',
     'conquest-selected','escort-selected','elimination-idle','test-selected','crater-selected','test-map'}
@@ -47,12 +45,17 @@ if not TouchMode.Enabled() then
     for _,n in ipairs({'elimination-hover','conquest-hover','escort-hover','test-hover','crater-hover','crater-story-hover'}) do names[#names+1]=n end
 end
 for _,name in ipairs(names) do battleArt[#battleArt+1]='UI/Modes/Filtered/'..name..'.jpg' end
-local prewarm={index=0,wait=1.5}
+local prewarm={index=0,wait=1.5,gate=ResourceGate.New()}
 local function Prewarm(s,dt)
-    if prewarm.index>=#battleArt or (s.tab~='hangar' and s.tab~='battle') then return end
+    if prewarm.index>=#battleArt or prewarm.gate.state=='loading' or (s.tab~='hangar' and s.tab~='battle') then return end
     prewarm.wait=prewarm.wait-dt;if prewarm.wait>0 then return end
     prewarm.index=prewarm.index+1;prewarm.wait=.25
-    cache:BackgroundLoadResource('Texture2D',battleArt[prewarm.index])
+    local path=battleArt[prewarm.index]
+    -- BackgroundLoadResource only reads local files; mode art is excluded from
+    -- boot downloads. Use the shared gate (including legacy Web support) first.
+    prewarm.gate:Start({path},function(ok)
+        if ok then cache:BackgroundLoadResource('Texture2D',path) end
+    end)
 end
 local function Clear(container)
     local old={table.unpack(container.children)};container:ClearChildren();for _,c in ipairs(old) do c:Destroy() end

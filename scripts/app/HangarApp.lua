@@ -361,6 +361,8 @@ function App:EnterTrial(mapId,battleMode,roster,reuseLoading)
     end
     if map.salvage then
         if self.lobby~='salvage' then return false end
+        local home=Hud.GetState();local selected=home and home.salvage and home.salvage.gear or {}
+        self.salvageGear={table.unpack(selected)}
         local spec=VehicleSpec.Build(self.blueprint)
         if not spec.ok then self.toasts:Push(spec.reason or '战车无法出发，请先整备','bad');return false end
         local items=ResourceData.Read('UI/Outgame.json')
@@ -423,6 +425,8 @@ function App:EnterTrial(mapId,battleMode,roster,reuseLoading)
         end
     end
     if battleMode then for _,path in ipairs(BattleController.Dependencies(self.blueprint,roster,battleMode)) do resources[#resources+1]=path end end
+    -- MatchMapShot otherwise waits up to 10 s for its own download after this one.
+    if battleMode and map.scene=='Scenes/Crater.xml' then resources[#resources+1]='Crater/Minimap.json';resources[#resources+1]='Crater/Minimap.bin' end
     if map.storyLevel then for _,path in ipairs(Mission.Dependencies(self.blueprint,map.storyLevel)) do resources[#resources+1]=path end end
     if map.endless then for _,path in ipairs(EndlessSession.Dependencies(entryBlueprint)) do resources[#resources+1]=path end end
     return resources

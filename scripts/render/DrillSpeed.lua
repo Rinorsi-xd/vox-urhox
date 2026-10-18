@@ -23,8 +23,9 @@ function M:Prepare()
     self.viewport=Viewport:new(self.scene,camera);self.viewport:SetRenderPath(path)
     self.index=renderer.numViewports;renderer:SetNumViewports(self.index+1);Viewports.Set(self.index,self.viewport)
 end
-function M:Update(dt,camera,system,live)
+function M:Update(dt,camera,system,live,boost)
     local a=system.drill.active;local want=live and a and a.phase=='dash' and (a.grinding and .55 or 1) or 0
+    if live then want=math.max(want,(boost or 0)*.7) end
     self.rush=self.rush+(want-self.rush)*(1-math.exp(-dt*(want>self.rush and 12 or 6)))
     if not live then self.rush=0 end
     self.time=self.time+dt;self.visible=self.rush>.01
@@ -37,6 +38,8 @@ function M:Update(dt,camera,system,live)
         local p=camera:WorldToScreenPoint(at)
         m:SetShaderParameter('center',Variant(Vector2(V.Clamp(p.x*2-1,-.45,.45),V.Clamp(1-p.y*2,-.3,.3))))
         m:SetShaderParameter('pink',Variant(a.w.stats.easter and 1 or 0))
+    else
+        m:SetShaderParameter('center',Variant(Vector2.ZERO));m:SetShaderParameter('pink',Variant(0))
     end
 end
 function M:Clear() self.rush=0;self.visible=false;if self.mesh then self.mesh.enabled=false end end

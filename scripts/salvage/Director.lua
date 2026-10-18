@@ -1,3 +1,4 @@
+local Raider=require 'combat.DrillRaiderDriver'
 local Data=require('core.ResourceData').Read('Salvage/RunData.json')
 local Unit=require 'combat.CarUnit'
 local Driver=require 'combat.EnemyDriver'
@@ -9,20 +10,21 @@ function M.New(run)
         local e={};for k,v in pairs(source) do e[k]=v end;e.g={-e.x,e.y,e.z};e.state='dormant';e.left={table.unpack(e.squad)};e.units={};self.encounters[#self.encounters+1]=e
     end;return self
 end
-function M:Surface(x,z,nest)
-    local h=self.world.space:Raycast({x,600,z},{0,-1,0},1200,nil,nil,true)
+function M:Surface(x,z,nest,startY)
+    local h=self.world.space:Raycast({x,startY or 600,z},{0,-1,0},1200,nil,nil,true,0x6ff7)
     if not h or h.normal[2]<.75 or not nest and h.point[2]>self.world:GroundAt(x,z)+3 then return nil end;return h.point
 end
 function M:Add(kind,at,yaw,enc,seed)
     local alive=0;for i=2,#self.entries do if self.entries[i].unit.alive then alive=alive+1 end end
     if alive>=14 or not at then return nil end
-    local variants=Data.enemies[kind] or Data.enemies.rat;local def=variants[((seed or 1)-1)%4+1]
+    local variants=Data.enemies[kind] or Data.enemies.rat;local def=variants[((seed or 1)-1)%#variants+1]
     local u=Unit.New(self.world,def.source,{name=def.name,spawn={pos={at[1],at[2]+1.2,at[3]},yaw=yaw},team='red',
         autoRespawn=false,externalControl=true,combat=true,hpMultiplier=def.hp*self.run.rules.op.enemyHp})
     if not u.alive then u:Dispose();return nil end
     self.run:Center(u,u.spawnAt);u.elite=def.elite
+    if def.selfDestruct then u.endless={flingSelfDestruct=true} end
     local e={unit=u,def=def,kind=kind,enc=enc,post=at,wp=1,dir=1,hit0=u.hitAt,
-        driver=Driver.New(self.world,u,def.ai,#self.entries+1,{tier=def.tier,seed='salvage:'..kind..':'..string.format('%.1f',self.run.rules.time)..':'..(seed or 1)}),env=self.run:Environment(u)}
+        driver=(def.driver=='drill' and Raider or Driver).New(self.world,u,def.ai,#self.entries+1,{tier=def.tier,seed='salvage:'..kind..':'..string.format('%.1f',self.run.rules.time)..':'..(seed or 1)}),env=self.run:Environment(u)}
     e.passive={passive=true,radius=enc and enc.kind=='patrol' and 6 or 5,spec={bounds={min={0,0,0},max={0,0,0}}},Position=function() return e.post end}
     self.entries[#self.entries+1]=e;self.world.units[#self.world.units+1]=u
     if enc then enc.units[#enc.units+1]=e end
@@ -35,7 +37,7 @@ function M:Alert(enc,why)
     local elite=false
     for _,entry in ipairs(enc.units) do if entry.unit.alive and entry.unit.elite then elite=entry;break end end
     if enc.kind=='elite' and elite then
-        cine:Elite(elite.unit);cine:NameCard('精英 · '..elite.def.name,(elite.def.title or '')..' · '..(elite.def.gang or ''),3.4);cine:Flash(.2,.6)
+        cine:Elite(elite.unit)
     elseif enc.kind=='ambush' then cine:NameCard('伏击！',enc.name..' · '..#enc.units..' 辆冲出来了',2.4);cine:Flash(.15,.4)
     else
         local alive=0;for _,entry in ipairs(enc.units) do if entry.unit.alive then alive=alive+1 end end
@@ -107,7 +109,7 @@ function M:Step(dt)
                 self.run.fx:Loot(ground,({0xc9c1b2,0x3ddc84,0x3ea8ff,0xc46bff})[tier+1],0)
                 self.run:Feed('清除 · '..e.name,({'','普通','优良','稀有'})[tier+1]..'补给箱掉在了'..(e.kind=='patrol' and '车队残骸边' or '据点中间'),'#3ddc84')
             elseif not e.alerted and hit then self:Alert(e,'被打了')
-            elseif not e.alerted and d<(e.aggroR or 140) then self:Alert(e,'发现了你')
+            elseif not e.alerted and not self.run.gear:Hidden() and d<(e.aggroR or 140) then self:Alert(e,'发现了你')
             elseif not e.alerted and d>650 then
                 e.left={};for _,entry in ipairs(e.units) do if entry.unit.alive then e.left[#e.left+1]=entry.kind end;self:Remove(entry) end
                 e.units={};e.state=#e.left>0 and 'dormant' or 'cleared'
@@ -118,8 +120,18 @@ function M:Step(dt)
     self.run.threat=nearest and nearestDist<400 and nearest or nil
 end
 function M:Target(entry)
+    local rival=self.run.rivals:Target(entry);if rival then return rival end
     local enc=entry.enc
-    if not enc or enc.alerted then return self.run.player end
+    if not enc or enc.alerted then
+        if self.run.gear:Hidden() then
+            if not entry.smokeSearchAt or self.run.rules.time>=entry.smokeSearchAt then
+                local g=self.run.gear.smoke.g;local a=self.run.rules.rand()*math.pi*2;local radius=self.run.rules.rand()*18
+                entry.post={g[1]+math.cos(a)*radius,g[2],g[3]+math.sin(a)*radius};entry.smokeSearchAt=self.run.rules.time+2.5
+            end
+            return entry.passive
+        end
+        return self.run.player
+    end
     if enc.kind=='patrol' then
         local p=enc.route[entry.wp];entry.post={-p[1],p[2],p[3]}
         if Flat(entry.unit:Position(),entry.post)<16 then

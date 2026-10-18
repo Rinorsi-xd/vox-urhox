@@ -24,7 +24,11 @@ function M:Button(button,down,now)
     local s=self.session
     if not self.captured or self.skip or not self.ready or s.disposed or s.dialog or not s:HasFocus() then return end
     if input.mouseMode~=MM_RELATIVE or self.web and not input.mouseLocked then return end
-    if button==MOUSEB_LEFT then s.controls.held.fire=down;return end
+    if button==MOUSEB_LEFT then
+        if s.salvage and s.salvage.gear.open then if down then s.salvage.gear:Use(s.salvage.gear.selected) end;s.controls.held.fire=false;self.gearClick=true;return end
+        if self.gearClick then self.gearClick=down;return end
+        s.controls.held.fire=down;return
+    end
     if button~=MOUSEB_RIGHT then return end
     if down and not self.right then
         self.scopeHold=not s.scope;self.scopeAt=now;self.heldTime=0;s.scope=not s.scope
@@ -61,7 +65,7 @@ function M:Sample(sample,dt)
     if not self.captured then return end
     if self.skip then self.skip=false;return end
     if not self.ready then self.ready=not (sample.left or sample.right or sample.middle);return end
-    local s=self.session;s.controls:Look(sample.dx or 0,sample.dy or 0);s.controls.held.fire=sample.left==true
+    local s=self.session;s.controls:Look(sample.dx or 0,sample.dy or 0);s.controls.held.fire=sample.left==true and not self.gearClick and not (s.salvage and s.salvage.gear.open)
     if sample.wheel and sample.wheel~=0 then s:Zoom(sample.wheel) end
     -- Real input edges preserve clicks that begin/end between rendered frames.
     -- Sample-only callers keep their deterministic replay path.
