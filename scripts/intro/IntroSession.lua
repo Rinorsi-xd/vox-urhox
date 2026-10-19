@@ -25,14 +25,45 @@ function M.New(app,host)
 end
 function M:init(app,host)
  self.app=app;self.host=assert(host,'Intro requires actual scene host');self.data=M.Data()
- self.active=false;self.stage='idle';self.shot='';self.time=0;self.age=0;self.log={};self.ink=0;self.strokes={};self.name='';self.holding=false
+ self.active=false;self.stage='idle';self.shot='';self.time=0;self.age=0;self.log={};self.ink=0;self.strokes={};self.name='新人';self.nameLoading=false;self.holding=false
  self.waitingAdvance=false;self.lineVoiceToken=nil
  self.audio=IntroAudio.New(self.data);self.gate=ResourceGate.New()
  self.page=IntroPage.New(self);self.part='';self.ready=false;self.failed=false;self.skipRequested=false
 end
+function M:LoadPlayerName()
+ if self.disposed or self.nameLoading then return end
+ local ok,userId=pcall(function()
+  local getUserId=rawget(_G,'GetUserId')
+  return getUserId and getUserId() or clientCloud and clientCloud.userId
+ end)
+ if not ok or not userId or tostring(userId)=='0' or type(GetUserNickname)~='function' then
+  print('[Intro] TapTap 昵称不可用，使用默认代号');return
+ end
+ self.nameLoading=true;self.nameRequestAt=self.time
+ local function Complete(name)
+  if self.disposed or not self.nameLoading then return end
+  self.nameLoading=false
+  if self.signed or self.pendingSignatureAt then return end
+  if type(name)=='string' and name:find('%S') and utf8.len(name) then
+   self.name=name;print('[Intro] TapTap 昵称获取成功')
+  else print('[Intro] TapTap 昵称获取失败，使用默认代号') end
+ end
+ local requested,err=pcall(GetUserNickname,{
+  userIds={userId},
+  onSuccess=function(nicknames)
+   for _,info in ipairs(nicknames) do
+    if tostring(info.userId)==tostring(userId) then Complete(info.nickname);return end
+   end
+   Complete(nil)
+  end,
+  onError=function(code) print('[Intro] TapTap 昵称查询失败: '..tostring(code));Complete(nil) end,
+ })
+ if not requested then print('[Intro] TapTap 昵称查询异常: '..tostring(err));Complete(nil) end
+end
 function M:Start(part)
  if self.active or self.disposed then return false end
  self.part=part or '';self.active=true;self.stage='boot';self.shot='boot';self.time=0;self.age=0;self.storyCameraAt=nil;self.gateCameraAt=nil
+ self:LoadPlayerName()
  self.previousFocus=UI.GetFocus();UI.ClearFocus();input.mouseMode=MM_ABSOLUTE
  if self.host.Begin then self.host.Begin(self) end
  UI.SetRoot(self.page);UI.PushOverlay(self.page)
@@ -260,6 +291,9 @@ function M:Update(dt,focused)
  if self.host.Update then self.host.Update(focused==false and 0 or dt,self) end
  if focused==false then self.holding=false;return end
  dt=math.max(0,dt);self.time=self.time+dt;self.age=self.age+dt
+ if self.nameLoading and self.time-self.nameRequestAt>=8 then
+  self.nameLoading=false;print('[Intro] TapTap 昵称查询超时，使用默认代号')
+ end
  self:UpdateAdCues()
  if self.pendingSignatureAt and self.time>=self.pendingSignatureAt then
   local name=self.pendingSignatureName;self.pendingSignatureAt=nil;self.pendingSignatureName=nil;self:PersistSignature(name)
@@ -311,18 +345,16 @@ function M:PersistSignature(name)
  if self.host.SaveProfile then local ok,err=self.host.SaveProfile(name,os.time()*1000,self);if ok==false then self.error=tostring(err or '代号保存失败');return false end end
  self.signed=true;return true
 end
-function M:Submit(name)
+function M:Submit()
  if not self.active or self.finishing or self.shot~='contract' or self.signed or self.pendingSignatureAt then return false end
- name=(name or ''):match('^%s*(.-)%s*$');self.error=''
- if name=='' then self.error='代号不能为空。';self.face='deadpan';self.audio:Voice('vo_v10')
- elseif (utf8.len(name) or 99)>10 then self.error='代号最多 10 个字。';self.face='deadpan';self.audio:Voice('vo_v11')
- elseif name:sub(1,#'诺诺')=='诺诺' or name:lower()=='nono' then self.error='「别想冒充我。」——诺诺';self.face='deadpan'
+ self.error=''
+ if self.nameLoading then self.error='正在获取 TapTap 昵称，请稍候。'
  elseif self.ink<30 then self.error='请先在签名框里签一笔。';self.audio:Sfx('blip',{vol=.4})
  else
   if self.ink>800 then
-   self.error='签得很认真。没用的。';self.pendingSignatureName=name;self.pendingSignatureAt=self.time+1.2;return true
+   self.error='签得很认真。没用的。';self.pendingSignatureName=self.name;self.pendingSignatureAt=self.time+1.2;return true
   end
-  return self:PersistSignature(name)
+  return self:PersistSignature(self.name)
  end
  return false
 end
@@ -330,7 +362,6 @@ function M:KeyDown(key,isRepeat)
  if not self.active then return false end
  if self.finishing then return true end
  if self.playing then return key==KEY_T or key==KEY_BACKSPACE end
- if self.shot=='contract' and UI.GetFocus()==self.page.nameField then return false end
  if key==KEY_SPACE then self.holding=true end
  if not isRepeat and (key==KEY_SPACE or key==KEY_RETURN) then self:Advance() end
  if key==KEY_1 then self:Choose(1) elseif key==KEY_2 then self:Choose(2) elseif key==KEY_3 then self:Choose(3) elseif key==KEY_ESCAPE then self:Skip() end

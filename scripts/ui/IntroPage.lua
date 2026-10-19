@@ -33,11 +33,10 @@ local function Inside(r,x,y) return r and x>=r.x and y>=r.y and x<r.x+r.w and y<
 function M.New(owner)
  local page=Page{position='absolute',left=0,top=0,width='100%',height='100%',pointerEvents='auto',focusable=false};page.owner=owner
  page.paragraph=Paragraph.New(28.08,47.736);page.paragraph.font='vox-title';page.terms=Paragraph.New(15.12,27.972);page.terms.font='vox-title'
- page.nameField=UI.TextField{position='absolute',visible=false,maxLength=16,placeholder='在此输入代号……',fontSize=28.08,
-  fontFamily='vox-title',padding=12,borderRadius=0,backgroundColor={0,4,10,102},fontColor=white,borderColor={214,240,255,82},borderWidth=1,
-  onChange=function(_,text) owner.name=text end,onSubmit=function(_,text) owner:Submit(text) end}
- page.inputClip=UI.Panel{position='absolute',left=0,top=0,width=0,height=0,overflow='hidden',pointerEvents='box-none'}
- page.inputClip:AddChild(page.nameField);page:AddChild(page.inputClip);page.termScroll=0;page.pointers={};page.buttons={}
+ page.nameLabel=UI.Label{position='absolute',visible=false,text=owner.name,fontSize=28.08,
+  fontFamily='vox-title',padding=12,borderRadius=0,backgroundColor={0,4,10,102},fontColor=white,borderColor={214,240,255,82},borderWidth=1,maxLines=1}
+ page.inputClip=UI.Panel{position='absolute',left=0,top=0,width=0,height=0,overflow='hidden',pointerEvents='none'}
+ page.inputClip:AddChild(page.nameLabel);page:AddChild(page.inputClip);page.termScroll=0;page.pointers={};page.buttons={}
  page.imageWarmup=IntroImageWarmup.New(owner.data.images,function()return page:PreparePortrait()end)
  return page
 end
@@ -50,16 +49,14 @@ function Page:HitTest(x,y)
 end
 function Page:ShowContract(show)
  self.contractFieldRequested=show
- if show then self.contractFocused=false end
- self.nameField:SetVisible(false)
- if not show and UI.GetFocus()==self.nameField then UI.ClearFocus() end
+ self.nameLabel:SetVisible(false)
 end
 function Page:OnPointerDown(e)
  if self.owner.finishing then return true end
  self.pointers[e.pointerId]=e.pointerType
  local I=self.owner
   for _,button in ipairs(self.buttons) do if Inside(button,e.x,e.y) and (not button.clip or Inside(button.clip,e.x,e.y)) then
-  if button.id=='skip' then I:Skip() elseif button.id=='submit' then I:Submit(self.nameField:GetValue())
+  if button.id=='skip' then I:Skip() elseif button.id=='submit' then I:Submit()
   elseif button.id=='attachment' then self.attachment=not self.attachment;if self.attachment then I.audio:Sfx('blip',{vol=.4}) end
   elseif button.id=='close-attachment' then self.attachment=false
   elseif button.id=='close' then I:Finish()
@@ -184,7 +181,7 @@ function Page:Button(vg,id,label,x,y,w,h,u)
  self.buttons[#self.buttons+1]={id=id,x=x*self.k,y=y*self.k,w=w*self.k,h=h*self.k}
 end
 function Page:SubmitButton(vg,x,y,w,h,u)
- local I=self.owner;local disabled=I.signed or I.pendingSignatureAt~=nil;local cut=1.4*u
+ local I=self.owner;local disabled=I.nameLoading or I.signed or I.pendingSignatureAt~=nil;local cut=1.4*u
  D.Path(vg,{x,y,x+w-cut,y,x+w,y+cut,x+w,y+h,x+cut,y+h,x,y+h-cut})
  nvgFillColor(vg,D.Color(disabled and {28,46,60,255} or {142,224,255,255}));nvgFill(vg)
  if not disabled then
@@ -208,9 +205,9 @@ function Page:SubmitButton(vg,x,y,w,h,u)
  if not disabled then self.buttons[#self.buttons+1]={id='submit',x=x*self.k,y=y*self.k,w=w*self.k,h=h*self.k} end
 end
 function Page:Snapshot()
- local field=self.nameField:GetAbsoluteLayout()
+ local field=self.nameLabel:GetAbsoluteLayout()
  return {buttons=self.buttons,signature=self.signatureRect,terms=self.termRect,field=field,contract=self.contractLayout,
-  ink=self.owner.ink,name=self.nameField:GetValue(),choosing=self.owner.choosing or false,readTerms=self.readTerms or false,
+  ink=self.owner.ink,name=self.owner.name,nameLoading=self.owner.nameLoading,choosing=self.owner.choosing or false,readTerms=self.readTerms or false,
   waitingAdvance=self.owner.waitingAdvance or false,
   choiceExit=self.choiceExit and {index=self.choiceExit.index,at=self.choiceExit.at,elapsed=self.owner.time-self.choiceExit.at} or nil,
   contractMotion=self.contractMotion,contractFieldVisible=self.contractFieldVisible or false,contractFocused=self.contractFocused or false,
@@ -386,8 +383,8 @@ function Page:Contract(vg,w,h,u)
  nvgStrokeColor(vg,nvgRGBA(214,240,255,97));nvgStrokeWidth(vg,self.cssPixel or 1);nvgStroke(vg)
  D.Text(vg,marker,mx+1.2*u,my+.55*u,1.15*u,ice,'vox-tabular',nil,.345*u)
  D.Rect(vg,sx+3*u,sy0+3.85*u,.6*u,.6*u,cyan)
- D.Text(vg,'机修师代号 / 姓名',sx+4.5*u,sy0+3.4*u,1.5*u,white,'vox-title')
- -- TextField sizes are points; convert the source CSS pixel size locally.
+ D.Text(vg,'机修师姓名 · TapTap 昵称',sx+4.5*u,sy0+3.4*u,1.5*u,white,'vox-title')
+ -- Label 字号使用点数，局部换算源设计像素。
  local pointScale=Theme.FontSize(1)
  local field={left=(sx+3*u)*self.k,top=(sy0+6.1*u)*self.k,width=(pw-6*u)*self.k,height=5*u*self.k,fontSize=2.6*u*self.k/pointScale,
   padding=1.2*u*self.k,paddingLeft=1.6*u*self.k,paddingRight=1.6*u*self.k}
@@ -397,15 +394,12 @@ function Page:Contract(vg,w,h,u)
  if self.inputClipKey~=clipKey then self.inputClipKey=clipKey;self.inputClip:SetStyle({left=clipped.x,top=clipped.y,width=clipped.w,height=clipped.h}) end
  field.left=field.left-clipped.x;field.top=field.top-clipped.y
  local key=table.concat({field.left,field.top,field.width,field.height,field.fontSize},':')
- if self.fieldKey~=key then self.fieldKey=key;self.nameField:SetStyle(field) end
- local fieldVisible=self.contractFieldRequested and I.shot=='contract' and not I.signed and clipped.w>0 and clipped.h>0 and padMotion.alpha>0
+ if self.fieldKey~=key then self.fieldKey=key;self.nameLabel:SetStyle(field) end
+ local fieldVisible=(self.contractFieldRequested or I.signed) and (I.shot=='contract' or I.shot=='stamp' or I.shot=='gate') and clipped.w>0 and clipped.h>0 and padMotion.alpha>0
  self.contractFieldVisible=fieldVisible or false
- self.nameField:SetVisible(fieldVisible or false);self.nameField:SetOpacity(Opacity.Exit(I)*padMotion.alpha)
- if fieldVisible and I.age>=.7 and not self.contractFocused then self.contractFocused=true;UI.SetFocus(self.nameField) end
- if I.signed or I.shot=='stamp' or I.shot=='gate' then
-  D.Rect(vg,sx+3*u,sy0+6.1*u,pw-6*u,5*u,{0,4,10,102})
-  D.Text(vg,I.name or '',sx+4.6*u,sy0+7.3*u,2.6*u,white,'vox-title')
- end
+ local name=I.nameLoading and '正在获取 TapTap 昵称……' or I.name
+ if self.displayedName~=name then self.displayedName=name;self.nameLabel:SetText(name) end
+ self.nameLabel:SetVisible(fieldVisible or false);self.nameLabel:SetOpacity(Opacity.Exit(I)*padMotion.alpha)
  D.Rect(vg,sx+3*u,sy0+12.95*u,.6*u,.6*u,cyan)
  D.Text(vg,'本人签名',sx+4.5*u,sy0+12.5*u,1.5*u,white,'vox-title')
  local rx,ry,rw,rh=sx+3*u,sy0+15.1*u,pw-6*u,math.max(10*u,sh-23*u)
@@ -473,7 +467,8 @@ function Page:Gate(vg,w,h,u)
    D.Text(vg,'>',x+3.4*u,ry+1.1*u,1.6*u,cyan,'vox-tabular')
    D.Text(vg,row[1],x+5.4*u,ry+.65*u,1.45*u,{215,222,228,255},'vox-title')
    D.Text(vg,row[2],x+5.4*u,ry+2.2*u,.85*u,{110,214,255,179},'vox-tabular',nil,.1275*u)
-   D.Text(vg,row[3],x+46.2*u,ry+.9*u,2*u,white,'vox-title',NVG_ALIGN_RIGHT,.12*u)
+   local valueSize=math.min(2*u,2*u*26*u/math.max(26*u,D.Width(vg,row[3],2*u,'vox-title',.12*u)))
+   D.Text(vg,row[3],x+46.2*u,ry+.9*u,valueSize,white,'vox-title',NVG_ALIGN_RIGHT,.12*u)
   end
   D.Rect(vg,x+2.4*u,y+20.05*u,45.2*u,.5*u,{255,255,255,26})
   D.Rect(vg,x+2.4*u,y+20.05*u,45.2*u*math.min(1,(t-.81)/1.1),.5*u,status)
@@ -486,9 +481,10 @@ function Page:Render(vg)
  D.Begin(vg);local vw,vh=UI.GetViewportSize();local k=math.min(vw/1920,vh/1080);self.k=k
  self.cssPixel=1/(k*UI.GetScale()/graphics:GetDPR())
  local w,h=vw/k,vh/k;local u=h/100;self.buttons={};local alpha=Opacity.Exit(I)
- self.nameField:SetOpacity(alpha);Opacity.Push(vg,alpha);nvgScale(vg,k,k)
+ self.nameLabel:SetOpacity(alpha);Opacity.Push(vg,alpha);nvgScale(vg,k,k)
  local impactX,impactY=Impact.Shake(I,u);nvgTranslate(vg,impactX,impactY)
  local id=I.shot
+ if id~='contract' and id~='stamp' and (id~='gate' or not I.contractExitAt or I.time-I.contractExitAt>=.3) then self.nameLabel:SetVisible(false) end
  if I.stage=='boot' or I.failed then
   if not I.failed then
    local _,err=self.imageWarmup:Step(vg,I.downloaded)

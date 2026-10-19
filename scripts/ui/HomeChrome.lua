@@ -29,6 +29,20 @@ function Chrome:Render(vg)
     if s.tab=='hangar' then
         -- 紧凑界面这一行被音乐盒占了位置（顶栏已有 N / 20 计数），不画
         if not s.compact then D.Icon(vg,'car',36,h-141,18,D.orange);D.Text(vg,'我的战车',61,h-143,17);D.Text(vg,(s.usedCount or 0)..' / 20',143,h-140,14,D.muted) end
+        -- Deployed build version, bottom-right, clear of the safe-area inset.
+        local inset=s.safe or {}
+        D.Text(vg,'v'..Chrome.Version(),w-math.max(28,inset.right or 0),h-(inset.bottom or 0)-24,12,D.muted,'vox-tabular',NVG_ALIGN_RIGHT)
     end
+end
+-- Engine-reported project version (falls back to -game_version, then '?').
+function Chrome.Version()
+    if Chrome.version then return Chrome.version end
+    local getVersion=rawget(_G,'GetProjectVersion') -- engine global, not in type stubs
+    local version=type(getVersion)=='function' and tostring(getVersion() or '') or ''
+    if version=='' then
+        local args=GetArguments()
+        for i,arg in ipairs(args) do if arg=='-game_version' or arg=='--game_version' then version=args[i+1] or '' end end
+    end
+    Chrome.version=version~='' and version or '?';return Chrome.version
 end
 return Chrome
