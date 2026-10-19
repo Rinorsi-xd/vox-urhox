@@ -12,8 +12,6 @@ uniform float clock = 0.0;
 uniform float glitch = 0.0;
 uniform float mouth_on = 0.0;
 uniform float opaque_rgb = 0.0;
-// Orientation probe: output the fitted source texel unmodified.
-uniform float probe = 0.0;
 // Two target texels in UV; 0 disables. Red marks the top-left corner, blue the
 // bottom-left, so render.PortraitCheck can see which way up the target is shown.
 uniform vec2 marker_size = vec2(0.0);
@@ -72,11 +70,6 @@ void fragment() {
     float coverage=a*k;
     ALBEDO=mix(premul/max(coverage,.0001),premul,opaque_rgb);
     ALPHA=mix(coverage,1.0,opaque_rgb);
-    if (probe > 0.5) {
-        vec2 puv=(vp-image_offset)/image_scale;puv.y=1.0-puv.y;
-        vec4 src=texture(face_map,puv);
-        ALBEDO=mix(src.rgb,src.rgb*src.a,opaque_rgb);ALPHA=mix(src.a,1.0,opaque_rgb);
-    }
     if (mvp.x < marker_size.x) {
         if (mvp.y > 1.0 - marker_size.y) { ALBEDO=vec3(1.0,0.0,0.0); ALPHA=1.0; }
         else if (mvp.y < marker_size.y) { ALBEDO=vec3(0.0,0.0,1.0); ALPHA=1.0; }

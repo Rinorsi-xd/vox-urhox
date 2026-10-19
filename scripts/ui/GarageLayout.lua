@@ -35,7 +35,7 @@ function M.Apply(s,w,h,safe)
     Place(s.buttons.edit,0,0,174*k,74*k);Place(s.buttons.battle,160*k,0,352*k,74*k);Place(s.buttons.trial,498*k,0,174*k,74*k)
     for _,id in ipairs({'edit','battle','trial'}) do if s.buttons[id] then s.buttons[id].props.sourceScale=k end end
     for _,id in ipairs({'arena','salvage'}) do if s.buttons[id] then s.buttons[id].props.sourceScale=km end end
-    local infoHeight=math.min(s.detailsOpen and 585 or 332.96875,math.max(48,h-top-bottom-290))
+    local infoHeight=math.min(s.detailsOpen and 525 or 272.96875,math.max(48,h-top-bottom-290))
     -- 紧凑界面左栏下面是音乐盒，信息栏收在它上方，不让「车辆详情」被压掉半截
     if s.compact and s.tab=='hangar' then infoHeight=math.max(48,math.min(infoHeight,ctaY+ctaHeight-70*.72-4-(top+88))) end
     -- 紧凑机库：左侧整备信息和右侧配件清单缩到 .8（绘制与点击一起缩），让车成为画面主体；

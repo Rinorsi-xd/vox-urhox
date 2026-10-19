@@ -410,15 +410,16 @@ function M.Create(s)
         Shop.Sort(list,ws.sort,Data.stats,page.shop)
         local hero=#list>3;local slots=#list+(hero and 3 or 0)+(ws.group=='all' and 1 or 0)
         local rows=math.ceil(slots/4);local gridWidth=w-pad*2;local gridTop=84+49.6875+14;local available=h-gridTop-14
-        -- CSS grid-auto-rows:minmax(0,1fr) can be smaller than a card's
-        -- min-height. Keep the track spacing separate from the card height.
-        local cw=(gridWidth-4-36)/4;local trackHeight=math.max(0,(available-4-(rows-1)*12)/math.max(1,rows))
-        local ch=math.max(180,trackHeight)
-        local contentHeight=math.max(available,4+(rows-1)*(trackHeight+12)+ch)
+        -- 卡片高度按宽度定比例（约 16:10，最少 200），行距就用卡片高度：原来行距按「平分可视高度」算、
+        -- 卡片却有 180 最小高，车多时行距比卡片矮，一排排叠在一起。只有一两排时才拉高填满，但不超过 4:3。
+        local cw=(gridWidth-4-36)/4;local fill=(available-4-(rows-1)*12)/math.max(1,rows)
+        local ch=Clamp(fill,math.max(200,cw*.62),math.max(200,cw*.75))
+        local trackHeight=ch
+        local contentHeight=math.max(available,4+rows*(ch+12)-12)
         local grid=UI.Panel{width=gridWidth,height=contentHeight,flexShrink=0};local cursor=0
         for i,p in ipairs(list) do
             local col,row,ww,hh
-            if i==1 and hero then col,row,ww,hh=0,0,cw*2+12,math.max(180,trackHeight*2+12)
+            if i==1 and hero then col,row,ww,hh=0,0,cw*2+12,ch*2+12
             else
                 if hero and cursor==0 then cursor=2 end
                 if hero and cursor==4 then cursor=6 end

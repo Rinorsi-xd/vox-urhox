@@ -9,7 +9,6 @@ local PortraitCheck=require 'render.PortraitCheck'
 ---@field height integer
 ---@field ready boolean|nil
 ---@field disposed boolean|nil
----@field probe boolean|nil
 ---@field textures Texture2D[]
 ---@field DrawCorner fun(self:CommsPortrait,vg:NVGContextWrapper,x:number,y:number,size:number,bottom:boolean)
 ---@field PrepareTextures fun(self:CommsPortrait,time:number,face:string,talking:boolean,texture:Texture2D,closed:Texture2D):boolean
@@ -19,9 +18,6 @@ function M.Path(who,face)
     face=face:gsub('^'..who..'_','')
     return (who=='nono' and 'Intro/Images/' or 'UI/Faces/')..who..'_'..face..'.png'
 end
--- Written by ui.PortraitOrientation's boot probe. Portraits no longer read them:
--- the shader corrects itself from render.PortraitCheck every frame.
-M.flipX,M.flipY=1,1
 -- Corner markers are 2 target texels; Draw scissors them off.
 local MARKER=2
 function M.New(who,width,height)
@@ -71,8 +67,8 @@ function M:Prepare(time,face,talking)
     return self:PrepareTextures(time,face,talking,texture,closed)
 end
 function M:PrepareTextures(time,face,talking,texture,closed)
-    -- The boot probe measures raw output; it must not feed the orientation map.
-    if not self.probe then PortraitCheck.Use(self) end
+    -- Orientation is corrected in the shader from render.PortraitCheck's map each frame.
+    PortraitCheck.Use(self --[[@as PortraitCheckSource]])
     local dt=math.max(0,math.min(.1,time-self.lastTime));self.lastTime=time
     if self.face and self.face~=face then self.glitch=math.max(self.glitch,.7) end;self.face=face
     if time>self.nextGlitch then self.glitch=math.max(self.glitch,.45);self.nextGlitch=time+4.5 end
@@ -104,16 +100,13 @@ function M:DrawCorner(vg,x,y,size,bottom)
     nvgBeginPath(vg);nvgRect(vg,x,y,size,size)
     nvgFillPaint(vg,nvgImagePattern(vg,x,top,texture:GetWidth()*k,h,0,self:Handles(vg)[2],1));nvgFill(vg)
 end
-function M:Draw(vg,r,orientation)
+function M:Draw(vg,r)
     if not self.ready then return end
     local handles=self:Handles(vg)
     nvgSave(vg)
     -- The orientation markers occupy the left texel columns.
     local mx=r.w*MARKER/self.textures[1]:GetWidth()
     nvgIntersectScissor(vg,r.x+mx,r.y,r.w-mx,r.h)
-    -- Explicit mirror for the boot probe only; normal draws are corrected in the shader.
-    local fx,fy=orientation and orientation[1] or 1,orientation and orientation[2] or 1
-    if fx~=1 or fy~=1 then nvgTranslate(vg,r.x+r.w/2,r.y+r.h/2);nvgScale(vg,fx,fy);nvgTranslate(vg,-r.x-r.w/2,-r.y-r.h/2) end
     nvgBeginPath(vg);nvgRect(vg,r.x,r.y,r.w,r.h)
     nvgFillPaint(vg,nvgImagePatternTinted(vg,r.x,r.y,r.w,r.h,0,handles[1],nvgRGBA(0,0,0,255)));nvgFill(vg)
     nvgGlobalCompositeBlendFuncSeparate(vg,NVG_ONE,NVG_ONE,NVG_ZERO,NVG_ONE)

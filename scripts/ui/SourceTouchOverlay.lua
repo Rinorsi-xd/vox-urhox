@@ -17,7 +17,7 @@ local M={}
 function M.Create(root,playfield,adapter,actions,options,extras)
     local width,height=UI.GetViewportSize();local dpr=graphics:GetDPR()
     local cssWidth,cssHeight=graphics:GetWidth()/dpr,graphics:GetHeight()/dpr
-    local layout=adapter.mode=='drive' and Layout.Drive(width,height,cssWidth,cssHeight,UI.GetSafeAreaInsets(),false,adapter.prefs and adapter.prefs.size) or Layout.Calculate(width,height,cssWidth,cssHeight,UI.GetSafeAreaInsets(),adapter.mode,actions)
+    local layout=adapter.mode=='drive' and Layout.Drive(width,height,cssWidth,cssHeight,UI.GetSafeAreaInsets(),false,adapter.prefs and adapter.prefs.size,adapter.prefs and adapter.prefs.layout) or Layout.Calculate(width,height,cssWidth,cssHeight,UI.GetSafeAreaInsets(),adapter.mode,actions)
     local drive=adapter.mode=='drive';local DriveWidgets=drive and SourceTouchDriveWidgets
     local k=layout.k;adapter.width=cssWidth;adapter.height=cssHeight
     local layer={playfield=playfield,buttons={},menuButtons={},menu=false,blocked=false,disposed=false,layout=layout,aux='boost',prefs=adapter.prefs}
@@ -132,8 +132,10 @@ function M.Create(root,playfield,adapter,actions,options,extras)
         if adapter.Labels then adapter.Labels(layer) end
     end
     function layer.Relayout(planeKeys,size)
-        if not drive or layer.planeKeys==planeKeys and layer.size==size then return end
-        layer.planeKeys=planeKeys;layer.size=size;layout=Layout.Drive(width,height,cssWidth,cssHeight,UI.GetSafeAreaInsets(),planeKeys,size);layer.layout=layout
+        local custom=layer.prefs and layer.prefs.layout
+        if not drive or layer.planeKeys==planeKeys and layer.size==size and layer.custom==custom then return end
+        layer.planeKeys=planeKeys;layer.size=size;layer.custom=custom
+        layout=Layout.Drive(width,height,cssWidth,cssHeight,UI.GetSafeAreaInsets(),planeKeys,size,custom);layer.layout=layout
         for id,b in pairs(layer.buttons) do if layout.actions[id] then b:SetStyle(layout.actions[id]) end end
         for _,b in pairs(layer.buttons) do b.props.unit=layout.u end
         toggle:SetStyle(layout.toggle);toggle.props.unit=layout.u

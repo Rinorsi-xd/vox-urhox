@@ -32,7 +32,8 @@ function M:Cancel(request)
     if not request or request.finished or request.cancelled then return end
     request.cancelled=true;request.done=nil;request.data=nil;self.cancelled=self.cancelled+1
     if self.loadingRequest==request then self.gate:Cancel();self.loadingRequest=nil end
-    if self.job and self.job.request==request then self:ReleaseJob() end
+    -- 异步读回进行中不拆渲染目标：回调（或超时）时再释放，取消的请求不会再回调调用方
+    if self.job and self.job.request==request and not self.job.reading then self:ReleaseJob() end
 end
 function M:ReleaseJob()
     local job=self.job;if not job then return end
@@ -104,11 +105,8 @@ function M:Start(request)
     self.job.viewport=viewport;self.job.width=width;self.job.height=height
     self.captures=self.captures+1
 end
-function M:Readback()
+function M:Finish(image)
     local job=self.job;local request=job.request
-    -- WebGPU 不支持同步读回：不调用 GetImage（它会报引擎错误），缩略图按读回失败处理
-    assert(ImportedReadback.Sync(),'Saved preview readback unavailable on '..tostring(graphics.apiName))
-    local image=assert(job.texture:GetImage(),'Saved preview readback unavailable')
     -- Canvas drawImage centers a cover fit scaled by 1.35, then shifts up 6%.
     local x=math.floor((job.width-320)/2+.5);local y=math.floor((job.height-200)/2+12+.5)
     local crop=image:GetSubimage(IntRect(x,y,x+320,y+200));image:Dispose()
@@ -116,11 +114,29 @@ function M:Readback()
     if request.ref then Cache.Save(request.ref,crop) end
     self:ReleaseJob();self:Complete(request,crop)
 end
+function M:Readback()
+    local job=self.job
+    if ImportedReadback.Sync() then self:Finish(assert(job.texture:GetImage(),'Saved preview readback unavailable'));return end
+    -- WebGPU 没有同步读回（GetImage 会报引擎错误），改用异步读回；结果晚几帧回来，期间这份 job 保持不动
+    job.reading=true;job.readFrame=self.frame
+    job.texture:GetImageAsync(function(image)
+        if self.job~=job then if image then image:Dispose() end;return end
+        job.reading=false
+        if not image then self:ReleaseJob();self:Complete(job.request,nil,'Saved preview async readback failed on '..tostring(graphics.apiName));return end
+        local ok,err=pcall(self.Finish,self,image)
+        if not ok then self:ReleaseJob();self:Complete(job.request,nil,tostring(err)) end
+    end)
+end
 function M:Update(dt)
     self.frame=self.frame+1;self.loader:Update(dt)
     if self.loadingRequest then return end
     if self.job then
         local job=self.job
+        if job.reading then
+            -- 异步读回迟迟不回调就放弃这张，别让后面的车位一直排队
+            if self.frame-job.readFrame>180 then self:ReleaseJob();self:Complete(job.request,nil,'Saved preview async readback timed out') end
+            return
+        end
         job.view.livery:Update()
         if job.request.ref and not Cache.Current(job.request.ref) then
             self:ReleaseJob();self:Complete(job.request,nil,'存档版本已更新');return
