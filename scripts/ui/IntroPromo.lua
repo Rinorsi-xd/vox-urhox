@@ -156,7 +156,9 @@ function M.Draw(page,vg,w,h,u)
    nvgBeginPath(vg);nvgCircle(vg,w/2,cy,svg*.44);nvgStrokeColor(vg,nvgRGBA(255,255,255,51));nvgStrokeWidth(vg,svg*.06);nvgStroke(vg)
    nvgBeginPath(vg);nvgArc(vg,w/2,cy,svg*.44,-math.pi/2,-math.pi/2+q*math.pi*2,NVG_CW);nvgStrokeColor(vg,nvgRGBA(122,216,255,255));nvgStrokeWidth(vg,svg*.06);nvgStroke(vg)
    D.Text(vg,'按住',w/2,top+svg*.58,svg*.22,white,'vox-title',NVG_ALIGN_CENTER,0,true)
-   D.Text(vg,'按住 鼠标左键 / 空格 · 做出决定',w/2,top+svg+gap,size,white,'vox-title',NVG_ALIGN_CENTER,size*.14,false,size)
+   local visual=I.host.state and I.host.state.sortieUi;local touch=visual and visual.session.touch
+   if touch==nil then touch=require('controls.TouchMode').Enabled() end
+   D.Text(vg,touch and '按住屏幕 · 做出决定' or '按住 鼠标左键 / 空格 · 做出决定',w/2,top+svg+gap,size,white,'vox-title',NVG_ALIGN_CENTER,size*.14,false,size)
    nvgRestore(vg)
   end
  elseif id=='sortie-countdown' then Big(vg,I.countdown or '',w/2,h*.4,12*u,t,white)
@@ -166,7 +168,8 @@ function M.Draw(page,vg,w,h,u)
    D.Rect(vg,0,h*.36,w,h*.14,{255,59,48,235});D.Text(vg,'财产受损警告 · PROPERTY DAMAGE ALERT',w/2,h*.39,3.8*u,white,'vox-title',NVG_ALIGN_CENTER)
    D.Text(vg,'请注意，敌军正在拆解公司的贵重矿车！（矿车价值约等于你 40 年工资）',w/2,h*.54,1.8*u,white,'vox-title',NVG_ALIGN_CENTER)
   elseif id=='sortie-brief' and not I.playing then
-   IntroSortieUi.Brief(vg,w,h,u,t)
+   local visual=I.host.state and I.host.state.sortieUi
+   IntroSortieUi.Brief(vg,w,h,u,t,visual and visual.session.touch)
   elseif I.sortie then
    local s=I.sortie
    local visual=I.host.state and I.host.state.sortieUi;if visual then visual:Draw(vg,I,w,h,u) end

@@ -8,6 +8,15 @@ local ReticleWeapons=require("ui.ReticleWeapons")
 local IntroSortieKill=require("ui.IntroSortieKill")
 local IntroTypography=require("ui.IntroTypography")
 
+local TouchMode=require("controls.TouchMode")
+-- Load optional/cyclic dependencies once, without changing first-use order.
+local DeferredModules=setmetatable({},{__index=function(modules,name)
+    local module=require(name)
+    rawset(modules,name,module)
+    return module
+end})
+
+local Platform=require 'urhox-libs.Platform.PlatformUtils'
 local D=require 'ui.SourceDraw'
 local nvgGlobalAlpha=require('ui.IntroOpacity').Set
 local Coord=require 'core.Coord'
@@ -20,10 +29,10 @@ end
 local function Circle(vg,x,y,r,c)
  nvgBeginPath(vg);nvgCircle(vg,x,y,r);nvgFillColor(vg,D.Color(c));nvgFill(vg)
 end
-local function Tokens(s)
+local function Inside(r,x,y) return r and x>=r.x and y>=r.y and x<r.x+r.w and y<r.y+r.h end
+local function Tokens(s,touch)
  if s.pending then return {{text='完成！'}} end
  -- 触屏没有 W / 左键：换成左下摇杆与开火键（拖动屏幕或按住开火键拖动都能瞄准）
- local touch=require('controls.TouchMode').Enabled()
  if s.step==1 and touch then return s.elapsed>=4 and {{text='把左下的 ',color=cyan},{text='摇杆',key=true},{text=' 往前推 · 车就会往前开'}} or {{text='摇杆',key=true},{text=' 往前推 冲过去 · 车会朝'},{text='准星',color=cyan},{text='的方向开'}} end
  if s.step==2 and touch then return s.elapsed>=6 and {{text='拖动屏幕把准星对准红色'},{text='「打它！」',color={255,107,94,255}},{text='· '},{text='按住',color=cyan},{text=' '},{text='开火键',key=true}} or {{text='开火键',key=true},{text=' 按住开火 · 打掉冲在最前面那辆！'}} end
  if s.step==1 then return s.elapsed>=4 and {{text='按住键盘上的 ',color=cyan},{text='W',key=true},{text=' · 车就会往前开'}} or {{text='按住 '},{text='W',key=true},{text=' 冲过去 · 车会朝'},{text='准星',color=cyan},{text='的方向开'}} end
@@ -41,7 +50,67 @@ function M.New(session)
  session.openingOverlay=overlay
  return setmetatable({session=session,reticle=reticle,root=root,overlay=overlay},M)
 end
-function M:Update(dt)
+-- 窗口偏小的电脑浏览器也会被 TouchMode 判成触屏：只要还没见过真实触点，鼠标一用就切回键鼠
+function M.MouseAllowed()
+ if TouchMode.override or TouchMode.webTouch or Platform.IsMobilePlatform() or input.touchEmulation or input:GetNumTouches()>0 then return false end
+ for _,arg in ipairs(GetArguments()) do if arg=='-touch' then return false end end
+ return true
+end
+function M.NoteTouch() if Platform.IsWebPlatform() then TouchMode.webTouch=true end end
+-- 开场实机段按玩家实际用的指针切换键鼠 / 触屏；切换前先松开旧的接管状态
+function M:UsePointer(touch)
+ local s=self.session
+ if touch then M.NoteTouch() end
+ if s.disposed or s.touch==touch or not touch and not M.MouseAllowed() then return false end
+ s.pointer:Release();s.touch=touch
+ if touch then self:AttachTouch() else self:DetachTouch() end
+ return true
+end
+-- 源 intro.css 在 intro-play 时直接露出 #driveHud（含摇杆 / 开火键），这里只借驾驶 HUD 的触屏操作层
+function M:BeginPlay(page)
+ self.page=page or self.page;self.playing=true;self:AttachTouch()
+end
+function M:EndPlay()
+ self.playing=false;self:DetachTouch()
+end
+function M:AttachTouch()
+ local s=self.session
+ if self.touch or not self.playing or not self.page or not s.touch or s.disposed then return end
+ local width,height=UI.GetViewportSize();local page=self.page
+ local root=UI.Panel{position='absolute',left=0,top=0,width='100%',height='100%',pointerEvents='box-none'}
+ -- 右上角「跳过广告」留给开场页自己处理，触屏层整棵子树在那块区域不接点击
+ local hit=root.HitTest
+ root.HitTest=function(widget,x,y) if Inside(page.skipRect,x,y) then return false end;return hit(widget,x,y) end
+ page:AddChild(root)
+ local layer=DeferredModules['ui.TouchDriveControls'].Create(s,root)
+ -- 开场里没有暂停 / 设置菜单可开，菜单键直接藏掉
+ layer.toggle:SetVisible(false)
+ -- 鼠标点到触屏层：交还开场页（会切回键鼠并锁鼠标）
+ local down=layer.playfield.OnPointerDown
+ layer.playfield.OnPointerDown=function(widget,e)
+  if not e:IsTouch() then return page:OnPointerDown(e) end
+  return down(widget,e)
+ end
+ self.touch={root=root,layer=layer,width=width,height=height}
+ print('[Intro] sortie touch controls attached')
+end
+function M:DetachTouch()
+ local t=self.touch;if not t then return end
+ self.touch=nil
+ -- 会话已拆时摇杆层的 Reset 会摸到已释放的 pointer，只拆界面
+ if not self.session.disposed then t.layer.Dispose();self.session.controls:Clear() end
+ t.root:Destroy()
+end
+function M:UpdateTouch(I)
+ local t=self.touch;if not t then return end
+ local width,height=UI.GetViewportSize()
+ if width~=t.width or height~=t.height then self:DetachTouch();self:AttachTouch();t=self.touch;if not t then return end end
+ local s=self.session;local sortie=I and I.sortie
+ local blocked=not (I and I.playing) or I.capturePending==true or not s.combat.player.alive or sortie~=nil and sortie.step>=5 or not s:HasFocus()
+ t.layer.Update(blocked)
+end
+function M:Update(dt,I)
+ self:UpdateTouch(I)
  self.reticle.hit=math.max(0,(self.reticle.hit or 0)-dt)
  if self.session.combat.player.alive then ReticleState.Update(self.reticle,dt) end
  self.overlay:Update(dt);self.reticle.aimState=self.overlay.aimState
@@ -70,8 +139,9 @@ function M:Draw(vg,I,w,h,u)
   local bw,bh=52*u,8.5*u;local x,y=(w-bw)/2,h*.46-bh/2
   D.Rect(vg,x,y,bw,bh,{8,15,28,209});D.Rect(vg,x,y,bw,1,{122,216,255,128})
   nvgSave(vg);nvgGlobalAlpha(vg,.65+.35*math.sin(I.time*math.pi/1.1)^2)
-  D.Text(vg,'点击画面 · 接管战车',w/2,y+1.6*u,2.8*u,white,'vox-title',NVG_ALIGN_CENTER);nvgRestore(vg)
-  D.Text(vg,'鼠标转视角 · 按 Esc 松开鼠标',w/2,y+5.2*u,1.5*u,{159,196,228,255},'vox-body',NVG_ALIGN_CENTER)
+  local touch=self.session.touch
+  D.Text(vg,touch and '轻触画面 · 接管战车' or '点击画面 · 接管战车',w/2,y+1.6*u,2.8*u,white,'vox-title',NVG_ALIGN_CENTER);nvgRestore(vg)
+  D.Text(vg,touch and '左下摇杆开车 · 拖动画面瞄准' or '鼠标转视角 · 按 Esc 松开鼠标',w/2,y+5.2*u,1.5*u,{159,196,228,255},'vox-body',NVG_ALIGN_CENTER)
  end
  if s.step==2 and not s.pending and self.session.combat.easy.alive then
   local x,y=self:Project(self.session.combat.easy:Position(),2.6,w,h)
@@ -93,7 +163,7 @@ function M:Draw(vg,I,w,h,u)
   end
  end
  if s.step<=0 or s.step>=5 then return end
- local runs=Tokens(s);local size=2.6*u;local widths={};local content=0
+ local runs=Tokens(s,self.session.touch);local size=2.6*u;local widths={};local content=0
  for i,run in ipairs(runs) do local fs=run.key and size*.85 or run.number and size*1.25 or size;local font=(run.key or run.number) and 'vox-tabular' or 'vox-title';local width=D.Width(vg,run.text,fs,font)+(run.key and size*1.3 or 0);widths[i]={width=width,size=fs,font=font};content=content+width end
  local bw=1.2*u+4.4*u+1.6*u+content+2.8*u;local scale=math.min(1,(w-4*u)/bw);local bh=6.8*u
  local enter=1-(1-math.min(1,s.elapsed/.26))^3;local x=(w-bw*scale)/2;local y=h*.83-bh*scale+(1-enter)*3*u
@@ -112,6 +182,7 @@ function M:Draw(vg,I,w,h,u)
  nvgRestore(vg)
 end
 function M:Dispose()
+ self:EndPlay();self.page=nil
  if self.session.openingOverlay==self.overlay then self.session.openingOverlay=nil end
  self.root:Destroy();self.reticle:Destroy()
 end
@@ -127,7 +198,7 @@ function M.Stamp(vg,w,h,u,s)
  D.Text(vg,reason,0,height/2-6.4*u,2.2*u,{255,217,212,255},'vox-title',NVG_ALIGN_CENTER)
  D.Text(vg,'（新员工第一次出勤，基本都是这个结局。）',0,height/2-3.4*u,1.6*u,{255,217,212,255},'vox-body',NVG_ALIGN_CENTER);nvgRestore(vg)
 end
-function M.Brief(vg,w,h,u,time)
+function M.Brief(vg,w,h,u,time,touch)
  local width=math.min(74*u,w*.88);local height=30.4*u;local x=w*.06;local y=h*.5-height/2
  local progress=math.min(1,math.max(0,time-2.2)/.32);local ease=1-(1-progress)^3
  nvgSave(vg);nvgGlobalAlpha(vg,ease);nvgTranslate(vg,-w*.06*(1-ease),0)
@@ -140,14 +211,15 @@ function M.Brief(vg,w,h,u,time)
  D.Rect(vg,tx,y+15.5*u,4.8*u,2.4*u,cyan);D.Text(vg,'任务',tx+2.4*u,y+15.9*u,1.6*u,{3,20,31,255},'vox-title',NVG_ALIGN_CENTER)
  D.Text(vg,'保护矿车，坚持到援军到达',tx+6*u,y+15.7*u,2*u,white,'vox-title')
  local cursor=tx
- local legend=require('controls.TouchMode').Enabled() and {{'摇杆','前进'},{'拖屏幕','瞄准 · 车朝准星开'},{'开火键','开火'}}
+ if touch==nil then touch=TouchMode.Enabled() end
+ local legend=touch and {{'摇杆','前进'},{'拖屏幕','瞄准 · 车朝准星开'},{'开火键','开火'}}
   or {{'W','前进'},{'鼠标','瞄准 · 车朝准星开'},{'左键','开火'}}
  for _,run in ipairs(legend) do
   local kw=D.Width(vg,run[1],1.62*u,'vox-tabular')+1.78*u
   D.Rect(vg,cursor,y+19.6*u,kw,2.6*u,cyan);D.Text(vg,run[1],cursor+kw/2,y+20.09*u,1.62*u,{3,20,31,255},'vox-tabular',NVG_ALIGN_CENTER)
   D.Text(vg,run[2],cursor+kw+.8*u,y+20*u,1.8*u,{201,220,239,255},'vox-title');cursor=cursor+kw+.8*u+D.Width(vg,run[2],1.8*u,'vox-title')+2.4*u
  end
- D.Rect(vg,tx,y+24.5*u,width-6*u,3.5*u,{40,121,235,255});D.Text(vg,'▶ 点击画面 · 接管战车',x+width/2,y+25.05*u,2.4*u,white,'vox-title',NVG_ALIGN_CENTER)
+ D.Rect(vg,tx,y+24.5*u,width-6*u,3.5*u,{40,121,235,255});D.Text(vg,touch and '▶ 轻触画面 · 接管战车' or '▶ 点击画面 · 接管战车',x+width/2,y+25.05*u,2.4*u,white,'vox-title',NVG_ALIGN_CENTER)
  nvgRestore(vg)
 end
 function M.Chrome(vg,w,h,u,time,step)

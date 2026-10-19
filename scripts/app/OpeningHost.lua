@@ -199,7 +199,14 @@ function M.New(app)
  end
  host.GetCamera=function()return state.activeScene=='crater' and state.session and state.session.camera:GetCamera() or state.hallCamera end
  host.GroundAt=function(x,z)return state.world and state.world:GroundAt(x,z) or 0 end
- host.StartSortie=function()state.session.combat:StartSortie() end
+ host.StartSortie=function(I)
+  state.session.combat:StartSortie()
+  if state.sortieUi then state.sortieUi:BeginPlay(I.page) end
+ end
+ host.SortieInput=function(I,touch)
+  local visual=state.sortieUi;if not visual or not state.session then return end
+  if I.playing or I.shot=='sortie-brief' then visual:UsePointer(touch) elseif touch then visual.NoteTouch() end
+ end
  host.CaptureSortie=function(I)
   if I.playing or I.shot=='sortie-brief' and I.age>=2.2 then return state.session.pointer:Capture() end
   return false
@@ -227,6 +234,7 @@ function M.New(app)
  host.CaptureWreck=function(I)state.captureWanted='wreck';I.capturePending=true end
  host.SortieDamageScale=function(scale)state.session.combat.damageScale=scale end
  host.EndSortie=function()
+  if state.sortieUi then state.sortieUi:EndPlay() end
   if not state.sortieStarted or state.disposed or not state.session then return end
   state.sortieStarted=false
   state.strikePending=nil;state.strikeAt=nil
@@ -319,7 +327,7 @@ function M.New(app)
    if #s.weapons.projectiles>0 and not state.missileLaunched then state.missileLaunched=true;state.missileAt=I.age end
   end
   if state.activeScene=='crater' then s:Tick(math.min(dt,.05),command) end
-  if I.playing and state.sortieUi then state.sortieUi:Update(dt) end
+  if I.playing and state.sortieUi then state.sortieUi:Update(dt,I) end
   if state.strikePending or state.strike then
    local age=I.time-state.strikeAt
    if state.strikePending then

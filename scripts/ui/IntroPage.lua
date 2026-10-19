@@ -44,7 +44,11 @@ function Page:GetAbsoluteLayout() local w,h=UI.GetViewportSize();return {x=0,y=0
 function Page:GetAbsoluteLayoutForHitTest() return self:GetAbsoluteLayout() end
 function Page:HitTest(x,y)
  if not self.owner.active then return false end
- if self.owner.playing and self.owner.sortie and self.owner.sortie.controlling then return Inside(self.skipRect,x,y) end
+ if self.owner.playing and self.owner.sortie and self.owner.sortie.controlling then
+  -- 触屏操作层挂在本页下面：接管后仍要让点击下探到摇杆 / 开火键
+  local visual=self.owner.host.state and self.owner.host.state.sortieUi
+  return Inside(self.skipRect,x,y) or visual~=nil and visual.touch~=nil
+ end
  return true
 end
 function Page:ShowContract(show)
@@ -55,6 +59,8 @@ function Page:OnPointerDown(e)
  if self.owner.finishing then return true end
  self.pointers[e.pointerId]=e.pointerType
  local I=self.owner
+ -- 实机段按这次实际用的是鼠标还是手指切操作方式（小窗口电脑浏览器会被误判成触屏）
+ if I.host.SortieInput then I.host.SortieInput(I,e:IsTouch()) end
   for _,button in ipairs(self.buttons) do if Inside(button,e.x,e.y) and (not button.clip or Inside(button.clip,e.x,e.y)) then
   if button.id=='skip' then I:Skip() elseif button.id=='submit' then I:Submit()
   elseif button.id=='attachment' then self.attachment=not self.attachment;if self.attachment then I.audio:Sfx('blip',{vol=.4}) end
@@ -81,6 +87,9 @@ end
 function Page:OnPointerMove(e)
  if self.owner.finishing then return true end
  self.mouseX=e.x;self.mouseY=e.y
+ -- 简报阶段一动鼠标就换成键鼠说明，不用等点下去
+ local I=self.owner
+ if I.shot=='sortie-brief' and not I.playing and not e:IsTouch() and I.host.SortieInput then I.host.SortieInput(I,false) end
  if self.signPointer==e.pointerId then
   local r=self.signatureRect;local p={math.max(r.x,math.min(r.x+r.w,e.x)),math.max(r.y,math.min(r.y+r.h,e.y))}
   local cssScale=UI.GetScale()/graphics:GetDPR()
