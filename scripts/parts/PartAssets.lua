@@ -2,6 +2,12 @@ local Data=require "core.ResourceData"
 local Mounts=require "parts.Mounts"
 local M={}
 local rigs=setmetatable({},{__mode="v"})
+-- Weak values alone are cleared by every GC cycle; in combat GC runs every few
+-- seconds, so each damage rebuild re-read and re-decoded weapon rig JSON.
+-- Pin the most recently used rigs; rarely used catalog rigs still collect.
+local RECENT=96
+local recent,recentIndex={},0
+local function Pin(data) recentIndex=recentIndex%RECENT+1;recent[recentIndex]=data end
 local swept=setmetatable({},{__mode='k'})
 local rotating={spinSteel=true,spinGlow=true,holoPaint=true}
 M.HoverInfo=Mounts.HoverInfo
@@ -13,7 +19,7 @@ end
 function M.Get(type,rotation)
     local key=M.Key(type,rotation)
     local data=rigs[key]
-    if not data then data=Data.Read("Parts/Rigs/"..key..".json");rigs[key]=data end
+    if not data then data=Data.Read("Parts/Rigs/"..key..".json");rigs[key]=data;Pin(data) end
     return data
 end
 -- Shader rotation must remain inside the CPU culling/shadow bounds. Enlarge

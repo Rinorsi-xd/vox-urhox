@@ -15,6 +15,7 @@ local MusicBoxVisual=require("ui.MusicBoxVisual")
 local HomeNewMenu=require("ui.HomeNewMenu")
 local HomeStats=require("ui.HomeStats")
 local ResourceData=require("core.ResourceData")
+local ResourceGate=require("app.ResourceGate")
 local HomeBay=require("ui.HomeBay")
 local Defs=require("parts.Defs")
 local HomeBattle=require("ui.HomeBattle")
@@ -35,6 +36,27 @@ local Config=require 'Config'
 local M={}
 ---@type table|false
 local state=false
+-- 分批预读模式选择页首屏及切换卡片时使用的大图，避免首次点击集中解码。
+-- 机库等待 1.5 秒后每 0.25 秒加载一张，进入模式页后继续未完成的队列。
+local battleArt={}
+local names={'elimination-selected','conquest-idle','escort-idle','crater-story','test-idle','crater-idle','crater-map',
+    'conquest-selected','escort-selected','elimination-idle','test-selected','crater-selected','test-map'}
+if not TouchMode.Enabled() then
+    for _,n in ipairs({'elimination-hover','conquest-hover','escort-hover','test-hover','crater-hover','crater-story-hover'}) do names[#names+1]=n end
+end
+for _,name in ipairs(names) do battleArt[#battleArt+1]='UI/Modes/Filtered/'..name..'.jpg' end
+local prewarm={index=0,wait=1.5,gate=ResourceGate.New()}
+local function Prewarm(s,dt)
+    if prewarm.index>=#battleArt or prewarm.gate.state=='loading' or (s.tab~='hangar' and s.tab~='battle') then return end
+    prewarm.wait=prewarm.wait-dt;if prewarm.wait>0 then return end
+    prewarm.index=prewarm.index+1;prewarm.wait=.25
+    local path=battleArt[prewarm.index]
+    -- BackgroundLoadResource only reads local files; mode art is excluded from
+    -- boot downloads. Use the shared gate (including legacy Web support) first.
+    prewarm.gate:Start({path},function(ok)
+        if ok then cache:BackgroundLoadResource('Texture2D',path) end
+    end)
+end
 local function Clear(container)
     local old={table.unpack(container.children)};container:ClearChildren();for _,c in ipairs(old) do c:Destroy() end
 end
@@ -60,7 +82,7 @@ function M.SetMode(text) if state then state.message:SetText(text or '') end end
 function M.GetState() return state end
 function M.Refresh() if state then state.revision=-1 end end
 local function Build(app)
-    TouchMode.Apply((app.homeTab or 'hangar')=='hangar' and 'home' or 'home-page');local w,h=UI.GetViewportSize()
+    TouchMode.Apply('home');local w,h=UI.GetViewportSize()
     local s={app=app,revision=-1,tab=app.homeTab or 'hangar',buttons={},cards={},width=w,height=h,pointers={},
         touch=require('controls.TouchMode').Enabled(),compact=require('controls.TouchMode').Compact()}
     if app.homeWorkshopState then
@@ -229,8 +251,8 @@ local function Rebuild(s)
     Layout.Apply(s,s.width,s.height,s.safe);s.revision=app.bays.revision;s.tier=app.tier
 end
 function M.Update(dt)
-    if not state then return end;TouchMode.Update(state.tab=='hangar' and 'home' or 'home-page');local s=state;local w,h=UI.GetViewportSize();local safe=UI.GetSafeAreaInsets()
-    DialogHost.Update(s,dt)
+    if not state then return end;TouchMode.Update('home');local s=state;local w,h=UI.GetViewportSize();local safe=UI.GetSafeAreaInsets()
+    DialogHost.Update(s,dt);Prewarm(s,dt)
     if w~=s.width or h~=s.height then s.CancelInput();Layout.Apply(s,w,h,safe);s.app:HomeView(s.tab);s.revision=-1 end
     if s.revision~=s.app.bays.revision or s.tier~=s.app.tier then Rebuild(s) end
     s.previews:Update(dt)

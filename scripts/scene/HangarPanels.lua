@@ -43,6 +43,11 @@ function M:Update()
     if self.bp==bp and self.revision==revision and self.name==bp.name and self.tier==tier and self.slot==slot then return end
     local old=self.info
     local diag=diagnostic or bp:Diagnose(tier)
+    -- Every panel field derives from the parts. Livery edits bump the revision
+    -- but return the same cached diagnostics object: nothing to redraw.
+    if old and diag==old.diag and self.bp==bp and self.name==bp.name and self.tier==tier and self.slot==slot then
+        self.revision=revision;return
+    end
     local parts=bp:List();local hp=0;for _,p in ipairs(parts) do hp=hp+PARTS[p.type].hp end
     local info={name=bp.name,tier=tier,slot=slot,no=slot and string.format('%02d',slot) or '--',
         diag=diag,hp=hp,projection=Projection.Build(parts)}

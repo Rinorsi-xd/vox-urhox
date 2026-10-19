@@ -39,10 +39,10 @@ function M.Enabled()
 end
 function M.Scale(surface)
     local UI=ImportedUI
-    if surface=='home' or surface=='build' or surface=='home-page' then
-        -- 手机紧凑界面：机库按 600 高排（源 homeScale.js）；模式选择/剧情/工坊/涂装/打捞这些按 PC 设计的页面
-        -- 用接近 PC 的 972 高画布排版再整体缩小，和 H5 手机版一样，不会挤爆
-        local height=M.Compact() and (surface=='home-page' and 972 or 600) or 1080
+    if surface=='home' or surface=='build' then
+        -- 手机紧凑界面整套主界面都按 600 高排（源 homeScale.js），导航栏在各页面大小一致；
+        -- 按 PC 设计的页面内容由 HomePages 自己再缩放（同 H5 的 @container 紧凑字号）
+        local height=M.Compact() and 600 or 1080
         return UI.Scale.DESIGN_RESOLUTION(height*16/9,height)
     end
     if not M.Enabled() then return UI.Scale.DPR end

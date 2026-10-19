@@ -191,7 +191,13 @@ function M:Step(dt)
         if not t.alive and self.time>=t.respawn then t.alive=true;t.hp=d.hp;t.native.enabled=true end
     end
     self.space:Step(dt)
-    for _,unit in ipairs(self.units) do unit:SavePose() end
+    -- Combat bodies are registered as cars, so Space's vehicle-only callback
+    -- does not reach them. Correct contacts before capturing render poses.
+    for _,unit in ipairs(self.units) do
+        if unit.alive and unit.vehicle then unit.vehicle:PostStep() end
+        unit:SavePose()
+    end
+    CarUnit.StepRangeJobs(self.units)
     self.debris:CapturePoses()
     self.metrics:Step(self.time)
 end

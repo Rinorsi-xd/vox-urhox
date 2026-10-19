@@ -7,6 +7,14 @@ local function Now() return Time:GetSystemTime() end
 local Platform=require('urhox-libs.Platform.PlatformUtils')
 local Loader={}
 Loader.__index=Loader
+-- Work slice per frame while the loading page covers the scene. A fixed 3 ms
+-- slice at a 30 fps cap used ~9% of each frame: wall time grew ~11x on phones.
+-- Use most of the frame interval instead; the page only animates a spinner.
+local function SliceMs()
+    local fps=engine.maxFps;if not fps or fps<=0 then fps=60 end
+    return math.max(3,math.min(25,1000/fps*.6))
+end
+Loader.SliceMs=SliceMs
 function Loader.New(prepare)
     local self=setmetatable({},Loader)
     self:init()
@@ -23,7 +31,7 @@ function Loader:init()
     self.downloadCompleted=0;self.downloadBytes=0
     self.phase='idle';self.job=nil;self.options=nil
     self.gate=ResourceGate.New()
-    self.prepareFrames=0;self.maxPrepareMs=0;self.prepareBudgetMs=3
+    self.prepareFrames=0;self.maxPrepareMs=0;self.prepareBudgetMs=nil ---@type number|nil
     self.warmIndex=1;self.warmWait=0;self.warmPath='';self.sceneProgressStart=.35
     self.warmPending=nil ---@type table|nil
     self.presentedPhase='';self.phaseFrames=0
@@ -89,7 +97,7 @@ function Loader:ReadScene(path,token)
         self.pending=Scene()
         if self.prepare then self.prepare(self.pending) end
         if self.generation~=token then return true end
-        self.pending.asyncLoadingMs=3
+        self.pending.asyncLoadingMs=math.floor(SliceMs())
         -- Arrays are already prepared before this parser starts. Keep scene
         -- parsing sliced without a blocking wait for background resources.
         local mode=Platform.IsWebPlatform() and LOAD_SCENE or LOAD_SCENE_AND_RESOURCES
@@ -193,7 +201,7 @@ function Loader:Update(dt)
                     self.elapsed=0;self.prepareProgress[self.prepareStage]=progress
                 end
                 self.progress=.75+.24*progress
-                if Now()-self.sliceStart>=self.prepareBudgetMs then coroutine.yield() end
+                if Now()-self.sliceStart>=(self.prepareBudgetMs or SliceMs()) then coroutine.yield() end
             end)
         end)
         return

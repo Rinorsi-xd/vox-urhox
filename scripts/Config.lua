@@ -1,6 +1,8 @@
 -- 全局配置：网格尺寸、档位、调色板（对应 H5 shared/config.js 与策划案 v0.2 第 03 节）
 
 local Config = {}
+-- Contact-only movement experiment; false restores ordinary Bullet response.
+Config.OBSTACLE_SLIDE = true
 
 local data=require("core.ResourceData").Read("Parts/Catalog.json")
 Config.CELL=data.cell

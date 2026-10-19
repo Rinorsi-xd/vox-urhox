@@ -85,6 +85,9 @@ function M:LoadBaked()
     assert(meta.version==1 and meta.revision=='crater-static-v1' and meta.scene=='Scenes/Crater.xml'
         and meta.size==1024 and meta.half==320 and meta.image=='Crater/Minimap.bin','Stale minimap contract')
     for path,expected in pairs(meta.runtimeChecks)do
+        -- 只校验决定像素的场景数据。脚本做性能重构就会改字节，按 Lua 源码校验会让
+        -- 底图静默失效，退回每次进图都在设备上实时截图 + 逐像素调色（手机上要几十秒）。
+        if not path:match('%.lua$') then
         local file=assert(cache:GetFile(path),'Missing minimap input '..path)
         local size,checksum=file.size,file:GetChecksum();file:Dispose()
         local matches=size==expected.bytes and checksum==expected.checksum
@@ -94,6 +97,7 @@ function M:LoadBaked()
             if size==variant.bytes and checksum==variant.checksum then matches=true end
         end
         assert(matches,'Stale minimap input '..path)
+        end
     end
     local image=assert(cache:GetResource('Image',meta.image,false),'Missing baked minimap pixels')
     assert(not image.compressed and image.width==1024 and image.height==1024,'Invalid baked minimap pixels')

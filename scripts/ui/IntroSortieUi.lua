@@ -8,27 +8,49 @@ local ReticleWeapons=require("ui.ReticleWeapons")
 local IntroSortieKill=require("ui.IntroSortieKill")
 local IntroTypography=require("ui.IntroTypography")
 
+local TouchMode=require("controls.TouchMode")
+-- Load optional/cyclic dependencies once, without changing first-use order.
+local DeferredModules=setmetatable({},{__index=function(modules,name)
+    local module=require(name)
+    rawset(modules,name,module)
+    return module
+end})
+
+local Platform=require 'urhox-libs.Platform.PlatformUtils'
 local D=require 'ui.SourceDraw'
 local nvgGlobalAlpha=require('ui.IntroOpacity').Set
 local Coord=require 'core.Coord'
 local Fx=require 'ui.IntroSortieFx'
+local Relief=require 'ui.SourceRelief'
 local M={};M.__index=M
 local white={237,246,255,255};local cyan={122,216,255,255};local red={255,59,48,255}
 local function Box(vg,x,y,w,h,c)
  D.Path(vg,{x+1.3*h/10,y,x+w,y,x+w-1.3*h/10,y+h,x,y+h});nvgFillColor(vg,D.Color(c));nvgFill(vg)
 end
+-- Source @keyframes inBlink { 50% { opacity: .35 } }；steps(2) 逐段两级：1 / .675 / .35 / .675
+local function Blink(t,period) return 1-.65*(.5-.5*math.cos(2*math.pi*t/period)) end
+local function StepBlink(t,period) return ({1,.675,.35,.675})[math.floor((t%period)/period*4)+1] or 1 end
+M.Blink=Blink
+-- 游戏字体没有 ⚠ / ▶：画成图形，宽度按一个字算
+local function WarnIcon(vg,x,y,size,color)
+ local h=size*.82;local top=y+(size-h)/2
+ D.Path(vg,{x+size*.5,top,x+size*.97,top+h,x+size*.03,top+h});nvgFillColor(vg,D.Color(color));nvgFill(vg)
+ D.Rect(vg,x+size*.45,top+h*.32,size*.1,h*.38,{0,0,0,200});D.Rect(vg,x+size*.45,top+h*.78,size*.1,h*.1,{0,0,0,200})
+end
+local function PlayIcon(vg,x,y,size,color)
+ D.Path(vg,{x+size*.18,y+size*.14,x+size*.86,y+size*.5,x+size*.18,y+size*.86});nvgFillColor(vg,D.Color(color));nvgFill(vg)
+end
 local function Circle(vg,x,y,r,c)
  nvgBeginPath(vg);nvgCircle(vg,x,y,r);nvgFillColor(vg,D.Color(c));nvgFill(vg)
 end
-local function Tokens(s)
- if s.pending then return {{text='完成！'}} end
+local function Inside(r,x,y) return r and x>=r.x and y>=r.y and x<r.x+r.w and y<r.y+r.h end
+local function Tokens(s,touch)
  -- 触屏没有 W / 左键：换成左下摇杆与开火键（拖动屏幕或按住开火键拖动都能瞄准）
- local touch=require('controls.TouchMode').Enabled()
  if s.step==1 and touch then return s.elapsed>=4 and {{text='把左下的 ',color=cyan},{text='摇杆',key=true},{text=' 往前推 · 车就会往前开'}} or {{text='摇杆',key=true},{text=' 往前推 冲过去 · 车会朝'},{text='准星',color=cyan},{text='的方向开'}} end
  if s.step==2 and touch then return s.elapsed>=6 and {{text='拖动屏幕把准星对准红色'},{text='「打它！」',color={255,107,94,255}},{text='· '},{text='按住',color=cyan},{text=' '},{text='开火键',key=true}} or {{text='开火键',key=true},{text=' 按住开火 · 打掉冲在最前面那辆！'}} end
  if s.step==1 then return s.elapsed>=4 and {{text='按住键盘上的 ',color=cyan},{text='W',key=true},{text=' · 车就会往前开'}} or {{text='按住 '},{text='W',key=true},{text=' 冲过去 · 车会朝'},{text='准星',color=cyan},{text='的方向开'}} end
  if s.step==2 then return s.elapsed>=6 and {{text='把准星对准红色'},{text='「打它！」',color={255,107,94,255}},{text='· '},{text='按住',color=cyan},{text=' '},{text='左键',key=true}} or {{text='左键',key=true},{text=' 开火 · 打掉冲在最前面那辆！'}} end
- if s.step==3 then return {{text='暴走战车群盯上你了',color={255,107,94,255}},{text=' · 撑住！援军到达还有 '},{text=tostring(math.ceil(s.left or 10)),color={255,211,106,255},number=true},{text=' 秒'}} end
+ if s.step==3 then return {{icon='warn',color={255,107,94,255}},{text=' 暴走战车群盯上你了',color={255,107,94,255}},{text=' · 撑住！援军到达还有 '},{text=tostring(math.ceil(s.left or 10)),color={255,211,106,255},number=true},{text=' 秒'}} end
  return {{text='援军已到达！'},{text='友军火控：锁定目标中……',color={255,107,94,255}}}
 end
 M.Tokens=Tokens
@@ -41,7 +63,67 @@ function M.New(session)
  session.openingOverlay=overlay
  return setmetatable({session=session,reticle=reticle,root=root,overlay=overlay},M)
 end
-function M:Update(dt)
+-- 窗口偏小的电脑浏览器也会被 TouchMode 判成触屏：只要还没见过真实触点，鼠标一用就切回键鼠
+function M.MouseAllowed()
+ if TouchMode.override or TouchMode.webTouch or Platform.IsMobilePlatform() or input.touchEmulation or input:GetNumTouches()>0 then return false end
+ for _,arg in ipairs(GetArguments()) do if arg=='-touch' then return false end end
+ return true
+end
+function M.NoteTouch() if Platform.IsWebPlatform() then TouchMode.webTouch=true end end
+-- 开场实机段按玩家实际用的指针切换键鼠 / 触屏；切换前先松开旧的接管状态
+function M:UsePointer(touch)
+ local s=self.session
+ if touch then M.NoteTouch() end
+ if s.disposed or s.touch==touch or not touch and not M.MouseAllowed() then return false end
+ s.pointer:Release();s.touch=touch
+ if touch then self:AttachTouch() else self:DetachTouch() end
+ return true
+end
+-- 源 intro.css 在 intro-play 时直接露出 #driveHud（含摇杆 / 开火键），这里只借驾驶 HUD 的触屏操作层
+function M:BeginPlay(page)
+ self.page=page or self.page;self.playing=true;self:AttachTouch()
+end
+function M:EndPlay()
+ self.playing=false;self:DetachTouch()
+end
+function M:AttachTouch()
+ local s=self.session
+ if self.touch or not self.playing or not self.page or not s.touch or s.disposed then return end
+ local width,height=UI.GetViewportSize();local page=self.page
+ local root=UI.Panel{position='absolute',left=0,top=0,width='100%',height='100%',pointerEvents='box-none'}
+ -- 右上角「跳过广告」留给开场页自己处理，触屏层整棵子树在那块区域不接点击
+ local hit=root.HitTest
+ root.HitTest=function(widget,x,y) if Inside(page.skipRect,x,y) then return false end;return hit(widget,x,y) end
+ page:AddChild(root)
+ local layer=DeferredModules['ui.TouchDriveControls'].Create(s,root)
+ -- 开场里没有暂停 / 设置菜单可开，菜单键直接藏掉
+ layer.toggle:SetVisible(false)
+ -- 鼠标点到触屏层：交还开场页（会切回键鼠并锁鼠标）
+ local down=layer.playfield.OnPointerDown
+ layer.playfield.OnPointerDown=function(widget,e)
+  if not e:IsTouch() then return page:OnPointerDown(e) end
+  return down(widget,e)
+ end
+ self.touch={root=root,layer=layer,width=width,height=height}
+ print('[Intro] sortie touch controls attached')
+end
+function M:DetachTouch()
+ local t=self.touch;if not t then return end
+ self.touch=nil
+ -- 会话已拆时摇杆层的 Reset 会摸到已释放的 pointer，只拆界面
+ if not self.session.disposed then t.layer.Dispose();self.session.controls:Clear() end
+ t.root:Destroy()
+end
+function M:UpdateTouch(I)
+ local t=self.touch;if not t then return end
+ local width,height=UI.GetViewportSize()
+ if width~=t.width or height~=t.height then self:DetachTouch();self:AttachTouch();t=self.touch;if not t then return end end
+ local s=self.session;local sortie=I and I.sortie
+ local blocked=not (I and I.playing) or I.capturePending==true or not s.combat.player.alive or sortie~=nil and sortie.step>=5 or not s:HasFocus()
+ t.layer.Update(blocked)
+end
+function M:Update(dt,I)
+ self:UpdateTouch(I)
  self.reticle.hit=math.max(0,(self.reticle.hit or 0)-dt)
  if self.session.combat.player.alive then ReticleState.Update(self.reticle,dt) end
  self.overlay:Update(dt);self.reticle.aimState=self.overlay.aimState
@@ -67,11 +149,17 @@ function M:Draw(vg,I,w,h,u)
  if s.controlling and s.step<5 then self.reticle:Render(vg) end
  if s.killAt then IntroSortieKill.Draw(vg,w,h,u,I.time-s.killAt,s.mine) end
  if not s.controlling and s.step<5 then
-  local bw,bh=52*u,8.5*u;local x,y=(w-bw)/2,h*.46-bh/2
-  D.Rect(vg,x,y,bw,bh,{8,15,28,209});D.Rect(vg,x,y,bw,1,{122,216,255,128})
-  nvgSave(vg);nvgGlobalAlpha(vg,.65+.35*math.sin(I.time*math.pi/1.1)^2)
-  D.Text(vg,'点击画面 · 接管战车',w/2,y+1.6*u,2.8*u,white,'vox-title',NVG_ALIGN_CENTER);nvgRestore(vg)
-  D.Text(vg,'鼠标转视角 · 按 Esc 松开鼠标',w/2,y+5.2*u,1.5*u,{159,196,228,255},'vox-body',NVG_ALIGN_CENTER)
+  -- Source .sortie-lock：宽度贴内容，四边 1px 描边，标题 1.1s 呼吸闪
+  local touch=self.session.touch
+  local title=touch and '轻触画面 · 接管战车' or '点击画面 · 接管战车'
+  local hint=touch and '左下摇杆开车 · 拖动画面瞄准' or '鼠标转视角 · 按 Esc 松开鼠标'
+  local bw=math.max(D.Width(vg,title,2.8*u,'vox-title',.336*u),D.Width(vg,hint,1.5*u,'vox-body',.09*u))+6.4*u
+  local bh=8.6*u;local x,y=(w-bw)/2,h*.46-bh/2
+  D.Rect(vg,x,y,bw,bh,{8,15,28,209})
+  nvgBeginPath(vg);nvgRect(vg,x+.5,y+.5,bw-1,bh-1);nvgStrokeWidth(vg,1);nvgStrokeColor(vg,nvgRGBA(122,216,255,128));nvgStroke(vg)
+  nvgSave(vg);nvgGlobalAlpha(vg,Blink(I.time,1.1))
+  D.Text(vg,title,w/2,y+1.6*u,2.8*u,white,'vox-title',NVG_ALIGN_CENTER,.336*u);nvgRestore(vg)
+  D.Text(vg,hint,w/2,y+5.2*u,1.5*u,{159,196,228,255},'vox-body',NVG_ALIGN_CENTER,.09*u)
  end
  if s.step==2 and not s.pending and self.session.combat.easy.alive then
   local x,y=self:Project(self.session.combat.easy:Position(),2.6,w,h)
@@ -84,34 +172,39 @@ function M:Draw(vg,I,w,h,u)
  if s.step==4 then
   local x,y=self:Project(self.session.combat.player:Position(),1.2,w,h)
   if x then
-   local progress=math.min(1,s.elapsed/1.8);local radius=8*u*(2.4-progress*1.5);local angle=I.time*math.pi*2/1.2
-   nvgSave(vg);nvgGlobalAlpha(vg,.4+progress*.6)
-   Fx.LockRing(vg,x,y,radius,angle,u)
-   local text=progress>.72 and '识别失败 · 照打' or 'LOCK';local bw=D.Width(vg,text,1.6*u,'vox-title')+1.92*u
-   D.Rect(vg,x-bw/2,y+radius*1.16,bw,2.24*u,progress>.72 and white or {216,23,12,255})
-   D.Text(vg,text,x,y+radius*1.16+.32*u,1.6*u,progress>.72 and red or white,'vox-title',NVG_ALIGN_CENTER);nvgRestore(vg)
+   -- Source 整个 .sortie-strike 一起 scale(2.4-1.5k)：圈、虚线粗细和标签同步缩
+   local progress=math.min(1,s.elapsed/1.8);local scale=2.4-progress*1.5;local angle=I.time*math.pi*2/1.2
+   nvgSave(vg);nvgGlobalAlpha(vg,.4+progress*.6);nvgTranslate(vg,x,y);nvgScale(vg,scale,scale)
+   Fx.LockRing(vg,0,0,8*u,angle,u)
+   local fail=progress>.72;local text=fail and '识别失败 · 照打' or 'LOCK';local bw=D.Width(vg,text,1.6*u,'vox-title',.192*u)+1.92*u
+   D.Rect(vg,-bw/2,9.28*u,bw,2.24*u,fail and white or {216,23,12,255})
+   D.Text(vg,text,0,9.6*u,1.6*u,fail and {216,23,12,255} or white,'vox-title',NVG_ALIGN_CENTER,.192*u);nvgRestore(vg)
   end
  end
  if s.step<=0 or s.step>=5 then return end
- local runs=Tokens(s);local size=2.6*u;local widths={};local content=0
- for i,run in ipairs(runs) do local fs=run.key and size*.85 or run.number and size*1.25 or size;local font=(run.key or run.number) and 'vox-tabular' or 'vox-title';local width=D.Width(vg,run.text,fs,font)+(run.key and size*1.3 or 0);widths[i]={width=width,size=fs,font=font};content=content+width end
+ local runs=Tokens(s,self.session.touch);local size=2.6*u;local widths={};local content=0
+ for i,run in ipairs(runs) do local fs=run.key and size*.85 or run.number and size*1.25 or size;local font=(run.key or run.number) and 'vox-tabular' or 'vox-title';local width=run.icon and fs or D.Width(vg,run.text,fs,font)+(run.key and size*1.3 or 0);widths[i]={width=width,size=fs,font=font};content=content+width end
  local bw=1.2*u+4.4*u+1.6*u+content+2.8*u;local scale=math.min(1,(w-4*u)/bw);local bh=6.8*u
  local enter=1-(1-math.min(1,s.elapsed/.26))^3;local x=(w-bw*scale)/2;local y=h*.83-bh*scale+(1-enter)*3*u
- nvgSave(vg);nvgTranslate(vg,x,y);nvgScale(vg,scale,scale);nvgGlobalAlpha(vg,s.pending and .8 or enter)
+ nvgSave(vg);nvgTranslate(vg,x,y);nvgScale(vg,scale,scale);nvgGlobalAlpha(vg,enter)
  local pulse=Fx.Nudge(s);Fx.TipGlow(vg,bw,bh,u,pulse)
- Box(vg,.5*u,.5*u,bw,bh,{3,14,24,255});D.Path(vg,{0,0,bw,0,bw-1.2*u,bh,-1.2*u,bh});D.Gradient(vg,0,0,bw,bh,{23,48,76,255},{8,15,28,255})
+ Box(vg,.5*u,.5*u,bw,bh,{40,121,235,255});D.Path(vg,{0,0,bw,0,bw-1.2*u,bh,-1.2*u,bh});D.Gradient(vg,0,0,bw,bh,{23,48,76,255},{8,15,28,255})
  D.Line(vg,0,0,bw,0,{122,216,255,math.floor(153+77*pulse)},.3*u);local cx=1.2*u;D.Rect(vg,cx,1.2*u,4.4*u,4.4*u,s.pending and {47,191,113,255} or {40,121,235,255})
  if s.pending then D.Line(vg,cx+u,3.4*u,cx+1.9*u,4.1*u,white,.3*u);D.Line(vg,cx+1.9*u,4.1*u,cx+3.4*u,2.3*u,white,.3*u)
  else D.Text(vg,string.format('%02d',s.step),cx+2.2*u,2.3*u,2.2*u,white,'vox-tabular',NVG_ALIGN_CENTER) end
  cx=cx+6*u
  for i,run in ipairs(runs) do local a=widths[i]
-  if run.key then D.Rect(vg,cx,1.72*u,a.width,3.25*u,{3,14,24,255});D.Rect(vg,cx,1.48*u,a.width,3.25*u,cyan);D.Text(vg,run.text,cx+a.width/2,2.1*u,a.size,{3,20,31,255},a.font,NVG_ALIGN_CENTER)
+  if run.key then D.Rect(vg,cx,1.67*u,a.width,3.25*u,{40,121,235,255});D.Rect(vg,cx,1.48*u,a.width,3.25*u,cyan);D.Text(vg,run.text,cx+a.width/2,2.1*u,a.size,{3,20,31,255},a.font,NVG_ALIGN_CENTER)
+  elseif run.icon then WarnIcon(vg,cx,2*u,a.size,run.color or white)
   else D.Text(vg,run.text,cx,2*u,a.size,run.color or white,a.font) end
   cx=cx+a.width
  end
+ -- Source .sortie-tip.done：保留这一步的原句，整块 saturate(.4) brightness(.8)，序号块变绿打勾
+ if s.pending then D.Path(vg,{0,0,bw,0,bw-1.2*u,bh,-1.2*u,bh});nvgFillColor(vg,nvgRGBA(20,26,32,72));nvgFill(vg) end
  nvgRestore(vg)
 end
 function M:Dispose()
+ self:EndPlay();self.page=nil
  if self.session.openingOverlay==self.overlay then self.session.openingOverlay=nil end
  self.root:Destroy();self.reticle:Destroy()
 end
@@ -127,34 +220,111 @@ function M.Stamp(vg,w,h,u,s)
  D.Text(vg,reason,0,height/2-6.4*u,2.2*u,{255,217,212,255},'vox-title',NVG_ALIGN_CENTER)
  D.Text(vg,'（新员工第一次出勤，基本都是这个结局。）',0,height/2-3.4*u,1.6*u,{255,217,212,255},'vox-body',NVG_ALIGN_CENTER);nvgRestore(vg)
 end
-function M.Brief(vg,w,h,u,time)
- local width=math.min(74*u,w*.88);local height=30.4*u;local x=w*.06;local y=h*.5-height/2
+function M.Brief(vg,w,h,u,time,touch)
+ -- Source .sortie-brief：padding 2.4vh 3vh，行间 gap 1.6vh，高度随内容；标题一行放得下
+ if touch==nil then touch=TouchMode.Enabled() end
+ local width=math.min(74*u,w*.88);local pad,gap=2.4*u,1.6*u
+ local rows={hd=1.7*u,ttl=4.42*u,row=2.6*u,keys=2.36*u,go=4.6*u}
+ local height=pad*2+rows.hd+rows.ttl+rows.row+rows.keys+rows.go+gap*4+.6*u
+ local x=w*.06;local y=h*.5-height/2
  local progress=math.min(1,math.max(0,time-2.2)/.32);local ease=1-(1-progress)^3
  nvgSave(vg);nvgGlobalAlpha(vg,ease);nvgTranslate(vg,-w*.06*(1-ease),0)
  local c=2.6*u
  D.Path(vg,{x,y,x+width-c,y,x+width,y+c,x+width,y+height,x+c,y+height,x,y+height-c});D.Gradient(vg,x,y,width,height,{23,48,76,240},{8,15,28,240})
  D.Line(vg,x,y,x+width-c,y,cyan,.35*u)
- local tx=x+3*u
- Circle(vg,tx+.55*u,y+3.25*u,.55*u,red);D.Text(vg,'紧急插播 · 实机演示',tx+2.1*u,y+2.4*u,1.7*u,{255,138,128,255},'vox-title')
- D.Text(vg,'公司矿车遇袭！这一次——',tx,y+5.7*u,3.4*u,white,'vox-title');D.Text(vg,'由你亲自驾驶。',tx,y+10.12*u,3.4*u,cyan,'vox-title')
- D.Rect(vg,tx,y+15.5*u,4.8*u,2.4*u,cyan);D.Text(vg,'任务',tx+2.4*u,y+15.9*u,1.6*u,{3,20,31,255},'vox-title',NVG_ALIGN_CENTER)
- D.Text(vg,'保护矿车，坚持到援军到达',tx+6*u,y+15.7*u,2*u,white,'vox-title')
- local cursor=tx
- local legend=require('controls.TouchMode').Enabled() and {{'摇杆','前进'},{'拖屏幕','瞄准 · 车朝准星开'},{'开火键','开火'}}
-  or {{'W','前进'},{'鼠标','瞄准 · 车朝准星开'},{'左键','开火'}}
- for _,run in ipairs(legend) do
-  local kw=D.Width(vg,run[1],1.62*u,'vox-tabular')+1.78*u
-  D.Rect(vg,cursor,y+19.6*u,kw,2.6*u,cyan);D.Text(vg,run[1],cursor+kw/2,y+20.09*u,1.62*u,{3,20,31,255},'vox-tabular',NVG_ALIGN_CENTER)
-  D.Text(vg,run[2],cursor+kw+.8*u,y+20*u,1.8*u,{201,220,239,255},'vox-title');cursor=cursor+kw+.8*u+D.Width(vg,run[2],1.8*u,'vox-title')+2.4*u
+ local tx=x+3*u;local cy=y+pad
+ nvgSave(vg);nvgGlobalAlpha(vg,ease*StepBlink(time,1));Circle(vg,tx+.55*u,cy+.85*u,.55*u,red);nvgRestore(vg)
+ D.Text(vg,'紧急插播 · 实机演示',tx+2.1*u,cy,1.7*u,{255,138,128,255},'vox-title',nil,.408*u,false,rows.hd)
+ cy=cy+rows.hd+gap
+ local size,spacing=3.4*u,.068*u;local cursor=tx
+ for _,run in ipairs({{'公司矿车遇袭！这一次——',white},{'由你亲自驾驶',cyan},{'。',white}}) do
+  D.Text(vg,run[1],cursor,cy,size,run[2],'vox-title',nil,spacing,false,rows.ttl);cursor=cursor+D.Width(vg,run[1],size,'vox-title',spacing)
  end
- D.Rect(vg,tx,y+24.5*u,width-6*u,3.5*u,{40,121,235,255});D.Text(vg,'▶ 点击画面 · 接管战车',x+width/2,y+25.05*u,2.4*u,white,'vox-title',NVG_ALIGN_CENTER)
+ cy=cy+rows.ttl+gap
+ local kw=D.Width(vg,'任务',1.6*u,'vox-title')+1.92*u
+ D.Rect(vg,tx,cy+.1*u,kw,2.4*u,cyan);D.Text(vg,'任务',tx+kw/2,cy+.1*u,1.6*u,{3,20,31,255},'vox-title',NVG_ALIGN_CENTER,0,false,2.4*u)
+ D.Text(vg,'保护矿车，坚持到援军到达',tx+kw+1.2*u,cy,2*u,white,'vox-title',nil,0,false,rows.row)
+ cy=cy+rows.row+gap
+ local legend=touch and {{'摇杆','前进'},{'拖屏幕','瞄准 · 车朝准星开'},{'开火键','开火'}}
+  or {{'W','前进'},{'鼠标','瞄准 · 车朝准星开'},{'左键','开火'}}
+ cursor=tx
+ for _,run in ipairs(legend) do
+  local key=D.Width(vg,run[1],1.62*u,'vox-tabular')+1.78*u
+  -- kbd：3px 圆角 + 2px 品牌深蓝底影
+  nvgBeginPath(vg);nvgRoundedRect(vg,cursor,cy+.19*u,key,rows.keys,.28*u);nvgFillColor(vg,nvgRGBA(40,121,235,255));nvgFill(vg)
+  nvgBeginPath(vg);nvgRoundedRect(vg,cursor,cy,key,rows.keys,.28*u);nvgFillColor(vg,D.Color(cyan));nvgFill(vg)
+  D.Text(vg,run[1],cursor+key/2,cy,1.62*u,{3,20,31,255},'vox-tabular',NVG_ALIGN_CENTER,0,false,rows.keys)
+  D.Text(vg,run[2],cursor+key+.8*u,cy,1.8*u,{201,220,239,255},'vox-title',nil,0,false,rows.keys)
+  cursor=cursor+key+.8*u+D.Width(vg,run[2],1.8*u,'vox-title')+2.4*u
+ end
+ cy=cy+rows.keys+gap+.6*u
+ -- .go：品牌浮雕底，1.1s 呼吸闪
+ local gw=width-6*u
+ nvgSave(vg);nvgGlobalAlpha(vg,ease*Blink(time,1.1))
+ Relief.Draw(vg,tx,cy,gw,rows.go,true,true,{tx,cy,tx+gw,cy,tx+gw,cy+rows.go,tx,cy+rows.go})
+ local go=touch and '轻触画面 · 接管战车' or '点击画面 · 接管战车';local gs=2.4*u
+ local textW=D.Width(vg,go,gs,'vox-title',.384*u);local left=x+width/2-(textW+gs*1.15)/2
+ PlayIcon(vg,left,cy+(rows.go-gs)/2,gs,white)
+ D.Text(vg,go,left+gs*1.15,cy,gs,white,'vox-title',nil,.384*u,false,rows.go)
+ nvgRestore(vg)
  nvgRestore(vg)
 end
+-- Source .warn / .warn-fine：-3° 斜贴的红色斜纹警示带，白边黑投影，跑马灯 6s 走半程；2.2s 收
+function M.Warn(vg,w,h,u,t)
+ if t>=2.46 then return end
+ local out=t<2.2 and 1 or 1-((t-2.2)/.26)^2
+ local enter=1-(1-math.min(1,t/.32))^4
+ local bw,bh=w*1.1,7.4*u;local cx,cy=w/2,64*u+bh/2+(1-enter)*30*u
+ nvgSave(vg);nvgGlobalAlpha(vg,enter*out);nvgTranslate(vg,cx,cy);nvgRotate(vg,math.rad(-3))
+ local x,y=-bw/2,-bh/2
+ D.Rect(vg,x,y+u,bw,bh,{0,0,0,255})
+ D.Rect(vg,x,y,bw,bh,{141,10,4,255})
+ nvgSave(vg);nvgIntersectScissor(vg,x,y,bw,bh)
+ -- repeating-linear-gradient(-45deg, #d8170c 0 2.2vh, #8d0a04 2.2vh 4.4vh)
+ nvgSave(vg);nvgRotate(vg,math.rad(-45));local reach=bw
+ for i=math.floor(-reach/(4.4*u)),math.ceil(reach/(4.4*u)) do D.Rect(vg,-reach,i*4.4*u,reach*2,2.2*u,{216,23,12,255}) end
+ nvgRestore(vg)
+ local size,spacing=4.2*u,.504*u;local gap=w*.05
+ local spans={'财产受损警告','PROPERTY DAMAGE ALERT'};local icons={true,false};local widths={};local period=0
+ for i,text in ipairs(spans) do widths[i]=D.Width(vg,text,size,'vox-title',spacing)+(icons[i] and size*2.6 or 0);period=period+widths[i]+gap end
+ local tx=x-(t/6%1)*period*3;local ty=y+.5*u+1.1*u
+ for rep=1,8 do for i,text in ipairs(spans) do
+  if tx<bw/2 and tx+widths[i]>x then
+   local lx=tx
+   if icons[i] then WarnIcon(vg,lx+.3*u,ty+.3*u,size,{0,0,0,255});WarnIcon(vg,lx,ty,size,{255,255,255,255});lx=lx+size*1.3 end
+   D.Text(vg,text,lx,ty,size,{255,255,255,255},'vox-title',nil,spacing,false,size,{{x=.3*u,y=.3*u,color={0,0,0,255}}})
+   if icons[i] then local ix=lx+D.Width(vg,text,size,'vox-title',spacing)+size*.3;WarnIcon(vg,ix+.3*u,ty+.3*u,size,{0,0,0,255});WarnIcon(vg,ix,ty,size,{255,255,255,255}) end
+  end
+  tx=tx+widths[i]+gap
+ end end
+ nvgRestore(vg)
+ D.Rect(vg,x,y,bw,.5*u,{255,255,255,255});D.Rect(vg,x,y+bh-.5*u,bw,.5*u,{255,255,255,255})
+ nvgRestore(vg)
+ nvgSave(vg);nvgGlobalAlpha(vg,math.min(1,t/.5)*out);nvgTranslate(vg,w/2,75*u+1.15*u);nvgRotate(vg,math.rad(-3))
+ D.Text(vg,'敌军正在拆解公司的贵重矿车！（矿车价值约等于你 40 年工资）',0,-1.15*u,1.9*u,{255,217,212,255},'vox-body',NVG_ALIGN_CENTER,.114*u,false,2.3*u,{{y=1,blur=2,color={0,0,0,255}}})
+ nvgRestore(vg)
+end
+-- Source introSortie.js 3·2·1·出动！：每个字一个 .slam.white，数字 .42s 收、出动 .6s 收
+function M.Countdown(page,vg,I,w,h,u)
+ local text=I.countdown
+ if text and text~='' and (not page.countdownSlam or page.countdownSlam.text~=text) then page.countdownSlam={text=text,at=I.time} end
+ local slam=page.countdownSlam;if not slam then return end
+ local age=I.time-slam.at;local final=slam.text=='出动！'
+ local hold,fade=final and .6 or .42,final and .2 or .12
+ if age>=hold+fade then return end
+ IntroSortieKill.Slam(vg,w,h,u,age,slam.text,hold,fade)
+end
 function M.Chrome(vg,w,h,u,time,step)
- local x,y=w*.026,h*.15;local liveW=32*u;local textW=D.Width(vg,'未经美化（美术预算已花在上一段）',1.3*u,'vox-body')
- Box(vg,x,y,liveW+textW,3.4*u,{8,15,28,255});D.Line(vg,x+u,y,x+liveW+textW,y,{122,216,255,115},1)
- if math.floor(time*2)%2==0 then Circle(vg,x+1.7*u,y+1.7*u,.6*u,red) end
- D.Text(vg,'实机画面 · LIVE',x+3.3*u,y+.7*u,2*u,white,'vox-title');D.Text(vg,'未经美化（美术预算已花在上一段）',x+23*u,y+1.05*u,1.3*u,{159,196,228,255},'vox-body')
+ -- Source .in-play .live：内容撑宽，navy→ink 竖向渐变，四边 1px 描边，红点 steps(2) 闪
+ local x,y=w*.026,h*.15;local title='实机画面 · LIVE';local small='未经美化（美术预算已花在上一段）'
+ local titleX=x+3.6*u;local smallX=titleX+D.Width(vg,title,2*u,'vox-title',.28*u)+1.6*u
+ local bw=smallX+D.Width(vg,small,1.3*u,'vox-body',.052*u)+1.4*u-x;local bh=3.4*u;local skew=bh*.176
+ local shape={x+skew,y,x+bw,y,x+bw-skew,y+bh,x,y+bh}
+ D.Path(vg,shape);D.Gradient(vg,x,y,bw,bh,{22,45,73,255},{8,15,28,255})
+ D.Path(vg,shape);nvgStrokeWidth(vg,1);nvgStrokeColor(vg,nvgRGBA(122,216,255,115));nvgStroke(vg)
+ nvgSave(vg);nvgGlobalAlpha(vg,StepBlink(time,1));Circle(vg,x+2*u,y+1.7*u,.6*u,red);nvgRestore(vg)
+ D.Text(vg,title,titleX,y,2*u,white,'vox-title',nil,.28*u,false,bh)
+ D.Text(vg,small,smallX,y,1.3*u,{159,196,228,255},'vox-body',nil,.052*u,false,bh)
  local task=step==5 and '战车已损毁' or step==4 and '援军已到达' or step==3 and '撑住！援军马上到' or '保护公司矿车 · 坚持到援军到达'
  local width=D.Width(vg,task,1.75*u,'vox-title')+8*u;Box(vg,x,h*.196,width,3.2*u,{8,15,28,184})
  D.Rect(vg,x+u,h*.196+.62*u,4.4*u,1.96*u,cyan);D.Text(vg,'任务',x+3.2*u,h*.196+.89*u,1.4*u,{3,20,31,255},'vox-title',NVG_ALIGN_CENTER)

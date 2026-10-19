@@ -49,14 +49,25 @@ end
 function M:Ray(x,y)
     local w,h=UI.GetViewportSize();return self.app.camera.camera:GetScreenRay(x/w,y/h)
 end
+-- Drawable component ID -> owning visual, rebuilt at most once per frame. A pick
+-- fires five rays; scanning every part model per hit dominated large cars.
+function M:VisualOwners()
+    local car=self.app.car;local frame=time.frameNumber
+    local cached=self.owners
+    if cached and cached.car==car and cached.frame==frame then return cached.map end
+    local map={}
+    for _,v in pairs(car.visuals) do for _,model in ipairs(v.models) do local id=model:GetID();if map[id]==nil then map[id]=v end end end
+    self.owners={car=car,frame=frame,map=map};return map
+end
 function M:Hit(x,y)
     local app=self.app;local root=app.car.root;self.blocked=false
     local hits=app.scene:GetComponent('Octree'):Raycast(self:Ray(x,y),RAY_TRIANGLE,160,DRAWABLE_GEOMETRY)
-    for _,h in ipairs(hits) do for _,v in pairs(app.car.visuals) do for _,model in ipairs(v.models) do if h.drawable==model then
+    local owners=self:VisualOwners()
+    for _,h in ipairs(hits) do local v=h.drawable and owners[h.drawable:GetID()];if v then
         if not Models.Fixed(v.part) then self.blocked=true;return nil end
         local p=root:WorldToLocal(h.position);local n=root.worldRotation:Inverse()*h.normal
         return {p={-p.x,p.y,p.z},n={-n.x,n.y,n.z}}
-    end end end end
+    end end
 end
 function M:Surface(x,y)
     local c=self:Hit(x,y);if not c then return nil end;local n={table.unpack(c.n)}
@@ -87,8 +98,14 @@ function M:Corners(d)
         local q=self:Screen(P.ToWorld(f,{sign[1]*w/2,sign[2]*h/2,.05}));if not q then return nil end;out[#out+1]=q
     end;return out
 end
+-- While a gizmo drag is in progress the decal lives only in drag.preview; the
+-- blueprint is written once on release.
+function M:Current()
+    local g=self.drag;if g and g.preview then return g.preview end
+    return self.session:List()[self.session.sel]
+end
 function M:Gizmo()
-    local d=self.session:List()[self.session.sel];local box=d and self:Corners(d);if not box then return nil end
+    local d=self:Current();local box=d and self:Corners(d);if not box then return nil end
     local tx,ty=(box[3].x+box[4].x)/2,(box[3].y+box[4].y)/2;local cx,cy=(box[1].x+box[3].x)/2,(box[1].y+box[3].y)/2
     local len=math.sqrt((tx-cx)^2+(ty-cy)^2);if len<1e-6 then len=1 end
     local w=UI.GetViewportSize();local k=w/(graphics:GetWidth()/graphics:GetDPR())
@@ -98,7 +115,8 @@ function M:Start(kind,x,y,id)
     local d=self.session:List()[self.session.sel];local c=d and self:Screen(d.p)
     if not c then return end
     self.touchX=0;self.touchY=0;self.touchMode=false
-    self.drag={kind=kind,id=id,dx=c.x-x,dy=c.y-y,cx=c.x,cy=c.y,w=d.w,r=d.r,d=math.sqrt((x-c.x)^2+(y-c.y)^2),a=math.atan(c.y-y,x-c.x)}
+    self.drag={kind=kind,id=id,dx=c.x-x,dy=c.y-y,cx=c.x,cy=c.y,w=d.w,r=d.r,d=math.sqrt((x-c.x)^2+(y-c.y)^2),a=math.atan(c.y-y,x-c.x),
+        base=LiveryData.Clone({d})[1]}
 end
 function M:Down(e)
     if self.drag then return end
@@ -128,19 +146,49 @@ function M:Move(e)
     end
     if not g and self.touches[e.pointerId] then self:TouchMove(e);return end
     if g then
-        if g.kind=='move' then local hit=self:Surface(x+g.dx,y+g.dy);if hit then self.session:Edit(function(d) d.p=hit.p;d.n=hit.n end);g.moved=true end
-        elseif g.kind=='scale' then self.session:Edit(function(d) d.w=math.floor(math.max(1,math.min(30,g.w*math.sqrt((x-g.cx)^2+(y-g.cy)^2)/math.max(4,g.d)))*100+.5)/100 end);g.moved=true
-        elseif g.kind=='rotate' then
-            local r=g.r+math.atan(g.cy-y,x-g.cx)-g.a;local snapped=math.floor(r/(math.pi/12)+.5)*math.pi/12
-            if not input:GetKeyDown(KEY_SHIFT) and math.abs(r-snapped)<.06 then r=snapped end
-            self.session:Edit(function(d) d.r=r end);g.moved=true
+        -- Gizmo drags only record the pointer; FlushMove (once per frame) moves the
+        -- existing decal rigidly. Surface fitting runs once, on release.
+        if g.kind=='move' or g.kind=='scale' or g.kind=='rotate' then g.pending={x=x,y=y}
         else
             local dx,dy=self:CssPoint(x-g.x,y-g.y);self:CameraMove(dx,dy,g.kind=='pan')
             g.x=x;g.y=y
         end
-    elseif self.session.pick then
-        local h=self:Surface(x,y);self.app.car.livery:SetPreview(h and self.session:NewDecal(self.session.pick,h) or nil)
+    elseif self.session.pick then self.pendingHover={x=x,y=y} end
+end
+function M:FlushMove()
+    local g=self.drag;local pending=g and g.pending
+    if pending then
+        g.pending=nil;local x,y=pending.x,pending.y
+        local d=LiveryData.Clone({g.preview or g.base})[1];local changed=false
+        if g.kind=='move' then
+            local hit=self:Surface(x+g.dx,y+g.dy);if hit then d.p=hit.p;d.n=hit.n;changed=true end
+        elseif g.kind=='scale' then
+            d.w=math.floor(math.max(1,math.min(30,g.w*math.sqrt((x-g.cx)^2+(y-g.cy)^2)/math.max(4,g.d)))*100+.5)/100;changed=true
+        elseif g.kind=='rotate' then
+            local r=g.r+math.atan(g.cy-y,x-g.cx)-g.a;local snapped=math.floor(r/(math.pi/12)+.5)*math.pi/12
+            if not input:GetKeyDown(KEY_SHIFT) and math.abs(r-snapped)<.06 then r=snapped end
+            d.r=r;changed=true
+        end
+        if changed then g.preview=d;g.moved=true end
     end
+    -- Re-apply every frame: a projection finishing mid-drag must not snap it back.
+    if g and g.preview then
+        local session,d=self.session,g.preview;local twin=session:Twin(session.sel)
+        local twinD=twin>0 and LiveryData.Mirror(d,LiveryData.Catalog().byId[d.s]) or nil
+        self.app.car.livery:Follow(session.sel,d,twin,twinD)
+    end
+    local hover=self.pendingHover;self.pendingHover=nil
+    if hover and not self.drag and self.session.pick then
+        local h=self:Surface(hover.x,hover.y);self.app.car.livery:SetPreview(h and self.session:NewDecal(self.session.pick,h) or nil)
+    end
+end
+-- Write the dragged placement into the blueprint once; the layer then fits it.
+function M:Commit()
+    local g=self.drag;if not g then return end
+    self:FlushMove()
+    local p=g.preview;g.preview=nil;self.app.car.livery:EndFollow()
+    if p then self.session:Edit(function(d) d.p=p.p;d.n=p.n;d.w=p.w;d.r=p.r end) end
+    if g.moved then self.session:Record() end
 end
 function M:Up(e)
     if self.touches[e.pointerId] then
@@ -148,14 +196,15 @@ function M:Up(e)
         for i,id in ipairs(self.touchOrder) do if id==e.pointerId then table.remove(self.touchOrder,i);break end end
         if #self.touchOrder==0 then self.touchMode=false end
     end
-    if self.drag and self.drag.id==e.pointerId then if self.drag.moved then self.session:Record() end;self.drag=false end
+    if self.drag and self.drag.id==e.pointerId then self:Commit();self.drag=false end
 end
 function M:Cancel()
-    if self.drag and self.drag.moved then self.session:Record() end
+    self.pendingHover=nil;self:Commit()
     self.drag=false;self.pointer=false;self.touches={};self.touchOrder={};self.touchMode=false;self.touchX=0;self.touchY=0
     self.app.car.livery:SetPreview(nil)
 end
 function M:Update(dt,blocked)
+    if not blocked then self:FlushMove() end
     self.session:Update(dt);local c=self.app.camera
     if blocked or not input.focus or input.minimized then self:Cancel();c:Step(dt);return end
     -- H5 accumulates CSS-pixel deltas until CameraRig.update; pinch changes

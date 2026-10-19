@@ -1,4 +1,5 @@
 -- PC keyboard state and pointer-sampled fire share the simulation command.
+local GroundBoost=require "drive.GroundBoost"
 local M={};M.__index=M
 function M.New() return setmetatable({held={},lookX=0,lookY=0},M) end
 function M:Clear() self.held={};self.lookX=0;self.lookY=0;self.lookPointer=nil;self.touchThrottle=0;self.touchSteer=0;self.rotorStep=false end
@@ -25,7 +26,8 @@ function M:Command(command,vehicle,aimYaw,aimPitch)
     local space=command.space;local wings=vehicle.spec.wings and #vehicle.spec.wings>0
     local jetClimb=space and (not leg or (walker and walker.airTime and walker.airTime>0 and walker.airTime<.25)
         or (not (walker and walker.airTime and walker.airTime>0) and (vehicle.telemetry.legContacts or 0)==0 and walker and walker.groundedTime==0))
-    command.climb=(jetClimb and 1 or 0)-(command.shift and not (leg and vehicle.mechControl) and 1 or 0)
+    command.groundBoost=GroundBoost.Available(vehicle) and command.shift==true
+    command.climb=(jetClimb and 1 or 0)-(command.shift and not command.groundBoost and not (leg and vehicle.mechControl) and 1 or 0)
     command.jump=leg and space==true;command.handbrake=space==true and not leg and not wings
     command.boost=leg and vehicle.mechControl~=nil and command.shift==true
     command.aimYaw=aimYaw;command.aimPitch=aimPitch
@@ -33,7 +35,9 @@ function M:Command(command,vehicle,aimYaw,aimPitch)
         local err=target-vehicle:Yaw();local e=err-2*math.pi*math.floor(err/(2*math.pi)+.5)
         return e,math.max(-1,math.min(1,e*gain-vehicle.body.angvel().y*damping))
     end
-    if (leg or vehicle.hoverMode) and (command.throttle~=0 or command.steer~=0 or command.strafe~=0) then
+    -- Hover craft steer with A/D and strafe with Q/E (2026-10-17); only leg
+    -- chassis keep tying the nose to the reticle while a move key is held.
+    if leg and (command.throttle~=0 or command.steer~=0 or command.strafe~=0) then
         command.strafe=math.max(-1,math.min(1,command.strafe+command.steer))
         local e,steer=Face(aimYaw,3.2,.22);command.steer=math.abs(e)<.015 and 0 or steer
     end

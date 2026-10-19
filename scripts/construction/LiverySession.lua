@@ -7,6 +7,7 @@ end
 function M:init(app,onCue)
     self.app=app;self.sel=0;self.pick=false;self.mirrorNew=false;self.history={cjson.encode(app.blueprint.livery)};self.hi=1
     self.start=self.history[1];self.revision=0;self.pending=0;self.active=true;self.onCue=onCue
+    app.car.livery:SetAsync(true);self.liveryLayer=app.car.livery
 end
 function M:Cue(id) if self.onCue then self.onCue(id) end end
 function M:List() return self.app.blueprint.livery end
@@ -79,6 +80,7 @@ function M:Clear() self.sel=0;self:Apply({});self:Record() end
 function M:Update(dt) if self.pending>0 then self.pending=self.pending-dt;if self.pending<=0 then self:Record() end end end
 function M:Dispose()
     if not self.active then return end;self:Flush();self.active=false;self.app.car.livery:SetPreview(nil)
+    if self.liveryLayer then self.liveryLayer:SetAsync(false);self.liveryLayer=nil end
     if self.start~=cjson.encode(self:List()) and self.app.bays.active then
         local ok,err=self.app.bays:Save();if not ok then self.app.toasts:Push(err,'bad') end
     end

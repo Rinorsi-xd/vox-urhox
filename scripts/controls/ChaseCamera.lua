@@ -5,12 +5,13 @@ local Coord=require 'core.Coord'
 local M={}
 function M.Create(scene,farClip)
     return ThirdPerson.Create(scene,{modes={normal={distance=8,offset=Vector3.ZERO,fov=48}},
-        collisionMask=0,minDistance=.000001,transitionSpeed=math.huge,
-        collisionApproachSpeed=math.huge,collisionRecoverySpeed=math.huge,farClip=farClip or 2600})
+        collisionMask=0,minDistance=0,transitionSpeed=math.huge,
+        collisionPadding=.85,collisionApproachSpeed=math.huge,collisionRecoverySpeed=8,farClip=farClip or 2600})
 end
 function M.Apply(camera,target,dt,pose,yaw,pitch)
     local node=camera:GetNode()
     if pose.eye then node.position=Coord.Vec(table.unpack(pose.eye))
+    elseif pose.position then node.position=Coord.Vec(table.unpack(pose.position))
     else
         target.position=Coord.Vec(table.unpack(pose.target))
         local mode=camera:GetMode()=='sourceA' and 'sourceB' or 'sourceA'

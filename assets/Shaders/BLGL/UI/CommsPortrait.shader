@@ -12,6 +12,8 @@ uniform float clock = 0.0;
 uniform float glitch = 0.0;
 uniform float mouth_on = 0.0;
 uniform float opaque_rgb = 0.0;
+// Orientation probe: output the fitted source texel unmodified.
+uniform float probe = 0.0;
 
 float h1(float n) { return fract(sin(n * 12.9898) * 43758.5453); }
 float h2(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -56,4 +58,9 @@ void fragment() {
     float coverage=a*k;
     ALBEDO=mix(premul/max(coverage,.0001),premul,opaque_rgb);
     ALPHA=mix(coverage,1.0,opaque_rgb);
+    if (probe > 0.5) {
+        vec2 puv=(vp-image_offset)/image_scale;puv.y=1.0-puv.y;
+        vec4 src=texture(face_map,puv);
+        ALBEDO=mix(src.rgb,src.rgb*src.a,opaque_rgb);ALPHA=mix(src.a,1.0,opaque_rgb);
+    }
 }

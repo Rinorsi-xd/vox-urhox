@@ -26,6 +26,8 @@ local DriveAim=require("controls.DriveAim")
 local ChaseState=require("controls.ChaseState")
 local IntroStrike=require("intro.IntroStrike")
 local IntroSceneCapture=require("intro.IntroSceneCapture")
+local ViewportCapture=require("render.BossSceneCapture")
+local WindowViewports=require("render.WindowViewports")
 local SourceDraw=require("ui.SourceDraw")
 local Config=require("Config")
 -- Load optional/cyclic dependencies once, without changing first-use order.
@@ -38,7 +40,7 @@ end})
 local BP=require 'construction.Blueprint'
 local Coord=require 'core.Coord'
 local M={}
-local function ValidProfile(p) return type(p)=='table' and type(p.name)=='string' and (utf8.len(p.name) or 99)<=10 and p.name~='' and type(p.signedAt)=='number' end
+local function ValidProfile(p) return type(p)=='table' and type(p.name)=='string' and utf8.len(p.name)~=nil and p.name:find('%S')~=nil and type(p.signedAt)=='number' end
 M.ValidProfile=ValidProfile
 function M.Dependencies(app,data)
  local resources={};local map=DriveMaps.crater
@@ -64,9 +66,21 @@ function M.Dependencies(app,data)
  return resources
 end
 function M.New(app)
- local state={app=app,loader=SceneLoader.New(),activeScene='garage',captures={}}
+ local state={app=app,loader=SceneLoader.New(),activeScene='garage',captures={},sortieCaptures={}}
  state.loader.prepareBudgetMs=5
  local host={state=state}
+ local function ClearCaptureImage(name)
+  for vg,images in pairs(state.captureImages or {}) do
+   local image=images[name]
+   if image and image>0 then nvgDeleteVideo(vg,image) end
+   images[name]=nil
+  end
+ end
+ local function CancelCapture(I)
+  local capture=state.pendingCapture;state.pendingCapture=nil;state.captureViewport=nil;state.captureWanted=nil
+  if capture then capture:Dispose() end
+  if I then I.capturePending=false end
+ end
  local function ResumeTutorial()
   local pending=state.pendingTutorial;state.pendingTutorial=nil
   if not pending or app.stopped or app.openingRestoreOwner~=state or app.opening or app.mode~='hangar' or app.build or app.scene~=state.hall or app.tutorial~=pending.tutorial then return end
@@ -89,7 +103,8 @@ function M.New(app)
   if state.sortieUi then state.sortieUi:Dispose();state.sortieUi=nil end
   -- Detach before yielding: UI/probes must never observe a half-disposed trial.
   state.session=nil;state.world=nil;state.scene=nil;state.strike=nil;state.strikePending=nil;state.strikeAt=nil
-  state.montageTarget=nil;state.wreckCamera=nil;state.captureWanted=nil;state.captureFrames=nil
+  CancelCapture(state.intro)
+  state.montageTarget=nil;state.wreckCamera=nil
   state.assetReleasePending=true
   local function Work(checkpoint)
    if session then session:Dispose(checkpoint) elseif world then world:Dispose(checkpoint) end
@@ -147,6 +162,10 @@ function M.New(app)
   local resources=state.prefetchIntro==I and state.resources or M.Dependencies(app,I.data)
   state.prepareFail=fail
   state.loader:Load(map.scene,function(scene)
+   -- Same as a trial: replace the authored LUT tonemap with the platform's
+   -- path before warmup. Phones have no crater post chain, and the raw .cube
+   -- LUT sampled there returns stale VRAM (garbled promo frames).
+   app.graphicsSettings:Apply(scene)
    state.scene=scene;state.warmup=IntroWarmup.New(state,host,done);state.warmup:Next()
   end,fail,{resources=resources,webWarmup=map.webWarmup,
    cleanup=DisposeWorld,
@@ -180,7 +199,14 @@ function M.New(app)
  end
  host.GetCamera=function()return state.activeScene=='crater' and state.session and state.session.camera:GetCamera() or state.hallCamera end
  host.GroundAt=function(x,z)return state.world and state.world:GroundAt(x,z) or 0 end
- host.StartSortie=function()state.session.combat:StartSortie() end
+ host.StartSortie=function(I)
+  state.session.combat:StartSortie()
+  if state.sortieUi then state.sortieUi:BeginPlay(I.page) end
+ end
+ host.SortieInput=function(I,touch)
+  local visual=state.sortieUi;if not visual or not state.session then return end
+  if I.playing or I.shot=='sortie-brief' then visual:UsePointer(touch) elseif touch then visual.NoteTouch() end
+ end
  host.CaptureSortie=function(I)
   if I.playing or I.shot=='sortie-brief' and I.age>=2.2 then return state.session.pointer:Capture() end
   return false
@@ -208,6 +234,7 @@ function M.New(app)
  host.CaptureWreck=function(I)state.captureWanted='wreck';I.capturePending=true end
  host.SortieDamageScale=function(scale)state.session.combat.damageScale=scale end
  host.EndSortie=function()
+  if state.sortieUi then state.sortieUi:EndPlay() end
   if not state.sortieStarted or state.disposed or not state.session then return end
   state.sortieStarted=false
   state.strikePending=nil;state.strikeAt=nil
@@ -300,7 +327,7 @@ function M.New(app)
    if #s.weapons.projectiles>0 and not state.missileLaunched then state.missileLaunched=true;state.missileAt=I.age end
   end
   if state.activeScene=='crater' then s:Tick(math.min(dt,.05),command) end
-  if I.playing and state.sortieUi then state.sortieUi:Update(dt) end
+  if I.playing and state.sortieUi then state.sortieUi:Update(dt,I) end
   if state.strikePending or state.strike then
    local age=I.time-state.strikeAt
    if state.strikePending then
@@ -344,18 +371,38 @@ function M.New(app)
   if state.activeScene=='crater' and state.session.environment then state.session.environment:Update(1/60,camera.node) end
  end
  host.FramePresented=function(I)
+  if state.disposed then return end
   state.loader:FramePresented()
   if state.warmup and not state.warmup.disposed then
    local ok,err=pcall(state.warmup.Presented,state.warmup)
    if not ok then state.warmup:Dispose();state.prepareFail(tostring(err)) end
    return
   end
-  if state.captureWanted and state.activeScene=='crater' then
-   -- Screenshot reads the presented backbuffer; allow the UI-free frame to
-   -- pass through the renderer before copying it into the comic texture.
-   state.captureFrames=(state.captureFrames or 0)+1;if state.captureFrames<3 then return end
-   local image=Image:new();graphics:TakeScreenShot(image);local texture=Texture2D:new();texture:SetNumLevels(1);texture:SetData(image);image:Dispose()
-   state.captures[state.captureWanted]=texture;state.captureWanted=nil;state.captureFrames=0;I.capturePending=false
+  if state.captureWanted then
+   if state.activeScene~='crater' or I.failed or I.finishing then CancelCapture(I);return end
+   -- 在最终 3D viewport 上取 GPU 快照，保留后效；不将失败的屏幕读回上传成 0×0 纹理。
+   local viewport=WindowViewports.Get(0)
+   if state.pendingCapture and state.captureViewport~=viewport then
+    state.pendingCapture:Dispose();state.pendingCapture=nil;state.captureViewport=nil
+   end
+   if graphics:GetWidth()<=0 or graphics:GetHeight()<=0 then return end
+   if not state.pendingCapture then
+    local ok,capture=pcall(ViewportCapture.New,viewport)
+    if not ok then
+     print('[IntroCapture] 无法创建 '..state.captureWanted..': '..tostring(capture));CancelCapture(I);return
+    end
+    state.pendingCapture=capture;state.captureViewport=viewport;return
+   end
+   local capture=state.pendingCapture
+   if not capture:Presented() then return end
+   local name=state.captureWanted;local texture=capture.texture
+   if texture and texture:GetWidth()>0 and texture:GetHeight()>0 then
+    ClearCaptureImage(name)
+    local previous=state.sortieCaptures[name];if previous then previous:Dispose() end
+    state.sortieCaptures[name]=capture;state.captures[name]=texture
+    state.pendingCapture=nil;state.captureViewport=nil;state.captureWanted=nil;I.capturePending=false
+    print('[IntroCapture] '..name..' '..texture:GetWidth()..'x'..texture:GetHeight()..' GPU')
+   else print('[IntroCapture] 忽略无效快照 '..name);CancelCapture(I) end
   end
  end
  host.BeginLeaveCapture=function()
@@ -373,12 +420,14 @@ function M.New(app)
   if state.leaveCapture and not state.leaveCapture.ready then state.leaveCapture:Dispose();state.leaveCapture=nil end
  end
  host.DrawCapture=function(vg,name,r)
-  local texture=state.captures[name];if not texture then return false end
+  local texture=state.captures[name];if not texture or texture:GetWidth()<=0 or texture:GetHeight()<=0 or r.w<=0 or r.h<=0 then return false end
   state.captureImages=state.captureImages or {};state.captureImages[vg]=state.captureImages[vg] or {}
-  local images=state.captureImages[vg];images[name]=images[name] or nvgCreateVideo(vg,texture)
+  local images=state.captureImages[vg]
+  if images[name]==nil then images[name]=nvgCreateVideo(vg,texture) end
+  local image=images[name];if not image or image<=0 then return false end
   if r.points then SourceDraw.Path(vg,r.points) else nvgBeginPath(vg);nvgRect(vg,r.x,r.y,r.w,r.h) end
   local scale=math.max(r.w/texture:GetWidth(),r.h/texture:GetHeight());local width,height=texture:GetWidth()*scale,texture:GetHeight()*scale
-  nvgFillPaint(vg,nvgImagePattern(vg,r.x+(r.w-width)/2,r.y+(r.h-height)/2,width,height,0,images[name],1));nvgFill(vg)
+  nvgFillPaint(vg,nvgImagePattern(vg,r.x+(r.w-width)/2,r.y+(r.h-height)/2,width,height,0,image,1));nvgFill(vg)
   return true
  end
  host.SaveProfile=function(name,signedAt)
@@ -409,6 +458,7 @@ function M.New(app)
  end
  host.Dispose=function(I)
   if state.disposed then return end;state.disposed=true
+  CancelCapture(I)
   if I then I.payslipShot=nil end
   host.CancelPrefetch()
   if state.warmup then state.warmup:Dispose() end
@@ -424,11 +474,11 @@ function M.New(app)
   if state.garage then state.garage:Dispose();state.garage=nil end
   state.assembly=nil;state.buildParts=nil;state.buildDrops=nil
   if state.scene then state.scene.updateEnabled=false;app.graphicsSettings:ReleasePost(state.scene) end
-  for vg,images in pairs(state.captureImages or {}) do for _,image in pairs(images) do nvgDeleteVideo(vg,image) end end
-  for name,texture in pairs(state.captures) do if name~='leave' then texture:Dispose() end end
+  for vg,images in pairs(state.captureImages or {}) do for _,image in pairs(images) do if image>0 then nvgDeleteVideo(vg,image) end end end
+  for _,capture in pairs(state.sortieCaptures) do capture:Dispose() end
   if state.leaveCapture then state.leaveCapture:Dispose();state.leaveCapture=nil end
-  state.captures={};state.captureImages=nil
-  state.captureWanted=nil;state.captureFrames=nil;state.shownScene=nil;state.montageTarget=nil;state.wreckCamera=nil
+  state.captures={};state.sortieCaptures={};state.captureImages=nil
+  state.shownScene=nil;state.montageTarget=nil;state.wreckCamera=nil
   RestoreHall()
   state.oldPose=nil;state.app=nil
   RetireCrater(I and I.completed and not I.failed)

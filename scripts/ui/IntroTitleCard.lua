@@ -82,13 +82,14 @@ function M.Draw(vg,w,h,u,time,plan,exitAge)
    if plan.theme=='gold' then a,b={255,224,138,255},{255,191,58,255}
    elseif plan.theme=='blue' then a,b={71,184,255,255},{28,127,224,255}
    elseif plan.theme=='red' then a,b={255,59,42,255},{196,15,5,255}
-   elseif plan.theme=='orange' then a,b={23,48,76,255},{8,15,28,255} end
-   D.Gradient(vg,0,0,bw,bh,a,b,true)
+   elseif plan.theme=='orange' then a,b={22,45,73,255},{8,15,28,255} end
+   -- Source .tc.orange：brand-navy→ink 竖向渐变（其余主题 100deg 近似横向）
+   D.Gradient(vg,0,0,bw,bh,a,b,plan.theme~='orange')
    nvgBeginPath(vg)
    for _,stripe in ipairs(plan.stripes) do
     nvgMoveTo(vg,stripe[1]*u,stripe[2]*u);for j=3,#stripe,2 do nvgLineTo(vg,stripe[j]*u,stripe[j+1]*u) end;nvgClosePath(vg)
    end
-   nvgFillColor(vg,nvgRGBA(0,0,0,plan.theme=='orange' and 18 or plan.theme=='red' and 46 or 33));nvgFill(vg)
+   nvgFillColor(vg,plan.theme=='orange' and nvgRGBA(122,216,255,18) or nvgRGBA(0,0,0,plan.theme=='red' and 46 or 33));nvgFill(vg)
    local border=(plan.theme=='orange' and .35 or .5)*u
    nvgSave(vg);nvgTranslate(vg,bw/2,bh/2);nvgScale(vg,(bw-border)/bw,(bh-border)/bh);nvgTranslate(vg,-bw/2,-bh/2)
    D.Path(vg,polygon);nvgStrokeColor(vg,D.Color(plan.theme=='orange' and {122,216,255,255} or {219,238,255,255}));nvgStrokeWidth(vg,border);nvgStroke(vg);nvgRestore(vg)
@@ -117,7 +118,9 @@ function M.Draw(vg,w,h,u,time,plan,exitAge)
   nvgSave(vg);nvgGlobalAlpha(vg,math.min(1,math.max(0,t)));nvgTranslate(vg,x+advance/2,center-(1-math.min(1,t/.65))*size*.315)
   nvgRotate(vg,rotation*math.pi/180);nvgScale(vg,scale,scale);nvgTranslate(vg,-advance/2,-center)
   local ink=plan.theme=='orange' and white or black
-  for _,offset in ipairs({.12,.09,.06,.03}) do G.Draw(vg,char,size*offset,baseline+size*offset,size,ink,nil,0) end
+  -- Source .tc.orange 立体字：.03/.06em 白、.1em 品牌深蓝；其余主题四层黑
+  local layers=plan.theme=='orange' and {{.1,{40,121,235,255}},{.06,white},{.03,white}} or {{.12,ink},{.09,ink},{.06,ink},{.03,ink}}
+  for _,layer in ipairs(layers) do G.Draw(vg,char,size*layer[1],baseline+size*layer[1],size,layer[2],nil,0) end
   G.Draw(vg,char,0,baseline,size,plan.theme=='orange' and {122,216,255,255} or white,ink,size*.11)
   nvgRestore(vg);x=x+advance+spacing
  end

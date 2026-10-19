@@ -28,7 +28,20 @@ function Page:Render(vg)
     self.paragraph:Draw(vg,'以后这里卖零件、涂装和装饰件。原型阶段所有零件都已开放，直接去编辑页用就行。',x+36,top+264,width-72,D.muted,true)
 end
 local M={}
+-- 手机紧凑界面：模式选择 / 创意工坊 / 打捞按 PC 设计，放进 600 高画布会挤爆。按 810 高（600/.74）的逻辑尺寸排版，
+-- 整页缩到 .74（点击区域同步缩放）。字号与 H5 @container (max-height:600px) 紧凑规则相当：模式名 30→22、规则 15→11
+local PAGE_SCALE={battle=.74,workshop=.74,salvage=.74}
+local Build
 function M.Create(s)
+    local k=s.compact and PAGE_SCALE[s.tab]
+    if not k then return Build(s) end
+    local w,h=s.width,s.height;s.width,s.height=w/k,h/k
+    local ok,page=pcall(Build,s);s.width,s.height=w,h
+    if not ok then error(page,0) end
+    page:SetStyle({scale=k,transformOrigin='top-left'});page.pageScale=k
+    return page
+end
+function Build(s)
     if s.tab=='livery' then return LiveryPage.Create(s) end
     if s.tab=='workshop' then return Workshop.Create(s) end
     -- The mode page leads to the story holo; fetch its bytes while the player chooses.

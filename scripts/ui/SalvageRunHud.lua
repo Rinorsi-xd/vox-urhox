@@ -1,3 +1,4 @@
+local Gear=require 'salvage.Gear'
 -- Frozen srh CSS/CSS2 composition, rendered within the UI-owned NVG frame.
 local SourceButtonMotion=require("ui.SourceButtonMotion")
 local SalvageLootMotion=require("ui.SalvageLootMotion")
@@ -184,9 +185,37 @@ function M.Result(session,settlement,onDismiss)
 end
 function M.Attach(session,root)
     local layer=Panel{position='absolute',width='100%',height='100%',pointerEvents='none'};layer.session=session;root:AddChild(layer)
+    local gear=UI.Panel{position='absolute',left='50%',top='50%',marginLeft=-180,marginTop=-150,width=360,height=300,pointerEvents='auto',backgroundColor={12,15,18,220},borderRadius=120}
+    local positions={{128,8},{246,112},{128,216},{10,112}};local buttons={}
+    for i,id in ipairs(Gear.ORDER) do
+        local slot=i;local p=positions[i]
+        buttons[i]=SourceButton{text='',sourceKind='flat',position='absolute',left=p[1],top=p[2],width=104,height=76,onClick=function() session.salvage.gear:Use(slot) end}
+        gear:AddChild(buttons[i])
+    end
+    local hints=session.touch and {'点击道具使用','1–4 号道具','再次点道具关闭'} or {'推鼠标选择','左键 / E 使用','Esc 关闭'}
+    for i,text in ipairs(hints) do
+        gear:AddChild(UI.Label{text=text,position='absolute',left=124,top=115+(i-1)*20,width=112,height=20,fontSize=12,textAlign='center',fontColor=muted})
+    end
+    root:AddChild(gear);gear:SetVisible(false)
+    local gearButton=SourceButton{text='道具',position='absolute',left='50%',marginLeft=-40,bottom=150,width=80,height=40,onClick=function() session.salvage.gear:Tap() end}
+    root:AddChild(gearButton)
+    local status=SalvagePaint.Text{text='',position='absolute',left='50%',marginLeft=-220,bottom=200,width=440,height=32,fontSize=15,color=cyan}
+    root:AddChild(status)
     local state={layer=layer}
     function state.Update(dt)
         local run=session.salvage;local r=run.rules
+        local g=run.gear;gear:SetVisible(g.open and not r.finished and not run.cine.blocking)
+        gearButton:SetVisible(session.touch and not r.finished and not run.cine.blocking and not r.ex)
+        for i,id in ipairs(Gear.ORDER) do
+            buttons[i].props.selected=g.selected==i
+            buttons[i].props.text=i..' '..Data.items[id].name..' ×'..g:Count(id)
+        end
+        local chips={}
+        if g.repairing then chips[#chips+1]=string.format('维修 %.1fs',math.max(0,3-g.repairing.t)) end
+        if g.shield>0 then chips[#chips+1]='护盾 '..math.ceil(g.shield)..'s' end
+        if g:Hidden() then chips[#chips+1]='烟雾掩护 '..math.ceil(g.smoke.t)..'s' end
+        if g.scanTime>0 then chips[#chips+1]='扫描 '..math.ceil(g.scanTime)..'s' end
+        status.props.text=table.concat(chips,' · ');status:SetVisible(not r.finished and not run.cine.blocking)
         if layer.searchKey~=r.search then layer.searchKey=r.search;layer.searchAt=r.time end
         run.hudRefresh=(run.hudRefresh or 0)-(dt or 0)
         if run.hudRefresh<=0 then

@@ -4,6 +4,8 @@ local Cutters=require('core.ResourceData').Read('Combat/Drills.json').cutters
 local M={};M.__index=M
 local ZERO={x=0,y=0,z=0}
 local IDENTITY={x=0,y=0,z=0,w=1}
+-- 15° upward launch assist; yaw always stays tied to the nose.
+local MAX_ELEVATION=math.pi/12
 function M.New(system)
     local self=setmetatable({},M);self:init(system);return self
 end
@@ -11,6 +13,28 @@ function M:init(system)
     self.sys=system;self.active=nil;self.held=nil;self.wasHeld=false
 end
 function M:ControlsBody() return self.active~=nil end
+-- Rotate the whole craft, not only the attack ray, so the drill model and the
+-- damage sweep stay in agreement. Used by the player release and AI reach.
+function M:LaunchPose(w,state)
+    local sys=self.sys;local m=sys:Muzzle(w,state)
+    local flat=math.sqrt(m.dir[1]^2+m.dir[3]^2)
+    if not state.aim or flat<1e-5 then return m,state.quat end
+    local base=math.atan(m.dir[2],flat);local pos,aim=m.pos,state.aim
+    local desired=math.atan(aim[2]-pos[2],math.sqrt((aim[1]-pos[1])^2+(aim[3]-pos[3])^2))
+    local lift=math.max(0,math.min(MAX_ELEVATION,desired)-base)
+    if lift<1e-5 then return m,state.quat end
+    local s=-math.sin(lift/2)
+    local q={x=m.dir[3]/flat*s,y=0,z=-m.dir[1]/flat*s,w=math.cos(lift/2)}
+    local quat=V.QMul(q,state.quat)
+    return sys:Muzzle(w,{pos=state.pos,quat=quat,barrel=state.barrel}),quat
+end
+function M:TraceLaunch(w,state,world,distance)
+    local muzzle,quat=self:LaunchPose(w,state);local q=V.QMul(quat,w.quat or IDENTITY);local cutters
+    if Cutters[w.type] then
+        cutters={};for _,c in ipairs(Cutters[w.type]) do cutters[#cutters+1]={pos=V.Add(muzzle.pos,V.RotateUnit(q,c.offset)),half=c.half,quat=q} end
+    end
+    return world:SweepDrill(muzzle.pos,muzzle.dir,distance,state.body,cutters)
+end
 function M:Latched() return self.active~=nil and self.active.phase=='latched' end
 function M:Hint()
     local g=self.sys:Group();local w=g and g.weapons[1]
@@ -90,10 +114,10 @@ function M:Step(dt,state,env)
     if self.held and (not press or forced) then
         local charge=w.windup;self.held=nil;w.windup=0;w.drillPhase='idle'
         if charge+1e-8>=w.stats.minCharge and self:PayRelease(w,state) then
-            local m=sys:Muzzle(w,state);local b=state.body
+            local m,quat=self:LaunchPose(w,state);local b=state.body
             local speed=w.stats.dashSpeed[1]+(w.stats.dashSpeed[2]-w.stats.dashSpeed[1])*charge
             self.active={w=w,body=b,bodyType=b.bodyType(),ccd=b.isCcdEnabled(),phase='dash',dir=m.dir,charge=charge,
-                speed=speed,topSpeed=speed,elapsed=0,cutTime=0,cuts=0,engaged=false,nextCut=0,bite=0,grinding=false,targets={},quat=b.rotation()}
+                speed=speed,topSpeed=speed,elapsed=0,cutTime=0,cuts=0,engaged=false,nextCut=0,bite=0,grinding=false,targets={},quat=quat}
             b.enableCcd(true);w.drillPhase='dash';w.shotAt=sys.time
             env.stats.shots=env.stats.shots+1;sys.fx[#sys.fx+1]={type='drill',stage='dash',pos=m.pos,dir=m.dir,easter=w.stats.easter}
             self:Dash(dt,state,env)

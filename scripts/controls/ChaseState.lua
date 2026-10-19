@@ -1,5 +1,6 @@
 -- Frozen shared/drive/chaseCam.js. All state stays in H5 source coordinates.
 local Math=require 'core.Math3'
+local Collision=require 'controls.CameraCollision'
 local M={};M.__index=M
 local DEG=180/math.pi
 function M.New() local self=setmetatable({},M);self:init();return self end
@@ -18,18 +19,18 @@ function M:Pose(dt,pos,yaw,pitch,cast,eye)
     local t=self.target;local kx,ky=1-math.exp(-dt*20),1-math.exp(-dt*9)
     t[1]=t[1]+(pos[1]-t[1])*kx;t[3]=t[3]+(pos[3]-t[3])*kx
     t[2]=t[2]+(pos[2]+self.radius*.35+.6-t[2])*ky
+    local pivot=Collision.Constrain(cast,pos,t)
+    t[1],t[2],t[3]=table.unpack(pivot)
     local y,p=-yaw/DEG,-pitch/DEG;local cp=math.cos(p)
     local forward={math.sin(y)*cp,math.sin(p),math.cos(y)*cp}
     if eye then return {eye=eye,forward=forward,target=t} end
     local d=self.dist*self.zoom;local off={-forward[1]*d,-forward[2]*d+d*.085+.3,-forward[3]*d}
     local want=Math.Length(off);local dir=Math.Scale(off,1/want)
-    -- Camera boom: target o ---- ray ---- surface | .4 m clearance | camera.
-    -- A hit shortens immediately; negative terrain never clamps to world zero.
-    local hit=cast(t,dir,want+.4)
-    local distance=hit and math.max(1.2,hit-.4) or want
-    self.curDist=distance<self.curDist and distance or self.curDist+(distance-self.curDist)*math.min(1,dt*2.5)
-    local raise=math.max(0,self.minY-(t[2]+dir[2]*self.curDist))
-    return {target={t[1],t[2]+raise,t[3]},forward=forward,dir=dir,distance=self.curDist,
-        boomPitch=math.atan(dir[2],math.sqrt(dir[1]^2+dir[3]^2))*DEG,hit=hit}
+    local distance=Collision.Distance(cast,t,dir,want)
+    self.curDist=distance<self.curDist and distance or self.curDist+(distance-self.curDist)*(1-math.exp(-dt*2.5))
+    local position=Math.Add(t,Math.Scale(dir,self.curDist));position[2]=math.max(self.minY,position[2])
+    position=Collision.Constrain(cast,t,position)
+    return {target={table.unpack(t)},position=position,forward=forward,dir=dir,distance=self.curDist,
+        boomPitch=math.atan(dir[2],math.sqrt(dir[1]^2+dir[3]^2))*DEG}
 end
 return M

@@ -54,13 +54,18 @@ function M:Policy(dt,state,ctx)
     if range<C.near then
         local back={pos[1]-math.sin(yaw)*5,pos[2],pos[3]-math.cos(yaw)*5}
         if self:Direct(pos,back) then throttle=forward>1 and -.6 or forward<-3 and .3 or -.3;steer=-steer else handbrake=true end
-    elseif range>C.far then throttle=speed>5 and -.4 or .35
+    elseif range>C.far then throttle=speed>5 and -.4 or speed<1 and .85 or .35
     elseif math.abs(angle)>C.aimTolerance then
         local reverse=range<(C.near+C.far)/2;local direction=reverse and -4 or 4;local nextPos={pos[1]+math.sin(yaw)*direction,pos[2],pos[3]+math.cos(yaw)*direction}
         if self:Direct(pos,nextPos) then throttle=reverse and (forward<-2 and .2 or -.22) or (forward>2 and -.2 or .22);if reverse then steer=-steer end else handbrake=true end
     else local sign=forward>0 and 1 or forward<0 and -1 or 0;throttle=speed>.6 and -sign*.6 or 0;handbrake=true end
     local inRange=range>=C.near and range<=C.far;local facing=math.abs(angle)<C.aimTolerance
-    local dot=V.Dot(delta,muzzle.dir)/math.max(.01,V.Length(delta));local ready=inRange and facing and dot>math.cos(.12) and speed<1.5
+    local ready=false
+    if inRange and facing and speed<1.5 and drill.held and w.windup>=1 then
+        local radius=ctx.target and ctx.target.spec and ctx.target.spec.bounds.radius or 0
+        local hit=drill:TraceLaunch(w,{pos=pos,quat=q,aim=aim,body=v.body},self.world,range+radius)
+        ready=hit and hit.owner and hit.owner.ref==ctx.target or false
+    end
     local trigger=drill.held and not(w.windup>=1 and ready) or not drill.held and inRange and math.abs(angle)<C.chargeTolerance and w.cool<=0 and not sys.offline
     self.sample=nil;self.progress=nil;self.reverseUntil=0;self.mode=drill.held and 'drill-charge' or inRange and 'drill-align' or 'drill-spacing'
     self.command={};for key,value in pairs(state.command) do self.command[key]=value end
@@ -71,6 +76,10 @@ function M:Step(dt,target,charge,shield)
     local u=self.unit;local aim=target and target:Position();local sys=u.weapons
     if sys.drill.active then self.sample=nil;self.progress=nil;self.mode='drill-active';return {throttle=0,steer=0,handbrake=false},aim,false,{salvo=false,mode=self.mode} end
     local command,baseAim,fire,info=Base.Step(self,dt,target,true)
+    if target and target.passive then
+        if sys.drill.held then sys.drill:Cancel() end
+        return command,baseAim,false,info
+    end
     info=info or {};info.command=command;info.aim=baseAim;info.trigger=fire;info.mode=self.mode
     local out=self:Policy(dt,info,{vehicle=u.vehicle,aim=aim,system=sys,target=target,shield=shield})
     return out.command,out.aim,out.trigger,out

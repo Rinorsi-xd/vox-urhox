@@ -21,7 +21,7 @@ local DrillSpeed=require("render.DrillSpeed")
 local SafeReset=require("controls.SafeReset")
 local MatchMapShot=require("render.MatchMapShot")
 local MatchIntro=require("app.MatchIntro")
-local CameraObstacles=require("controls.CameraObstacles")
+local CameraCollision=require("controls.CameraCollision")
 local Wheel=require("controls.Wheel")
 local KillImpact=require("combat.KillImpact")
 local MatchActions=require("combat.MatchActions")
@@ -181,14 +181,7 @@ function M:ResetCamera()
     self.cameraDistance=self.chase.dist*self.chase.zoom
 end
 function M:CameraObstacle(origin,direction,distance)
-    -- target o -- other car/cone -- opaque wall | .4 m boom clearance.
-    -- Exclude only our own body; keep precise camera-only building surfaces.
-    local hit=self.world:CastRay(origin,direction,distance,self.vehicle.body)
-    local nearest=hit and hit.dist or distance
-    local surface=self.world.space.world:RaycastSingle(Ray(Coord.Vec(table.unpack(origin)),Coord.Vec(table.unpack(direction))),
-        nearest,CameraObstacles.LAYER)
-    if surface.body then return math.min(nearest,surface.distance) end
-    return hit and hit.dist or nil
+    return CameraCollision.Cast(self.world.space,origin,direction,distance,self.vehicle.native)
 end
 function M:HasFocus() return input.focus and not input.minimized end
 function M:Resume() if self.battle and self.battle.rules.state=='over' or (self.story or self.salvage) and self.combat.rules.finished or self.endless and (self.endless.run.state=='editing' or self.endless.rules.finished) then return false end;return self.pointer:Capture() end
@@ -500,13 +493,15 @@ function M:Update(dt)
     end
     local blocked=self.dialog~=nil or typing or not self.pointer.captured
     if blocked then
-        if self.salvage then self.salvage.tapE=false;self.salvage.tapF=false end
+        if self.salvage then self.salvage.tapE=false;self.salvage.tapF=false;self.salvage.gear.open=false;self.salvage.gearPress=nil end
         if self.hud then self.hud.Clear() else self.controls:Clear() end
         -- Source pointer-unlocked mode keeps world physics alive with neutral
         -- commands; menus never propel the vehicle or fire held weapons.
         self:Tick(dt,{throttle=0,steer=0});return
     end
+    if self.salvage then self.salvage:PollGear() end
     local command=self.controls:Read();local dx,dy=self.controls:TakeLook()
+    if self.salvage and self.salvage.gear:Move(dx,dy) then dx=0;dy=0;command.firing=false end
     local group=self.weapons:Group()
     local sensitivity=(self.scope and ReticleState.ScopeFov(48,group and group.kind)/48 or 1)*DriveAim.Look(self,dt)
     self.yaw,self.pitch=ChaseState.Look(self.yaw,self.pitch,dx,dy,sensitivity,self.vehicle.spec.wings~=nil and #self.vehicle.spec.wings>0)
@@ -549,7 +544,9 @@ function M:PostUpdate(dt)
         local watched=false
         for _,entry in ipairs(self.combat.entries) do if entry.unit.team=='blue' and entry.unit.alive then watched=entry.unit;break end end
         if watched then p=Coord.Vec(table.unpack(watched:Position())) end
-        local pose=self.chase:Pose(dt,{-p.x,p.y,p.z},self.yaw,self.pitch,function() return nil end)
+        local pose=self.chase:Pose(dt,{-p.x,p.y,p.z},self.yaw,self.pitch,function(o,d,l)
+            return CameraCollision.Cast(self.world.space,o,d,l,watched and watched.vehicle.native or self.vehicle.native)
+        end)
         ChaseCamera.Apply(self.camera,self.target,dt,pose,self.yaw,self.pitch)
         if self.aimLines then
             self.sniperWarnings=self.aimLines:Update(self.world.units,self.combat.player,function(...) return self.world:CastRay(...) end,self.camera:GetCamera(),self.world.time)
@@ -567,10 +564,10 @@ function M:PostUpdate(dt)
     self.effects:SetFirstPerson(self.firstPerson,self.weapons,self.view.view)
     if self.view.view.weaponEffects then self.view.view.weaponEffects:SetVisible(not self.firstPerson and root.enabled) end
     NodeVisibility.Set(self.restoreFlash.root,root.enabled,true)
-    self.drillSpeed:Update(dt,self.camera:GetCamera(),self.weapons,self.pointer.captured and (not self.combat or self.combat.player.alive))
+    self.drillSpeed:Update(dt,self.camera:GetCamera(),self.weapons,self.pointer.captured and (not self.combat or self.combat.player.alive),self.vehicle.telemetry.groundBoostFx)
     local c=self.camera:GetCamera()
     self.currentFov=self.speedFov:Step(self.vehicle,dt,48,self.currentFov,{scope=self.scope and ReticleState.ScopeFov(48,group and group.kind) or nil,
-        rush=self.drillSpeed.rush,charge=self.weapons.drill.held and self.weapons.drill.held.windup or 0,punch=self.fovPunch or 0})
+        rush=self.drillSpeed.rush,boost=self.vehicle.telemetry.groundBoostFx or 0,charge=self.weapons.drill.held and self.weapons.drill.held.windup or 0,punch=self.fovPunch or 0})
     self.fovPunch=(self.fovPunch or 0)*math.exp(-dt*5)
     c.fov=self.currentFov;self.fxContext.fov=c.fov
     self.cameraFeedback:Flush(self:CameraCenter())

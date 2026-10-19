@@ -33,6 +33,7 @@ function M:Target(pos)
     end;return best
 end
 function M:Title(o)
+    if o.kind=='station' then return o.name end
     if o.ctype then return Data.containers[o.ctype].name end
     if o.kind=='wreck' then return o.model=='core' and '核心件 · '..o.name or Data.wrecks[o.model].name end
     return o.name..(o.kind=='kill' and ' 残骸箱' or ' 补给箱')
@@ -41,7 +42,7 @@ function M:Open(o)
     local s=self.sessions[o.id]
     if not s then
         s={o=o,title=self:Title(o),i=1,p=0,wait=0,value=0,done=false,crack=o.ctype=='vault' and 0 or nil}
-        s.items=o.ctype and Loot.Roll(o.ctype,self.rand,self.loot,self.op,o.region) or Loot.FromTable(o.loot,self.rand)
+        s.items=o.robbed and {} or o.ctype and Loot.Roll(o.ctype,self.rand,self.loot,self.op,o.region) or Loot.FromTable(o.loot,self.rand)
         self.sessions[o.id]=s
         if o.kind=='crate' then self:Heat(({3,5,8,12})[o.tier+1]);if o.tier==2 then self:Emit('noise',{at=o.g,r=160}) end end
     end
@@ -76,7 +77,9 @@ function M:SearchStep(dt,state)
             s.i=s.i+1;s.p=0
             if it.r==5 then self:Heat(40);self:Emit('noise',{at=o.g,r=900});self:Emit('hunt',{n=3,at=o.g}) end
         end
-    elseif not s.done then s.done=true;s.doneAt=self.time;self.opened[o.id]=true;self.openedCount=self.openedCount+1;self:Emit('hide',{id=o.id}) end
+    elseif not s.done then s.done=true;s.doneAt=self.time;self.openedCount=self.openedCount+1
+        if #s.items==0 then self:Emit('emptyBox',{title=s.title}) end
+    end
     local full=false;for _,item in ipairs(s.items) do if item.state=='full' then full=item;break end end
     if full and state.swap then
         local before=full.left
@@ -88,6 +91,8 @@ function M:SearchStep(dt,state)
             self:AddExtra({id='drop'..#self.objects,kind='cache',name='丢下的货',tier=0,g={state.pos[1],state.pos[2]-.8,state.pos[3]},loot=dropped})
         end
     end
+    full=false;for _,item in ipairs(s.items) do if item.state=='full' and (item.left or 0)>0 then full=item;break end end
+    if s.done and not full and not self.opened[o.id] then self.opened[o.id]=true;self:Emit('hide',{id=o.id}) end
     s.foot=full and 'F · 丢掉最便宜的一格换入' or s.done and '搜完了' or '开远了会收起 · 没搜完的留在箱子里'
     if s.done and not full and self.time-s.doneAt>1.5 then self.search=nil end
 end
@@ -142,7 +147,19 @@ function M:Step(dt,state)
     elseif not self.ex then
         local o=self:Target(state.pos);self.target=o
         if o then
-            if o.kind~='wreck' then self.prompt={title=self:Title(o),sub='按 E 打开搜索',progress=0};if state.tap then self:Open(o) end
+            if o.kind=='station' then
+                local why=state.stationBlocked and state.stationBlocked(o)
+                if why then self.prompt={title=o.name,sub=why,blocked=true};self.act=nil
+                else
+                    if not self.act or self.act.o~=o then self.act={o=o,t=0} end
+                    self.act.t=state.hold and self.act.t+dt or math.max(0,self.act.t-dt*2)
+                    self.prompt={title=o.name,sub=state.hold and '维修中…' or '按住 E 4 秒 · 交 1 个能量电池 · 全车修满',progress=self.act.t/4}
+                    if self.act.t>=4 then
+                        self.opened[o.id]=true;local left=self.cargo.cell-1;self.cargo.cell=left>0 and left or nil
+                        self:Heat(10);self:Emit('repairStation',{object=o});self:Emit('noise',{at=o.g,r=220});self:Emit('hide',{id=o.id});self.act=nil
+                    end
+                end
+            elseif o.kind~='wreck' then self.prompt={title=self:Title(o),sub='按 E 打开搜索',progress=0};if state.tap then self:Open(o) end
             elseif Loot.Used(self.cargo)>=20 then self.prompt={title=self:Title(o),sub='货舱满了',blocked=true};self.act=nil
             else
                 if not self.act or self.act.o~=o then self.act={o=o,t=0} end
