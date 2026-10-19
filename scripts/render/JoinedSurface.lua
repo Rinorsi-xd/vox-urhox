@@ -12,10 +12,12 @@ local function Face(p,d)
     for i,n in ipairs(Data.dirs) do if n[1]==d[1] and n[2]==d[2] and n[3]==d[3] then return M.Shape(p).faces[p.rot+1][i] end end
     error('Joined face must be an axis direction')
 end
-function M.Build(parts,collectParts)
+-- pause, when given, is called between parts so callers can time-slice.
+function M.Build(parts,collectParts,pause)
     local at,out,groups,byPart={},{},{},{}
     for _,p in ipairs(parts) do if M.IsJoined(p) then local k=Key(p.pos);at[k]=at[k] or {};at[k][#at[k]+1]=p end end
     for _,p in ipairs(parts) do if M.IsJoined(p) then
+        if pause then pause() end
         local slot=M.Slot(p);out[slot]=out[slot] or {position={},normal={},colors={}};local o=out[slot]
         groups[p.g]=groups[p.g] or {};local group=groups[p.g]
         local partSurface=collectParts and {position={},normal={}} or nil

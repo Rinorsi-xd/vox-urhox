@@ -149,7 +149,7 @@ end
 function M.Project(d,s,parts,pause)
     local f=M.Frame(d);local w,h,depth=M.Size(d,s);local out={}
     local Surface=JoinedSurface
-    local _,_,joined=Surface.Build(parts,true)
+    local _,_,joined=Surface.Build(parts,true,pause)
     -- Lift along the vertex normal welded across all parts: faces sharing a point get one
     -- lifted position, so bevels, hard edges and part joins stay closed (a per-face lift
     -- opened cracks there that showed the base paint). Opposed normals (touching hidden

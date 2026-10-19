@@ -489,9 +489,36 @@ end
 ---@field text string
 ---@field ids integer[]
 
+-- Diagnostics depend only on parts, tier and migration warnings. Livery edits
+-- bump the garage revision every drag step; reuse the last result until any
+-- part field that diagnostics could read changes.
+local diagnosticPartKeys=setmetatable({},{__mode='k'})
+local function DiagnosticPartKey(p)
+    local c=diagnosticPartKeys[p];local pos=p.pos
+    if c and c.id==p.id and c.type==p.type and c.rot==p.rot and c.g==p.g and c.color==p.color and c.shell==p.shellColor
+        and c.x==pos[1] and c.y==pos[2] and c.z==pos[3] then return c.key end
+    c={id=p.id,type=p.type,rot=p.rot,g=p.g,color=p.color,shell=p.shellColor,x=pos[1],y=pos[2],z=pos[3]}
+    c.key=table.concat({p.id,p.type,pos[1],pos[2],pos[3],p.rot,tostring(p.g),tostring(p.color),tostring(p.shellColor)},',')
+    diagnosticPartKeys[p]=c;return c.key
+end
 ---@return { list: DiagnoseItem[], stats: BlueprintStats, conn: table, outside: table<integer, boolean> }
 function Blueprint:Diagnose(tier)
-    return BlueprintDiagnostics.Compute(self,tier)
+    local warnings=self.migrationWarnings;local warningCount=warnings and #warnings or 0
+    local cached=self.diagnosticCache
+    if cached and cached.tier==tier and cached.warnings==warnings and cached.warningCount==warningCount then
+        -- Same part set with identical keys (order-free comparison, no sort).
+        local same,count=true,0
+        for id,p in pairs(self.parts) do
+            count=count+1
+            if cached.keys[id]~=DiagnosticPartKey(p) then same=false;break end
+        end
+        if same and count==cached.count then return cached.result end
+    end
+    local keys,count={},0
+    for id,p in pairs(self.parts) do keys[id]=DiagnosticPartKey(p);count=count+1 end
+    local result=BlueprintDiagnostics.Compute(self,tier)
+    self.diagnosticCache={tier=tier,warnings=warnings,warningCount=warningCount,keys=keys,count=count,result=result}
+    return result
 end
 
 -- ── 序列化 ────────────────────────────────────

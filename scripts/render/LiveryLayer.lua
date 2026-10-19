@@ -137,7 +137,19 @@ function M:StepJobs(budget)
     mesh.vertices=vertices;mesh.key=target.key;mesh.frame=Project.Frame(target.d);mesh.w=target.d.w
     if mesh.target==target then mesh.target=nil;Rest(mesh)
     elseif mesh.target then Follow(mesh,mesh.target.d);self.jobs[mesh]=true end
+    local drag=self.dragFollow;if drag then self:Follow(drag[1],drag[2],drag[3],drag[4]) end
 end
+-- Gizmo drag preview: move every mesh of decal `index` (and its mirror twin)
+-- rigidly to the dragged placement. Nothing is re-projected until the edit lands.
+function M:Follow(index,d,twin,twinD)
+    self.dragFollow={index,d,twin,twinD}
+    for _,mesh in ipairs(self.meshes) do
+        if mesh.frame and not mesh.retired then
+            if mesh.order==index then Follow(mesh,d) elseif twinD and mesh.order==twin then Follow(mesh,twinD) end
+        end
+    end
+end
+function M:EndFollow() self.dragFollow=nil end
 function M:SetAsync(on)
     self.async=on==true
     if not self.async then
@@ -172,7 +184,7 @@ function M:Update()
     for path in pairs(self.texturePaths) do if not used[path] then cache:ReleaseResource('Texture2D',path,false);self.texturePaths[path]=nil end end
 end
 function M:Clear()
-    self.gate:Cancel();self.requestKey=nil;self:CancelJob();self.jobs={}
+    self.gate:Cancel();self.requestKey=nil;self:CancelJob();self.jobs={};self.dragFollow=nil
     for _,m in pairs(self.meshes) do Retire(m) end;Retire(self.previewMesh);self.meshes={};self.previewMesh=nil;self.preview=false;self.previewKey=nil
     for path in pairs(self.texturePaths) do cache:ReleaseResource('Texture2D',path,false) end;self.texturePaths={}
 end
