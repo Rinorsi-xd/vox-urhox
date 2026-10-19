@@ -29,6 +29,7 @@ local IntroSceneCapture=require("intro.IntroSceneCapture")
 local ViewportCapture=require("render.BossSceneCapture")
 local WindowViewports=require("render.WindowViewports")
 local SourceDraw=require("ui.SourceDraw")
+local TextureFlip=require("render.TextureFlip")
 local Config=require("Config")
 -- Load optional/cyclic dependencies once, without changing first-use order.
 local DeferredModules=setmetatable({},{__index=function(modules,name)
@@ -427,7 +428,8 @@ function M.New(app)
   local image=images[name];if not image or image<=0 then return false end
   if r.points then SourceDraw.Path(vg,r.points) else nvgBeginPath(vg);nvgRect(vg,r.x,r.y,r.w,r.h) end
   local scale=math.max(r.w/texture:GetWidth(),r.h/texture:GetHeight());local width,height=texture:GetWidth()*scale,texture:GetHeight()*scale
-  nvgFillPaint(vg,nvgImagePattern(vg,r.x+(r.w-width)/2,r.y+(r.h-height)/2,width,height,0,image,1));nvgFill(vg)
+  -- 实景漫画格都是场景 RT 快照：按启动实测的方向镜像图案（手机 WebGL 会倒置），格子形状不动
+  TextureFlip.Fill(vg,'scene',image,r.x+(r.w-width)/2,r.y+(r.h-height)/2,width,height,1)
   return true
  end
  host.SaveProfile=function(name,signedAt)

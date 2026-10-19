@@ -1,6 +1,7 @@
 -- 在设备上测量通讯头像的显示方向。独立 NanoVG 通道位于主 UI、
 -- 加载页及虚拟控件之上；读屏失败时延迟重试，不再永久放弃。
 local CommsPortrait=require 'ui.CommsPortrait'
+local TextureFlip=require 'render.TextureFlip'
 local UI=require 'urhox-libs/UI'
 local M={}
 local SIZE=24
@@ -22,12 +23,14 @@ local QUADRANTS={{1,0,0},{0,1,0},{0,0,1},{1,1,1}}
 ---@field vg NVGContextWrapper|nil
 ---@field receiver LuaScriptObject|nil
 ---@field portrait CommsPortrait|nil
+---@field scenePortrait CommsPortrait|nil
+---@field sceneImage integer|nil
 ---@field texture Texture2D|nil
 ---@field node Node|nil
 ---@field rect table
 ---@field reference table
 local state={phase='idle',attempts=0,frames=0,delay=0,drawn=false,scale=1,width=0,height=0,
-    rect={x=0,y=0,w=SIZE,h=SIZE},reference={x=SIZE+2,y=0,w=SIZE,h=SIZE}}
+    rect={x=0,y=0,w=SIZE,h=SIZE},reference={x=SIZE+2,y=0,w=SIZE,h=SIZE},sceneRect={x=2*(SIZE+2),y=0,w=SIZE,h=SIZE}}
 local function SourceTexture()
     local n=16;local image=Image:new();assert(image:SetSize(n,n,4))
     local color=Color()
@@ -51,6 +54,8 @@ local function Classify(c)
 end
 local function ReleaseProbe()
     -- 先删除图片句柄，再删除它们所属的 NanoVG context。
+    if state.sceneImage and state.vg then nvgDeleteVideo(state.vg,state.sceneImage) end;state.sceneImage=nil
+    if state.scenePortrait then state.scenePortrait:Dispose();state.scenePortrait=nil end
     if state.portrait then state.portrait:Dispose();state.portrait=nil end
     if state.texture then state.texture:Dispose();state.texture=nil end
 end
@@ -61,9 +66,12 @@ local function Dispose()
     if state.node then state.node:Dispose();state.node=nil end
     state.drawn=false;state.renderError=nil
 end
-local function Finish(phase,fx,fy)
+local function Finish(phase,fx,fy,scene)
     if fx then CommsPortrait.flipX,CommsPortrait.flipY=fx,fy end
-    print(('[PortraitOrientation] %s api=%s flipX=%d flipY=%d attempts=%d'):format(phase,tostring(graphics.apiName),CommsPortrait.flipX,CommsPortrait.flipY,state.attempts))
+    if scene then TextureFlip.scene={x=scene[1],y=scene[2],source=scene[3]} end
+    local s=TextureFlip.scene
+    print(('[PortraitOrientation] %s api=%s flipX=%d flipY=%d sceneX=%d sceneY=%d scene=%s attempts=%d'):format(phase,tostring(graphics.apiName),
+        CommsPortrait.flipX,CommsPortrait.flipY,s.x,s.y,s.source,state.attempts))
     state.phase=phase;Dispose()
 end
 local function Retry(reason)
@@ -103,6 +111,13 @@ function M.Render()
     local ok,message=pcall(function()
         nvgBeginFrame(vg,w/scale,h/scale,scale)
         portrait:Draw(vg,state.rect)
+        -- 场景路径：同一张探测图，走场景快照的完整渲染路径后直接按原样贴出
+        local scene=state.scenePortrait
+        if scene and scene.ready then
+            state.sceneImage=state.sceneImage or nvgCreateVideo(vg,scene.textures[2])
+            local r=state.sceneRect
+            nvgBeginPath(vg);nvgRect(vg,r.x,r.y,r.w,r.h);nvgFillPaint(vg,nvgImagePattern(vg,r.x,r.y,r.w,r.h,0,state.sceneImage,1));nvgFill(vg)
+        end
         local r=state.reference;local hw,hh=r.w/2,r.h/2
         for i,q in ipairs(QUADRANTS) do
             nvgBeginPath(vg);nvgRect(vg,r.x+((i-1)%2)*hw,r.y+(i>2 and hh or 0),hw,hh)
@@ -118,13 +133,15 @@ function M.Render()
 end
 local function Readback()
     local image=Image:new()
+    local scene
     local ok,seen,reference=pcall(function()
         if not graphics:TakeScreenShot(image) then return nil,nil end
+        if state.scenePortrait then scene=Measure(image,state.sceneRect) end
         return Measure(image,state.rect),Measure(image,state.reference)
     end)
     image:Dispose()
     if not ok then return nil,nil,'readback-error '..tostring(seen) end
-    return seen,reference
+    return seen,reference,nil,scene
 end
 local function Prepare()
     if not state.vg then state.vg=assert(nvgCreate(1),'Orientation probe context unavailable') end
@@ -142,7 +159,26 @@ local function Prepare()
     end
     local texture=assert(state.texture);local portrait=assert(state.portrait)
     assert(portrait:PrepareTextures(0,'probe',false,texture,texture),'Orientation probe texture unavailable')
-    portrait:Queue();state.frames=0;state.drawn=false;state.phase='wait'
+    -- 场景快照（宣传片漫画格、Boss 结算格）用完整渲染路径；探测失败只影响场景通道，立绘照常测
+    if not state.scenePortrait then
+        local ok,err=pcall(function()
+            local scene=CommsPortrait.New('nono',SIZE,SIZE)
+            local live=renderer:GetViewport(0);local source=live and live:GetRenderPath() or renderer:GetDefaultRenderPath()
+            local path=source:Clone()
+            for _,t in ipairs(scene.textures) do t:GetRenderSurface():GetViewport(0):SetRenderPath(path) end
+            for _,material in ipairs(scene.materials) do
+                material:SetShaderParameter('holo_tint',Variant(Vector3(0,0,0)))
+                material:SetShaderParameter('probe',Variant(1.0))
+            end
+            state.scenePortrait=scene
+        end)
+        if not ok then print('[PortraitOrientation] scene probe unavailable '..tostring(err)) end
+    end
+    if state.scenePortrait and not state.scenePortrait:PrepareTextures(0,'probe',false,texture,texture) then
+        state.scenePortrait:Dispose();state.scenePortrait=nil
+    end
+    portrait:Queue();if state.scenePortrait then state.scenePortrait:Queue() end
+    state.frames=0;state.drawn=false;state.phase='wait'
 end
 local function Step()
     if state.phase=='retry' then return end
@@ -155,14 +191,22 @@ local function Step()
     -- 仅经过 EndFrame 不能证明探针实际画出过。
     if not state.drawn then state.frames=0;return end
     state.drawn=false;state.frames=state.frames+1
-    if state.frames<REQUIRED_FRAMES then portrait.requested=true;portrait:Queue();return end
-    local seen,reference,message=Readback()
+    if state.frames<REQUIRED_FRAMES then
+        portrait.requested=true;portrait:Queue()
+        local scene=state.scenePortrait;if scene then scene.requested=true;scene:Queue() end
+        return
+    end
+    local seen,reference,message,sceneSeen=Readback()
     if message then Retry(message);return end
     local flip,key,base,baseKey=nil,nil,nil,nil
     if seen then flip,key=Decide(seen) end
     if reference then base,baseKey=Decide(reference) end
     if flip and base then
-        Finish('measured '..key..' ref '..baseKey,flip[1]*base[1],flip[2]*base[2]);return
+        local scene,sceneKey=nil,nil;if sceneSeen then scene,sceneKey=Decide(sceneSeen) end
+        -- 场景通道测不出（如该路径不出这块颜色）时沿用立绘结果，比保持不翻转更接近实际
+        local sceneFlip=scene and {scene[1]*base[1],scene[2]*base[2],'measured '..sceneKey}
+            or {flip[1]*base[1],flip[2]*base[2],'portrait'}
+        Finish('measured '..key..' ref '..baseKey,flip[1]*base[1],flip[2]*base[2],sceneFlip);return
     end
     Retry('inconclusive '..tostring(key)..' ref '..tostring(baseKey))
 end
