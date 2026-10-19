@@ -1,6 +1,6 @@
 -- 渲染目标交给 NanoVG 画时，部分设备（手机 WebGL）会上下/左右颠倒。
--- 方向由 ui.PortraitOrientation 启动时实测：portrait 走立绘的精简渲染路径，
--- scene 走场景快照用的完整渲染路径（后处理链）。未测出时保持不翻转。
+-- portrait 由 ui.PortraitOrientation 实测并复核。scene 暂沿用立绘结果，
+-- source=portrait-inferred 表示尚未单独验证场景后处理链；未测出时保持原方向。
 local M={scene={x=1,y=1,source='default'}}
 function M.Get(kind) return M[kind] or M.scene end
 --- 用当前路径填一张 RT 图：只镜像图案，不镜像已建好的路径（漫画格的斜切形状保持原样）。
