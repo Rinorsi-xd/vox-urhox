@@ -271,6 +271,8 @@ function App:Start(existingScene)
     UI.Init({theme="default-dark",scale=TouchMode.Scale('home'),
         fonts={{family="sans",weights={normal=fonts.body,bold=fonts.bold}}}})
     UiSound.Start()
+    -- Measure portrait render-target orientation on this device during boot.
+    require('ui.PortraitOrientation').Start()
     self.loadingFlow=LoadingFlow.New(self)
     self.loader.canStart=function()
         local ready,message=self.mapTransition:CanStart(self.loadingFlow:CanStartLoad(),self.loadingFlow.pageFrames,
@@ -830,6 +832,7 @@ function App:Stop()
     if self.stopped then return end
     self.stopped=true
     IntroAudioTail.CancelAll()
+    require('ui.PortraitOrientation').Stop()
     UiSound.Dispose()
     self.mapTransition:Stop()
     if self.opening then self.opening:Dispose();self.opening=nil end

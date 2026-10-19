@@ -6,15 +6,19 @@ local Layout=require 'ui.CommsPortraitLayout'
 ---@field who string
 ---@field width integer
 ---@field height integer
+---@field PrepareTextures fun(self:CommsPortrait,time:number,face:string,talking:boolean,texture:Texture2D,closed:Texture2D):boolean
 local M={};M.__index=M
 local vertices={{-1,-1,0,1},{-1,1,0,0},{1,1,1,0},{-1,-1,0,1},{1,1,1,0},{1,-1,1,1}}
 function M.Path(who,face)
     face=face:gsub('^'..who..'_','')
     return (who=='nono' and 'Intro/Images/' or 'UI/Faces/')..who..'_'..face..'.png'
 end
-function M.New(who)
+-- Display mirror per axis, measured on device by ui.PortraitOrientation (some
+-- phone runtimes present these render targets upside down). 1 = unchanged.
+M.flipX,M.flipY=1,1
+function M.New(who,width,height)
     local self=setmetatable({who=who,scenes={},textures={},materials={},images={},faces={},glitch=0,nextGlitch=3,lastTime=0},M)
-    self.width=who=='huhu' and 156 or 330;self.height=who=='huhu' and 195 or 410
+    self.width=width or (who=='huhu' and 156 or 330);self.height=height or (who=='huhu' and 195 or 410)
     local xml=XMLFile:new();assert(xml:FromString('<renderpath><command type="clear" color="0 0 0 0" depth="1"/><command type="scenepass" pass="base" vertexlights="false"/><command type="scenepass" pass="alpha" vertexlights="false"/></renderpath>'))
     local path=renderer:GetDefaultRenderPath():Clone();assert(path:Load(xml));xml:Dispose()
     for i=1,2 do
@@ -53,6 +57,9 @@ function M:Prepare(time,face,talking)
     if talking and (self.who=='nono' or face=='smug') then face='talk' end
     local texture=self:Texture(face);if not texture then return false end
     local closed=self:Texture(self.who=='huhu' and 'smug' or 'smile') or texture
+    return self:PrepareTextures(time,face,talking,texture,closed)
+end
+function M:PrepareTextures(time,face,talking,texture,closed)
     local dt=math.max(0,math.min(.1,time-self.lastTime));self.lastTime=time
     if self.face and self.face~=face then self.glitch=math.max(self.glitch,.7) end;self.face=face
     if time>self.nextGlitch then self.glitch=math.max(self.glitch,.45);self.nextGlitch=time+4.5 end
@@ -76,6 +83,9 @@ function M:Draw(vg,r)
     local handles=self.images[vg]
     if not handles then handles={nvgCreateVideo(vg,self.textures[1]),nvgCreateVideo(vg,self.textures[2])};self.images[vg]=handles end
     nvgSave(vg)
+    -- Mirror about the rect centre when the probe found this device inverted.
+    local fx,fy=M.flipX,M.flipY
+    if fx~=1 or fy~=1 then nvgTranslate(vg,r.x+r.w/2,r.y+r.h/2);nvgScale(vg,fx,fy);nvgTranslate(vg,-r.x-r.w/2,-r.y-r.h/2) end
     nvgBeginPath(vg);nvgRect(vg,r.x,r.y,r.w,r.h)
     nvgFillPaint(vg,nvgImagePatternTinted(vg,r.x,r.y,r.w,r.h,0,handles[1],nvgRGBA(0,0,0,255)));nvgFill(vg)
     nvgGlobalCompositeBlendFuncSeparate(vg,NVG_ONE,NVG_ONE,NVG_ZERO,NVG_ONE)
