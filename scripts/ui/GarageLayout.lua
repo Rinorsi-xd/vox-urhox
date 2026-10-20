@@ -19,7 +19,8 @@ function M.Apply(s,w,h,safe)
     local stripY=h-bottom-115
     -- 手机紧凑界面：车是主角。改装/出战/试车整组缩到 .72 并贴到车位条上方；模式切换放右栏（配件清单下、
     -- 出战右上方），都不压战车（按钮按 sourceScale 等比绘制，点击区域跟着布局一起缩）
-    local k=s.compact and .6 or 1
+    -- .6 时按钮里的副标题在手机上只有 4px 多，读不出来；.72 与模式切换一致
+    local k=s.compact and .72 or 1
     local km=s.compact and .72 or 1 -- 模式切换字更小会看不清，单独保留 .72
     local ctaWidth=672*k
     local ctaHeight=74*k
@@ -35,7 +36,7 @@ function M.Apply(s,w,h,safe)
     Place(s.buttons.edit,0,0,174*k,74*k);Place(s.buttons.battle,160*k,0,352*k,74*k);Place(s.buttons.trial,498*k,0,174*k,74*k)
     for _,id in ipairs({'edit','battle','trial'}) do if s.buttons[id] then s.buttons[id].props.sourceScale=k end end
     for _,id in ipairs({'arena','salvage'}) do if s.buttons[id] then s.buttons[id].props.sourceScale=km end end
-    local infoHeight=math.min(s.detailsOpen and 585 or 332.96875,math.max(48,h-top-bottom-290))
+    local infoHeight=math.min(s.detailsOpen and 525 or 272.96875,math.max(48,h-top-bottom-290))
     -- 紧凑界面左栏下面是音乐盒，信息栏收在它上方，不让「车辆详情」被压掉半截
     if s.compact and s.tab=='hangar' then infoHeight=math.max(48,math.min(infoHeight,ctaY+ctaHeight-70*.72-4-(top+88))) end
     -- 紧凑机库：左侧整备信息和右侧配件清单缩到 .8（绘制与点击一起缩），让车成为画面主体；

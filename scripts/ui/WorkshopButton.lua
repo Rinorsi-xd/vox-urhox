@@ -20,9 +20,12 @@ function Button:GetShelfContent(vg)
     if kind~='ghost' and kind~='all' then return nil end
     local r=self:GetAbsoluteLayout()
     -- Final .wsh-sh span overrides the button's font and color.
-    return {size=11,spacing=4,color=D.orange,x=kind=='all' and 20 or 37,y=(r.h-14)/2,
-        width=vg and D.Width(vg,self.props.text,11,nil,4) or nil,
-        count=kind=='all' and {x=90,y=(r.h-18)/2,w=29.140625,h=18,size=13,spacing=3} or nil,
+    -- 手机上字号抬大后，文字按「左边距 + 计数框 + 箭头」剩下的宽度回收，计数框紧跟文字
+    local x=kind=='all' and 20 or 37;local size=11;local touch=require('controls.TouchMode').Enabled();local spacing=touch and 2 or 4
+    if vg then size=D.FitSize(vg,self.props.text,11,nil,spacing,kind=='all' and r.w-x-29-8-36 or r.w-x-8,9.5) end
+    local width=vg and D.Width(vg,self.props.text,size,nil,spacing) or nil
+    return {size=size,spacing=spacing,color=D.orange,x=x,y=(r.h-14)/2,width=width,
+        count=kind=='all' and {x=width and math.max(90,x+width+8) or 90,y=(r.h-18)/2,w=29.140625,h=18,size=13,spacing=3} or nil,
         arrow=kind=='all' and {x=r.w-32,y=(r.h-18)/2,w=18,h=18} or nil}
 end
 function Button:GetTabContent(vg)
@@ -110,7 +113,9 @@ function Button:Render(vg)
             if shelf then
                 D.Text(vg,p.text or '',x+shelf.x,y+shelf.y,shelf.size,shelf.color,nil,nil,shelf.spacing,false,14)
             else
-                D.Text(vg,p.text or '',tx,y+(h-size*1.2)/2,size,kind=='add' and {255,255,255,255} or c,nil,nil,kind=='add' and 2 or 1)
+                -- 手机上字号抬大后按钮里放不下时往回收（PC 宽度足够，不受影响）
+                local spacing=kind=='add' and 2 or 1;local fit=D.FitSize(vg,p.text or '',size,nil,spacing,x+w-tx-6)
+                D.Text(vg,p.text or '',tx,y+(h-size*1.2)/2,fit,kind=='add' and {255,255,255,255} or c,nil,nil,spacing)
             end
             if shelf and shelf.count then
                 local box=shelf.count

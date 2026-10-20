@@ -13,12 +13,13 @@ function M.Draw(page,vg,I,w,h,u,count,last)
  local p=M.Plan(w,h,u,count);local grey={138,147,163,255};local red={255,59,48,255}
  D.Text(vg,'星际前途 · 资产安全监控',p.x,p.y,p.small,grey,'vox-display',nil,p.small*.3,false,p.small)
  D.Text(vg,'受袭开采星区',p.x,p.titleY,p.title,{255,255,255,255},'vox-title',nil,p.title*.1,false,p.title)
- D.Text(vg,p.count,p.x,p.numberY,p.number,red,'vox-display',nil,p.number*.02,false,p.number)
+ D.Text(vg,p.count,p.x,p.numberY,p.number,red,'vox-display',nil,p.number*.02,false,p.number,{{blur=3*u,color={255,59,48,153}}})
  D.Text(vg,'/ 200',p.x,p.totalY,p.total,grey,'vox-display',nil,0,false,p.total)
  local tag='WARNING · 多星区同时遭到攻击';local tw=D.Width(vg,tag,p.tag,'vox-title',p.tag*.14)+p.tag*2.4
  local th=p.tag*2.2;local tx=p.right-tw
  nvgSave(vg);local cycle=I.age%.8
- nvgGlobalAlpha(vg,(cycle<.2 or cycle>=.6) and 1 or .675)
+ -- Source inBlink .8s steps(2)：每段两级，四分之一周期依次 1 / .675 / .35 / .675
+ nvgGlobalAlpha(vg,({1,.675,.35,.675})[math.floor(cycle/.2)+1] or 1)
  D.Rect(vg,tx,p.y,tw,th,{216,23,12,255})
  D.Text(vg,tag,tx+p.tag*1.2,p.y+p.tag*.6,p.tag,{255,255,255,255},'vox-title',nil,p.tag*.14,false,p.tag)
  nvgRestore(vg)

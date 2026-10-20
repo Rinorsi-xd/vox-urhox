@@ -17,7 +17,6 @@ local DeferredModules=setmetatable({},{__index=function(modules,name)
 end})
 
 local D=require 'ui.SourceDraw'
-local P=require 'ui.SourceParagraph'
 local Typography=require 'ui.IntroTypography'
 local Motion=require 'ui.IntroPromoMotion'
 local Fx=require 'ui.IntroPromoFx'
@@ -26,14 +25,6 @@ local Opacity=require 'ui.IntroOpacity'
 local nvgGlobalAlpha=Opacity.Set
 local M={};local white={255,255,255,255};local red={255,59,48,255};local gold={255,211,106,255}
 local function Image(page,vg,name,x,y,w,h,cover) DeferredModules['ui.IntroPage'].Image(vg,page.owner,name,x,y,w,h,1,cover) end
-local function Big(vg,text,x,y,size,time,color)
- Typography.Begin(vg)
- local amount=math.min(1,time/.24);local scale=2.8-1.8*(1-(1-amount)^3)
- local base=math.min(size,48);local glyphScale=size/base
- nvgSave(vg);nvgTranslate(vg,x,y);nvgRotate(vg,-math.pi/45);nvgScale(vg,scale*glyphScale,scale*glyphScale);nvgGlobalAlpha(vg,amount)
- D.Text(vg,text,4/glyphScale,5/glyphScale,base,{0,0,0,180},Typography.face,NVG_ALIGN_CENTER)
- D.Text(vg,text,0,0,base,color or white,Typography.face,NVG_ALIGN_CENTER);nvgRestore(vg)
-end
 local function Panel(page,vg,points,name,x,y,w,h,age)
  D.Path(vg,points);nvgFillColor(vg,nvgRGBA(255,247,227,255));nvgFill(vg)
  local dx=(1-math.min(1,age/.28))*w
@@ -52,12 +43,31 @@ local function Salvage(page,vg,w,h,t,offsetX,offsetY)
  local I=page.owner;local x=w*.52;local y=h*.1;local width=w*.5;local height=h*.74
  nvgSave(vg);nvgTranslate(vg,offsetX,offsetY)
  local points={x+width*.18,y,x+width,y,x+width,y+height,x,y+height}
- D.Path(vg,points);nvgFillColor(vg,nvgRGBA(8,18,31,230));nvgFill(vg)
+ -- Source .cl.hero-cut：35%/35% 处的蓝色椭圆渐变 + 浅蓝网点 + 旋转白色速度线 + .3vh 品牌色内描边，无黑框
+ D.Path(vg,points);nvgFillColor(vg,nvgRGBA(8,15,28,255));nvgFill(vg)
+ nvgSave(vg);nvgTranslate(vg,x+width*.35,y+height*.35);nvgScale(vg,width,height)
+ D.Path(vg,{-.35,-.35,.65,-.35,.65,.65,-.35,.65})
+ nvgFillPaint(vg,nvgRadialGradient(vg,0,0,.505,.919,nvgRGBA(27,79,150,255),nvgRGBA(8,15,28,255)));nvgFill(vg)
+ D.Path(vg,{-.35,-.35,.65,-.35,.65,.65,-.35,.65})
+ nvgFillPaint(vg,nvgRadialGradient(vg,0,0,0,.505,nvgRGBA(58,143,224,255),nvgRGBA(27,79,150,0)));nvgFill(vg)
+ nvgRestore(vg)
  nvgSave(vg);nvgIntersectScissor(vg,x,y,width,height)
- for stripe=0,13 do
-  local sy=y+((stripe*height/14+t*height*.24)%height)
-  D.Line(vg,x+width*.15,sy,x+width,sy-height*.18,{122,216,255,stripe%3==0 and 90 or 35},stripe%3==0 and 3 or 1)
- end
+ local cell=1.1*h/100;nvgBeginPath(vg)
+ for dx=x+cell/2,x+width,cell do for dy=y+cell/2,y+height,cell do
+  if (dx-x)>=width*.18*(1-(dy-y)/height) then nvgCircle(vg,dx,dy,cell*.2) end
+ end end
+ nvgFillColor(vg,nvgRGBA(131,199,251,89));nvgFill(vg)
+ -- 剪裁只能是矩形：速度线避开左上斜角外侧
+ nvgIntersectScissor(vg,x+width*.18,y,width*.82,height)
+ local radius=.8*math.sqrt(width*width+height*height)*1.6
+ nvgTranslate(vg,x+width/2,y+height/2);nvgRotate(vg,t*math.pi*2/7)
+ for index=0,39 do for _,slice in ipairs({{4,4.4,.14},{4.4,5,.385},{5,5.4,.14}}) do
+  local a,b=math.rad(index*9+slice[1]),math.rad(index*9+slice[2]);local mid=(a+b)/2
+  D.Path(vg,{0,0,math.sin(a)*radius,-math.cos(a)*radius,math.sin(b)*radius,-math.cos(b)*radius})
+  nvgFillPaint(vg,nvgLinearGradient(vg,math.sin(mid)*radius*.22,-math.cos(mid)*radius*.22,
+   math.sin(mid)*radius*.6,-math.cos(mid)*radius*.6,nvgRGBA(255,255,255,0),nvgRGBA(255,255,255,math.floor(slice[3]*255+.5))))
+  nvgFill(vg)
+ end end
  nvgRestore(vg)
  local images=ImageCache;local path=I.data.images.machinist_hero;local handle=images.Get(path)
  if handle and handle>0 then
@@ -65,7 +75,10 @@ local function Salvage(page,vg,w,h,t,offsetX,offsetY)
   local dw,dh=iw*scale,ih*scale
   D.Path(vg,points);nvgFillPaint(vg,nvgImagePattern(vg,x+width*.04+(width*.925-dw)/2,y-height*.04+height*1.16-dh,dw,dh,0,handle,1));nvgFill(vg)
  end
- D.Path(vg,points);nvgStrokeColor(vg,nvgRGBA(8,12,20,255));nvgStrokeWidth(vg,7);nvgStroke(vg);nvgRestore(vg)
+ local inset=.3*h/100
+ nvgSave(vg);nvgTranslate(vg,x+width/2,y+height/2);nvgScale(vg,(width-inset)/width,(height-inset)/height);nvgTranslate(vg,-x-width/2,-y-height/2)
+ D.Path(vg,points);nvgStrokeColor(vg,nvgRGBA(122,216,255,255));nvgStrokeWidth(vg,inset);nvgStroke(vg);nvgRestore(vg)
+ nvgRestore(vg)
 end
 function M.Draw(page,vg,w,h,u)
  local I=page.owner;local id=I.shot;local t=I.age
@@ -158,21 +171,25 @@ function M.Draw(page,vg,w,h,u)
    D.Text(vg,'按住',w/2,top+svg*.58,svg*.22,white,'vox-title',NVG_ALIGN_CENTER,0,true)
    local visual=I.host.state and I.host.state.sortieUi;local touch=visual and visual.session.touch
    if touch==nil then touch=require('controls.TouchMode').Enabled() end
+   -- Source .hold .k：inBlink 1.1s 呼吸闪
+   nvgGlobalAlpha(vg,IntroSortieUi.Blink(I.time,1.1))
    D.Text(vg,touch and '按住屏幕 · 做出决定' or '按住 鼠标左键 / 空格 · 做出决定',w/2,top+svg+gap,size,white,'vox-title',NVG_ALIGN_CENTER,size*.14,false,size)
    nvgRestore(vg)
   end
- elseif id=='sortie-countdown' then Big(vg,I.countdown or '',w/2,h*.4,12*u,t,white)
+ elseif id=='sortie-countdown' then
+  IntroSortieUi.Chrome(vg,w,h,u,I.time,0);IntroSortieUi.Countdown(page,vg,I,w,h,u)
  elseif id=='sortie-brief' or I.playing then
   IntroSortieUi.Chrome(vg,w,h,u,I.time,I.sortie and I.sortie.step or 0)
-  if id=='sortie-brief' and t<2.2 then
-   D.Rect(vg,0,h*.36,w,h*.14,{255,59,48,235});D.Text(vg,'财产受损警告 · PROPERTY DAMAGE ALERT',w/2,h*.39,3.8*u,white,'vox-title',NVG_ALIGN_CENTER)
-   D.Text(vg,'请注意，敌军正在拆解公司的贵重矿车！（矿车价值约等于你 40 年工资）',w/2,h*.54,1.8*u,white,'vox-title',NVG_ALIGN_CENTER)
-  elseif id=='sortie-brief' and not I.playing then
-   local visual=I.host.state and I.host.state.sortieUi
-   IntroSortieUi.Brief(vg,w,h,u,t,visual and visual.session.touch)
+  if id=='sortie-brief' then
+   IntroSortieUi.Warn(vg,w,h,u,t)
+   if t>=2.2 and not I.playing then
+    local visual=I.host.state and I.host.state.sortieUi
+    IntroSortieUi.Brief(vg,w,h,u,t,visual and visual.session.touch)
+   end
   elseif I.sortie then
    local s=I.sortie
    local visual=I.host.state and I.host.state.sortieUi;if visual then visual:Draw(vg,I,w,h,u) end
+   IntroSortieUi.Countdown(page,vg,I,w,h,u)
    if s.step==5 then
     IntroSortieUi.Stamp(vg,w,h,u,s)
    end
@@ -183,12 +200,7 @@ function M.Draw(page,vg,w,h,u)
    DeferredModules['ui.IntroMotto'].Draw(page,vg,w,h,u,alpha,first,second)
  elseif I.big and I.big~='' and not recruit.Handles(id) then Title(vg,I,w,h,u,id,I.big,t-(I.wordAt or 0))
  end
- if I.caption and I.caption~='' then
-  page.caption=page.caption or P.New(3.3*u,4.8*u);page.caption.font='vox-title';page.caption.size=3.3*u;page.caption.lineHeight=4.8*u
-  local text=I.caption:gsub('<[^>]+>','');local width=math.min(w*.9,130*u);local m=page.caption:Measure(vg,text,width,white)
-  D.Rect(vg,(w-width)/2-u,h*.9-m.height-u,width+2*u,m.height+2*u,{0,0,0,180})
-  page.caption:Draw(vg,text,(w-width)/2,h*.9-m.height,width,white,true)
- end
+ DeferredModules['ui.IntroCaption'].Draw(page,vg,I,w,h,u)
  film.Over(vg,I,w,h,u)
  if id=='payslip' then DeferredModules['ui.IntroPayslip'].DrawForeground(vg,I,w,h,u) end
  Fx.Draw(vg,I,w,h)

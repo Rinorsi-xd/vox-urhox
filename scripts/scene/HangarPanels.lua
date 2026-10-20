@@ -34,7 +34,7 @@ function M:init(hangar,provider,scale)
         SubscribeToEvent(vg,'NanoVGRender',function() self:Render(entry) end)
     end
     self:Update()
-    print('[HangarPanels] Four source canvases attached')
+    print(('[HangarPanels] Four source canvases attached api=%s'):format(tostring(graphics.apiName)))
 end
 function M:Update()
     if self.disposed then return end
@@ -62,12 +62,21 @@ function M:Render(entry)
     local vg=entry.vg
     -- Mode A: the original Canvas dimensions are the design and texture size;
     -- pixel ratio 1 belongs to this fixed texture, independent of screen DPR.
-    nvgBeginFrame(vg,entry.width*self.scale,entry.height*self.scale,1)
+    -- The frame covers the whole texture so the orientation markers land on real texels.
+    local tw,th=entry.texture:GetWidth(),entry.texture:GetHeight()
+    nvgBeginFrame(vg,tw,th,1)
     nvgScale(vg,self.scale,self.scale)
     nvgSave(vg);nvgGlobalCompositeOperation(vg,NVG_COPY)
     Canvas.Rect(vg,0,0,entry.width,entry.height,{0,0,0,0});nvgRestore(vg)
-    entry.draw(vg,self.info);nvgEndFrame(vg)
+    nvgSave(vg);entry.draw(vg,self.info);nvgRestore(vg)
+    -- Orientation markers (2x2 texels): the material compares them to find which
+    -- way up this device stores NanoVG framebuffers.
+    nvgSave(vg);nvgResetTransform(vg);nvgGlobalCompositeOperation(vg,NVG_COPY)
+    nvgBeginPath(vg);nvgRect(vg,0,0,2,2);nvgFillColor(vg,nvgRGBA(255,0,0,255));nvgFill(vg)
+    nvgBeginPath(vg);nvgRect(vg,0,th-2,2,2);nvgFillColor(vg,nvgRGBA(0,0,255,255));nvgFill(vg)
+    nvgRestore(vg);nvgEndFrame(vg)
     entry.material:SetSurfaceTexture('canvas_map',entry.texture)
+    entry.material:SetShaderParameter('canvas_marker',Variant(Vector2(1/tw,1/th)))
     entry.material:SetShaderParameter('canvas_enabled',Variant(1.0))
     entry.dirty=false;entry.renders=entry.renders+1;entry.info=self.info;self.renders=self.renders+1
 end

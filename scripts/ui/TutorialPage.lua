@@ -17,7 +17,16 @@ function M.New(owner)
 end
 function Page:GetAbsoluteLayout() local w,h=UI.GetViewportSize();return {x=0,y=0,w=w,h=h} end
 function Page:GetAbsoluteLayoutForHitTest() return self:GetAbsoluteLayout() end
-function Page:HitTest(x,y) return self.owner.visible and Inside(self.cardRect,x,y) end
+-- 遮罩挡住镂空之外的点击：只有卡片和高亮的目标区域能点。需要在 3D 场景里操作的步骤（把零件装到车上）不挡。
+-- 找不到目标时，只有「下一步」类步骤整屏挡住；等玩家操作的步骤放行，免得卡死。
+local PASS_THROUGH={place=true}
+function Page:HitTest(x,y)
+    local t=self.owner;if not t.visible then return false end
+    if Inside(self.cardRect,x,y) then return true end
+    local s=t.rules:StepSpec();if not s or PASS_THROUGH[s.id] then return false end
+    if self.holeRect then return not Inside(self.holeRect,x,y) end
+    return s.next=='button'
+end
 function Page:UiSoundButtonAt(x,y)
     if not self.owner.visible then return false end
     for _,button in ipairs(self.buttons) do if Inside(button,x,y) then return true end end
@@ -132,6 +141,7 @@ function Page:Render(vg)
     if r then
         local pad=10;local l,top=math.max(0,r.x-pad),math.max(0,r.y-pad)
         local rw,rh=math.min(w,r.x+r.w+pad)-l,math.min(h,r.y+r.h+pad)-top
+        self.holeRect={x=l,y=top,w=rw,h=rh}
         D.Rect(vg,0,0,w,top,{2,7,12,158});D.Rect(vg,0,top,l,rh,{2,7,12,158})
         D.Rect(vg,l+rw,top,w-l-rw,rh,{2,7,12,158});D.Rect(vg,0,top+rh,w,h-top-rh,{2,7,12,158})
         local color=t.rules.doneAt and D.green or cyan
@@ -147,7 +157,7 @@ function Page:Render(vg)
         if l+rw+30+cw<w then x=l+rw+30;y=cy
         elseif l-30-cw>0 then x=l-30-cw;y=cy
         else x=math.max(20,math.min(w-cw-20,l+rw/2-cw/2));y=top-ch-30>20 and top-ch-30 or math.min(h-ch-20,top+rh+30) end
-    else D.Rect(vg,0,0,w,h,{2,7,12,115}) end
+    else self.holeRect=nil;D.Rect(vg,0,0,w,h,{2,7,12,115}) end
     if s.card=='corner' then x=w-cw-24;y=h-ch-24 end
     x=math.max(12,math.min(w-cw-12,x));y=math.max(12,math.min(h-ch-12,y))
     -- The battle HUD's bottom offset does not belong to this tutorial stack.

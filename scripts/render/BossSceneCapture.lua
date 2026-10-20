@@ -1,5 +1,6 @@
 -- Capture the final 3D viewport, before NanoVG, without a backbuffer readback.
 local Lifetime=require 'render.RenderTargetLifetime'
+local OrientedCopy=require 'render.OrientedCopy'
 local M={};M.__index=M
 function M.New(viewport)
     assert(viewport,'Missing boss capture viewport')
@@ -24,10 +25,15 @@ function M:Presented()
     if self.ready then return true end
     self.frames=self.frames+1
     if self.frames<3 then self.texture:GetRenderSurface():QueueUpdate();return false end
-    self.ready=true;self:Detach();return true
+    if not self.copy then self:Detach();self.copy=OrientedCopy.New(self.texture) end
+    -- NanoVG shows render targets upside down on some devices; swap in the GPU-corrected copy.
+    local shown=self.copy:Step();if not shown then return false end
+    if shown~=self.texture then Lifetime.Retire(self.texture);self.texture=shown end
+    self.copy=nil;self.ready=true;return true
 end
 function M:Dispose()
     if self.disposed then return end;self.disposed=true;self:Detach()
+    if self.copy then self.copy:Dispose();self.copy=nil end
     if self.texture then Lifetime.Retire(self.texture);self.texture=nil end
 end
 return M

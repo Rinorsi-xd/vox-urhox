@@ -5,6 +5,8 @@ local CraterPostProcess=require("render.CraterPostProcess")
 local Exposure=require 'render.FixedExposure'
 local CraterTonemap=require 'render.CraterTonemap'
 local Viewports=require 'render.WindowViewports'
+local MobileSceneScale=require 'render.MobileSceneScale'
+local TouchMode=require 'controls.TouchMode'
 local M={};M.__index=M
 local ranges={bloom={0,.8},mist={0,.2},exposure={.6,1.4},vignette={0,.6},grain={0,.06}}
 local supported={bloom=true,exposure=true,vignette=true,quality=true}
@@ -17,6 +19,8 @@ end
 function M.Valid(data)
     if type(data)~='table' or data.v~=2 or type(data.ao)~='boolean' then return false end
     if data.quality~='high' and data.quality~='medium' and data.quality~='low' then return false end
+    -- 手机战斗渲染精度：可选字段，老存档没有时按默认档
+    if data.renderScale~=nil and not (MobileSceneScale.levels[data.renderScale] or data.renderScale=='native') then return false end
     for k,r in pairs(ranges) do local n=data[k];if type(n)~='number' or n~=n or n<r[1] or n>r[2] then return false end end
     return true
 end
@@ -36,7 +40,23 @@ function M.New(app)
     if migrate then data=M.Defaults();data.bloom=saved.bloom;data.vignette=saved.vignette end
     return setmetatable({app=app,data=data,pending=migrate,delay=0,error=''},M)
 end
-function M:Supports(key) return supported[key]==true or (self.post~=nil and (key=='mist' or key=='grain')) end
+function M:Supports(key)
+    if key=='renderScale' then return TouchMode.Enabled() and self.post==nil end
+    return supported[key]==true or (self.post~=nil and (key=='mist' or key=='grain'))
+end
+function M:RenderScale() return self.data.renderScale or MobileSceneScale.default end
+-- 场景画进缩小的离屏目标时不再继承屏幕的 MSAA，改用目标上的 FXAA
+function M:WantsAa(quality)
+    if self.scaled then return Quality.current.fxaa==true and quality~='low' end
+    return M.WantsFxaa(quality)
+end
+function M:DropScaled()
+    local scaled=self.scaled;if not scaled then return end
+    self.scaled=nil
+    if scaled.output and Viewports.Get(0)==scaled.output then Viewports.Set(0,nil) end
+    if scaled.output and self.suspendedViewport==scaled.output then self.suspendedViewport=nil end
+    scaled:Dispose()
+end
 function M:ParkPost()
     local post=self.post;if not post then return end
     local retained=self.retainedPost
@@ -68,12 +88,12 @@ function M:Apply(scene)
     if not scene:GetVar('VoxPreview'):GetBool() then Quality.Apply(d.quality) end
     if self.post and self.post.scene~=scene then self:ParkPost() end
     if self.post then self.post:Set(d);return end
-    zone:SetAttribute('Bloom Enable',Variant(true)) -- Keep tonemap even at zero bloom.
+    zone:SetAttribute('Bloom Enable',Variant(true)) -- Keep tonemap even at zero bloom（实测关掉会连色调映射一起丢，画面变暗变艳）
     zone.tonemapMode=TONEMAP_MODE_ACES;zone.bloomMode=BLOOM_MODE_UE
     zone.bloomUEIntensity=d.bloom
     zone.bloomUEThreshold=1.3 -- H5 Pipeline: bloom.threshold; exclude ordinary surfaces.
     zone.vignetteEnabled=d.vignette>0;zone.vignetteIntensity=d.vignette
-    zone.fxaaEnabled=M.WantsFxaa(d.quality)
+    zone.fxaaEnabled=self:WantsAa(d.quality)
     if self.loggedAa~=zone.fxaaEnabled then
         self.loggedAa=zone.fxaaEnabled
         print('[AA] backbuffer multiSample='..graphics:GetMultiSample()..' fxaa='..tostring(zone.fxaaEnabled)..' quality='..d.quality)
@@ -84,8 +104,10 @@ function M:Apply(scene)
         zone.tonemapMode=TONEMAP_MODE_LUT;self.tonemap:Set(d.exposure)
     else Exposure.Apply(zone,d.exposure) end
 end
-function M:Show(scene,camera)
+--- options.scaled：这是战斗场景，触屏设备上按「战斗渲染精度」降分辨率渲染
+function M:Show(scene,camera,options)
     self.suspendedViewport=nil
+    self:DropScaled();self.scaledSpec=nil
     if CraterTonemap.Available(scene) then
         if self.post and (self.post.scene~=scene or self.post.camera~=camera) then self:ParkPost() end
         local retained=self.retainedPost
@@ -97,7 +119,15 @@ function M:Show(scene,camera)
         self.post=post;post.graph:Queue();Viewports.Set(0,post.graph.output)
     else
         self:ParkPost()
-        Viewports.Set(0,Viewport:new(scene,camera))
+        local level=self:RenderScale()
+        if options and options.scaled and self:Supports('renderScale') and MobileSceneScale.Reduces(level) then
+            self.scaledSpec={scene=scene,camera=camera}
+            local ok,scaled=pcall(MobileSceneScale.New,scene,camera,level)
+            if ok then self.scaled=scaled else print('[GraphicsSettings] scaled scene unavailable: '..tostring(scaled)) end
+        elseif options and options.scaled then self.scaledSpec={scene=scene,camera=camera} end
+        Viewports.Set(0,self.scaled and self.scaled.output or Viewport:new(scene,camera))
+        local zone=scene:GetComponent('Zone',true)
+        if zone and not self.post then zone.fxaaEnabled=self:WantsAa(self.data.quality) end
     end
 end
 function M:SetSceneVisible(visible)
@@ -112,7 +142,10 @@ function M:Set(key,value)
     if not self:Supports(key) then return false end
     local data={};for k,v in pairs(self.data) do data[k]=v end;data[key]=value
     if not M.Valid(data) then return false end
-    self.data=data;self:Apply(self.app.scene);self.pending=true;self.delay=.35;self.error='';return true
+    self.data=data;self:Apply(self.app.scene);self.pending=true;self.delay=.35;self.error=''
+    -- 改了战斗渲染精度：当前战斗场景按新档位重建
+    if key=='renderScale' and self.scaledSpec then local spec=self.scaledSpec;self:Show(spec.scene,spec.camera,{scaled=true}) end
+    return true
 end
 function M:Reset()
     self.data=M.Defaults();self:Apply(self.app.scene);self.pending=true;self.delay=0
@@ -125,6 +158,10 @@ function M:Flush()
 end
 function M:Update(dt)
     Viewports.Refresh()
+    if self.scaled and not self.suspendedViewport and Viewports.Drawable() then
+        local previous=self.scaled.output
+        if self.scaled:Update() and Viewports.Get(0)==previous then Viewports.Set(0,self.scaled.output) end
+    end
     if self.post and not self.suspendedViewport and Viewports.Drawable() then self.post:Update(dt) end
     if self.tonemap then self.tonemap:Update() end
     if self.pending then self.delay=self.delay-dt;if self.delay<=0 then self:Flush() end end
@@ -135,6 +172,7 @@ function M:PostUpdate()
 end
 function M:Dispose()
     self.suspendedViewport=nil
+    self:DropScaled();self.scaledSpec=nil
     self:Flush()
     if self.retainedPost then self:ReleasePost(self.retainedPost.scene) end
     if self.post then self.post:Dispose();self.post=nil end

@@ -2,14 +2,14 @@
 local V=require 'core.Math3'
 local CELL=require('Config').CELL
 local M={}
-function M.Find(origin,dir,near,player,selected,candidates,castRay,stats,wide,canReach)
+function M.Find(origin,dir,near,player,selected,candidates,castRay,stats,wide,canReach,touch)
     local unit=selected.unit;local body=unit.vehicle.body
     local p,q,velocity=body.translation(),body.rotation(),body.linvel()
     local centre=unit.Position and unit:Position() or unit.pos
     local along=V.Dot(V.Sub(centre,origin),dir)
     local vel={velocity.x,velocity.y,velocity.z}
     local side=V.Length(V.Sub(vel,V.Scale(dir,V.Dot(vel,dir))))
-    local angle=stats.assist.angle*(wide or 1)/(1+side/math.max(1,along)/.6)
+    local angle=stats.assist.angle*(wide or 1)/(touch and touch.keepCone and 1 or 1+side/math.max(1,along)/.6) -- touch 见 AimAssist.Apply
     local from=player.Position and player:Position() or player.pos
     local points={};local seen={}
     local function Add(point)

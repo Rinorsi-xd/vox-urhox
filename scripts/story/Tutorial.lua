@@ -28,7 +28,22 @@ function M:State()
     local a=self.app;local h=GarageHud.GetState();local b=a.build
     return {parts=a.blueprint:Size(),build=b~=nil,inventory=b and b.inventoryPanel~=nil or false,
         saved=a.bays.active~=nil and a.bays.active~=false and not a.bays.unsaved,
-        tab=h and h.tab or '',home=h~=false and h~=nil,drive=a.trial~=nil,mission=a.trial and a.trial.story~=nil or false}
+        tab=h and h.tab or '',home=h~=false and h~=nil,drive=a.trial~=nil,mission=a.trial and a.trial.story~=nil or false,
+        buildMenu=(b and b.hud and b.hud.touchControls and b.hud.touchControls.menu) and true or false}
+end
+-- 每一步只在它指向的界面上出现：玩家切到别的页签、创意工坊、涂装等界面时引导先收起（条件照常判定），
+-- 回到对应界面再重新念这一步，不会把卡片和遮罩盖在不相干的界面上。
+local SCREENS={hello='hangar',car='hangar',bays='hangar',choose='hangar',edit='hangar',battle='hangar',
+    bag='build',pick='build',place='build',save='build',back='build',
+    story='battle',go='story',leave='story',debrief='home',graduate='home'}
+function M:OnScreen(state)
+    local s=self.rules:StepSpec();local want=s and SCREENS[s.id]
+    if not want then return true end
+    -- 触屏改装页展开操作菜单时，菜单盖住了目标按钮，先收起引导
+    if want=='build' then return state.build and not state.buildMenu end
+    if state.build or not state.home then return false end
+    if want=='home' then return state.tab=='hangar' or state.tab=='battle' or state.tab=='story' end
+    return state.tab==want
 end
 function M:Busy(state)
     local a=self.app;local b=a.build
@@ -93,7 +108,7 @@ function M:Update(dt)
     if not busy and not beforeDone and self.rules.doneAt and self.rules.revision==beforeRevision then Sound.Play('confirm') end
     if wasReplay and not self.rules.running then self.app.toasts:Push('拼装教学看完了','ok',2000) end
     if self.rules.running then self:Prepare();busy=self:Busy(state) end
-    self.visible=self.rules.running and not busy
+    self.visible=self.rules.running and not busy and self:OnScreen(state)
     if self.skipConfirm then self.skipConfirm=math.max(0,self.skipConfirm-dt) end
     if self.revision~=self.rules.revision then self.revision=self.rules.revision;self.line=1;self.lineAge=0;self.skipConfirm=0;self.suspended=false end
     if not self.visible then

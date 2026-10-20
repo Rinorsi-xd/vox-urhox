@@ -2,6 +2,7 @@ local UI=require 'urhox-libs/UI'
 local W=require 'ui.TouchEditorWidgets'
 local Prefs=require 'controls.TouchPreferences'
 local Host=require 'ui.DialogHost'
+local LayoutEditor=require 'ui.TouchLayoutEditor'
 local M={}
 local specs={
     {'sens','镜头灵敏度',{{.6,'低'},{1,'中'},{1.5,'高'},{2.2,'很高'}}},
@@ -40,7 +41,7 @@ function M.Open(owner,options)
     if owner.buildCamera then owner.buildCamera:Release() elseif owner.Pause then owner:Pause() end
     local w,h=UI.GetViewportSize();local cssWidth=graphics:GetWidth()/math.max(1,graphics:GetDPR());local k=w/math.max(1,cssWidth)
     local modal=Host.Open(owner,'触屏操作',nil,{width=math.min(540*k,w-16*k)})
-    local scroll=UI.ScrollView{width='100%',height=math.min(430*k,h-125*k),scrollY=true,bounces=false}
+    local scroll=UI.ScrollView{width='100%',height=math.min(430*k,h-171*k),scrollY=true,bounces=false}
     modal.settings=M.Populate(scroll,owner.app,k,function()
         if owner.hud then
             if owner.hud.Clear then owner.hud.Clear() end
@@ -48,8 +49,13 @@ function M.Open(owner,options)
             if owner.hud.Refresh then owner.hud.Refresh() end
         end
     end);modal:AddContent(scroll)
+    -- 局内按钮布局编辑器全屏打开，保存 / 取消后回到这张触屏设置
+    local layout=W.Button{text='自定义局内按钮布局',kind='segment',sourceScale=k,width='100%',height=40*k,marginBottom=6*k,onClick=function()
+        Host.Close(owner);LayoutEditor.Open(owner,function() M.Open(owner,options) end)
+    end}
+    modal:AddContent(layout)
     local done=W.Button{text=options.onDone and '返回设置' or '继续',kind='segment',sourceScale=k,width='100%',height=40*k,onClick=function() if options.onDone then options.onDone() else Host.Close(owner) end end}
-    modal:AddContent(done);modal.actions={done=done};modal.scroll=scroll
+    modal:AddContent(done);modal.actions={done=done,layout=layout};modal.scroll=scroll
     return modal
 end
 return M

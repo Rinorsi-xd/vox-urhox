@@ -58,6 +58,7 @@ function Page:Render(vg)
         else
             self.captures=self.captures or {};self.captures[vg]=self.captures[vg] or {};local handles=self.captures[vg]
             handles[path]=handles[path] or nvgCreateVideo(vg,path);local iw,ih=path.width,path.height;local k=math.max(pw/iw,ph/ih)*zoom
+            -- Boss 实景格是场景 RT 快照；设备方向已在快照拷贝时于 GPU 上修正（render.OrientedCopy）
             D.Path(vg,clip);nvgFillPaint(vg,nvgImagePattern(vg,(pw-iw*k)/2,(ph-ih*k)/2,iw*k,ih*k,0,handles[path],1));nvgFill(vg)
         end
         if p.chr then local c=p.chr;local portrait=Resource.images[c.src=='chairman' and 'chairman_cut' or c.src].path;nvgSave(vg);nvgIntersectScissor(vg,0,0,pw,ph)

@@ -1,26 +1,38 @@
 -- Source physical CSS-pixel sizes remain independent of the scaled HUD.
 local M={}
-function M.Drive(width,height,cssWidth,cssHeight,safe,planeKeys,size)
-    local k=width/math.max(1,cssWidth);safe=safe or {}
+-- custom：玩家在「触屏操作 → 自定义局内布局」里拖过的控件，{[id]={x,y,s}}，x/y 为中心在安全区里的占比。
+-- 返回的 centers 是每个控件的中心（CSS px，相对安全区左上角）和缩放，布局编辑器按它摆预览。
+function M.Drive(width,height,cssWidth,cssHeight,safe,planeKeys,size,custom)
+    local k=width/math.max(1,cssWidth);safe=safe or {};custom=custom or {}
     local left,top=(safe.left or 0)/k,(safe.top or 0)/k
     local w=cssWidth-left-(safe.right or 0)/k;local h=cssHeight-top-(safe.bottom or 0)/k
     local u=math.max(.78,math.min(1.35,math.min(w,h)/390))*(size or 1)
     local fx,fy=w-74*u,h-82*u
-    local function Rect(x,y,rw,rh)
-        return {left=(left+x-rw*u/2)*k,top=(top+y-rh*u/2)*k,width=rw*u*k,height=rh*u*k}
+    local centers={}
+    local function Rect(id,x,y,rw,rh)
+        local c=custom[id];local s=1
+        if c then x,y,s=c.x*w,c.y*h,c.s end
+        centers[id]={x=x,y=y,s=s,w=rw,h=rh}
+        return {left=(left+x-rw*u*s/2)*k,top=(top+y-rh*u*s/2)*k,width=rw*u*s*k,height=rh*u*s*k}
     end
-    local actions={primary=Rect(fx,fy,76,76),interact=Rect(fx+6*u,fy-150*u,108,40),
-        ['rudder-l']=Rect(fx-168*u,fy-40*u,46,40),['rudder-r']=Rect(fx-168*u,fy+14*u,46,40)}
-    local order=planeKeys and {'aux','up','scope'} or {'scope','up','aux'}
-    for i,id in ipairs(order) do local a=math.rad(({182,222,262})[i]);actions[id]=Rect(fx+82*u*math.cos(a),fy+82*u*math.sin(a),54,46) end
-    local a=math.rad(142);actions.weapon=Rect(fx+82*u*math.cos(a),fy+82*u*math.sin(a),54,46)
-    local toggle={left=(left+w-50*u)*k,top=(top+88*u)*k,width=40*u*k,height=36*u*k}
-    actions.board={left=toggle.left-48*u*k,top=toggle.top,width=40*u*k,height=36*u*k}
+    local actions={primary=Rect('primary',fx,fy,76,76),interact=Rect('interact',fx+6*u,fy-150*u,108,40),
+        ['rudder-l']=Rect('rudder-l',fx-168*u,fy-40*u,46,40),['rudder-r']=Rect('rudder-r',fx-168*u,fy+14*u,46,40)}
+    -- 弧形三键按「位置」自定义：飞机键位模式下 aux 和 scope 互换位置，自定义的格子跟着互换
+    for i,id in ipairs({'scope','up','aux'}) do local a=math.rad(({182,222,262})[i]);actions[id]=Rect(id,fx+82*u*math.cos(a),fy+82*u*math.sin(a),54,46) end
+    if planeKeys then actions.aux,actions.scope=actions.scope,actions.aux end
+    local a=math.rad(142);actions.weapon=Rect('weapon',fx+82*u*math.cos(a),fy+82*u*math.sin(a),54,46)
+    local toggle=Rect('toggle',w-30*u,106*u,40,36)
+    actions.board=Rect('board',w-78*u,106*u,40,36)
+    local fire=centers.primary
+    local stick=Rect('stick',100*u,h-96*u,108,108);local home=centers.stick
+    -- 浮动摇杆的按下区域：默认左下 45%；摇杆被挪走时把它的位置也包进来（手势层限制摇杆中心不过屏幕中线）
+    local reach=54*u*home.s+24*u
+    local zone={left,top+math.min(h*.22,home.y-reach),left+math.min(w*.5,math.max(w*.45,home.x+reach)),top+h}
     local pw=math.min(540*k,width-16*k)
-    return {k=k,u=u,cssWidth=cssWidth,cssHeight=cssHeight,actions=actions,toggle=toggle,
-        stick=Rect(100*u,h-96*u,108,108),home={left+100*u,top+h-96*u},
-        zone={left,top+h*.22,left+w*.45,top+h},
-        readiness={left=(left+fx-30*u)*k,top=(top+fy+46*u)*k,width=60*u*k,height=5*u*k},
+    return {k=k,u=u,cssWidth=cssWidth,cssHeight=cssHeight,actions=actions,toggle=toggle,centers=centers,safeRect={left,top,w,h},
+        stick=stick,home={left+home.x,top+home.y},
+        zone=zone,
+        readiness={left=(left+fire.x-30*u*fire.s)*k,top=(top+fire.y+46*u*fire.s)*k,width=60*u*fire.s*k,height=5*u*k},
         panel={left=(width-pw)/2,top=52*u*k,width=pw,height=height-52*u*k-8*k},padding=14*k,columns=3}
 end
 function M.Calculate(width,height,cssWidth,cssHeight,safe,mode,actions)

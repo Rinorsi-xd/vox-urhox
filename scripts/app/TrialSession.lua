@@ -146,7 +146,7 @@ function M:Activate(onReturn)
     if self.battle then self.battle.sounds:Play('battle_enter') end
     if self.touch then self:Resume() end
     input.mouseMode=MM_ABSOLUTE
-    self.app.graphicsSettings:Show(self.scene,self.camera:GetCamera())
+    self.app.graphicsSettings:Show(self.scene,self.camera:GetCamera(),{scaled=true})
 end
 function M:StartIntro()
     if self.battle and not self.disposed then

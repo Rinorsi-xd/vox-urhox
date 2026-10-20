@@ -19,6 +19,16 @@ local function Text(vg,text,x,y,size,spacing,fill,stroke,width)
  local baseline=y+(size-size*(G.Ascent()+G.Descent()))/2+size*G.Ascent()
  for _,cp in utf8.codes(text)do local c=utf8.char(cp);G.Draw(vg,c,x,baseline,size,fill,stroke,width or 0);x=x+G.Glyph(c).advance*size+spacing end
 end
+-- Bare .slam.white (countdown digits)：同一入场曲线，按调用方给的停留 / 收场时长淡出
+function M.Slam(vg,w,h,u,age,text,hold,fade)
+ local p=M.Plan(math.min(age,1.19));if not p.visible then return end
+ local alpha=p.alpha*(age>hold and 1-Ease((age-hold)/fade,.42,0,1,1) or 1)
+ local size=11*u;local width=G.Width(text,size,.02*size)
+ nvgSave(vg);nvgTranslate(vg,w/2,h/2);nvgRotate(vg,p.rotation*math.pi/180);nvgScale(vg,p.scale,p.scale);nvgTranslate(vg,-width/2,-size/2);nvgGlobalAlpha(vg,alpha)
+ Text(vg,text,u,u,size,.02*size,{122,216,255,255},{122,216,255,255},.5*u)
+ Text(vg,text,0,0,size,.02*size,{255,255,255,255},{17,17,17,255},.5*u)
+ nvgRestore(vg)
+end
 function M.Draw(vg,w,h,u,age,mine)
  local p=M.Plan(age);if not p.visible then return end
  local text='击毁！';local sub=mine and '绩效 +1' or '（感谢友军炮火）';local size=11*u;local small=size*.28

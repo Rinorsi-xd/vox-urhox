@@ -41,8 +41,15 @@ function Button:Render(vg)
         Relief.Draw(vg,x,y,w,h,false,true,points)
         D.Icon(vg,'play',x+12,y+11,18,D.orange)
         D.Text(vg,'开场动画',x+36,y+11,13,{183,210,232,255},'vox-body')
-        D.Rect(vg,x+106,y+11,39,18,{230,187,112,255})
-        D.Text(vg,'未完成',x+125.5,y+12.5,11,D.ink,'vox-body',NVG_ALIGN_CENTER)
+        -- 手机上小字会被抬到可读下限：角标按实际字宽贴右排，不溢出底色；PC 保持原稿
+        if D.Readable(vg,11,'未完成')==11 then
+            D.Rect(vg,x+106,y+11,39,18,{230,187,112,255})
+            D.Text(vg,'未完成',x+125.5,y+12.5,11,D.ink,'vox-body',NVG_ALIGN_CENTER)
+        else
+            local ba,bd=D.FontMetrics(vg,11,'vox-body');local bw=math.max(39,D.Width(vg,'未完成',11,'vox-body')+8);local bh=math.max(18,ba+bd+4)
+            local bx=math.max(x+100,x+w-6-bw);D.Rect(vg,bx,y+20-bh/2,bw,bh,{230,187,112,255})
+            D.Text(vg,'未完成',bx+bw/2,y+20-bh/2,11,D.ink,'vox-body',NVG_ALIGN_CENTER,nil,false,bh)
+        end
     elseif kind=='mode' then
         if p.salvage then
             self:RenderBackgroundImage(vg,'UI/Salvage/map.jpg',{x=x,y=y,w=w,h=h},'cover',nil)
@@ -52,10 +59,20 @@ function Button:Render(vg)
         D.Rect(vg,x+8,y+7.5,36,36,p.selected and {185,231,255,255} or {5,13,22,180})
         D.Icon(vg,p.icon,x+16,y+15.5,20,p.selected and {20,57,85,255} or D.muted)
         D.Text(vg,p.text,x+54,y+9,14)
-        D.Text(vg,p.subtitle or '',x+54,y+28,10,{182,204,224,255},'vox-body')
+        -- 副标题排在标题下方、不压右侧切换按钮：手机上小字抬大后按实际行高下移，过宽时回收字号
+        local ta,td=D.FontMetrics(vg,14);local subtitle=p.subtitle or ''
+        local subSize=D.FitSize(vg,subtitle,10,'vox-body',0,w-54-(p.salvage and 38 or 6),7)
+        D.Text(vg,subtitle,x+54,math.max(y+28,y+9+ta+td),subSize,{182,204,224,255},'vox-body')
         if p.selected then D.Rect(vg,x,y+h-3,w,3,D.orange) end
         if p.salvage then
-            D.Rect(vg,x+114,y+10,20,15,{230,187,112,255});D.Text(vg,'新',x+118,y+11,9,D.ink,'vox-body')
+            if D.Readable(vg,9,'新')==9 then
+                D.Rect(vg,x+114,y+10,20,15,{230,187,112,255});D.Text(vg,'新',x+118,y+11,9,D.ink,'vox-body')
+            else
+                -- 手机上「新」角标跟在标题后面，宽高按实际字号
+                local tx=math.max(x+114,x+54+D.Width(vg,p.text,14)+6);local a,d=D.FontMetrics(vg,9,'vox-body')
+                local tw=math.max(20,D.Width(vg,'新',9,'vox-body')+8);local th=math.max(15,a+d+4)
+                D.Rect(vg,tx,y+17.5-th/2,tw,th,{230,187,112,255});D.Text(vg,'新',tx+tw/2,y+17.5-th/2,9,D.ink,'vox-body',NVG_ALIGN_CENTER,nil,false,th)
+            end
             D.Rect(vg,x+w-34,y+13.5,24,24,{39,70,99,255});D.Icon(vg,'swap',x+w-30,y+17.5,16,{185,231,255,255})
         end
     elseif kind=='manage' then

@@ -427,6 +427,7 @@ function M.New(app)
   local image=images[name];if not image or image<=0 then return false end
   if r.points then SourceDraw.Path(vg,r.points) else nvgBeginPath(vg);nvgRect(vg,r.x,r.y,r.w,r.h) end
   local scale=math.max(r.w/texture:GetWidth(),r.h/texture:GetHeight());local width,height=texture:GetWidth()*scale,texture:GetHeight()*scale
+  -- 实景漫画格是场景 RT 快照；设备方向已在快照拷贝时于 GPU 上修正（render.OrientedCopy）
   nvgFillPaint(vg,nvgImagePattern(vg,r.x+(r.w-width)/2,r.y+(r.h-height)/2,width,height,0,image,1));nvgFill(vg)
   return true
  end

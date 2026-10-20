@@ -2,12 +2,15 @@
 -- as straight alpha, so store coverage and opaque premultiplied RGB separately.
 -- Composite coverage first, then RGB additively without changing alpha.
 local RenderTargetLifetime=require("render.RenderTargetLifetime")
+local SourceDraw=require("ui.SourceDraw")
 
 local M={};M.__index=M
 function M.New(order,prepare,draw)
     local self=setmetatable({prepare=prepare,draw=draw,images={},renders=0,allocations=0},M)
     self.vg=assert(nvgCreate(1),'UI group context unavailable')
     nvgSetRenderOrder(self.vg,order);nvgSetColorSpace(self.vg,NVG_COLOR_GAMMA)
+    -- 弹窗 / 浮层按 UI 的逻辑像素绘制到屏幕，手机小字下限同样适用
+    SourceDraw.ScreenContext(self.vg)
     SubscribeToEvent(self.vg,'NanoVGRender',function() self:Render() end)
     return self
 end

@@ -12,8 +12,14 @@ uniform float clock = 0.0;
 uniform float glitch = 0.0;
 uniform float mouth_on = 0.0;
 uniform float opaque_rgb = 0.0;
-// Orientation probe: output the fitted source texel unmodified.
-uniform float probe = 0.0;
+// Two target texels in UV; 0 disables. Red marks the top-left corner, blue the
+// bottom-left, so render.PortraitCheck can see which way up the target is shown.
+uniform vec2 marker_size = vec2(0.0);
+// render.PortraitCheck canvas: left column a NanoVG reference (red over blue),
+// right column this target's displayed left corners. One row disagreeing means
+// the target is shown upside down, so the content (not the markers) flips.
+uniform sampler2D orient_map : filter_nearest, repeat_disable;
+uniform float orient_enabled = 0.0;
 
 float h1(float n) { return fract(sin(n * 12.9898) * 43758.5453); }
 float h2(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
@@ -29,6 +35,12 @@ vec4 portrait(vec2 uv) {
 }
 void fragment() {
     vec2 vp=vec2(UV.x,1.0-UV.y);
+    vec2 mvp=vp;
+    if (orient_enabled > 0.5) {
+        vec4 l=texture(orient_map,vec2(0.1875,0.1875)),r=texture(orient_map,vec2(0.8125,0.1875));
+        float inverted=step(0.5,l.a)*step(0.5,r.a)*step(0.5,abs(l.r-r.r));
+        vp.y=mix(vp.y,1.0-vp.y,inverted);
+    }
     vec2 px=vp*canvas_size;
     float t=clock,g=glitch;
     float row=floor(px.y/(4.0+36.0*h1(floor(t*9.0))));
@@ -58,9 +70,8 @@ void fragment() {
     float coverage=a*k;
     ALBEDO=mix(premul/max(coverage,.0001),premul,opaque_rgb);
     ALPHA=mix(coverage,1.0,opaque_rgb);
-    if (probe > 0.5) {
-        vec2 puv=(vp-image_offset)/image_scale;puv.y=1.0-puv.y;
-        vec4 src=texture(face_map,puv);
-        ALBEDO=mix(src.rgb,src.rgb*src.a,opaque_rgb);ALPHA=mix(src.a,1.0,opaque_rgb);
+    if (mvp.x < marker_size.x) {
+        if (mvp.y > 1.0 - marker_size.y) { ALBEDO=vec3(1.0,0.0,0.0); ALPHA=1.0; }
+        else if (mvp.y < marker_size.y) { ALBEDO=vec3(0.0,0.0,1.0); ALPHA=1.0; }
     }
 }

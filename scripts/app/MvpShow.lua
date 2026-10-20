@@ -93,7 +93,7 @@ function M:Dispose()
     if self.stage then self.stage:Dispose();self.stage=nil end
     ImageCache.Release('Mvp/title.png')
     if self.active and not self.session.disposed then
-        self.session.app.graphicsSettings:Show(self.session.scene,self.session.camera:GetCamera());self.session.app.graphicsSettings:Apply(self.session.scene)
+        self.session.app.graphicsSettings:Show(self.session.scene,self.session.camera:GetCamera(),{scaled=true});self.session.app.graphicsSettings:Apply(self.session.scene)
     end
     self.scene:Dispose();self.scene=nil;self.viewport=nil
 end

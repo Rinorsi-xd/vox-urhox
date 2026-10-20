@@ -2,10 +2,15 @@
 local RenderTargetLifetime=require("render.RenderTargetLifetime")
 
 local Layout=require 'ui.CommsPortraitLayout'
+local PortraitCheck=require 'render.PortraitCheck'
 ---@class CommsPortrait
 ---@field who string
 ---@field width integer
 ---@field height integer
+---@field ready boolean|nil
+---@field disposed boolean|nil
+---@field textures Texture2D[]
+---@field DrawCorner fun(self:CommsPortrait,vg:NVGContextWrapper,x:number,y:number,size:number,bottom:boolean)
 ---@field PrepareTextures fun(self:CommsPortrait,time:number,face:string,talking:boolean,texture:Texture2D,closed:Texture2D):boolean
 local M={};M.__index=M
 local vertices={{-1,-1,0,1},{-1,1,0,0},{1,1,1,0},{-1,-1,0,1},{1,1,1,0},{1,-1,1,1}}
@@ -13,9 +18,8 @@ function M.Path(who,face)
     face=face:gsub('^'..who..'_','')
     return (who=='nono' and 'Intro/Images/' or 'UI/Faces/')..who..'_'..face..'.png'
 end
--- Display mirror per axis, measured on device by ui.PortraitOrientation (some
--- phone runtimes present these render targets upside down). 1 = unchanged.
-M.flipX,M.flipY=1,1
+-- Corner markers are 2 target texels; Draw scissors them off.
+local MARKER=2
 function M.New(who,width,height)
     local self=setmetatable({who=who,scenes={},textures={},materials={},images={},faces={},glitch=0,nextGlitch=3,lastTime=0},M)
     self.width=width or (who=='huhu' and 156 or 330);self.height=height or (who=='huhu' and 195 or 410)
@@ -33,6 +37,9 @@ function M.New(who,width,height)
         if who=='huhu' then material:SetShaderParameter('holo_tint',Variant(Vector3(1,.28,.24)));material:SetShaderParameter('mouth_rect',Variant(Vector4(.455,.365,.572,.436))) end
         local texture=Texture2D:new();texture:SetNumLevels(1);texture:SetSRGB(false)
         local dpr=math.min(2,graphics:GetDPR());assert(texture:SetSize(math.ceil(self.width*dpr),math.ceil(self.height*dpr),Graphics:GetRGBAFormat(),TEXTURE_RENDERTARGET))
+        material:SetShaderParameter('marker_size',Variant(Vector2(MARKER/texture:GetWidth(),MARKER/texture:GetHeight())))
+        local orientation=PortraitCheck.Texture()
+        if orientation then material:SetSurfaceTexture('orient_map',orientation);material:SetShaderParameter('orient_enabled',Variant(1.0)) end
         texture:SetFilterMode(FILTER_BILINEAR);texture:SetAddressMode(COORD_U,ADDRESS_CLAMP);texture:SetAddressMode(COORD_V,ADDRESS_CLAMP)
         self.textures[i]=texture
         local viewport=Viewport:new(scene,camera);viewport:SetRenderPath(path)
@@ -60,6 +67,8 @@ function M:Prepare(time,face,talking)
     return self:PrepareTextures(time,face,talking,texture,closed)
 end
 function M:PrepareTextures(time,face,talking,texture,closed)
+    -- Orientation is corrected in the shader from render.PortraitCheck's map each frame.
+    PortraitCheck.Use(self --[[@as PortraitCheckSource]])
     local dt=math.max(0,math.min(.1,time-self.lastTime));self.lastTime=time
     if self.face and self.face~=face then self.glitch=math.max(self.glitch,.7) end;self.face=face
     if time>self.nextGlitch then self.glitch=math.max(self.glitch,.45);self.nextGlitch=time+4.5 end
@@ -78,14 +87,26 @@ function M:Queue()
     self.requested=false
     for _,texture in ipairs(self.textures) do texture:GetRenderSurface():QueueUpdate() end
 end
-function M:Draw(vg,r)
-    if not self.ready then return end
+function M:Handles(vg)
     local handles=self.images[vg]
     if not handles then handles={nvgCreateVideo(vg,self.textures[1]),nvgCreateVideo(vg,self.textures[2])};self.images[vg]=handles end
+    return handles
+end
+--- Paint the displayed top-left (or bottom-left) MARKER x MARKER target texels,
+--- unflipped, as a size x size square at (x,y).
+function M:DrawCorner(vg,x,y,size,bottom)
+    local texture=self.textures[2];local k=size/MARKER
+    local h=texture:GetHeight()*k;local top=bottom and y+size-h or y
+    nvgBeginPath(vg);nvgRect(vg,x,y,size,size)
+    nvgFillPaint(vg,nvgImagePattern(vg,x,top,texture:GetWidth()*k,h,0,self:Handles(vg)[2],1));nvgFill(vg)
+end
+function M:Draw(vg,r)
+    if not self.ready then return end
+    local handles=self:Handles(vg)
     nvgSave(vg)
-    -- Mirror about the rect centre when the probe found this device inverted.
-    local fx,fy=M.flipX,M.flipY
-    if fx~=1 or fy~=1 then nvgTranslate(vg,r.x+r.w/2,r.y+r.h/2);nvgScale(vg,fx,fy);nvgTranslate(vg,-r.x-r.w/2,-r.y-r.h/2) end
+    -- The orientation markers occupy the left texel columns.
+    local mx=r.w*MARKER/self.textures[1]:GetWidth()
+    nvgIntersectScissor(vg,r.x+mx,r.y,r.w-mx,r.h)
     nvgBeginPath(vg);nvgRect(vg,r.x,r.y,r.w,r.h)
     nvgFillPaint(vg,nvgImagePatternTinted(vg,r.x,r.y,r.w,r.h,0,handles[1],nvgRGBA(0,0,0,255)));nvgFill(vg)
     nvgGlobalCompositeBlendFuncSeparate(vg,NVG_ONE,NVG_ONE,NVG_ZERO,NVG_ONE)
