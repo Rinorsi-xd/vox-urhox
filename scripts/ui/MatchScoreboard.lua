@@ -11,6 +11,7 @@ local roles={assault='突击',heavy='重装',sniper='狙击',hover='悬浮快攻
 local labels={'等级','击毁','助攻','被毁','伤害','得分'}
 local widths={70,80,80,80,120,110}
 local compactWidths={48,54,54,54,90,78}
+local columnWidths={40,46,46,46,72,62} -- 两队并排时每列更窄，16:9 的手机也放得下
 local function Measure(text,size,font,spacing)
     local layout=Typography.Get(tostring(text),font or 'vox-title')
     return layout and Typography.Width(layout,size,spacing) or utf8.len(tostring(text))*(size+(spacing or 0))
@@ -48,13 +49,15 @@ local function RewardWidth(result)
         +Measure(' · 等级 '..result.profile.level,16,'vox-title',1)
 end
 -- These are source CSS pixels, independent of the general HUD's design scale.
-function M.Layout(w,h,b,cfg,compact)
+-- columns=true：两队左右并排（手机结算用，表格高度减半，配合整体缩放一屏放下、按钮常驻可见）
+function M.Layout(w,h,b,cfg,compact,columns)
     local over=b.rules.state=='over';local bw=math.min(1440,w*.94)
     local small=compact==true;local p=small and 16 or 34
-    local row=small and 48 or 62;local av=small and 44 or 62;local tracks=small and compactWidths or widths
+    local row=small and 48 or 62;local av=small and 44 or 62;local tracks=columns and columnWidths or small and compactWidths or widths
     local fixed=av;for _,width in ipairs(tracks) do fixed=fixed+width end
     local rw=math.max(bw-2*p,fixed+(small and 120 or 0))
     local teamHeight=(small and 20 or 34)+2*(37+31+cfg.size*(row+5))+16
+    if columns then rw=math.max((bw-3*p)/2,fixed+60);teamHeight=(small and 20 or 34)+(37+31+cfg.size*(row+5))+16 end
     local a,c=Scores(b);local time=math.max(0,math.ceil(b.rules:TimeLeft()))
     local timeText=string.format('%d:%02d',math.floor(time/60),time%60)
     local timeWidth=math.max(Measure(State(b),14,'vox-title',3),Measure(timeText,28,'vox-display'))
@@ -93,8 +96,8 @@ function M.Layout(w,h,b,cfg,compact)
         -- The source footer may wrap independently from the team table.
         local layoutItems={};for _,r in ipairs(rows) do for _,item in ipairs(r.items) do layoutItems[item.kind]=item end end
         local bh=header+teamHeight+footer+31
-        return {w=bw,h=bh,viewH=math.min(bh,h*.94),contentW=math.max(bw,rw+2*p),header=header,teamHeight=teamHeight,
-            compact=true,padding=p,row=row,avatar=av,tracks=tracks,rowWidth=rw,nameWidth=rw-fixed,caption=lines,time=timeText,timeWidth=timeWidth,scoreWidth=scoreWidth,
+        return {w=bw,h=bh,viewH=math.min(bh,h*.94),contentW=math.max(bw,(columns and 2*rw+p or rw)+2*p),header=header,teamHeight=teamHeight,
+            compact=true,columns=columns==true,padding=p,row=row,avatar=av,tracks=tracks,rowWidth=rw,nameWidth=rw-fixed,caption=lines,time=timeText,timeWidth=timeWidth,scoreWidth=scoreWidth,
             backX=backX,retryX=retryX,buttonY=layoutItems.back.y,retryY=layoutItems.retry.y,buttonBack=buttonBack,buttonRetry=buttonRetry,buttonH=buttonH,footer=footer,footerItems=layoutItems}
     end
     local bh=header+teamHeight+footer+(over and 31 or 0)
@@ -186,7 +189,12 @@ function M.Draw(vg,layer,b,w,h,k,cfg,layout)
     local x,y=bx+m.padding,by+header+(m.compact and 10 or 12);local rw=m.rowWidth;local nameWidth=m.nameWidth
     local centers={};local nextX=x+m.avatar+nameWidth
     for i,width in ipairs(m.tracks) do centers[i]=nextX+width/2;nextX=nextX+width end
-    for _,team in ipairs({'blue','red'}) do
+    local top=y
+    for index,team in ipairs({'blue','red'}) do
+        if m.columns and index==2 then
+            x=bx+m.padding*2+rw;y=top;nextX=x+m.avatar+nameWidth
+            for i,width in ipairs(m.tracks) do centers[i]=nextX+width/2;nextX=nextX+width end
+        end
         local list=teams[team];local alive,damage=0,0
         for _,row in ipairs(list) do local e=row.entry;alive=alive+(e.unit.alive and 1 or 0);damage=damage+b.stats[e.unit].damage end
         local name=team=='blue' and '蓝队 · 我方' or '红队 · 敌方';D.Text(vg,name,x,y,24,team=='blue' and blue or red,'vox-title',nil,5)

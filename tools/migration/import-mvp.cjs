@@ -2,13 +2,13 @@
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const root=path.resolve(__dirname,'../..'),baseline=JSON.parse(fs.readFileSync(path.join(root,'docs/migration/outgame-baseline.json')));
 const hashes={};
-for(const name of ['three/src/battle/mvpShow.js','shared/audio/mvpMusic.js','shared/audio/mvpBeatMap.js','shared/assets/audio/mvp/bangyou-dj.mp3']){
+for(const name of ['three/src/battle/mvpShow.js','shared/audio/mvpMusic.js','shared/audio/mvpBeatMap.js']){
  const bytes=fs.readFileSync(path.join(baseline.snapshot,name)),hash=crypto.createHash('sha256').update(bytes).digest('hex');
  if(hash!==baseline.files[name]?.sha256)throw Error('Frozen MVP source changed: '+name);hashes[name]=hash;
 }
 const beats=fs.readFileSync(path.join(baseline.snapshot,'shared/audio/mvpBeatMap.js'),'utf8').match(/export const MVP_BEAT_MAP = (\{.*\});/)[1];
 fs.writeFileSync(path.join(root,'assets/Mvp/Beats.json'),beats);
-fs.copyFileSync(path.join(baseline.snapshot,'shared/assets/audio/mvp/bangyou-dj.mp3'),path.join(root,'assets/Mvp/music.mp3'));
+// 原曲因版权问题移除；重新导入场景时也不恢复它，配乐另行接入授权资源。
 const cueText=fs.readFileSync(path.join(baseline.snapshot,'shared/audio/rewardCues.js'),'utf8');
 const trimText=fs.readFileSync(path.join(baseline.snapshot,'shared/audio/mixTrim.js'),'utf8'),cues={};
 for(const id of ['supply_open','wave_clear','loot_drop','supply_choose']){
@@ -41,4 +41,4 @@ for(const name of fs.readdirSync(dir).filter(n=>/^(Vox|Livery).*\.shader$/.test(
 }
 fs.writeFileSync(path.join(root,'assets/Mvp/VehicleShaders.json'),JSON.stringify(variants));
 fs.writeFileSync(path.join(root,'docs/migration/evidence/mvp-source.json'),JSON.stringify({baseline:baseline.commit,hashes,variants,beatCount:JSON.parse(beats).beats.length},null,2));
-console.log('Imported frozen MVP music, beat map and '+variants.length+' material wrappers');
+console.log('Imported frozen MVP beat map and '+variants.length+' material wrappers (music intentionally omitted)');

@@ -66,8 +66,9 @@ function Page:DrawPage(vg,w,h)
     D.Text(vg,map.loadingSub or (map.id=='trial' and '100 米加速道 · 坡道 · 靶场' or 'CV-07 ARGUS 坠毁现场 · 自由探索'),x,base-sub,sub,{199,203,210,255},'vox-body')
     local lw=math.max(320,math.min(440,w*.22));local lx=w-x-lw;local row=40
     local ly=base-#flow.steps*row-49-(flow.failed and 120 or 0)
+    local batch,total=flow:WarmupStatus();local shown=flow:DisplayProgress()
     D.Text(vg,flow.failed and '加载失败' or flow.progress==1 and '就绪' or '正在准备',lx,ly,24,flow.failed and red or flow.progress==1 and green or D.white,'vox-title',nil,2)
-    D.Text(vg,math.floor(flow.progress*100+.5)..'%',lx+lw,ly-5,30,accent,'vox-tabular',NVG_ALIGN_RIGHT)
+    D.Text(vg,batch and (batch..'/'..total) or (math.floor(flow.progress*100+.5)..'%'),lx+lw,ly-5,30,accent,'vox-tabular',NVG_ALIGN_RIGHT)
     D.Rect(vg,lx,ly+33,lw,1,{255,255,255,36})
     for i,step in ipairs(flow.steps) do
         local y=ly+42+(i-1)*row;local color=step.state=='done' and {199,203,210,255} or step.state=='run' and D.white or step.state=='fail' and red or gray
@@ -92,7 +93,7 @@ function Page:DrawPage(vg,w,h)
     local tip=tips[math.floor(t/4)%#tips+1]
     D.Text(vg,'提示',x,fy-40,18,accent,'vox-body')
     nvgSave(vg);nvgGlobalAlpha(vg,math.min(1,(t%4)/.3));D.Text(vg,tip,x+50,fy-40,18,{199,203,210,255},'vox-body');nvgRestore(vg)
-    D.Rect(vg,x,fy,w-x*2,3,{255,255,255,31});D.Rect(vg,x,fy,(w-x*2)*flow.progress,3,flow.progress==1 and green or accent)
+    D.Rect(vg,x,fy,w-x*2,3,{255,255,255,31});D.Rect(vg,x,fy,math.floor((w-x*2)*shown),3,flow.progress==1 and green or accent)
 end
 local function Ease(x)
     if x<=0 then return 0 elseif x>=1 then return 1 end

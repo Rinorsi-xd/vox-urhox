@@ -1,5 +1,15 @@
 -- Render real drawables in small batches while the loading page covers the scene.
 -- Restore their exact masks before exposing the scene or cancelling a load.
+---@class SceneWarmup
+---@field items table[]
+---@field all table[]
+---@field next integer
+---@field batches integer
+---@field batchSize integer
+---@field first integer|nil
+---@field last integer|nil
+---@field skipped integer
+---@field disabled integer|nil
 local M={};M.__index=M
 local kinds={'StaticModel','StaticModelGroup','AnimatedModel','CustomGeometry','BillboardSet','Terrain','Skybox'}
 function M.New(scene,batchSize,camera,accept)
@@ -35,6 +45,9 @@ function M:Batch()
         local item=self.items[i];item.drawable.viewMask=item.mask
     end
     self.next=self.last+1;self.batches=self.batches+1
+end
+function M:TotalBatches()
+    return math.max(1,math.ceil(#self.items/self.batchSize))
 end
 function M:Rendered()
     if self.next>#self.items then self:Restore();return true end

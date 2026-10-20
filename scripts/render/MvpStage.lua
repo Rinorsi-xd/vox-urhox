@@ -5,9 +5,11 @@ local Config=require("Config")
 
 local Data=require('core.ResourceData').Read('Mvp/Manifest.json')
 local Motion=require 'combat.MvpMotion'
+local Music=require 'audio.MvpMusic'
 local M={};M.__index=M
 function M.Dependencies()
-    local paths={'Mvp/Manifest.json','Mvp/Beats.json','Mvp/music.mp3','Mvp/VehicleShaders.json','Mvp/Cues.json','Mvp/title.png'}
+    local paths={'Mvp/Manifest.json','Mvp/Beats.json','Mvp/VehicleShaders.json','Mvp/Cues.json','Mvp/title.png'}
+    if Music.MUSIC_PATH then paths[#paths+1]=Music.MUSIC_PATH end
     for _,d in pairs(ResourceData.Read('Mvp/Cues.json')) do paths[#paths+1]=d.path end
     for _,d in ipairs(Data.models) do paths[#paths+1]=d.model end
     for _,d in ipairs(Data.materials) do for _,id in ipairs({d.map,d.emissiveMap}) do if type(id)=='number' then paths[#paths+1]='Mvp/texture-'..id..'.png' end end end
