@@ -87,7 +87,8 @@ function Page:Target()
     end
     local union=false
     for _,widget in ipairs(widgets) do if widget and Visible(widget) then
-        local r=widget:GetAbsoluteLayoutForHitTest()
+        -- 手机紧凑界面里机库侧栏、模式选择/工坊/打捞整页带 scale 缩放：按屏幕上的实际位置框（含父级变换）
+        local r=UI.GetVisualRect(widget)
         if r.w>2 and r.h>2 then
             if not union then union={x=r.x,y=r.y,w=r.w,h=r.h}
             else local x,y=math.min(union.x,r.x),math.min(union.y,r.y)
@@ -97,7 +98,8 @@ function Page:Target()
     return union
 end
 local function Button(vg,id,text,x,y,w,ready,buttons,k)
-    local color=id=='skip' and {255,255,255,18} or ready and cyan or {70,200,255,41}
+    -- 跳过按钮用不透明深底：半透明时手机上会和后面出战栏的大字叠在一起
+    local color=id=='skip' and {16,28,40,235} or ready and cyan or {70,200,255,41}
     D.Path(vg,{x,y,x+w,y,x+w-(id=='skip' and 0 or 10),y+34*k,x,y+34*k})
     nvgFillColor(vg,D.Color(color));nvgFill(vg)
     D.Text(vg,text,x+w/2,y+7*k,15*k,ready and ink or id=='skip' and {170,182,192,255} or white,'vox-legacy-display',NVG_ALIGN_CENTER,2*k)
@@ -106,7 +108,8 @@ end
 function Page:Render(vg)
     local t=self.owner;if not t.visible then return end
     D.Begin(vg);local w,h=UI.GetViewportSize();local s=t.rules:StepSpec()
-    local touch=TouchMode.Enabled();local k=touch and math.max(.65,math.min(1,h/760)) or math.min(1,w/740)
+    -- 源 uiScale.js COMPACT_SURFACE.tutorial=.72：手机 600 高画布上引导再缩一档，少压住要点的界面
+    local touch=TouchMode.Enabled();local k=touch and (TouchMode.Compact() and .72 or math.max(.65,math.min(1,h/760))) or math.min(1,w/740)
     local cw=660*k;local hint=(t:Hint() or ''):gsub('<[^>]+>','')
     local lines=t:Lines();local line=lines[t.line]
     local card=t.voice and t.voice.card or {who=line[1],text=line[2],face=line[3],age=t.lineAge or 0,typing=t.typing or utf8.len(line[2])*.032}
@@ -150,13 +153,17 @@ function Page:Render(vg)
         for _,p in ipairs({{l-9-pulse,top-9-pulse,1,1},{l+rw+9+pulse,top-9-pulse,-1,1},{l-9-pulse,top+rh+9+pulse,1,-1},{l+rw+9+pulse,top+rh+9+pulse,-1,-1}}) do
             D.Line(vg,p[1],p[2],p[1]+p[3]*bracket,p[2],color,3);D.Line(vg,p[1],p[2],p[1],p[2]+p[4]*bracket,color,3)
         end
-        local tagY=top<60 and top+rh+14 or top-38
+        -- 手机紧凑界面顶栏 64 高：框上方放不下步骤标签时放到框下方，别压在顶栏 logo 上
+        local tagY=top<(TouchMode.Compact() and 110 or 60) and top+rh+14 or top-38
         D.Rect(vg,l,tagY,30,24,{4,14,24,217});D.Text(vg,string.format('%02d',t.rules.index),l+15,tagY+2,18,cyan,'vox-story',NVG_ALIGN_CENTER)
         D.Text(vg,'//  +  '..s.title,l+40,tagY+2,19,white,'vox-story')
         local cy=math.max(20,math.min(h-ch-20,top+rh/2-ch/2))
         if l+rw+30+cw<w then x=l+rw+30;y=cy
         elseif l-30-cw>0 then x=l-30-cw;y=cy
         else x=math.max(20,math.min(w-cw-20,l+rw/2-cw/2));y=top-ch-30>20 and top-ch-30 or math.min(h-ch-20,top+rh+30) end
+        -- 手机紧凑界面：目标在下半屏（模式选择的剧情卡、车位条）时对话框整体放到目标上方，
+        -- 不压住底部出战栏；放不下才保持原位
+        if TouchMode.Compact() and top+rh/2>h*.6 and top-ch-50>=20 then y=top-ch-50 end -- 留出框上方步骤标签的位置
     else self.holeRect=nil;D.Rect(vg,0,0,w,h,{2,7,12,115}) end
     if s.card=='corner' then x=w-cw-24;y=h-ch-24 end
     x=math.max(12,math.min(w-cw-12,x));y=math.max(12,math.min(h-ch-12,y))

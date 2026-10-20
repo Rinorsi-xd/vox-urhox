@@ -93,7 +93,21 @@ function M.Attach(session,root)
             local key=table.concat({r.w,r.h,k,tostring(over),tostring(b.result),tostring(b.mvp),cfg.size,math.floor(b.rules.score.blue),math.floor(b.rules.score.red),math.ceil(b.rules:TimeLeft()),b.rules.round or '',b.rules.half or '',tostring(b.rules.overtime),tostring(b.rules.sudden)},':')
             if r.w>0 and r.h>0 and key~=result.layoutKey then
                 result.layoutKey=key
-                local m=MatchScoreboard.Layout(w,h,b,cfg,w>h and h<=600)
+                local compact=w>h and h<=600
+                local m=MatchScoreboard.Layout(w,h,b,cfg,compact)
+                -- 手机结算：一列排两队要 ~675 CSS px 高，手机只有 ~390，回机库/再来一局被挤到滚动区最底下看不见。
+                -- 两队并排后整体缩到刚好一屏放下（不低于 .6），按钮始终在屏幕内
+                local fit=1
+                if compact and over then
+                    for f=1,.6,-.025 do
+                        local c=MatchScoreboard.Layout(w/f,h/f,b,cfg,true,true)
+                        fit=f;m=c
+                        -- 一屏放下，且每列名字至少 120、两列不超出面板
+                        if c.h<=c.viewH+.5 and c.nameWidth>=120 and 2*c.rowWidth+3*c.padding<=c.w+.5 then break end
+                    end
+                end
+                result.boardFit=fit
+                local k=k*fit -- 只在本次排版内生效；下面每帧算位置时再统一乘 boardFit，不能乘两遍
                 result.scoreboardLayout=m;content.sourceLayout=m;content.sourceScale=k;scroll.sourceScale=k
                 content:SetStyle({width=m.contentW*k,height=m.h*k})
                 scroll:SetStyle({left=(r.w-m.w*k)/2,width=m.w*k,height=m.viewH*k})
@@ -109,7 +123,8 @@ function M.Attach(session,root)
             end
             local m=result.scoreboardLayout
             if m then
-                local top=(r.h-m.viewH*k)/2+m.viewH*k*.02*(1-layer.boardAlpha)
+                local kk=k*(result.boardFit or 1)
+                local top=(r.h-m.viewH*kk)/2+m.viewH*kk*.02*(1-layer.boardAlpha)
                 if result.boardTop~=top then scroll:SetStyle({top=top});result.boardTop=top end
             end
         else
