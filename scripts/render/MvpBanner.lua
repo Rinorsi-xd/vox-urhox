@@ -1,5 +1,7 @@
 -- Fixed source canvas, rendered once per award; screen DPR does not resize it.
 local RenderTargetLifetime=require("render.RenderTargetLifetime")
+local PortraitCheck=require("render.PortraitCheck")
+local ORIENT_TIMEOUT=60 -- frames to keep requesting the orientation map
 
 ---@class MvpBanner
 ---@field chars string[]
@@ -14,6 +16,13 @@ function M.New(name,material)
     self.texture:SetFilterMode(FILTER_BILINEAR);self.texture:SetAddressMode(COORD_U,ADDRESS_CLAMP);self.texture:SetAddressMode(COORD_V,ADDRESS_CLAMP)
     self.vg=assert(nvgCreate(1));nvgSetRenderTarget(self.vg,self.texture);nvgSetColorSpace(self.vg,NVG_COLOR_GAMMA)
     self.renders=0
+    -- The canvas is a NanoVG target; some phones sample those upside down in a
+    -- shader. Banner.shader flips from render.PortraitCheck's map (see there).
+    local orientation=PortraitCheck.Texture()
+    if orientation then
+        material:SetSurfaceTexture('orient_map',orientation);material:SetShaderParameter('orient_enabled',Variant(1.0))
+        self.orientStart=time.frameNumber;PortraitCheck.Request()
+    end
     SubscribeToEvent(self.vg,'NanoVGRender',function()
         if self.bound or self.disposed then return end
         nvgBeginFrame(self.vg,640,1120,1)
@@ -24,6 +33,12 @@ function M.New(name,material)
         self.bound=true;self.renders=self.renders+1
     end)
     return self
+end
+--- Keep the shared orientation map painted until it has an answer.
+function M:Update()
+    local start=self.orientStart;if not start or self.disposed then return end
+    if PortraitCheck.PaintedAfter(start) or time.frameNumber-start>ORIENT_TIMEOUT then self.orientStart=nil;return end
+    PortraitCheck.Request()
 end
 function M:Draw(vg)
     if not self.image then

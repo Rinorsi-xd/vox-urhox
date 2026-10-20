@@ -103,6 +103,7 @@ function M:Update(t,deform,jumped)
     self.nodes.pod.position=Vector3(0,y/S,0);self.nodes.pod.rotation=Quaternion(-math.deg(rot),Vector3.UP)
     self.nodes.column.enabled=t>=2.55;self.nodes.column.position=Vector3(0,(y-S*.81)/2/S,0);self.nodes.column.scale=Vector3(1,math.max(.01,y-S*.81)/S,1);self.nodes.column.rotation=self.nodes.pod.rotation
     Set(self.spiral,'age',t);Set(self.banner,'age',t)
+    self.awardBanner:Update()
     self.nodes.flag.enabled=t>=4.9
     if self.nodes.flag.enabled then
         local k=Motion.Back((t-4.9)/.55,1.2);local hang=S*3.1+self.height+S*4.2*.76
