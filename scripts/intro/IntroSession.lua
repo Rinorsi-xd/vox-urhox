@@ -32,12 +32,11 @@ function M:init(app,host)
 end
 function M:LoadPlayerName()
  if self.disposed or self.nameLoading then return end
- local ok,userId=pcall(function()
-  local getUserId=rawget(_G,'GetUserId')
-  return getUserId and getUserId() or clientCloud and clientCloud.userId
- end)
- if not ok or not userId or tostring(userId)=='0' or type(GetUserNickname)~='function' then
-  print('[Intro] TapTap 昵称不可用，使用默认代号');return
+ -- Runtime APIs such as GetUserId are served through the sandboxed _G's __index,
+ -- so rawget misses them; read them as ordinary globals.
+ local ok,userId=pcall(function() return GetUserId and GetUserId() or clientCloud and clientCloud.userId end)
+ if not ok or not userId or tonumber(userId)==0 or type(GetUserNickname)~='function' then
+  print('[Intro] TapTap 昵称不可用，使用默认代号 userId='..tostring(userId)..' nickname='..type(GetUserNickname));return
  end
  self.nameLoading=true;self.nameRequestAt=self.time
  local function Complete(name)
@@ -51,9 +50,14 @@ function M:LoadPlayerName()
  local requested,err=pcall(GetUserNickname,{
   userIds={userId},
   onSuccess=function(nicknames)
-   for _,info in ipairs(nicknames) do
-    if tostring(info.userId)==tostring(userId) then Complete(info.nickname);return end
+   -- Ids may come back as integer, float (tolua) or string: 769355650 vs 769355650.0.
+   local want=tonumber(userId)
+   for _,info in ipairs(nicknames or {}) do
+    if tonumber(info.userId)==want then Complete(info.nickname);return end
    end
+   -- Only our own id was queried, so a single result is ours.
+   if nicknames and #nicknames==1 then Complete(nicknames[1].nickname);return end
+   print('[Intro] TapTap 昵称结果未匹配 userId='..tostring(userId)..' results='..tostring(nicknames and #nicknames))
    Complete(nil)
   end,
   onError=function(code) print('[Intro] TapTap 昵称查询失败: '..tostring(code));Complete(nil) end,

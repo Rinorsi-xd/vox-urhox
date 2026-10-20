@@ -1,4 +1,5 @@
 local Nav=require 'combat.EnemyDriverNav'
+local TouchMode=require 'controls.TouchMode'
 local M={}
 function M.Pick(battle,entry)
     local now=battle.world.time
@@ -16,7 +17,9 @@ function M.Pick(battle,entry)
             if score<bestScore then best,seen,bestScore=enemy,visible,score end
         end
     end
-    entry.pick={unit=best,seen=seen,untilAt=now+.5}
+    -- 手机端首次选目标时按车位错开缓存到期时间，避免所有 AI 每 0.5 s 同一步一起打可见性射线
+    local hold=.5;if not cached and TouchMode.Enabled() then hold=hold+((entry.slot or 1)%4)*.125 end
+    entry.pick={unit=best,seen=seen,untilAt=now+hold}
     return entry.pick
 end
 return M

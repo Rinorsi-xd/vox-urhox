@@ -18,6 +18,8 @@ local Data=require 'combat.ArenaData'
 local BP=require 'construction.Blueprint'
 local Unit=require 'combat.CarUnit'
 local Driver=require 'combat.EnemyDriver'
+local DriverMath=require 'combat.EnemyDriverMath'
+local TouchMode=require 'controls.TouchMode'
 local SpawnSpecCache=require 'drive.SpawnSpecCache'
 local M={};M.__index=M
 function M.Dependencies(bp,roster,mode)
@@ -68,7 +70,7 @@ function M.New(session,bp,checkpoint)
         end)
         assert(unit.alive,'Invalid battle vehicle '..member.name)
         local entry={unit=unit,member=member,slot=i,guardUntil=self.world.time+3,repair=0}
-        if member.player then self.player=unit else entry.driver=Driver.New(self.world,unit,member.role,#self.entries+1,member) end
+        if member.player then self.player=unit else entry.driver=self:NewDriver(unit,member.role,#self.entries+1,member) end
         self.entries[#self.entries+1]=entry;self.stats[unit]={damage=0,kills=0,deaths=0,assists=0}
         local shooter=unit
         local function CanDamage(victim)
@@ -139,6 +141,13 @@ end
 function M:Pick(entry)
     return MatchTarget.Pick(self,entry)
 end
+-- 手机端把 AI 的思考错开四个相位：原来所有 AI 同一步一起思考（每 0.2 s 一次射线密集的尖峰），
+-- 错开后同一步最多两个。之后每个 AI 自己按间隔排下一次，相位保持。PC 保持源行为。
+function M:NewDriver(unit,role,index,member)
+    local driver=Driver.New(self.world,unit,role,index,member)
+    if TouchMode.Enabled() then driver.nextThink=((index or 1)-1)%4*DriverMath.T.thinkInterval/4 end
+    return driver
+end
 function M:BeforeStep(dt,command,aim)
     local live=self.rules.state=='live'
     self.objectives:PlaceCart()
@@ -146,7 +155,7 @@ function M:BeforeStep(dt,command,aim)
         if not u.alive and live and self.mode~='elimination' and u.deadAt>=0 and self.world.time-u.deadAt>=self.rules.cfg.respawn then
             u.spawnAt=self:SpawnAt(u.team,entry.slot);u:Spawn();u.guardUntil=self.world.time+3;entry.repair=0
             if u==self.player then self.voice:Say('respawned') end
-            if entry.driver then entry.driver=Driver.New(self.world,u,entry.member.role,entry.slot,entry.member) end
+            if entry.driver then entry.driver=self:NewDriver(u,entry.member.role,entry.slot,entry.member) end
         end
         if u.alive then
             local cmd={throttle=0,steer=0,handbrake=true};local target=aim;local firing=false;local driverInfo
@@ -195,7 +204,7 @@ function M:AfterStep(dt)
             self.lastHit={}
             for i,e in ipairs(self.entries) do
                 e.unit.spawnAt=self:SpawnAt(e.unit.team,e.slot);e.unit:Spawn();e.repair=0;e.unit.guardUntil=self.world.time+3
-                if e.driver then e.driver=Driver.New(self.world,e.unit,e.member.role,i,e.member) end
+                if e.driver then e.driver=self:NewDriver(e.unit,e.member.role,i,e.member) end
             end
         end
         local notice=MatchBanner.ForEvent(self,event,worldState)
@@ -223,7 +232,7 @@ function M:Restart()
     self.session:Pause();self.result=nil;self.objectives:Reset();self.rules=self.objectives:Rules();self.voice:Reset();self.world.debris:Clear()
     for i,e in ipairs(self.entries) do
         e.unit.spawnAt=self:SpawnAt(e.unit.team,e.slot);e.unit:Spawn();e.unit.guardUntil=self.world.time+3;e.repair=0;self.stats[e.unit]={damage=0,kills=0,deaths=0,assists=0}
-        if e.driver then e.driver=Driver.New(self.world,e.unit,e.member.role,i,e.member) end
+        if e.driver then e.driver=self:NewDriver(e.unit,e.member.role,i,e.member) end
     end
     self:SyncPlayer();self.session.combatView:Consume(self.world);self.session.effects:Clear()
     self.objectives:PlaceCart()

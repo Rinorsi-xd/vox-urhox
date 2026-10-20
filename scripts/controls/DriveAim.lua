@@ -3,6 +3,7 @@ local AimAssist=require("combat.AimAssist")
 local AimReach=require 'combat.AimReach'
 
 local M={}
+local TOUCH_ASSIST={ignoreGround=true,keepCone=true}
 function M.Clear(s)
     s.aimReach=nil;s.aimReachVehicle=nil;s.aimReachSystem=nil
 end
@@ -20,7 +21,9 @@ function M.Resolve(s,origin,direction,hit)
         s.aimReach=AimReach.New(s.weapons,s.vehicle)
         s.aimReachVehicle=s.vehicle;s.aimReachSystem=s.weapons
     end
-    s.assist=AimAssist.Apply(origin,direction,hit,player,s.world.combatUnits or s.world.units,function(...) return s.world:CastRay(...) end,stats,wide,s.aimReach)
+    -- 手机端：准星压低打到地面时辅助不失效，快速横穿的目标不缩吸附角（PC 走源行为）
+    local touch=s.touch and prefs.assist and TOUCH_ASSIST or nil
+    s.assist=AimAssist.Apply(origin,direction,hit,player,s.world.combatUnits or s.world.units,function(...) return s.world:CastRay(...) end,stats,wide,s.aimReach,touch)
     s.aimRef=s.assist and s.assist.ref or hit and hit.owner and hit.owner.ref
     return s.assist and s.assist.point
 end
