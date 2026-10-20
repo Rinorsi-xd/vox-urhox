@@ -26,6 +26,11 @@ local Opacity=require 'ui.IntroOpacity'
 local Motion=require 'ui.SourceButtonMotion'
 local M={}
 local ice={214,240,255,255};local cy={110,214,255,255};local muted={214,240,255,158};local dim={214,240,255,92};local red={255,77,66,255}
+-- 任务简报栏：PC 沿用源 story.css；手机紧凑页小字被抬大后内容更长，栏位加宽、上下多给一些空间
+local function BriefBox(compact)
+    if compact then return {width=660,top=122,bottom=36,compact=true} end
+    return {width=512,top=176,bottom=124}
+end
 -- Layout can re-show the mounted page before the next tab rebuild replaces it.
 local function PageActive(page)
     return page.owner.storyPage==page and page.owner.storyHolo~=nil
@@ -47,10 +52,10 @@ end
 local function Flow(s,vg)
     local brief=s.storyBrief;local l=Data.levels[s.storyLevel]
     local rec=s.storyProgress[l.id]
-    local height=s.storyPageHeight or s.height
+    local height=s.storyPageHeight or s.height;local box=brief.box
     if brief.flow and brief.flowLevel==l and brief.flowRecord==rec and brief.flowHeight==height and brief.flowContext==vg then return brief.flow end
-    brief.flow=Layout.Measure(vg,l,rec,444,height-300,brief.story,brief.goals,brief.enemy,
-        function(e) return math.max(D.Width(vg,e[1],15,nil,1),D.Width(vg,e[2],12,'vox-body'))+23 end)
+    brief.flow=Layout.Measure(vg,l,rec,box.width-68,height-box.top-box.bottom,brief.story,brief.goals,brief.enemy,
+        function(e) return math.max(D.Width(vg,e[1],15,nil,1),D.Width(vg,e[2],12,'vox-body'))+23 end,box.compact)
     brief.flowLevel=l;brief.flowRecord=rec;brief.flowHeight=height;brief.flowContext=vg;return brief.flow
 end
 local function DrawButton(self,vg)
@@ -74,11 +79,16 @@ local function DrawButton(self,vg)
         F.Draw(vg,x,y,w,h,'btn');D.Icon(vg,'back',x+16,y+16,22,ice)
         D.Text(vg,'返回',x+64,y+5,12,muted,'vox-body',nil,1);D.Text(vg,'选择模式',x+64,y+27,19,ice,nil,nil,1)
     elseif p.storyKind=='voice' then
-        D.Panel(vg,x,y,w,h,6,cy,cy);D.Icon(vg,'play',x+8,y+4,12,{3,20,31,255})
-        D.Text(vg,'播放语音',x+26,y+3,11,{3,20,31,255},'vox-body')
+        -- 跟在通讯标签行后面；手机上字号抬大时按钮跟着字撑开
+        local tw=D.Width(vg,'播放语音',11,'vox-body');local bw,bh=math.max(84,tw+34),math.max(20,D.Readable(vg,11,'播放语音')+9)
+        local left=self.owner.storyVoiceLeft or p.left
+        if math.abs(p.left-left)>.01 or math.abs(w-bw)>.01 or math.abs(h-bh)>.01 then self:SetStyle({left=left,top=p.anchorTop-(bh-20)/2,width=bw,height=bh});p.left=left end
+        local dy=(h-20)/2
+        D.Panel(vg,x,y,w,h,6,cy,cy);D.Icon(vg,'play',x+8,y+4+dy,12,{3,20,31,255})
+        D.Text(vg,'播放语音',x+26,y+3+dy,11,{3,20,31,255},'vox-body')
     else
         local l=Data.levels[self.owner.storyLevel];local ready=l.ready
-        y=176+Flow(self.owner,vg).go
+        y=self.owner.storyBrief.box.top+Flow(self.owner,vg).go
         if math.abs(self.props.top-y)>.01 then self:SetStyle({top=y}) end
         D.Path(vg,{x,y,x+w-16,y,x+w,y+16,x+w,y+h,x+16,y+h,x,y+h-16})
         D.Gradient(vg,x,y,w,h,ready and {142,224,255,255} or {19,34,46,255},ready and {214,244,255,255} or {19,34,46,255},true)
@@ -118,13 +128,13 @@ local function DrawBrief(self,vg)
     end
     Heading('任务目标','OBJECTIVES',r.y+flow.objectives)
     for i,text in ipairs(l.goals) do
-        local yy=r.y+flow.goals[i];Diamond(vg,x+5,yy+11,6.36,cy);self.goals:Draw(vg,text,x+19,yy,w-19,{220,235,245,255})
+        local yy=r.y+flow.goals[i];Diamond(vg,x+5,yy+flow.goalMarks[i],6.36,cy);self.goals:Draw(vg,text,x+19,yy,w-19,{220,235,245,255})
     end
     Heading('敌情','HOSTILES',r.y+flow.hostiles)
     for i,e in ipairs(l.enemies) do
         local box=flow.enemies[i];local ex,yy,ew=x+box.x,r.y+box.y,box.w
-        D.Rect(vg,ex,yy,ew,49,{255,77,66,20});D.Rect(vg,ex,yy,2,49,red)
-        D.Text(vg,e[1],ex+11,yy+7,15,{255,213,215,255},nil,nil,1);D.Text(vg,e[2],ex+11,yy+27,12,muted,'vox-body')
+        D.Rect(vg,ex,yy,ew,box.h,{255,77,66,20});D.Rect(vg,ex,yy,2,box.h,red)
+        D.Text(vg,e[1],ex+11,yy+7,15,{255,213,215,255},nil,nil,1);D.Text(vg,e[2],ex+11,yy+flow.chipSub,12,muted,'vox-body')
     end
     local yy=r.y+flow.intercept
     local quote='「'..l.huhu..'」';local qh=flow.interceptHeight
@@ -132,11 +142,21 @@ local function DrawBrief(self,vg)
     local voice=self.owner.storyVoice;local talking=voice and voice.card and voice.card.intercept
     if talking then D.Rect(vg,x,yy,w,qh,{255,77,66,20}) end
     D.Rect(vg,x+14,yy+15,6,6,red);D.Text(vg,'拦截到的通讯 · 狐狐海盗团',x+28,yy+10,11,red,'vox-body',nil,2)
-    self.enemy:Draw(vg,quote,x+14,yy+30,w-28,{255,227,228,255});yy=r.y+flow.factsTop
+    self.enemy:Draw(vg,quote,x+14,yy+flow.quoteTop,w-28,{255,227,228,255});yy=r.y+flow.factsTop
+    if flow.columns then
+        local cw=w/#flow.facts;D.Line(vg,x,yy,x+w,yy,{214,240,255,31})
+        for i,fact in ipairs(flow.facts) do
+            local fx=x+(i-1)*cw
+            if i>1 then D.Line(vg,fx-8,yy+8,fx-8,yy+flow.factRow-8,{214,240,255,31}) end
+            D.Text(vg,fact[1],fx,yy+8,14,muted,'vox-body');D.Text(vg,fact[2],fx,yy+flow.factValue,17,ice)
+        end
+        return
+    end
     for _,fact in ipairs(flow.facts) do
         D.Line(vg,x,yy,x+w,yy,{214,240,255,31})
-        D.Text(vg,fact[1],x,yy+8,14,muted,'vox-body');D.Text(vg,fact[2],x+w,yy+7,17,ice,nil,NVG_ALIGN_RIGHT)
-        yy=yy+34
+        local dy=(flow.factRow-34)/2
+        D.Text(vg,fact[1],x,yy+8+dy,14,muted,'vox-body');D.Text(vg,fact[2],x+w,yy+7+dy,17,ice,nil,NVG_ALIGN_RIGHT)
+        yy=yy+flow.factRow
     end
 end
 function Brief:Render(vg)
@@ -158,13 +178,18 @@ local function DrawComms(self,vg)
     F.Draw(vg,x,y,136,136,'face')
     local cx=x+156;F.Fill(vg,cx,y,724,136,15);F.Draw(vg,cx,y,724,136,'dialog')
     self.paragraph:Draw(vg,voice and voice:Text() or l.nono[2],cx+30,y+30,664,{242,250,255,255})
-    D.Rect(vg,cx+44,y-12,376,24,{3,10,18,230});D.Rect(vg,cx+56,y-3,7,7,cy)
-    D.Text(vg,'INCOMING · 诺诺',cx+73,y-6,12,ice,'vox-tabular')
-    D.Text(vg,'战术领航员',cx+208,y-6,12,muted,'vox-body')
+    -- 标签行按实测字宽依次排开（PC 落在源坐标上），语音按钮跟在声波后面
+    local nameX=cx+73;local roleX=math.max(cx+208,nameX+D.Width(vg,'INCOMING · 诺诺',12,'vox-tabular')+10)
+    local waveX=math.max(cx+294,roleX+D.Width(vg,'战术领航员',12,'vox-body')+10);local voiceX=math.max(cx+326,waveX+32)
+    local voiceW=math.max(84,D.Width(vg,'播放语音',11,'vox-body')+34);local tagH=24+math.max(0,D.Readable(vg,12,'战术领航员')-12)
+    self.owner.storyVoiceLeft=voiceX-r.x+64
+    D.Rect(vg,cx+44,y-tagH/2,math.max(376,voiceX+voiceW+10-cx-44),tagH,{3,10,18,230});D.Rect(vg,cx+56,y-3,7,7,cy)
+    D.Text(vg,'INCOMING · 诺诺',nameX,y-6-(tagH-24)/2,12,ice,'vox-tabular')
+    D.Text(vg,'战术领航员',roleX,y-6-(tagH-24)/2,12,muted,'vox-body')
     for i=0,5 do
         local phase=({0,-.12,-.3,-.05,-.22,-.4})[i+1]
         local wave=card and card.talking and (.6+.4*math.sin(((self.owner.storyTime or 0)+phase)*math.pi/.5)) or .18
-        D.Rect(vg,cx+294+i*5,y+6-12*wave,3,12*wave,cy)
+        D.Rect(vg,waveX+i*5,y+6-12*wave,3,12*wave,cy)
     end
 end
 function Comms:Render(vg) D.Begin(vg);Enter(vg,self.owner,.48,0,26,DrawComms,self) end
@@ -191,11 +216,14 @@ function Labels:DrawMarks(vg,s,holo)
         D.Text(vg,kind,r.x+x,r.y+y-19,10,enemy and red or cy,'vox-tabular',NVG_ALIGN_CENTER)
     end
     local centerX=holo.camera:WorldToScreenPoint(holo.focus).x*w
-    local placed={};local lo,hi,top,bottom=420,w-600,150,h-260
+    local placed={};local lo,hi,top,bottom=420,w-(s.storyBrief and s.storyBrief.box.width or 512)-88,150,h-260
     for _,c in ipairs(callouts) do
         local mx,my=holo:Project(c.position,w,h)
         if mx>lo-40 and mx<hi+40 then
-            local cw=math.max(D.Width(vg,c.info,13,'vox-body'),D.Width(vg,c.name,22))+24;local ch=88
+            local cw=math.max(D.Width(vg,c.info,13,'vox-body'),D.Width(vg,c.name,22),D.Width(vg,c.note,11,'vox-body'),D.Width(vg,c.code,11,'vox-tabular'))+24
+            -- 手机上小字抬大后各行往下顺延，卡片随之加高
+            local g11,g13,g22=D.Readable(vg,11,c.note)-11,D.Readable(vg,13,c.info)-13,D.Readable(vg,22,c.name)-22
+            local rows={7,24+g11,51+g11+g22,70+g11+g22+g13};local ch=88+g11*2+g22+g13
             local choices={};local side=mx<centerX and -1 or 1
             for _,pick in ipairs({{side,false},{-side,false},{side,true},{-side,true}}) do
                 local sd,dn=pick[1],pick[2];local ex,ey=mx+sd*44,my+(dn and 44 or -44)
@@ -214,9 +242,9 @@ function Labels:DrawMarks(vg,s,holo)
             nvgBeginPath(vg);nvgCircle(vg,mx,my,3);nvgFillColor(vg,D.Color(color));nvgFill(vg)
             local x,y=q.x,q.y;D.Rect(vg,x,y,cw,ch,{3,10,18,220});D.Rect(vg,q.side>0 and x or x+cw-2,y,2,ch,c.enemy and red or cy)
             local tx=q.side>0 and x+12 or x+cw-12;local align=q.side>0 and NVG_ALIGN_LEFT or NVG_ALIGN_RIGHT
-            D.Text(vg,c.code,tx,y+7,11,c.enemy and red or cy,'vox-tabular',align)
-            D.Text(vg,c.name,tx,y+24,22,c.enemy and {255,214,211,255} or ice,nil,align)
-            D.Text(vg,c.info,tx,y+51,13,muted,'vox-body',align);D.Text(vg,c.note,tx,y+70,11,dim,'vox-body',align)
+            D.Text(vg,c.code,tx,y+rows[1],11,c.enemy and red or cy,'vox-tabular',align)
+            D.Text(vg,c.name,tx,y+rows[2],22,c.enemy and {255,214,211,255} or ice,nil,align)
+            D.Text(vg,c.info,tx,y+rows[3],13,muted,'vox-body',align);D.Text(vg,c.note,tx,y+rows[4],11,dim,'vox-body',align)
         end
     end
 end
@@ -255,7 +283,7 @@ local function DrawHeader(self,vg)
 end
 local function DrawProgress(self,vg)
     local r=self:GetAbsoluteLayout();local x,y=r.x,r.y;local w=self.storyLogicalWidth
-    D.Text(vg,'章节进度',x+w-180,y+28,13,muted,'vox-body');D.Text(vg,'PROGRESS',x+w-108,y+31,10,dim,'vox-tabular')
+    D.Text(vg,'章节进度',math.min(x+w-180,x+w-116-D.Width(vg,'章节进度',13,'vox-body')),y+28,13,muted,'vox-body');D.Text(vg,'PROGRESS',x+w-108,y+31,10,dim,'vox-tabular')
     local completed=0;for _,level in ipairs(Data.levels) do if self.owner.storyProgress[level.id] then completed=completed+1 end end
     D.Text(vg,tostring(completed),x+w-112,y+53,34);D.Text(vg,'/ '..#Data.levels,x+w-79,y+67,20,dim)
     for i,level in ipairs(Data.levels) do D.Rect(vg,x+w-56-i*33,y+94,28,5,self.owner.storyProgress[level.id] and cy or {214,240,255,31}) end
@@ -392,12 +420,13 @@ function M.Create(s)
     for i,l in ipairs(Data.levels) do
         Add(l.no..'  '..l.name,'level',56+(s.storyLevel==i and 10 or 0),241+(i-1)*102,340,92,function() s.storyLevel=i;s.revision=-1 end,{index=i,selected=s.storyLevel==i})
     end
-    local brief=Brief{position='absolute',left=w-576,top=176,width=512,height=h-300,pointerEvents='none'}
-    brief.owner=s;brief.story=Paragraph.New(16,27.1875);brief.goals=Paragraph.New(15,21.75);brief.enemy=Paragraph.New(16,24);s.storyBrief=brief;page:AddChild(brief)
-    Add('开始任务','go',w-542,h-224,444,74,function() M.Start(s) end)
+    local box=BriefBox(TouchMode.Compact())
+    local brief=Brief{position='absolute',left=w-box.width-64,top=box.top,width=box.width,height=h-box.top-box.bottom,pointerEvents='none'}
+    brief.owner=s;brief.box=box;brief.story=Paragraph.New(16,27.1875);brief.goals=Paragraph.New(15,21.75);brief.enemy=Paragraph.New(16,24);s.storyBrief=brief;page:AddChild(brief)
+    Add('开始任务','go',w-box.width-30,h-box.bottom-100,box.width-68,74,function() M.Start(s) end)
     local comm=Comms{position='absolute',left=64,top=h-218,width=880,height=136,pointerEvents='none'}
     comm.owner=s;comm.paragraph=Paragraph.New(20,32);comm.paragraph.spacing=.4;page:AddChild(comm)
-    Add('播放语音','voice',546,h-224,84,20,function() s.storyVoice:Play(s.storyLevel,Data.levels[s.storyLevel].nono[2]) end)
+    Add('播放语音','voice',546,h-224,84,20,function() s.storyVoice:Play(s.storyLevel,Data.levels[s.storyLevel].nono[2]) end,{anchorTop=h-224})
     s.storyPage=page
     return page
 end

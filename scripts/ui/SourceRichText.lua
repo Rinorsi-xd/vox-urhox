@@ -14,7 +14,9 @@ function M.Layout(vg,paragraphs,maxWidth,lineHeight,strut)
         local key=(style.font or 'vox-display')..':'..size..':'..tostring(lh)
         local known=metrics[key];if known then return known[1],known[2] end
         local asc,desc=D.FontMetrics(vg,size,style.font)
+        -- 手机上小字被 D.Readable 抬大后字身可能高过固定行高，行与行会叠在一起；只在放不下时把行高撑到字身高
         local height=lh=='normal' and asc+desc or math.floor(lh*64+.5)/64
+        if lh~='normal' and D.Readable(vg,size)~=size then height=math.max(height,asc+desc) end
         local baseline=asc+math.floor((height-asc-desc)/2)
         metrics[key]={baseline,height-baseline};return baseline,height-baseline
     end
