@@ -120,7 +120,7 @@ function M.Encode(data)
 end
 function M.Decode(code)
     assert(type(code)=='string' and #code<=LIMIT*2,'蓝图码过大')
-    code=code:match('^%s*(.-)%s*$');assert(code:sub(1,6)=='FKZC1:','蓝图码应以 FKZC1: 开头')
+    code=code:match('^[ \t\r\n]*(.-)[ \t\r\n]*$');assert(code:sub(1,6)=='FKZC1:','蓝图码应以 FKZC1: 开头')
     local kind=code:sub(7,7);assert(kind=='j' or kind=='z','未知蓝图码版本')
     local text=Decode(code:sub(8));if kind=='z' then text=Inflate(text) end
     assert(#text<=LIMIT,'蓝图数据过大');return M.Validate(cjson.decode(text))

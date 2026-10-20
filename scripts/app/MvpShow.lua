@@ -53,7 +53,7 @@ local function Tanh(x) local e=math.exp(2*x);return (e-1)/(e+1) end
 function M:Update(dt)
     if self.preparing and self.downloaded and not self.cleared then self:Install();return end
     if self.done or self.preparing then return end
-    local elapsed=math.min(.05,math.max(.00001,dt));self.music:Update()
+    local elapsed=math.min(.05,math.max(.00001,dt));self.music:Update(elapsed)
     if not self.session:HasFocus() then return end
     if self.finishing then self.finishing=self.finishing+math.max(0,dt);if self.finishing>=.36 then self.done=true;self:Dispose();return end end
     self.t=self.t+elapsed;local t,S,h=self.t,self.stage.S,self.stage.height
@@ -85,7 +85,7 @@ function M:Snapshot()
         name=self.entry.unit.name,team=self.entry.unit.team,me=self.entry.unit==self.session.battle.player,stats=self.stats,deform=self.deform,
         stage=self.stage and {S=self.stage.S,h=self.stage.height,banner=self.stage.nodes.flag.enabled,column=self.stage.nodes.column.enabled,uploads=self.stage.confettiUploads,materials=#self.stage.carMaterials,
             smoke=self.stage.smoke.enabled,smokeUploads=self.stage.smokeUploads,bannerName=self.stage.awardBanner.bound,bannerRenders=self.stage.awardBanner.renders},
-        music=self.music and not self.music.disposed and {playing=self.music.source.playing,position=self.music.source.timePosition,beat=self.music.beat.index}}
+        music=self.music and not self.music.disposed and {playing=self.music.source.playing,position=self.music.position,beat=self.music.beat.index}}
 end
 function M:Dispose()
     if self.cleared then return end;self.cleared=true;self.gate:Cancel()

@@ -12,7 +12,7 @@ function M:Measure(vg,content,width,color)
         and self.measuredFont==self.font and self.measuredSpacing==self.spacing then return self.layout end
     local runs={}
     if type(content)=='string' then
-        runs[1]={text=content:gsub('%s+',' '):gsub('^ ',''):gsub(' $',''),font=self.font or 'vox-body',size=self.size,color=color,spacing=self.spacing}
+        runs[1]={text=content:gsub('[ \t\r\n]+',' '):gsub('^ ',''):gsub(' $',''),font=self.font or 'vox-body',size=self.size,color=color,spacing=self.spacing}
     else
         for i,source in ipairs(content) do
             runs[i]={text=source.text,font=source.font or 'vox-body',size=source.size or self.size,color=source.color or color}

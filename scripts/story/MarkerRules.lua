@@ -24,7 +24,7 @@ function M.Select(mission)
     elseif s.kind=='pickup' then label='情报';kind='intel'
     elseif s.id=='home' then label='要塞' end
     if enemy then
-        label=near and near.unit.name and near.unit.name:match('([^·]+)$') or '海盗';label=label:gsub('^%s+',''):gsub('%s+$','');kind='enemy';lift=3.5
+        label=near and near.unit.name and near.unit.name:match('([^·]+)$') or '海盗';label=label:gsub('^[ \t\r\n]+',''):gsub('[ \t\r\n]+$','');kind='enemy';lift=3.5
     end
     return {target=target,label=label,kind=kind,lift=lift,enemy=enemy,close=close,excluded=enemy and near and near.unit or nil}
 end

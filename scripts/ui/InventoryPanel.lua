@@ -161,7 +161,7 @@ function M:BindRow(widget,row,index)
 end
 function M:Fill()
     self.hoverType=false;self.pendingAnchor=nil;self.listEpoch=self.motionClock
-    local list=self.model:List();self.results=list;local query=self.model.query:match('%S')~=nil
+    local list=self.model:List();self.results=list;local query=self.model.query:match('[^ \t\r\n]')~=nil
     self.countText=query and ('搜到 '..#list..' 个') or (#list..' 个零件');self.empty:SetVisible(#list==0)
     local materialVisible=not query and (self.model.category=='all' or self.model.category=='structure')
     self.materialBar:SetVisible(materialVisible);self.list.props.topInset=materialVisible and (self.narrow and 64 or 68) or (self.narrow and 8 or 18)

@@ -124,7 +124,7 @@ function M:CreateVehicle(kind,name,discard)
 end
 function M:Copy(discard) return self:CreateVehicle(self.bp:ToTable(),self.bp.name..' 副本',discard) end
 function M:Rename(name)
-    name=tostring(name):match('^%s*(.-)%s*$')
+    name=tostring(name):match('^[ \t\r\n]*(.-)[ \t\r\n]*$')
     if name=='' then return false,'车名不能为空' end
     local length=utf8.len(name)
     if not length or length>40 then return false,'车名最多 40 个字' end

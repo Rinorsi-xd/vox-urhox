@@ -35,12 +35,18 @@ function M.Draw(page,vg,w,h)
     nvgRestore(vg)
     D.Text(vg,'构装纪元',w/2,y+102,76,white,'vox-title',NVG_ALIGN_CENTER,6)
     local row=y+234;local pct=math.floor(flow.progress*100+.5)
+    local batch,total=flow:WarmupStatus();local shown=flow:DisplayProgress()
     D.Text(vg,flow.failed and '加载失败' or flow.progress==1 and '就绪' or labels[flow.steps[flow.current].id],x,row+20,13,muted,'vox-body')
-    D.Text(vg,tostring(pct),x+535,row,40,white,'vox-title',NVG_ALIGN_RIGHT)
-    D.Text(vg,'%',x+537,row+16,20,muted,'vox-title')
+    if batch then
+        -- 着色器预热按批推进：显示批次比百分比更能说明还在动。
+        D.Text(vg,batch..'/'..total,x+535,row,40,white,'vox-title',NVG_ALIGN_RIGHT)
+    else
+        D.Text(vg,tostring(pct),x+535,row,40,white,'vox-title',NVG_ALIGN_RIGHT)
+        D.Text(vg,'%',x+537,row+16,20,muted,'vox-title')
+    end
     for dx=0,552,12 do
         D.Rect(vg,x+dx,row+48,9,12,{255,255,255,20})
-        local filled=math.min(9,560*flow.progress-dx)
+        local filled=math.min(9,math.floor(560*shown-dx))
         if filled>0 then D.Rect(vg,x+dx,row+48,filled,12,accent) end
     end
     D.Rect(vg,x,row+86,42,21,accent)

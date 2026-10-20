@@ -50,7 +50,7 @@ function Card:Render(vg)
     if m.sweep.value>0 and m.sweep.value<1 then Paint.Sweep(vg,points,x,y,w,h,m.sweep.value) end
     local badgeY=y+(self.mini and 10 or 14);local badgeSize=self.mini and 13 or 15
     local badgePad=self.mini and 10 or 12;local tierText='T'..tier
-    local label=Config.TIERS[tier].name:gsub('^T%d%s*','')
+    local label=Config.TIERS[tier].name:gsub('^T%d[ \t\r\n]*','')
     local numberWidth=D.Width(vg,tierText,badgeSize,'vox-tabular')
     local badgeWidth=badgePad+numberWidth+(self.mini and 12 or 22+D.Width(vg,label,12,nil,2))
     local badgeHeight=self.mini and 21.6 or 26

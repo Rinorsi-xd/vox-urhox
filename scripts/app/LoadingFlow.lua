@@ -41,8 +41,9 @@ function M:Open(map,onBack)
         self.artReady=ok
         if ok then ImageCache.Release(map.loadingArt or 'UI/Modes/crater.jpg') end
     end) end
-    self.steps={};self.current=1;self.progress=0;self.warmFrames=0;self.readyTime=0;self.pageFrames=0;self.pageDrawn=false
+    self.steps={};self.current=1;self.progress=0.0;self.warmFrames=0;self.readyTime=0;self.pageFrames=0;self.pageDrawn=false
     self.warmupTimes={};self.worldRestoredAt=nil
+    self.warmupTotal=nil;self.warmupBatches=0;self.warmupFrameAt=nil;self.combatWarmupPending=false
     for i,item in ipairs(map.loadingSteps or phases) do
         local id=type(item)=='table' and item[1] or item
         self.steps[i]={id=id,label=type(item)=='table' and item[2] or labels[i],state=i==1 and 'run' or 'wait',elapsed=0,note=''}
@@ -93,6 +94,8 @@ function M:Observe(loader,dt)
             step.elapsed=self.finished and step.id=='activate' and math.max(step.elapsed,measured) or measured
         end
     end
+    local batch,total=self:WarmupStatus()
+    if batch and self.steps[self.current] then self.steps[self.current].note=batch..' / '..total end
     if self.finished then return end
     if self.match and self.match.stage~='roster' then return end
     local index=1
@@ -123,7 +126,7 @@ function M:Finish()
 end
 function M:PrepareScene()
     self.scenePrepared=true
-    if self.app.scene and PlatformUtils.IsWebPlatform() then
+    if self.app.scene then
         if self.renderWarmup then self.renderWarmup:Restore() end
         local hangar=self:VisibleHangar()
         if hangar then
@@ -133,12 +136,18 @@ function M:PrepareScene()
         end
         local viewport=renderer:GetViewport(0)
         self.sceneWarmupAt=Time:GetSystemTime()
+        self.warmupFrameAt=self.sceneWarmupAt
         self.renderWarmup=SceneWarmup.New(self.app.scene,nil,viewport and viewport.camera)
+        self.warmupTotal=self.renderWarmup:TotalBatches();self.warmupBatches=0
         self.warmupTimes.drawables=#self.renderWarmup.items
         self.warmupTimes.outside=self.renderWarmup.skipped
         self.warmupTimes.disabled=self.renderWarmup.disabled or 0
-        print('[LoadingFlow] Render warm-up drawables='..#self.renderWarmup.items..' outside='..self.renderWarmup.skipped..' disabled='..self.warmupTimes.disabled)
-        self.combatWarmupPending=self.app.trial~=nil
+        print('[LoadingFlow] Render warm-up drawables='..#self.renderWarmup.items..' outside='..self.renderWarmup.skipped
+            ..' disabled='..self.warmupTimes.disabled..' batches='..self.warmupTotal..' platform='..PlatformUtils.GetPlatform())
+        -- Native used to compile the whole frame at first reveal. Batch the
+        -- same drawables on every platform; only Web needs the extra probe
+        -- warmups that follow the scene batches.
+        self.combatWarmupPending=self.app.trial~=nil and PlatformUtils.IsWebPlatform()
     end
 end
 function M:VisibleHangar()
@@ -165,7 +174,19 @@ end
 function M:Rendered()
     if not self.active or self.failed then return end
     if self.renderWarmup then
-        if self.renderWarmup:Rendered() then
+        local started=Time:GetSystemTime()
+        local rendered=math.min(self.renderWarmup.batches,self.warmupTotal or self.renderWarmup.batches)
+        local done=self.renderWarmup:Rendered()
+        local frameMs=math.max(0,started-(self.warmupFrameAt or started))
+        self.warmupFrameAt=started
+        self.warmupBatches=math.min(self.renderWarmup.batches,self.warmupTotal or self.renderWarmup.batches)
+        if frameMs>=250 then
+            -- Batches are one per presented frame; a slow batch is where a
+            -- cold shader compile lands in the player's log.
+            print(string.format('[LoadingFlow] Render warm-up batch %d/%d %dms',rendered,self.warmupTotal or rendered,frameMs))
+        end
+        if done then
+            self.warmupBatches=self.warmupTotal or self.warmupBatches
             self.worldRestoredAt=Time:GetSystemTime()
             self.warmupTimes.sceneMs=math.max(0,self.worldRestoredAt-self.sceneWarmupAt)
             self.warmupTimes.batches=self.renderWarmup.batches
@@ -179,7 +200,7 @@ function M:Rendered()
                 hangar.nextReflection=hangar.time
                 HangarAtmosphere.Update(hangar,camera.node,camera.camera,hangar.time)
             end
-            self:PrepareHangarWarmup()
+            if PlatformUtils.IsWebPlatform() then self:PrepareHangarWarmup() end
         end
         return
     end
@@ -242,6 +263,22 @@ end
 function M:CanStartLoad()
     return not self.active or self.phase=='loading' and self.pageFrames>=2
 end
+--- 场景预热期间返回 已呈现批次,总批次；页面用它替代百分比。
+--- 预热完成后保留 N/N 直到整体进度到 100%，避免进度条先满再跳回 83%。
+function M:WarmupStatus()
+    if not self.warmupTotal or self.progress>=1 then return nil end
+    local batch=self.warmupBatches or 0
+    if self.renderWarmup then batch=math.min(self.renderWarmup.batches,self.warmupTotal) end
+    if batch<=0 then return nil end
+    return batch,self.warmupTotal
+end
+--- 进度条显示值：预热期间把最后一个步骤按批次继续填满。
+function M:DisplayProgress()
+    local batch,total=self:WarmupStatus()
+    local steps=#self.steps
+    if not batch or not total or total<=0 or steps<=0 then return self.progress end
+    return math.min(1,((self.current-1)+batch/total)/steps)
+end
 function M:Fail(message)
     if not self.active then return end
     self:ClearHangarWarmup()
@@ -290,6 +327,7 @@ function M:Advance(dt)
         local step=self.steps[#self.steps]
         step.state='done';step.note=string.format('%.1fs',step.elapsed)
         self.progress=1;self.phase='ready';self.time=0
+        print('[LoadingFlow] Ready warmFrames='..self.warmFrames..' sceneMs='..tostring(self.warmupTimes.sceneMs))
     elseif self.phase=='ready' and self.time>=.45 then self.phase=self.map.boot and 'boot-exit' or 'exit-cover';self.time=0
     elseif self.phase=='boot-exit' and self.time>=.9 then self:Close()
     elseif self.phase=='exit-cover' and self.time>=.55 then self.pageVisible=false;self.phase='exit-reveal';self.time=0

@@ -40,7 +40,7 @@ end})
 local BP=require 'construction.Blueprint'
 local Coord=require 'core.Coord'
 local M={}
-local function ValidProfile(p) return type(p)=='table' and type(p.name)=='string' and utf8.len(p.name)~=nil and p.name:find('%S')~=nil and type(p.signedAt)=='number' end
+local function ValidProfile(p) return type(p)=='table' and type(p.name)=='string' and utf8.len(p.name)~=nil and p.name:find('[^ \t\r\n]')~=nil and type(p.signedAt)=='number' end
 M.ValidProfile=ValidProfile
 function M.Dependencies(app,data)
  local resources={};local map=DriveMaps.crater

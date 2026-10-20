@@ -392,7 +392,7 @@ function Page:Contract(vg,w,h,u)
  nvgStrokeColor(vg,nvgRGBA(214,240,255,97));nvgStrokeWidth(vg,self.cssPixel or 1);nvgStroke(vg)
  D.Text(vg,marker,mx+1.2*u,my+.55*u,1.15*u,ice,'vox-tabular',nil,.345*u)
  D.Rect(vg,sx+3*u,sy0+3.85*u,.6*u,.6*u,cyan)
- D.Text(vg,'机修师姓名 · TapTap 昵称',sx+4.5*u,sy0+3.4*u,1.5*u,white,'vox-title')
+ D.Text(vg,'机修师姓名',sx+4.5*u,sy0+3.4*u,1.5*u,white,'vox-title')
  -- Label 字号使用点数，局部换算源设计像素。
  local pointScale=Theme.FontSize(1)
  local field={left=(sx+3*u)*self.k,top=(sy0+6.1*u)*self.k,width=(pw-6*u)*self.k,height=5*u*self.k,fontSize=2.6*u*self.k/pointScale,
@@ -406,9 +406,20 @@ function Page:Contract(vg,w,h,u)
  if self.fieldKey~=key then self.fieldKey=key;self.nameLabel:SetStyle(field) end
  local fieldVisible=(self.contractFieldRequested or I.signed) and (I.shot=='contract' or I.shot=='stamp' or I.shot=='gate') and clipped.w>0 and clipped.h>0 and padMotion.alpha>0
  self.contractFieldVisible=fieldVisible or false
- local name=I.nameLoading and '正在获取 TapTap 昵称……' or I.name
+ local name=I.nameLoading and '正在获取昵称……' or I.name
  if self.displayedName~=name then self.displayedName=name;self.nameLabel:SetText(name) end
- self.nameLabel:SetVisible(fieldVisible or false);self.nameLabel:SetOpacity(Opacity.Exit(I)*padMotion.alpha)
+ -- 姓名栏随合同一起用 NanoVG 画：UI 控件总在页面绘制之后渲染，会盖在印章上面。
+ -- 隐藏的 Label 只保留布局，供 Snapshot 读取输入框位置。
+ self.nameLabel:SetVisible(false)
+ if fieldVisible then
+  local fx,fy,fw,fh=sx+3*u,sy0+6.1*u,pw-6*u,5*u
+  D.Rect(vg,fx,fy,fw,fh,{0,4,10,102})
+  D.Path(vg,{fx,fy,fx+fw,fy,fx+fw,fy+fh,fx,fy+fh})
+  nvgStrokeColor(vg,nvgRGBA(214,240,255,82));nvgStrokeWidth(vg,self.cssPixel or 1);nvgStroke(vg)
+  nvgSave(vg);nvgIntersectScissor(vg,fx+1.6*u,fy,fw-3.2*u,fh)
+  D.Text(vg,name,fx+1.6*u,fy,2.6*u,white,'vox-title',nil,nil,nil,fh)
+  nvgRestore(vg)
+ end
  D.Rect(vg,sx+3*u,sy0+12.95*u,.6*u,.6*u,cyan)
  D.Text(vg,'本人签名',sx+4.5*u,sy0+12.5*u,1.5*u,white,'vox-title')
  local rx,ry,rw,rh=sx+3*u,sy0+15.1*u,pw-6*u,math.max(10*u,sh-23*u)

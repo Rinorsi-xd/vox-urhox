@@ -53,7 +53,7 @@ function Help:Render(vg)
         local titleWidth=D.Width(vg,g.title,19,nil,1);D.Rect(vg,x+titleWidth+8,y+11,cw-titleWidth-8,1,{255,255,255,31})
         y=y+35
         for j,row in ipairs(g.rows) do
-            local key=row[1]:gsub('%s+',' ');local kw=math.max(18,D.Width(vg,key,12,'vox-body',.5)+12)
+            local key=row[1]:gsub('[ \t\r\n]+',' ');local kw=math.max(18,D.Width(vg,key,12,'vox-body',.5)+12)
             nvgBeginPath(vg);nvgRoundedRect(vg,x,y,kw,19,2);nvgFillColor(vg,nvgRGBA(0,0,0,89));nvgFill(vg)
             D.Text(vg,key,x+kw/2,y+2,12,nil,'vox-body',NVG_ALIGN_CENTER,.5)
             self.paragraphs[i][j]:Draw(vg,bodies[i][j],x,y+23,cw,D.muted)

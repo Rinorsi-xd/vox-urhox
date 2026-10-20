@@ -43,7 +43,7 @@ function M:LoadPlayerName()
   if self.disposed or not self.nameLoading then return end
   self.nameLoading=false
   if self.signed or self.pendingSignatureAt then return end
-  if type(name)=='string' and name:find('%S') and utf8.len(name) then
+  if type(name)=='string' and name:find('[^ \t\r\n]') and utf8.len(name) then
    self.name=name;print('[Intro] TapTap 昵称获取成功')
   else print('[Intro] TapTap 昵称获取失败，使用默认代号') end
  end
