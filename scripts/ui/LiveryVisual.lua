@@ -43,7 +43,10 @@ function Panel:Render(vg)
     local ly=y+47+s.propHeight+12;D.Rect(vg,x+16,ly,268,1,{61,88,114,102})
     Text(vg,'车上的贴纸',x+16,ly+11,14,D.white,'vox-title',14);D.Text(vg,#s.session:List()..' / 48',x+w-16,ly+13,12,D.muted,'vox-display',NVG_ALIGN_RIGHT)
     if #s.session:List()==0 then
-        Text(vg,'还没有贴纸。从左边挑一张，点在车身上。',x+35,ly+62,12,{127,154,180,255})
+        -- 手机上小字抬大后改为居中，不顶出面板；PC 保持原位置
+        local empty='还没有贴纸。从左边挑一张，点在车身上。'
+        if D.Readable(vg,12,empty)~=12 then D.Text(vg,empty,x+w/2,ly+62,12,{127,154,180,255},'vox-body',NVG_ALIGN_CENTER,0)
+        else Text(vg,empty,x+35,ly+62,12,{127,154,180,255}) end
     end
 end
 local Hint=require('urhox-libs/UI/Widgets/Panel'):Extend('VoxLiveryHint')

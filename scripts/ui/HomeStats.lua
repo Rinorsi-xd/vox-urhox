@@ -33,9 +33,11 @@ function Stats:Render(vg)
         D.Text(vg,'T'..a.tier.id,x+20,y+42,17,nil,'vox-display',NVG_ALIGN_CENTER)
         D.Text(vg,a.tier.name,x+50,y+28.3,16)
         local badge=a.ok and '可出战' or '超出限制';local badgeWidth=D.Width(vg,badge,11,'vox-body')+29
-        D.Rect(vg,x+50,y+53.3,badgeWidth,20,a.ok and {142,227,208,255} or {255,109,114,255})
+        -- 角标高度跟字号走（手机上小字会抬到可读字号），以原 20 高的中线为准上下扩
+        local ba,bd=D.FontMetrics(vg,11,'vox-body');local bh=math.max(20,ba+bd+6)
+        D.Rect(vg,x+50,y+63.3-bh/2,badgeWidth,bh,a.ok and {142,227,208,255} or {255,109,114,255})
         D.Icon(vg,a.ok and 'check' or 'warn',x+55,y+56.3,14,{10,37,48,255},2.6)
-        D.Text(vg,badge,x+74,y+56.3,11,{10,37,48,255},'vox-body')
+        D.Text(vg,badge,x+74,y+63.3-bh/2,11,{10,37,48,255},'vox-body',nil,0,false,bh)
         if a.unsaved then D.Text(vg,'有改动未保存',x+57+badgeWidth,y+56.3,11,D.muted,'vox-body') end
         D.Icon(vg,'chip',x,y+103.97,16,D.orange);D.Text(vg,'预算',x+23,y+103.97,12,D.muted,'vox-body')
         local cap=' / '..D.Number(a.tier.budget);local capWidth=D.Width(vg,cap,14,'vox-display')

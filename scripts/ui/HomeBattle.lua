@@ -43,7 +43,8 @@ function Page:Render(vg)
     local name=p and p.name or test and '试车场' or '自由探索'
     D.Text(vg,name,tx,y+298.8,30,nil,nil,nil,2)
     local tag=p and (p.en..' · '..p.size..'V'..p.size..' · '..sublines[p.id]) or sublines[s.modeChoice]
-    D.Text(vg,tag,tx+D.Width(vg,name,30,nil,2)+14,y+314.8,13,{219,238,255,255},nil,nil,2)
+    local tagX=tx+D.Width(vg,name,30,nil,2)+14
+    D.Text(vg,tag,tagX,y+314.8,D.FitSize(vg,tag,13,nil,2,tx+470-tagX),{219,238,255,255},nil,nil,2)
     local rules=p and p.rules or test and {'自由驾驶，熟悉操控和武器','靶车会逐块被打坏，看看你的火力','可以选任意档位'}
         or {'开着自己的车在地图里随便转（没有敌人）','N 键传送到各个区域，Backspace 回出生点','熟悉路线、找狙击位和掩体'}
     local yy=y+352.8

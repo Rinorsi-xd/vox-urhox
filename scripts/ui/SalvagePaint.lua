@@ -30,9 +30,18 @@ local function Wallet(vg,x,y,value,size) M.Credit(vg,x,y,size);D.Text(vg,D.Numbe
 local function Carline(vg,s,x,y)
     local st=s.app.blueprint:Stats()
     local hp=0;for _,p in ipairs(s.app.blueprint:List()) do hp=hp+Defs.PARTS[p.type].hp end
-    D.Text(vg,'带入价值',x,y,16,D.muted,'vox-body');Wallet(vg,x+72,y-2,M.Value(s),20)
-    D.Rect(vg,x+166,y,1,16,line);D.Text(vg,'耐久',x+182,y,16,D.muted,'vox-body');D.Text(vg,D.Number(hp),x+217,y-2,20,nil,'vox-tabular')
-    D.Rect(vg,x+279,y,1,16,line);D.Text(vg,'极速',x+296,y,16,D.muted,'vox-body');D.Text(vg,st.topSpeed>0 and D.Number(st.topSpeed) or '—',x+331,y-2,20,nil,'vox-tabular');D.Text(vg,'km/h',x+362,y,16,D.muted,'vox-body')
+    -- 各段位置取「原设计坐标」和「按实际字宽顺排」中较靠右的一个：PC 上与原稿一致，手机抬字号后不互相挤压
+    local function After(fixed,text,size,font,gap) return math.max(fixed,text+D.Width(vg,size[1],size[2],font)+gap) end
+    local value=M.Value(s);local speed=st.topSpeed>0 and D.Number(st.topSpeed) or '—'
+    D.Text(vg,'带入价值',x,y,16,D.muted,'vox-body')
+    local wx=After(x+72,x,{'带入价值',16},'vox-body',6);Wallet(vg,wx,y-2,value,20)
+    local s1=After(x+166,wx+25,{D.Number(value),20},'vox-tabular',10)
+    D.Rect(vg,s1,y,1,16,line);D.Text(vg,'耐久',s1+16,y,16,D.muted,'vox-body')
+    local hx=After(s1+51,s1+16,{'耐久',16},'vox-body',4);D.Text(vg,D.Number(hp),hx,y-2,20,nil,'vox-tabular')
+    local s2=After(s1+113,hx,{D.Number(hp),20},'vox-tabular',10)
+    D.Rect(vg,s2,y,1,16,line);D.Text(vg,'极速',s2+17,y,16,D.muted,'vox-body')
+    local vx=After(s2+52,s2+17,{'极速',16},'vox-body',4);D.Text(vg,speed,vx,y-2,20,nil,'vox-tabular')
+    D.Text(vg,'km/h',After(s2+83,vx,{speed,20},'vox-tabular',4),y,16,D.muted,'vox-body')
 end
 function Page:Render(vg)
     D.Begin(vg);local r=self:GetAbsoluteLayout();local s=self.owner;local sv=s.salvage;local x,y,w,h=r.x,r.y,r.w,r.h
@@ -51,8 +60,10 @@ function Page:Render(vg)
     D.Text(vg,'打捞行动',x+112,y+20,28);D.Text(vg,'SALVAGE OPS',x+112,y+58,12,D.muted,'vox-body');Wallet(vg,x+w-218,y+30,s.app.salvageLobby.data.credits,28)
     if sv.tab=='loadout' then
         D.Text(vg,'出击战车',x+56,y+128,16,D.muted,'vox-body')
+        -- 小标签在手机上抬了字号，标题跟着往下让出同样的高度（PC 上 grow=0）
+        local grow=(D.Readable(vg,16,'出击战车')-16)*1.2
         local name=s.app.blueprint.name;local length=utf8.len(name);local size=length>8 and 48 or length>5 and 60 or 72;while size>36 and D.Width(vg,name,size)>470 do size=size-2 end
-        D.Text(vg,name,x+56,y+142,size);Carline(vg,s,x+56,y+150+size*1.05+18)
+        D.Text(vg,name,x+56,y+142+grow,size);Carline(vg,s,x+56,y+150+grow+size*1.05+18)
     elseif sv.tab=='garage' then D.Text(vg,'车库',x+56,y+h-435,16,D.muted,'vox-body');D.Text(vg,s.app.blueprint.name,x+56,y+h-405,48);D.Text(vg,(s.app.blueprint:Size()-1)..' 个零件',x+56,y+h-316,20);D.Text(vg,'带入价值',x+210,y+h-314,16,D.muted,'vox-body');Wallet(vg,x+290,y+h-316,M.Value(s),20)
     elseif sv.tab=='ops' then D.Text(vg,'行动等级 · 断坝峡谷',x+56,y+128,26)
     elseif sv.tab=='market' then

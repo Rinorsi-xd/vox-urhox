@@ -4,6 +4,7 @@ local Defs=require("parts.Defs")
 local VoxTheme=require("ui.VoxTheme")
 local WorkshopPreview=require("render.WorkshopPreview")
 local GarageDialogs=require("ui.GarageDialogs")
+local TouchMode=require("controls.TouchMode")
 
 local UI=require 'urhox-libs/UI'
 local D=require 'ui.SourceDraw'
@@ -20,6 +21,7 @@ local Card=require 'ui.WorkshopCard'
 local Dot=UI.Panel:Extend('VoxWorkshopDot')
 local More=UI.Panel:Extend('VoxWorkshopMore')
 local M={}
+function M.ControlExtra() return TouchMode.Enabled() and 64 or 0 end
 local featureDescriptionColor={219,238,255,191}
 local featured=Carousel.ids
 local groups={{'all','全部'},{'wheel','轮式'},{'track','履带'},{'mech','机甲'},{'plane','飞机'},{'pirate','海盗'},{'blank','底盘'}}
@@ -36,7 +38,7 @@ function Dot:Render(vg)
     D.Begin(vg);local r=self:GetAbsoluteLayout();local p=self.item;local selected=self.owner.workshop.selected==p.id
     local image=selected and 'UI/Prefabs/'..p.id..'.jpg' or 'UI/Prefabs/Filtered/dot-'..p.id..'.jpg'
     Paint.Image(vg,image,{x=r.x,y=r.y,w=r.w,h=66},1,.62)
-    D.Text(vg,p.name,r.x,r.y+72,13,selected and D.white or {219,238,255,140})
+    D.Text(vg,p.name,r.x,r.y+72,D.FitSize(vg,p.name,13,nil,0,r.w),selected and D.white or {219,238,255,140})
     D.Rect(vg,r.x,r.y+r.h-3,r.w,3,{255,255,255,38})
     if selected then
         local length=r.w*math.min(1,(self.owner.workshop.elapsed or 0)/7)
@@ -118,7 +120,7 @@ function Page:Render(vg)
     D.Begin(vg);local r=self:GetAbsoluteLayout();local s=self.owner;local ws=s.workshop;local p=self.item
     local x,y,w,h=r.x,r.y,r.w,r.h;local pad=self.pad
     if self.view=='feature' then
-        local measured=math.min(73.5,self.description:Measure(vg,p.desc,460,featureDescriptionColor).height)
+        local measured=math.min(self.description.maxLines*24.5,self.description:Measure(vg,p.desc,460,featureDescriptionColor).height)
         if measured~=self.descHeight then self:FeatureLayout(measured) end
         D.Rect(vg,x,y,w,h,{5,11,21,255})
         nvgSave(vg);nvgIntersectScissor(vg,x,y,w,self.heroHeight)
@@ -135,7 +137,7 @@ function Page:Render(vg)
         local tierColor=Paint.colors[(Data.stats[p.id] or {}).tier or 1]
         nvgSave(vg);nvgTranslate(vg,x+pad+8,cy+9);nvgRotate(vg,math.pi/4);Paint.Glow(vg,-6,-6,12,12,14,tierColor,.9);nvgRestore(vg)
         D.Path(vg,{x+pad,cy+9,x+pad+8,cy+1,x+pad+16,cy+9,x+pad+8,cy+17});nvgFillColor(vg,D.Color(Paint.colors[(Data.stats[p.id] or {}).tier or 1]));nvgFill(vg)
-        D.Text(vg,'本周推荐',x+pad+22,cy,15,{255,255,255,255},nil,nil,4);D.Text(vg,'FEATURED',x+pad+108,cy+3,11,{219,238,255,102},nil,nil,5)
+        D.Text(vg,'本周推荐',x+pad+22,cy,15,{255,255,255,255},nil,nil,4);D.Text(vg,'FEATURED',math.max(x+pad+108,x+pad+22+D.Width(vg,'本周推荐',15,nil,4)+8),cy+3,11,{219,238,255,102},nil,nil,5)
         nvgRestore(vg)
         CaptionBegin(vg,ws,2);Paint.Tier(vg,p.id,x+pad,cy+28);nvgRestore(vg)
         CaptionBegin(vg,ws,3);D.Text(vg,p.name,x+pad,cy+58,self.titleSize,nil,nil,nil,3,false,self.titleSize*1.02,Paint.NameShadows((Data.stats[p.id] or {}).tier or 1,false));nvgRestore(vg)
@@ -147,7 +149,7 @@ function Page:Render(vg)
         D.Text(vg,'官方预制车',x+pad,y+self.shelfY+3,24,nil,nil,nil,3)
         D.Text(vg,'OFFICIAL PREFABS',x+pad+146,y+self.shelfY+14,11,D.orange,nil,nil,4)
         D.Text(vg,'共 '..#Data.prefabs..' 辆 · '..(self.shop and '整车价格 = 零件标价合计，买下直接开走' or '点开可在机库里 3D 预览'),x+pad+320,y+self.shelfY+12,13,{219,238,255,115},'vox-body')
-        if self.shop then ShopPaint.Wallet(vg,s.app.salvageLobby.data.credits,x+w-pad-181,y+self.shelfY+12) end
+        if self.shop then ShopPaint.Wallet(vg,s.app.salvageLobby.data.credits,x+w-pad-181-(TouchMode.Enabled() and 24 or 0),y+self.shelfY+12) end
     elseif self.view=='browse' then
         D.Rect(vg,x,y,w,h,{5,11,20,240})
         nvgSave(vg);nvgIntersectScissor(vg,x,y,w,h)
@@ -180,7 +182,7 @@ function Page:Render(vg)
         local barsY=186+self.titleSize*1.05+38
         EntranceBegin(vg,ws,3)
         for i,b in ipairs(Paint.Bars(p.id)) do
-            local yy=y+barsY+(i-1)*47;D.Text(vg,b[1],x+pad,yy,15,nil,nil,nil,2);D.Text(vg,b[2],x+pad+42,yy+5,10,{219,238,255,89},nil,nil,3)
+            local yy=y+barsY+(i-1)*47;D.Text(vg,b[1],x+pad,yy,15,nil,nil,nil,2);D.Text(vg,b[2],math.max(x+pad+42,x+pad+D.Width(vg,b[1],15,nil,2)+6),yy+5,10,{219,238,255,89},nil,nil,3)
             local ratio=tonumber(string.format('%.3f',b[3]))
             D.Text(vg,b[4],x+pad+width,yy,16,nil,'vox-tabular',NVG_ALIGN_RIGHT);Paint.Segments(vg,x+pad,yy+25,width,ratio*Entrance.Fill(ws),c)
         end
@@ -210,7 +212,7 @@ function Page:Render(vg)
         local loadY=factsY+75;D.Rect(vg,x+pad,y+factsY+61,width,1,{122,216,255,38})
         nvgRestore(vg)
         EntranceBegin(vg,ws,5)
-        D.Text(vg,'装备构成',x+pad,y+loadY,13,{219,238,255,179},nil,nil,2);D.Text(vg,'LOADOUT',x+pad+70,y+loadY+3,10,{219,238,255,89},nil,nil,3)
+        D.Text(vg,'装备构成',x+pad,y+loadY,13,{219,238,255,179},nil,nil,2);D.Text(vg,'LOADOUT',math.max(x+pad+70,x+pad+D.Width(vg,'装备构成',13,nil,2)+6),y+loadY+3,10,{219,238,255,89},nil,nil,3)
         for i=1,math.min(7,#a.items) do
             local it=a.items[i];local px=x+pad+(i-1)*62;local py=y+loadY+24
             D.Panel(vg,px,py,56,56,0,{30,60,95,179},{10,22,38,217})
@@ -231,13 +233,15 @@ function Page:Render(vg)
         local pagerX=x+pad+width+98
         D.Text(vg,string.format('%02d',self.index),pagerX,y+h-51,30,D.white,'vox-tabular')
         D.Text(vg,string.format('/  %02d',#Data.prefabs),pagerX+38,y+h-40,15,{219,238,255,128},'vox-tabular',nil,nil,nil,nil,Paint.textShadows.pager)
-        local cx=x+w-pad-316
-        D.Rect(vg,cx,y+h-58,316,40,{8,15,28,153})
-        D.Line(vg,cx,y+h-58,cx+316,y+h-58,{83,123,156,128})
-        D.Line(vg,cx,y+h-18,cx+316,y+h-18,{83,123,156,128})
+        -- 触屏上控制条向左加宽，留出可读字号的提示文字
+        local bw=316+M.ControlExtra();local cx=x+w-pad-bw
+        D.Rect(vg,cx,y+h-58,bw,40,{8,15,28,153})
+        D.Line(vg,cx,y+h-58,cx+bw,y+h-58,{83,123,156,128})
+        D.Line(vg,cx,y+h-18,cx+bw,y+h-18,{83,123,156,128})
         D.Line(vg,cx,y+h-58,cx,y+h-18,{83,123,156,128})
-        D.Line(vg,cx+316,y+h-58,cx+316,y+h-18,{83,123,156,128})
-        D.Text(vg,'拖拽旋转 · 滚轮缩放',cx+188,y+h-44,12,{219,238,255,128},'vox-body')
+        D.Line(vg,cx+bw,y+h-58,cx+bw,y+h-18,{83,123,156,128})
+        local hint=TouchMode.Enabled() and '拖拽旋转 · 双指缩放' or '拖拽旋转 · 滚轮缩放'
+        D.Text(vg,hint,cx+188,y+h-44,D.FitSize(vg,hint,12,'vox-body',0,bw-188-6),{219,238,255,128},'vox-body')
     end
     Fade(vg,x,y,w,120,{4,9,18,217},{4,9,18,0})
 end
@@ -313,7 +317,8 @@ function M.Create(s)
     page.purchaseButtons={};page.shopCards={}
     page.titleSize=ws.view=='detail' and Clamp(w*.027,34,54) or Clamp(w*.039,44,76)
     page.description=Paragraph.New(ws.view=='detail' and 13 or 14,ws.view=='detail' and 22.75 or 24.5)
-    page.description.maxLines=3
+    -- 手机紧凑页竖向放不下三行简介（会把「查看详情」压到下方推荐条里），收成两行
+    page.description.maxLines=s.compact and ws.view=='feature' and 2 or 3
     local function Change(view,id,from)
         RetirePage(s)
         if ws.view=='feature' then ws.featureSelected=ws.selected end
@@ -340,7 +345,7 @@ function M.Create(s)
     end
     if ws.view=='feature' then
         local rowHeight=Clamp(h*.24,180,260);page.shelfY=h-22-rowHeight-12-44;page.heroHeight=page.shelfY-18
-        local actionY=page:FeatureLayout(73.5)
+        local actionY=page:FeatureLayout(page.description.maxLines*24.5)
         local shop=Shop.State(s,ws.selected)
         local label=Shop.Label(ws.selected,false,shop)
         local vg=UI.GetNVGContext();D.Begin(vg)
@@ -357,11 +362,13 @@ function M.Create(s)
             dot.owner=s;dot.item=Find(id);page:AddChild(dot)
         end
         page.shelfWidgets={}
+        -- 触屏上按钮字号抬大，三个按钮各加宽一些（往左排开）
+        local e=TouchMode.Enabled() and 24 or 0
         if not page.shop then
-            page.shelfWidgets[#page.shelfWidgets+1]=Add('导入蓝图','download',w-pad-439.140625,page.shelfY+2,113,40,function() GarageDialogs.Code(s,true) end,'ghost')
-            page.shelfWidgets[#page.shelfWidgets+1]=Add('分享当前战车','share',w-pad-318.140625,page.shelfY+2,143,40,function() GarageDialogs.Code(s,false) end,'ghost')
+            page.shelfWidgets[#page.shelfWidgets+1]=Add('导入蓝图','download',w-pad-439.140625-3*e,page.shelfY+2,113+e,40,function() GarageDialogs.Code(s,true) end,'ghost')
+            page.shelfWidgets[#page.shelfWidgets+1]=Add('分享当前战车','share',w-pad-318.140625-2*e,page.shelfY+2,143+e,40,function() GarageDialogs.Code(s,false) end,'ghost')
         end
-        page.shelfWidgets[#page.shelfWidgets+1]=Add('查看全部',nil,w-pad-161.140625,page.shelfY,161.140625,44,function() Change('browse') end,'all',{count=#Data.prefabs})
+        page.shelfWidgets[#page.shelfWidgets+1]=Add('查看全部',nil,w-pad-161.140625-e,page.shelfY,161.140625+e,44,function() Change('browse') end,'all',{count=#Data.prefabs})
         local unit=(w-pad*2-60)/5.85;local moreWidth=math.max(200,unit*.85);unit=(w-pad*2-60-moreWidth)/5
         for i=1,5 do
             local p=Data.prefabs[i];local card=s.Track(Card{text=p.name,position='absolute',left=pad+(i-1)*(unit+12),top=page.shelfY+56,width=unit,height=rowHeight,onClick=function() Change('detail',p.id,'feature') end})
@@ -382,8 +389,9 @@ function M.Create(s)
         local footX=pad+page.textWidth+40
         Add('','chev',footX,h-60,44,44,function() Change('detail',Data.prefabs[(idx-2)%#Data.prefabs+1].id) end,'pager',{iconRotation=90})
         Add('','chev',footX+142,h-60,44,44,function() Change('detail',Data.prefabs[idx%#Data.prefabs+1].id) end,'pager',{iconRotation=-90})
-        local auto=Add('自动旋转','play',w-pad-312,h-54,100,32,function() s.workshopPreview:SetAuto(not s.workshopPreview.auto);s.revision=-1 end,'control',{selected=s.workshopPreview.auto})
-        Add('复位','swap',w-pad-208,h-54,72,32,function() s.workshopPreview:Reset();auto.props.selected=true end,'control')
+        local extra=M.ControlExtra()
+        local auto=Add('自动旋转','play',w-pad-312-extra,h-54,100,32,function() s.workshopPreview:SetAuto(not s.workshopPreview.auto);s.revision=-1 end,'control',{selected=s.workshopPreview.auto})
+        Add('复位','swap',w-pad-208-extra,h-54,72,32,function() s.workshopPreview:Reset();auto.props.selected=true end,'control')
     else
         Animate(Add('','back',pad,87,44,44,function() Change('feature') end,'back'),1)
         local vg=UI.GetNVGContext();D.Begin(vg)

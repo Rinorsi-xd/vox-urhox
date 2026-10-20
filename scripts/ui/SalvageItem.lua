@@ -26,6 +26,8 @@ function M:Render(vg)
     if it.part then self:RenderBackgroundImage(vg,Theme.Thumbnail(it.part),{x=r.x+inset,y=r.y+top,w=r.w-inset*2,h=r.h-top-inset},'contain',nil)
     else D.Icon(vg,it.icon,r.x+r.w/2-18,r.y+r.h/2-14,36,c) end
     local fontSize=compact and 12 or 13;local title=it.name
+    -- 手机上字号被抬大时，先把字号往回收让名字放下，实在放不下再截断（PC 上不收字号）
+    if D.Readable(vg,fontSize,title)~=fontSize then fontSize=D.FitSize(vg,title,fontSize,'vox-body',0,r.w-12,fontSize*.75) end
     if D.Width(vg,title,fontSize,'vox-body')>r.w-12 then
         repeat local offset=utf8.offset(title,-1);title=offset and title:sub(1,offset-1) or '' until title=='' or D.Width(vg,title..'...',fontSize,'vox-body')<=r.w-12
         title=title..'...'

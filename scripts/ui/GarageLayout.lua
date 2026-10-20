@@ -19,7 +19,8 @@ function M.Apply(s,w,h,safe)
     local stripY=h-bottom-115
     -- 手机紧凑界面：车是主角。改装/出战/试车整组缩到 .72 并贴到车位条上方；模式切换放右栏（配件清单下、
     -- 出战右上方），都不压战车（按钮按 sourceScale 等比绘制，点击区域跟着布局一起缩）
-    local k=s.compact and .6 or 1
+    -- .6 时按钮里的副标题在手机上只有 4px 多，读不出来；.72 与模式切换一致
+    local k=s.compact and .72 or 1
     local km=s.compact and .72 or 1 -- 模式切换字更小会看不清，单独保留 .72
     local ctaWidth=672*k
     local ctaHeight=74*k

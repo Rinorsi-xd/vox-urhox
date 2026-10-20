@@ -66,7 +66,9 @@ function M.Draw(vg,b,w)
     local clock=string.format('%d:%02d',math.floor(left/60),left%60)
     D.Text(vg,clock,490,12,19,sd and {255,106,94,255} or r.state=='live' and left<30 and {255,176,46,255} or {255,255,255,216},'vox-hud-medium',NVG_ALIGN_CENTER,1.5,false,19)
     local state=r.state=='over' and '对局结束' or b.mode=='elimination' and (r:Final() and '决胜局' or '第 '..r.round..' 回合') or b.mode=='conquest' and (r.overtime and '加时' or '先到 100%') or r.half==1 and '上半场' or '下半场'
-    D.Text(vg,state,490,35,11,{255,255,255,156},'vox-body',NVG_ALIGN_CENTER,2,false,11)
+    -- 夹在两侧比分之间，手机上抬字号后按可用宽度回收
+    local stateSize=D.FitSize(vg,state,11,'vox-body',2,72,8)
+    D.Text(vg,state,490,35,stateSize,{255,255,255,156},'vox-body',NVG_ALIGN_CENTER,2,false,11)
     if b.mode=='elimination' and sd then D.Text(vg,'决胜时刻 · 维修失效',490,66,11,{255,138,106,255},'vox-body',NVG_ALIGN_CENTER,2)
     elseif b.mode=='conquest' then
         for i,id in ipairs({'A','C','B'}) do for _,p in ipairs(r.points) do if p.id==id then

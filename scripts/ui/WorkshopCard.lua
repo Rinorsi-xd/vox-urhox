@@ -71,7 +71,9 @@ function Card:Render(vg)
     local size=self.hero and (self.heroTitleSize or 46) or self.mini and 17 or 21;local titleHeight=size*1.2
     local barHeight=self.hero and 62 or self.mini and 0 or 50*m.reveal.value
     local titleY=y+h-(self.hero and 26+16 or self.mini and 14 or 14+8)-barHeight-titleHeight
-    D.Text(vg,p.kind,tx,titleY-(self.hero and 22 or 17),self.hero and 14 or 12,c,nil,nil,2)
+    local kindSize=self.hero and 14 or 12;local ka,kd=D.FontMetrics(vg,kindSize)
+    -- 类型行按实际行高放在标题上方（手机上小字抬大后不压标题）
+    D.Text(vg,p.kind,tx,titleY-math.max(self.hero and 22 or 17,ka+kd+2),kindSize,c,nil,nil,2)
     D.Text(vg,p.name,tx,titleY,size,nil,nil,nil,self.hero and 2 or 1,false,titleHeight,Paint.textShadows.card)
     if not self.mini and (self.hero or m.opacity.value>0) then
         local barY=titleY+titleHeight+(self.hero and 16 or 8)

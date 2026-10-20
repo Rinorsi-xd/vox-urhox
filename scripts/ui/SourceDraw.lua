@@ -5,6 +5,40 @@ local SourceFonts=require("ui.SourceFonts")
 local M={white={237,246,255,255},muted={145,172,200,255},dim={83,123,156,255},orange={122,216,255,255},blue={40,121,235,255},green={142,227,208,255},ink={8,15,28,255}}
 local contexts=setmetatable({},{__mode='k'})
 local Typography=require 'ui.SourceTextLayout'
+local TouchMode=require 'controls.TouchMode'
+local ImportedUI=require 'urhox-libs/UI'
+-- 手机上按 PC 设计稿整体缩放后，11–12 号小字只剩 7–8 个 CSS 像素。只把屏幕上过小的字抬到可读下限，
+-- 正常字号不动；放大有上限，避免小标签撑破容器。量宽（Width/FontMetrics）和绘制走同一套换算，排版仍对齐。
+-- 只作用于主 UI 与 SourceLayer 的屏幕上下文，机库 3D 面板等贴图里的字不受影响。
+local READABLE_CSS=9
+local READABLE_GROW=1.6
+local screenContexts=setmetatable({},{__mode='k'})
+local xform={}
+function M.ScreenContext(vg) screenContexts[vg]=true end
+-- 成段的全大写英文装饰字（STICKERS / SELECT MODE / CHARACTER…）字距很宽、只做点缀，放大反而撑破版式，保持原样
+local function Decorative(text)
+    if type(text)~='string' or text=='' then return false end
+    if text:find('[\128-\255]') or text:find('%d') or text:find('%l') then return false end
+    -- 只放过成段的装饰英文；HP / EN / KM/H 这类短标签仍要可读
+    local _,letters=text:gsub('%u','')
+    return letters>=5
+end
+function M.Readable(vg,size,text)
+    if not size or size<=0 or not TouchMode.Enabled() or Decorative(text) then return size end
+    if vg~=ImportedUI.GetNVGContext() and not screenContexts[vg] then return size end
+    local k=ImportedUI.GetScale()/math.max(1,graphics:GetDPR())
+    -- 父级缩放（紧凑页面 .74、按钮 sourceScale 等）最多压到一半；字号够大时不必查变换，省掉每次的表分配
+    if size*k*.5>=READABLE_CSS then return size end
+    -- 绑定返回新表（不回填传入的表）
+    local t=nvgCurrentTransform(vg,xform)
+    if type(t)~='table' then t=xform end
+    local a,b,c,d=t[1] or 1,t[2] or 0,t[3] or 0,t[4] or 1
+    k=k*math.sqrt(math.abs(a*d-b*c))
+    if k<=0 then return size end
+    local css=size*k
+    if css>=READABLE_CSS then return size end
+    return math.min(READABLE_CSS/k,size*READABLE_GROW)
+end
 local icons=require('core.ResourceData').Read('UI/SourceIcons.json')
 function M.Begin(vg)
     if contexts[vg] then return end
@@ -120,7 +154,7 @@ local function CodeText(vg,text,size,spacing,x,y,font)
     end
     return width
 end
-function M.Width(vg,text,size,font,spacing)
+local function RawWidth(vg,text,size,font,spacing)
     font=font or 'vox-title';spacing=spacing or 0
     InlineFont(vg,font)
     text=tostring(text or '');nvgFontSize(vg,size);nvgTextLetterSpacing(vg,spacing or 0)
@@ -132,16 +166,24 @@ function M.Width(vg,text,size,font,spacing)
     else for _,run in ipairs(Runs(text)) do nvgFontFace(vg,Face(run,font));width=width+nvgTextBounds(vg,0,0,run.text) end end
     nvgTextLetterSpacing(vg,0);return width
 end
+function M.Width(vg,text,size,font,spacing) return RawWidth(vg,text,M.Readable(vg,size,tostring(text or '')),font,spacing) end
+--- 放不下时把字号往回收，直到宽度不超过 maxWidth（不低于 minSize）。用于手机上抬字号后撑满的窄位置。
+function M.FitSize(vg,text,size,font,spacing,maxWidth,minSize)
+    if not TouchMode.Enabled() then return size end -- PC 版式不动
+    minSize=minSize or size*.7
+    while size>minSize and M.Width(vg,text,size,font,spacing)>maxWidth do size=size-.5 end
+    return size
+end
 -- Inline runs accumulate unrounded advances; only their final CSS box rounds.
 function M.Advance(vg,text,size,font,spacing)
-    text=tostring(text or '');local layout=Typography.Get(text,font)
-    return layout and Typography.Advance(layout,size,spacing) or M.Width(vg,text,size,font,spacing)
+    text=tostring(text or '');local layout=Typography.Get(text,font);size=M.Readable(vg,size,text)
+    return layout and Typography.Advance(layout,size,spacing) or RawWidth(vg,text,size,font,spacing)
 end
 function M.HasBodyAdvances(vg)
     local ctx=contexts[vg];return ctx and ctx.bodyMetrics and ctx.bodyMetrics.fractional or false
 end
-function M.FontMetrics(vg,size,font)
-    if font=='vox-legacy-display' then return M.FontMetrics(vg,size,'vox-story') end
+local function RawMetrics(vg,size,font)
+    if font=='vox-legacy-display' then return RawMetrics(vg,size,'vox-story') end
     InlineFont(vg,font)
     local inline=font=='vox-inline-code' and contexts[vg].inlineCode or font=='vox-help-symbol' and contexts[vg].helpSymbol or font=='vox-repair-symbol' and contexts[vg].repairSymbol
     if inline and inline.ascent then return math.floor(inline.ascent*size+.5+1e-8),math.floor(inline.descent*size+.5+1e-8) end
@@ -152,6 +194,7 @@ function M.FontMetrics(vg,size,font)
     nvgSave(vg);nvgFontFace(vg,font or 'vox-display');nvgFontSize(vg,size)
     local a,d=nvgTextMetrics(vg);nvgRestore(vg);return a,-d
 end
+function M.FontMetrics(vg,size,font,text) return RawMetrics(vg,M.Readable(vg,size,text),font) end
 function M.Text(vg,text,x,y,size,color,font,align,spacing,atBaseline,lineHeight,shadows)
     if shadows then
         nvgSave(vg)
@@ -162,19 +205,20 @@ function M.Text(vg,text,x,y,size,color,font,align,spacing,atBaseline,lineHeight,
         nvgRestore(vg)
     end
     font=font or 'vox-title';spacing=spacing or 0
+    text=tostring(text or '');local readable=M.Readable(vg,size,text)
     if lineHeight and not atBaseline then
-        local ascent,descent=M.FontMetrics(vg,size,font)
+        local ascent,descent=RawMetrics(vg,readable,font)
         y=y+(lineHeight-ascent-descent)/2
     end
-    text=tostring(text or '');local width=M.Width(vg,text,size,font,spacing)
+    local width=RawWidth(vg,text,readable,font,spacing)
     if align==NVG_ALIGN_RIGHT then x=x-width elseif align==NVG_ALIGN_CENTER then x=x-width/2 end
     -- Native tracking preserves kerning and includes the CSS trailing spacing.
     -- Measuring and drawing use the same runs and font, including tnum variants.
     nvgTextLetterSpacing(vg,spacing or 0)
     nvgTextAlign(vg,NVG_ALIGN_LEFT+(atBaseline and NVG_ALIGN_BASELINE or NVG_ALIGN_TOP));nvgFillColor(vg,M.Color(color or M.white))
     local layout=Typography.Get(text,font)
-    if layout then Typography.Draw(vg,layout,x,y,size,spacing,font,atBaseline)
-    elseif font=='vox-code' or font=='vox-inline-code' then CodeText(vg,text,size,spacing,x,y,font)
+    if layout then Typography.Draw(vg,layout,x,y,readable,spacing,font,atBaseline)
+    elseif font=='vox-code' or font=='vox-inline-code' then CodeText(vg,text,readable,spacing,x,y,font)
     elseif DirectFont(font) then nvgFontFace(vg,font);nvgText(vg,x,y,text)
     else for _,run in ipairs(Runs(text)) do nvgFontFace(vg,Face(run,font));nvgText(vg,x,y,run.text);x=x+nvgTextBounds(vg,0,0,run.text) end end
     nvgTextLetterSpacing(vg,0);nvgTextAlign(vg,NVG_ALIGN_LEFT+NVG_ALIGN_TOP)

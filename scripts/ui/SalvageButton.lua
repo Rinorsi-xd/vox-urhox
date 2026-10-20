@@ -31,11 +31,11 @@ function M:Render(vg)
     elseif kind=='mode' then
         D.Rect(vg,x,y,w,h,{16,34,55,255});if p.selected then Relief.Draw(vg,x,y,w,h,false,true,{x,y,x+w,y,x+w,y+h,x,y+h}) end
         D.Rect(vg,x+7,y+7,36,36,p.selected and {185,231,255,255} or {20,43,67,255});D.Icon(vg,p.icon,x+15,y+15,20,p.selected and D.ink or D.muted)
-        D.Text(vg,p.text,x+53,y+5,20);D.Text(vg,p.subtitle,x+53,y+31,12,D.muted,'vox-body')
+        D.Text(vg,p.text,x+53,y+5,20);D.Text(vg,p.subtitle,x+53,y+31,D.FitSize(vg,p.subtitle,12,'vox-body',0,w-(p.selected and 58 or 88)),D.muted,'vox-body')
         if p.selected then D.Rect(vg,x,y+h-3,w,3,D.orange) else D.Icon(vg,'swap',x+w-30,y+18,14,D.orange) end
     elseif kind=='trader' or kind=='gear' then
         D.Rect(vg,x,y,w,h,p.selected and {35,65,94,255} or {25,51,77,255});if p.selected then Relief.Halftone(vg,x,y,w,h) end;D.Rect(vg,x+12,y+12,40,40,p.selected and D.orange or {32,58,84,255})
-        D.Icon(vg,p.icon,x+22,y+22,20,p.selected and D.ink or D.muted);D.Text(vg,p.text,x+64,y+10,19);D.Text(vg,p.subtitle,x+64,y+37,13,D.muted,'vox-body')
+        D.Icon(vg,p.icon,x+22,y+22,20,p.selected and D.ink or D.muted);D.Text(vg,p.text,x+64,y+10,19);D.Text(vg,p.subtitle,x+64,y+37,D.FitSize(vg,p.subtitle,13,'vox-body',0,w-70),D.muted,'vox-body')
         if p.selected then D.Rect(vg,x,y+h-3,w,3,D.orange) end
     elseif kind=='slot' then
         D.Rect(vg,x,y,w,h,{32,58,84,35})
@@ -48,7 +48,7 @@ function M:Render(vg)
         local primary=kind=='primary';local cut=primary and 26 or 14
         Relief.Draw(vg,x,y,w,h,primary or p.selected,not primary,primary and {x,y,x+w,y,x+w-cut,y+h,x,y+h} or {x,y,x+w-cut,y,x+w,y+cut,x+w,y+h,x,y+h})
         if primary then
-            D.Text(vg,p.text,x+32,y+9,36);D.Text(vg,p.subtitle or '',x+32,y+55,14,{228,244,255,255},'vox-body')
+            D.Text(vg,p.text,x+32,y+9,36);D.Text(vg,p.subtitle or '',x+32,y+55,D.FitSize(vg,p.subtitle or '',14,'vox-body',0,w-32-cut-8),{228,244,255,255},'vox-body')
         else
             local offset=p.icon and 50 or 22;if p.icon then D.Icon(vg,p.icon,x+22,y+(h-20)/2,20,D.muted) end
             D.Text(vg,p.text,x+offset,y+(h-22)/2,19)

@@ -18,8 +18,12 @@ local VISUALS={primary={kind='fire',icon='fire'},scope={kind='arc',icon='scope'}
     board={kind='menu',icon='board'},toggle={kind='menu',icon='menu'}}
 local STEP=.1
 local function Clamp(v,a,b) return math.max(a,math.min(b,v)) end
+-- 按钮是切角八边形，矩形四角是空的：各边内缩 18% 再判重叠，默认弧形排布不会误报
 local function Overlaps(a,b)
-    return a.left<b.left+b.width and b.left<a.left+a.width and a.top<b.top+b.height and b.top<a.top+a.height
+    local ia,ib=.18,.18
+    local ax,ay,aw,ah=a.left+a.width*ia,a.top+a.height*ia,a.width*(1-2*ia),a.height*(1-2*ia)
+    local bx,by,bw,bh=b.left+b.width*ib,b.top+b.height*ib,b.width*(1-2*ib),b.height*(1-2*ib)
+    return ax<bx+bw and bx<ax+aw and ay<by+bh and by<ay+ah
 end
 function Editor:Rect(id)
     local l=self.layout
@@ -104,7 +108,7 @@ function Editor:Update(dt)
 end
 function Editor:Render(vg)
     D.Begin(vg);local r=self:GetAbsoluteLayout();local l=self.layout;local k=l.k;local safe=l.safeRect
-    D.Rect(vg,r.x,r.y,r.w,r.h,{4,9,18,165})
+    D.Rect(vg,r.x,r.y,r.w,r.h,{4,9,18,222})
     local sx,sy,sw,sh=r.x+safe[1]*k,r.y+safe[2]*k,safe[3]*k,safe[4]*k
     for gx=sx,sx+sw,48*k do D.Rect(vg,gx,sy,1,sh,{122,216,255,14}) end
     for gy=sy,sy+sh,48*k do D.Rect(vg,sx,gy,sw,1,{122,216,255,14}) end
