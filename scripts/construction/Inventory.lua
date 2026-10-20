@@ -36,7 +36,7 @@ function M:CycleBlock()
     for _,d in ipairs(Defs.LIST) do if d.shape==def.shape and d.mat==self.material then return self:Pick(d.id) end end
 end
 function M:List()
-    local out={};local q=self.query:match('^%s*(.-)%s*$'):lower()
+    local out={};local q=self.query:match('^[ \t\r\n]*(.-)[ \t\r\n]*$'):lower()
     for _,p in ipairs(Defs.LIST) do
         local found=q~='' and ((p.name:lower():find(q,1,true)) or ((p.desc or ''):lower():find(q,1,true)) or p.id:lower():find(q,1,true))
         if not p.hidden and (q~='' and found or q=='' and not p.panel and (self.category=='all' or p.cat==self.category) and (not p.shape or p.mat==self.material)) then out[#out+1]=p end

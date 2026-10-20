@@ -27,7 +27,7 @@ end
 local function Lines(text,width)
     local result={};local line='';local token=''
     local function Push(word)
-        if line~='' and Measure(line..word,12,'vox-title',5)>width then result[#result+1]=line:gsub('%s+$','');line='' end
+        if line~='' and Measure(line..word,12,'vox-title',5)>width then result[#result+1]=line:gsub('[ \t\r\n]+$','');line='' end
         line=line..word
     end
     for _,cp in utf8.codes(text) do
@@ -39,7 +39,7 @@ local function Lines(text,width)
         end
     end
     if token~='' then Push(token) end
-    if line~='' then result[#result+1]=line:gsub('%s+$','') end
+    if line~='' then result[#result+1]=line:gsub('[ \t\r\n]+$','') end
     return result
 end
 local function RewardWidth(result)

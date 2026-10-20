@@ -82,7 +82,7 @@ function M.Open(owner)
     s.listBody=UI.Panel{width='100%',gap=0,padding=0,pointerEvents='box-none'}
     s.list=UI.ScrollView{position='absolute',scrollX=false,scrollY=true,bounces=false,showScrollbar=false,padding=0,children={s.listBody}};s.frame:AddChild(s.list)
     s.search=Widgets.Field{position='absolute',maxLength=80,value='',padding=0,onChange=function(_,text)
-        s.query=text:match('^%s*(.-)%s*$');M.List(s)
+        s.query=text:match('^[ \t\r\n]*(.-)[ \t\r\n]*$');M.List(s)
     end};s.search.owner=s;s.frame:AddChild(s.search)
     s.seek=Widgets.Slider{position='absolute',value=0,min=0,max=1,step=.1,progress=true,onChangeEnd=function(_,v) player:Seek(v) end};s.seek.owner=s;s.frame:AddChild(s.seek)
     s.volume=Widgets.Slider{position='absolute',value=player.volume*100,min=0,max=100,step=1,onChange=function(_,v) player:SetVolume(v/100) end};s.volume.owner=s;s.frame:AddChild(s.volume)

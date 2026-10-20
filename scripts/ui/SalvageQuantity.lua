@@ -61,7 +61,7 @@ function Field:GetCursorPosFromX(x)
 end
 function Field:OnBlur()
     Base.OnBlur(self)
-    local number=tonumber(self:GetValue():match('^%s*([+-]?%d+)')) or 1
+    local number=tonumber(self:GetValue():match('^[ \t\r\n]*([+-]?%d+)')) or 1
     self.quantityRow:SetQuantity(number==0 and 1 or number)
 end
 function Field:OnKeyDown(key)

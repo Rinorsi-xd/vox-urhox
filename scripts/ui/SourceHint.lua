@@ -16,7 +16,7 @@ function Hint:Render(vg)
         -- Original .hint is inline-flex: anonymous text and <code> are separate
         -- items with 7px gaps; whitespace at each item's edges is collapsed.
         for i,segment in ipairs(segments or {{text=text}}) do
-            local value=segment.text:gsub('%s+',' '):gsub('^ ',''):gsub(' $','')
+            local value=segment.text:gsub('[ \t\r\n]+',' '):gsub('^ ',''):gsub(' $','')
             local font=segment.font or 'vox-body'
             local content={{text=value,font=font}}
             local paragraph=Paragraph.New(12.5,21.25)

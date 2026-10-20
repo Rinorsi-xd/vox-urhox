@@ -5,7 +5,7 @@ local function Text(vg,text,width,size,lineHeight,color)
     return Rich.Layout(vg,{{{text=text,font='vox-body',size=size,color=color}}},width,lineHeight,{font='vox-body',size=size})
 end
 function M.Description(vg,text,width)
-    return Text(vg,text:gsub('%s+',' '):gsub('^ ',''):gsub(' $',''),width,12,20.390625,{170,192,213,255})
+    return Text(vg,text:gsub('[ \t\r\n]+',' '):gsub('^ ',''):gsub(' $',''),width,12,20.390625,{170,192,213,255})
 end
 function M.Row(vg,row,width)
     -- Source grid: 15px icon, two 8px gaps, then 1fr : 1.6fr.

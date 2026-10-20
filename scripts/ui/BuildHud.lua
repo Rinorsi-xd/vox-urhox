@@ -49,7 +49,7 @@ function M.Create(session)
     Action(toolbar,'home','机库','back','back',function() session.app:ExitBuild() end,{position='absolute',left=0,top=3,width=92,height=40})
     local function Rename(field)
         if state.disposed then return end
-        local value=field:GetValue():match('^%s*(.-)%s*$');if value=='' then value='未命名战车' end
+        local value=field:GetValue():match('^[ \t\r\n]*(.-)[ \t\r\n]*$');if value=='' then value='未命名战车' end
         if value~=editor.bp.name then local ok,err=session.app.bays:Rename(value);if not ok then session:Notify(err,'bad') end end
         field:SetValue(editor.bp.name)
     end

@@ -10,7 +10,7 @@ end
 function M.Terms(data)
  local rows={};local fine=false
  for line in (data.terms..'\n'):gmatch('(.-)\n')do
-  line=line:gsub('%s+',' '):match('^%s*(.-)%s*$')
+  line=line:gsub('[ \t\r\n]+',' '):match('^[ \t\r\n]*(.-)[ \t\r\n]*$')
   if line~='' then
    local start=line:find('（附则一）',1,true)==1
    fine=fine or start
