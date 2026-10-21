@@ -6,8 +6,11 @@ local Quality=require 'render.Quality'
 local M={};M.__index=M
 function M.New(view)
     return setmetatable({view=view,meshes={},list={},dirty=false,preview=false,gate=Gate.New(),texturePaths={},disposed=false,
-        async=false,jobs={}},M)
+        async=false,jobs={},damage=false},M)
 end
+-- 驾驶/战斗中的车：掉件时被打掉零件上的贴花三角形立刻剔除（只重建一次网格，不重投影）；
+-- 只有修复补回零件时才排队分帧精确重投影，期间旧贴花照常显示。编辑器、机库预览不开。
+function M:SetDamageMode(on) self.damage=on==true end
 -- While the livery editor is open, an edited decal first follows rigidly and is
 -- re-projected in per-frame slices. Thumbnails and other one-shot callers keep
 -- the synchronous path; SetAsync(false) finishes all pending projections.
@@ -54,14 +57,30 @@ function M:Mesh(d,parts,old,keep,order,ghost,owner)
     local st=Data.Catalog().byId[d.s];if not st then return nil end
     local path=st.kind=='shape' and st.mask or st.texture
     if not cache:Exists(path) then return nil end
-    local near=Project.Near(d,st,parts);local key={}
-    for _,p in ipairs(near) do key[#key+1]=PartKey(p) end
-    local gk=table.concat(key,';')..'|'..table.concat(d.p,',')..'|'..table.concat(d.n,',')..'|'..d.r..'|'..d.w..'|'..(d.f or 0)..'|'..st.aspect..(ghost and '|g' or '')..'|'..(owner or 0)
+    local near=Project.Near(d,st,parts);local key={};local nearKeys={}
+    for _,p in ipairs(near) do local k=PartKey(p);key[#key+1]=k;nearKeys[k]=p.id end
+    local tail=table.concat(d.p,',')..'|'..table.concat(d.n,',')..'|'..d.r..'|'..d.w..'|'..(d.f or 0)..'|'..st.aspect..(ghost and '|g' or '')..'|'..(owner or 0)
+    local gk=table.concat(key,';')..'|'..tail
     local mesh
     for _,candidate in pairs(old) do if not keep[candidate] and candidate.key==gk then mesh=candidate;break end end
     if mesh and mesh.target then
         mesh.target=nil;self.jobs[mesh]=nil;Rest(mesh)
         if self.job and self.job.mesh==mesh then self:CancelJob() end
+    end
+    if not mesh and self.damage then
+        local candidate=nil
+        for _,c in pairs(old) do
+            if not keep[c] and c.tail==tail and c.order==order and c.ghost==ghost and c.owner==owner and c.nearKeys then candidate=c;break end
+        end
+        if candidate then
+            if not self:Damaged(candidate,nearKeys) then return nil end
+            mesh=candidate
+            local added=false;for k in pairs(nearKeys) do if not candidate.nearKeys[k] then added=true;break end end
+            if added then
+                -- 修复补回了零件：旧贴花先留着，精确投影分帧做完再替换
+                mesh.target={d=cjson.decode(cjson.encode(d)),st=st,near=near,key=gk,nearKeys=nearKeys};self.jobs[mesh]=true
+            else mesh.key=gk;mesh.nearKeys=nearKeys end
+        end
     end
     if not mesh and self.async then
         -- The same decal slot moved: follow now, project the exact surface later.
@@ -81,7 +100,7 @@ function M:Mesh(d,parts,old,keep,order,ghost,owner)
         local geometry=Build(node,vertices)
         local material=Material:new();assert(material:SetSurfaceShader('Shaders/BLGL/Livery.shader'))
         geometry.material=material;mesh={node=node,geometry=geometry,material=material,vertices=vertices,key=gk,ghost=ghost,
-            order=order,frame=Project.Frame(d),w=d.w}
+            order=order,frame=Project.Frame(d),w=d.w,tail=tail,nearKeys=nearKeys}
     end
     mesh.owner=owner;keep[mesh]=true;mesh.material.renderOrder=100+order
     mesh.material:SetShaderParameter('opacity',Variant(ghost and .62 or 1.0))
@@ -96,6 +115,43 @@ function M:Mesh(d,parts,old,keep,order,ghost,owner)
         texture:SetSRGB(false)
         mesh.material:SetSurfaceTexture('image_map',texture);mesh.texturePath=path;self.texturePaths[path]=true
     end;return mesh
+end
+-- 战斗掉件：投在已不在附近零件上的三角形就地压成零面积（只改这些顶点，原生 Commit 重传），
+-- 不在 Lua 里逐顶点重建整张贴花。挂着的精确投影任务基于旧零件，一并作废（否则完成后会把
+-- 打掉的零件上的贴花装回来）。返回 false 表示贴花已无可见部分。
+function M:Damaged(mesh,nearKeys)
+    if mesh.target then
+        self.jobs[mesh]=nil;if self.job and self.job.mesh==mesh then self:CancelJob() end
+        mesh.target=nil;Rest(mesh)
+    end
+    local alive={};for _,id in pairs(nearKeys) do alive[id]=true end
+    local vertices=mesh.vertices;local geometry=mesh.geometry
+    -- 几何顶点与 vertices 一一对应（Build 按三角形顺序写入，只换了绕序）
+    local inPlace=geometry:GetNumVertices(0)==#vertices
+    local removed,live=false,0
+    for i=1,#vertices,3 do
+        local a=vertices[i]
+        if not a.dead then
+            if a.part==nil or alive[a.part] then live=live+1
+            else
+                a.dead=true;removed=true
+                if inPlace then
+                    local base=i-1;local point=geometry:GetVertex(0,base).position
+                    geometry:GetVertex(0,base+1).position=point;geometry:GetVertex(0,base+2).position=point
+                end
+            end
+        end
+    end
+    if live==0 then return false end
+    if removed then
+        if inPlace then geometry:Commit()
+        else
+            local kept={}
+            for i=1,#vertices,3 do if not vertices[i].dead then kept[#kept+1]=vertices[i];kept[#kept+1]=vertices[i+1];kept[#kept+1]=vertices[i+2] end end
+            mesh.vertices=kept;mesh.geometry=Build(mesh.node,kept);mesh.geometry.material=mesh.material
+        end
+    end
+    return true
 end
 -- Advance at most one exact projection per frame within a small CPU budget.
 function M:CancelJob()
@@ -135,6 +191,7 @@ function M:StepJobs(budget)
         job.geometry.material=mesh.material;mesh.node.enabled=true
     else mesh.node.enabled=false end
     mesh.vertices=vertices;mesh.key=target.key;mesh.frame=Project.Frame(target.d);mesh.w=target.d.w
+    if target.nearKeys then mesh.nearKeys=target.nearKeys end
     if mesh.target==target then mesh.target=nil;Rest(mesh)
     elseif mesh.target then Follow(mesh,mesh.target.d);self.jobs[mesh]=true end
     local drag=self.dragFollow;if drag then self:Follow(drag[1],drag[2],drag[3],drag[4]) end
@@ -157,9 +214,15 @@ function M:SetAsync(on)
         while self.job or next(self.jobs) do self:StepJobs(math.huge) end
     end
 end
+-- 每帧最多推进一次分帧投影（同一张车可能同时被 Update 和 Tick 调到）
+function M:Tick()
+    if self.disposed or not (self.async or self.damage) or not (self.job or next(self.jobs)) then return end
+    if self.damage then local frame=time.frameNumber;if self.stepFrame==frame then return end;self.stepFrame=frame end
+    self:StepJobs(Quality.current.name=='mobile' and .004 or .006)
+end
 function M:Update()
     if self.disposed then return end
-    if self.async and (self.job or next(self.jobs)) then self:StepJobs(Quality.current.name=='mobile' and .004 or .006) end
+    self:Tick()
     if not self.dirty then return end;self.dirty=false
     local requested={};local catalog=Data.Catalog()
     for _,d in ipairs(self.list) do local s=catalog.byId[d.s];if s then requested[#requested+1]=s.kind=='shape' and s.mask or s.texture end end

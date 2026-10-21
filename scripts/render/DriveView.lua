@@ -24,6 +24,8 @@ function M.New(scene,bp,vehicle,checkpoint,retain,prepared)
         if prepared then self.view.livery:Set(bp.livery)
         else self.view:Rebuild(bp,checkpoint and function(p) checkpoint(p*.9) end,true) end
         self:Bind(bp,vehicle)
+        -- 首次投影已同步做完；之后战斗掉件只剔除贴花三角形，不再整张重投影
+        self.view.livery:SetDamageMode(true)
         if prepared then self.view.root.enabled=true end
         if checkpoint then checkpoint(1) end
     end)
@@ -78,6 +80,8 @@ function M:Update(alpha,dt,context)
         root.rotation=root.rotation*Quaternion(self.lean.pitch*180/math.pi,Vector3.RIGHT)
     end
     self.rotors:Update(alpha)
+    -- 修复补回零件后的贴花精确投影在这里分帧推进（玩家车不走 UpdateIdle）
+    self.view.livery:Tick()
     for _,w in ipairs(self.wheels) do
         local pose=self.vehicle:WheelPose(w.i);Rig.SetWheel(w.vis,w.up,pose.lift/Config.CELL,pose.steer,pose.spin)
     end
