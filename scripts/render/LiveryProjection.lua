@@ -209,7 +209,7 @@ function M.Project(d,s,parts,pause)
                             local list=lift[key];if not list then list={};lift[key]=list end
                             list[#list+1]=nx;list[#list+1]=ny;list[#list+1]=nz
                             local n={};for k=1,3 do n[k]=f.x[k]*v[4]+f.y[k]*v[5]+f.n[k]*v[6] end
-                            entries[j]={v=v,key=key,nx=nx,ny=ny,nz=nz,n=n,u=.5+(d.f and d.f~=0 and -1 or 1)*v[7]/w,uv=1-(.5+v[8]/h)}
+                            entries[j]={v=v,key=key,nx=nx,ny=ny,nz=nz,n=n,u=.5+(d.f and d.f~=0 and -1 or 1)*v[7]/w,uv=1-(.5+v[8]/h),part=p.id}
                         end
                         for i=2,#poly-1 do
                             pending[#pending+1]=entries[1];pending[#pending+1]=entries[i];pending[#pending+1]=entries[i+1]
@@ -232,7 +232,8 @@ function M.Project(d,s,parts,pause)
             local len=math.sqrt(sx*sx+sy*sy+sz*sz);if len<1e-6 then sx,sy,sz,len=e.nx,e.ny,e.nz,1 end
             local v=e.v;local k=LIFT/len;e.p=M.ToWorld(f,{v[1]+sx*k,v[2]+sy*k,v[3]+sz*k})
         end
-        out[#out+1]={p=e.p,n=e.n,u=e.u,v=e.uv}
+        -- part：这个顶点投在哪个零件上（战斗掉件时据此直接剔除，不必重投影）
+        out[#out+1]={p=e.p,n=e.n,u=e.u,v=e.uv,part=e.part}
     end;return out
 end
 return M

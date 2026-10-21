@@ -27,7 +27,7 @@ function M:init(options)
     self.startedAt=self.clock();self.lastSample=self.startedAt;self.lastFlush=self.startedAt
     self.maxMs=0;self.p95Ms=0;self.lastEvent='';self.stepsTotal=0
     self.sink=options.sink;self.noFile=options.noFile==true;self.segment=0;self.fileBytes=0
-    self.logPath='performance/'..self.session;self.fileError='';self.lastSnapshot={enabled=self.enabled}
+    self.logPath='performance/'..self.session;self.fileError='';self.lastSnapshot={enabled=self.enabled};self.phases={}
     if self.enabled then
         self:Emit({type='session',thresholdMs=self.threshold,clock='Time.GetSystemTime wall milliseconds',
             schema=1,boundary='inclusive stages nest; selfMs excludes instrumented children; residual is not GPU time'})
@@ -144,6 +144,13 @@ function M:Recent()
     for i=math.max(1,#self.ring-14),#self.ring do rows[#rows+1]=self.ring[i] end
     return rows
 end
+-- 场景更新 = PostUpdate 开始 - Update 结束；3D 渲染 = 视图画完 - PostUpdate 结束；UI+提交 = 帧结束 - 视图画完
+-- （UI+提交里含引擎帧率上限的等待；帧时间高于上限时才代表真实开销）
+local function PhaseSplit(phases,wall)
+    local u,post,postEnd,rendered=phases.update,phases.post,phases.postEnd,phases.rendered
+    if not (u and post and postEnd and rendered) then return nil end
+    return math.max(0,post-u),math.max(0,rendered-postEnd),math.max(0,wall-rendered)
+end
 function M:Finalize(now,incomplete)
     local p=self.pending
     if not p then return end
@@ -152,6 +159,7 @@ function M:Finalize(now,incomplete)
     p.intervalIncomplete=incomplete or nil;p.started=nil
     p.unattributedMs=math.max(0,p.wallMs-p.scriptMs)
     p.outsideEndFrameMs=math.max(0,p.frameMs-p.wallMs)
+    p.sceneMs,p.renderMs,p.presentMs=PhaseSplit(p.phases or {},p.wallMs)
     self.maxMs=math.max(self.maxMs,p.frameMs)
     local rows=nil ---@type table|nil
     local top=nil ---@type table|nil
@@ -166,6 +174,7 @@ function M:Finalize(now,incomplete)
         end
     end
     local compact={frame=p.frame,frameMs=p.frameMs,wallMs=p.wallMs,scriptMs=p.scriptMs,steps=p.steps,
+        sceneMs=p.sceneMs,renderMs=p.renderMs,presentMs=p.presentMs,
         topStage=top and top.name or '',topMs=top and top.selfMs or 0,luaKiB=p.context.luaKiB,stageTimes=stageTimes,
         context={mode=p.context.mode,map=p.context.map,story=p.context.story,storyStep=p.context.storyStep,
             matchState=p.context.matchState,loading=p.context.loading,loadingPhase=p.context.loadingPhase}}
@@ -199,12 +208,18 @@ function M:Finalize(now,incomplete)
     end
     if self.file and Delta(now,self.lastFlush)>=1000 then self.file:Flush();self.lastFlush=now end
 end
+-- 引擎阶段打点（距本帧 Update 开始的毫秒）：update=Lua Update 结束，post=PostUpdate 开始，
+-- postEnd=PostUpdate 结束，rendered=所有 3D 视图画完。用来把 Lua 以外的时间拆成场景更新 / 3D 渲染 / UI+提交
+function M:Phase(name)
+    if not self.enabled or not self.recording then return end
+    self.phases[name]=Delta(self.clock(),self.frameStarted)
+end
 function M:BeginFrame(dt)
     if not self.enabled or self.closed then return end
     local now=self.clock();self:Finalize(now,false)
     self.monitorMs=Delta(self.clock(),now)
     self.frame=self.frame+1;self.frameStarted=now;self.eventDtMs=dt*1000;self.scriptMs=0;self.recording=true
-    self.longSpans={};self.longSpanDrops=0
+    self.longSpans={};self.longSpanDrops=0;self.phases={}
     for _,stat in ipairs(self.stageOrder) do stat.ms=0;stat.selfMs=0;stat.calls=0;stat.maxMs=0 end
     for _,stack in pairs(self.stacks) do stack.depth=0 end
 end
@@ -216,7 +231,7 @@ function M:EndFrame(context)
     self.lastTrial=context.trialId;self.stepsTotal=total
     self.pending={frame=self.frame,started=self.frameStarted,atMs=Delta(self.frameStarted,self.startedAt),
         wallMs=Delta(now,self.frameStarted),scriptMs=self.scriptMs,eventDtMs=self.eventDtMs,steps=steps,context=context,
-        monitorMs=self.monitorMs,errors=self.errors,longSpans=self.longSpans,longSpanDrops=self.longSpanDrops}
+        monitorMs=self.monitorMs,errors=self.errors,longSpans=self.longSpans,longSpanDrops=self.longSpanDrops,phases=self.phases}
     self.errors=nil
 end
 function M:Marker(label,context)

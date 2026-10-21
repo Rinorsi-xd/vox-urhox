@@ -8,8 +8,9 @@ local function Axial(v) return Vector3(v.x,-v.y,-v.z) end
 local function Unpolar(v) return {x=-v.x,y=v.y,z=v.z} end
 local function Unaxial(v) return {x=v.x,y=-v.y,z=-v.z} end
 ---@param native RigidBody
-function M.Wrap(native)
+function M.Wrap(native,onStaticChange)
     local valid=true
+    local function StaticChanged() if onStaticChange and native.mass==0 and not native.kinematic then onStaticChange() end end
     -- A vehicle's controllers run synchronously before PhysicsWorld.Update.
     -- Cache reads only inside that interval; impulses still invalidate velocity.
     local scoped=false
@@ -60,12 +61,14 @@ function M.Wrap(native)
         poseVersion=poseVersion+1
         local v=Polar(p);native.position=v
         if native.kinematic then native.node.position=v end
+        StaticChanged()
         pose=nil;worldCenter=nil
     end
     local function Rotation(q)
         poseVersion=poseVersion+1
         local v=Quaternion(q.w,q.x,-q.y,-q.z);native.rotation=v
         if native.kinematic then native.node.rotation=v end
+        StaticChanged()
         orientation=nil;worldCenter=nil;inverseRotation=nil
     end
     local function Center()
@@ -112,13 +115,14 @@ function M.Wrap(native)
         isValid=function() return valid end,
         poseVersion=function() return poseVersion end,
         -- Direct native pose writes bypass setTranslation; they must call this.
-        touchPose=function() poseVersion=poseVersion+1;pose=nil;orientation=nil;worldCenter=nil;inverseRotation=nil end,
+        touchPose=function() poseVersion=poseVersion+1;pose=nil;orientation=nil;worldCenter=nil;inverseRotation=nil;StaticChanged() end,
         invalidate=function() pending=false;fx,fy,fz,tx,ty,tz=0.0,0.0,0.0,0.0,0.0,0.0;valid=false;scoped=false;ClearReads();native=nil;wrapper.native=nil end,
         beginReadScope=function() FlushForces();ClearReads();scoped=true;return readGuard end,
         endReadScope=EndReadScope,
         mass=ReadMass,
         bodyType=function() return native.kinematic end,
-        setBodyType=function(kinematic) native.kinematic=kinematic;ClearReads() end,
+        setBodyType=function(kinematic) StaticChanged();native.kinematic=kinematic;StaticChanged();ClearReads() end,
+        setEnabled=function(enabled) if native.enabled~=enabled then native.enabled=enabled;StaticChanged() end end,
         isCcdEnabled=function() return {radius=native.ccdRadius,threshold=native.ccdMotionThreshold} end,
         enableCcd=function(value)
             if type(value)=='table' then native.ccdRadius=value.radius;native.ccdMotionThreshold=value.threshold

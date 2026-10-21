@@ -285,7 +285,7 @@ function App:Start(existingScene)
     renderer.hdrRendering=true
     renderer.textureFilterMode=FILTER_TRILINEAR;renderer.textureAnisotropy=1
     renderer.shadowMapSize=Quality.current.shadowMapSize
-    if not existingScene then engine.maxFps=Quality.FrameLimit();engine.maxInactiveFps=10 end
+    if not existingScene then engine.maxFps=self.graphicsSettings:FrameLimit();engine.maxInactiveFps=10 end
     if not existingScene then self.graphicsSettings:Apply() end
     self.loadingLabel=UI.Label{text="正在进入机库…",fontSize=22}
     UI.SetRoot(UI.Panel{width="100%",height="100%",backgroundColor={12,15,20,255},

@@ -14,9 +14,8 @@ function M.New(view,vehicle)
 end
 function M:init(view,vehicle)
     self.view=view;self.vehicle=vehicle;self.rest={};self.poses={}
-    for _,mesh in pairs(view.rotorJoined or {}) do mesh:Dispose() end
-    view.rotorJoined={};view.rotorOwners=vehicle.spec.rotorOf
-    view.joined:Clear()
+    view.rotorJoined=view.rotorJoined or {};view.rotorOwners=vehicle.spec.rotorOf
+    local retained={[view.joined]={}}
     for id,vis in pairs(view.visuals) do
         local p=vis.part
         if view.rotorOwners[id] then self.rest[id]={position=vis.node.position,rotation=vis.node.rotation} end
@@ -24,11 +23,20 @@ function M:init(view,vehicle)
             if owner then
                 view.rotorJoined[owner]=view.rotorJoined[owner] or JoinedMesh.New(view.root)
                 mesh=view.rotorJoined[owner];mesh:SetXray(view.xray~=nil)
-            end;mesh:Add(p)
+            end;mesh:Add(p);retained[mesh]=retained[mesh] or {};retained[mesh][id]=true
         end
         if R.Is(p.type) and vis.head then
             RotorDisc.Bind(vis,p)
         end
+    end
+    -- Damage changes membership, not the identity of every surviving surface.
+    local function Reconcile(mesh)
+        local keep=retained[mesh] or {}
+        for id in pairs(mesh.parts) do if not keep[id] then mesh:Remove(id) end end
+    end
+    Reconcile(view.joined)
+    for owner,mesh in pairs(view.rotorJoined) do
+        if not retained[mesh] then mesh:Dispose();view.rotorJoined[owner]=nil else Reconcile(mesh) end
     end
     view.joined:Update();for _,mesh in pairs(view.rotorJoined) do mesh:Update() end
     view.livery:PartsChanged();view.livery:Update()

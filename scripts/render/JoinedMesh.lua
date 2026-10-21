@@ -10,11 +10,15 @@ function M.New(root)
     local self=setmetatable({},M);self:init(root);return self
 end
 function M:init(root)
-    self.root=root:CreateChild('JoinedBlocks');self.parts={};self.meshes={};self.outlines={};self.groups={};self.outlinesDirty=false;self.dirty=false;self.rebuilds=0
+    self.root=root:CreateChild('JoinedBlocks');self.parts={};self.meshes={};self.outlines={};self.groups={};self.surfaceCache={};self.partKeys={};self.outlinesDirty=false;self.dirty=false;self.rebuilds=0
 end
-function M:Add(p) self.parts[p.id]=p;self.dirty=true end
-function M:Remove(id) if self.parts[id] then self.parts[id]=nil;self.dirty=true end end
-function M:Repaint(p) if self.parts[p.id] then self.parts[p.id]=p;self.dirty=true end end
+local function PartKey(p) return table.concat({p.type,p.rot,p.color,p.g,table.unpack(p.pos)},':') end
+function M:Add(p)
+    local key=PartKey(p);self.parts[p.id]=p
+    if self.partKeys[p.id]~=key then self.partKeys[p.id]=key;self.dirty=true end
+end
+function M:Remove(id) if self.parts[id] then self.parts[id]=nil;self.partKeys[id]=nil;self.dirty=true end end
+function M:Repaint(p) if self.parts[p.id] then self:Add(p) end end
 function M:SetXray(on)
     self.xray=on
     for slot,mesh in pairs(self.meshes) do mesh.geometry:SetMaterial(Materials.Joined(slot,on));mesh.geometry.castShadows=not on end
@@ -24,22 +28,26 @@ end
 function M:Update()
     if not self.dirty then return end;self.dirty=false;self.rebuilds=self.rebuilds+1
     local parts={};for _,p in pairs(self.parts) do parts[#parts+1]=p end;table.sort(parts,function(a,b) return a.id<b.id end)
-    local surfaces,groups=Surface.Build(parts)
+    local surfaces,groups=Surface.BuildCached(parts,self.surfaceCache)
     for slot,mesh in pairs(self.meshes) do if not surfaces[slot] then mesh.node:Dispose();self.meshes[slot]=nil end end
     self.vertices=0;local colors={}
     for slot,surface in pairs(surfaces) do
         local mesh=self.meshes[slot]
         if not mesh then local node=self.root:CreateChild(slot);mesh={node=node,geometry=node:CreateComponent('CustomGeometry')};self.meshes[slot]=mesh end
-        local geometry=mesh.geometry;geometry:BeginGeometry(0,TRIANGLE_LIST)
-        for i=1,#surface.position,9 do for _,offset in ipairs(winding) do local j=i+offset
-            geometry:DefineVertex(Coord.Vec(surface.position[j],surface.position[j+1],surface.position[j+2]))
-            geometry:DefineNormal(Coord.Vec(surface.normal[j],surface.normal[j+1],surface.normal[j+2]))
-            local hex=surface.colors[(j+2)//3];local color=colors[hex]
-            if not color then color=Config.HexLinear(hex,.5);colors[hex]=color end
-            geometry:DefineColor(color)
-        end end
-        geometry:Commit();geometry:SetMaterial(Materials.Joined(slot,self.xray));geometry.castShadows=not self.xray
-        mesh.vertices=#surface.position/3;self.vertices=self.vertices+mesh.vertices
+        local geometry=mesh.geometry
+        if mesh.surface~=surface then
+            geometry:BeginGeometry(0,TRIANGLE_LIST)
+            for i=1,#surface.position,9 do for _,offset in ipairs(winding) do local j=i+offset
+                geometry:DefineVertex(Coord.Vec(surface.position[j],surface.position[j+1],surface.position[j+2]))
+                geometry:DefineNormal(Coord.Vec(surface.normal[j],surface.normal[j+1],surface.normal[j+2]))
+                local hex=surface.colors[(j+2)//3];local color=colors[hex]
+                if not color then color=Config.HexLinear(hex,.5);colors[hex]=color end
+                geometry:DefineColor(color)
+            end end
+            geometry:Commit();geometry:SetMaterial(Materials.Joined(slot,self.xray));geometry.castShadows=not self.xray
+            mesh.surface=surface;mesh.vertices=#surface.position/3
+        end
+        self.vertices=self.vertices+mesh.vertices
     end
     self.groups=groups;self.outlinesDirty=true
     -- Group edges are visible only in the builder's x-ray view.
@@ -61,7 +69,7 @@ end
 function M:Clear()
     for _,mesh in pairs(self.meshes) do mesh.node:Dispose() end
     for _,line in pairs(self.outlines) do line.node:Dispose() end
-    self.parts={};self.meshes={};self.outlines={};self.groups={};self.outlinesDirty=false;self.dirty=false;self.vertices=0
+    self.parts={};self.partKeys={};self.surfaceCache={};self.meshes={};self.outlines={};self.groups={};self.outlinesDirty=false;self.dirty=false;self.vertices=0
 end
 function M:Dispose() self:Clear();self.root:Dispose() end
 return M

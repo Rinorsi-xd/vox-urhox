@@ -6,10 +6,11 @@ local Exposure=require 'render.FixedExposure'
 local CraterTonemap=require 'render.CraterTonemap'
 local Viewports=require 'render.WindowViewports'
 local MobileSceneScale=require 'render.MobileSceneScale'
+local ScenePath=require 'render.ScenePath'
 local TouchMode=require 'controls.TouchMode'
 local M={};M.__index=M
 local ranges={bloom={0,.8},mist={0,.2},exposure={.6,1.4},vignette={0,.6},grain={0,.06}}
-local supported={bloom=true,exposure=true,vignette=true,quality=true}
+local supported={bloom=true,exposure=true,vignette=true,quality=true,ao=true}
 function M.Defaults() return {v=2,quality=Quality.current.name=='mobile' and 'medium' or 'high',bloom=.18,mist=.04,exposure=1.1,vignette=.3,grain=0,ao=true} end
 -- Screen viewports inherit the backbuffer's MSAA (desktop default 4x). Where the
 -- platform gives no MSAA, use the render path's built-in single FXAA pass instead.
@@ -21,6 +22,8 @@ function M.Valid(data)
     if data.quality~='high' and data.quality~='medium' and data.quality~='low' then return false end
     -- 手机战斗渲染精度：可选字段，老存档没有时按默认档
     if data.renderScale~=nil and not (MobileSceneScale.levels[data.renderScale] or data.renderScale=='native') then return false end
+    -- 手机帧率上限：可选字段，没有时按画质档的默认上限（手机 30）
+    if data.frameRate~=nil and data.frameRate~=30 and data.frameRate~=60 then return false end
     for k,r in pairs(ranges) do local n=data[k];if type(n)~='number' or n~=n or n<r[1] or n>r[2] then return false end end
     return true
 end
@@ -42,9 +45,21 @@ function M.New(app)
 end
 function M:Supports(key)
     if key=='renderScale' then return TouchMode.Enabled() and self.post==nil end
+    -- 只有默认封顶 30 帧的设备（手机档）才给 30/60 选项；桌面本来就是 60
+    if key=='frameRate' then return Quality.FrameLimit()==30 end
+    -- AO 是前向渲染路径里的 SSAO 命令，摘不到就没有可切换的东西
+    if key=='ao' then return ScenePath.Available() end
     return supported[key]==true or (self.post~=nil and (key=='mist' or key=='grain'))
 end
 function M:RenderScale() return self.data.renderScale or MobileSceneScale.default end
+function M:FrameLimit()
+    if self:Supports('frameRate') and self.data.frameRate then return self.data.frameRate end
+    return Quality.FrameLimit()
+end
+-- 引擎帧率上限只在本应用独占场景时由这里管理（编辑器预览不动）
+function M:ApplyFrameLimit()
+    if self.app.ownsScene then engine.maxFps=self:FrameLimit() end
+end
 -- 场景画进缩小的离屏目标时不再继承屏幕的 MSAA，改用目标上的 FXAA
 function M:WantsAa(quality)
     if self.scaled then return Quality.current.fxaa==true and quality~='low' end
@@ -82,7 +97,10 @@ function M:ReleasePost(scene)
     end
 end
 function M:Apply(scene)
-    if not self.app.ownsScene or not scene then return end
+    if not self.app.ownsScene then return end
+    -- 渲染路径是渲染器级的全局状态，和场景无关，先进战斗前就该生效
+    ScenePath.Apply(self.data.ao)
+    if not scene then return end
     local zone=scene:GetComponent('Zone',true);if not zone then return end
     local d=self.data
     if not scene:GetVar('VoxPreview'):GetBool() then Quality.Apply(d.quality) end
@@ -143,12 +161,13 @@ function M:Set(key,value)
     local data={};for k,v in pairs(self.data) do data[k]=v end;data[key]=value
     if not M.Valid(data) then return false end
     self.data=data;self:Apply(self.app.scene);self.pending=true;self.delay=.35;self.error=''
+    if key=='frameRate' then self:ApplyFrameLimit() end
     -- 改了战斗渲染精度：当前战斗场景按新档位重建
     if key=='renderScale' and self.scaledSpec then local spec=self.scaledSpec;self:Show(spec.scene,spec.camera,{scaled=true}) end
     return true
 end
 function M:Reset()
-    self.data=M.Defaults();self:Apply(self.app.scene);self.pending=true;self.delay=0
+    self.data=M.Defaults();self:Apply(self.app.scene);self:ApplyFrameLimit();self.pending=true;self.delay=0
 end
 function M:Flush()
     if not self.pending then return true end

@@ -1,18 +1,21 @@
 -- Frozen damageMix.CollisionAudio: side contact plus horizontal delta-v.
 --   floor: normal.y = 1 -> no cue; wall: abs(normal.y) < .6 -> eligible
 -- Landing, braking without contact, triggers and rebuilt bodies stay silent.
+local PhysicsStats=require 'diagnostics.PhysicsStats'
 local M={};M.__index=M
 local function Detach(entry)
     if entry.body.isValid() then UnsubscribeFromEvent(entry.node,'NodeCollision') end
 end
 local function Contacts(entry,data)
-    if data:GetBool('Trigger') then return end
+    local scope <close> = PhysicsStats.Scope('collisionAudio.Contacts')
+    if entry.side or data:GetBool('Trigger') then return end
     local contacts=data:GetBuffer('Contacts')
     while not contacts.eof do
         contacts:ReadVector3()
         local normal=contacts:ReadVector3()
         contacts:ReadFloat();contacts:ReadFloat()
-        if math.abs(normal.y)<.6 then entry.side=true end
+        -- Only the existence of a side contact is consumed after this step.
+        if math.abs(normal.y)<.6 then entry.side=true;return end
     end
 end
 function M.New() return setmetatable({entries={},last=setmetatable({},{__mode='k'}),generation=0},M) end

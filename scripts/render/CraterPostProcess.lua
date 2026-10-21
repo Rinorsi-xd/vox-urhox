@@ -4,6 +4,7 @@ local Quality=require("render.Quality")
 
 local Graph=require 'render.FilterGraph'
 local Viewports=require 'render.WindowViewports'
+local ScenePath=require 'render.ScenePath'
 local M={};M.__index=M
 local shaderRoot='Shaders/BLGL/CraterPost/'
 local function Half(n) return math.max(1,math.floor(n/2+.5)) end
@@ -49,7 +50,7 @@ function M:Init(scene,camera,data,options)
     self.scene=scene;self.camera=camera;self.data=data;self.zone=scene:GetComponent('Zone',true)
     self.fixedResolution=options and options.fixedResolution or false
     self.adaptive=AdaptiveResolution.New(not self.fixedResolution)
-    self.source=Viewport:new(scene,camera);self.source:SetRenderPath(renderer:GetDefaultRenderPath():Clone())
+    self.source=Viewport:new(scene,camera);self.source:SetRenderPath(ScenePath.PathFor(data.ao):Clone())
     self:Resize(self:RenderSize());self:ConfigureSource()
 end
 function M:RenderSize()
@@ -72,7 +73,11 @@ function M:Resize(width,height,force)
     return true
 end
 function M:Set(data)
-    self.data=data;self:ConfigureSource()
+    local previousAo=self.data and self.data.ao
+    self.data=data
+    -- 源视口持有一条固定路径，AO 开关换了渲染器默认路径后要跟着重绑
+    if previousAo~=data.ao then ScenePath.Rebind(self.source,data.ao) end
+    self:ConfigureSource()
     -- Coalesce rapid setting changes; at most one allocation transaction/frame.
     self.rebuild=(data.bloom>.001)~=(self.indices.bloom~=nil) or (data.mist>.001)~=(self.indices.mist~=nil)
         or M.Samples(data.quality)~=self.requestedSamples

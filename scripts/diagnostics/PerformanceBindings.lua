@@ -2,6 +2,7 @@
 -- Attach after BeginFrame; constructors and per-ray calls stay uninstrumented.
 local CollectionCycle=require 'core.CollectionCycle'
 local RenderTargetLifetime=require 'render.RenderTargetLifetime'
+local PhysicsStats=require 'diagnostics.PhysicsStats'
 local M={}
 local groups={}
 local function Group(prefix,names)
@@ -36,7 +37,7 @@ Group('legs','Step')
 Group('legHitboxes','Update')
 Group('mech','Step')
 Group('mechHitboxes','Update')
-Group('playerView','Update SavePose')
+Group('playerView','Update SavePose Bind ResetPose')
 Group('combatView','Consume SavePose Update')
 Group('vehicleView','New init Rebuild UpdateIdle UpdateWeaponEffects SyncBlueprint AddPart RemovePart')
 Group('hangar','Bind init Update UpdateGrid BuildReflection ResizeReflection')
@@ -63,6 +64,9 @@ Group('hud','Update')
 Group('hudOverlay','Update Consume')
 Group('storyView','Update')
 Group('storyExplosion','Update')
+-- 车体重建后重新绑定外观（SyncPlayer 里的大头）：拼接网格、贴花与各部件动画的重建
+Group('joinedMesh','Update UpdateOutlines')
+Group('livery','Update')
 
 -- These are already Vehicle/LegControl/TrialSession dependencies. Resolve them
 -- only after a vehicle exists, once per Lua state, without loading new systems.
@@ -75,6 +79,11 @@ local vehicleModules={
     {'drive.WingControl','Step','wings.Step'},
     {'drive.LegGait','Step','legGait.Step'},
     {'render.WeaponView','Update','weaponView.Update'},
+    {'render.ActuatorView','New','actuatorView.New'},
+    {'render.RotorView','New','rotorView.New'},
+    {'render.LegView','New','legView.New'},
+    {'render.MechView','New','mechView.New'},
+    {'render.EquipmentEffects','Bind','equipment.Bind'},
 }
 local loadedModules=false
 -- HangarApp already owns these modules before its first Attach. Binding the
@@ -88,6 +97,8 @@ local homeModules={
     {'render.ReflectionFilter','reflection'},
     {'render.VehicleView','vehicleView'},
     {'render.WeaponEffects','weaponIdleFx'},
+    {'render.JoinedMesh','joinedMesh'},
+    {'render.LiveryLayer','livery'},
 }
 local homeModulesLoaded=false
 local function Bind(monitor,object,prefix)
@@ -122,6 +133,7 @@ end
 
 function M.Attach(monitor,app)
     if not monitor or monitor.enabled==false or not app then return end
+    PhysicsStats.monitor=monitor
     if not homeModulesLoaded then
         for _,entry in ipairs(homeModules) do entry.module=require(entry[1]) end
         homeModulesLoaded=true
@@ -201,6 +213,8 @@ local function BodyCount(space,now)
     return sample.count,((now-sample.at)&0xffffffff)
 end
 local function Length(value) return type(value)=='table' and #value or 0 end
+-- 每帧资源缓存增量：卡顿帧里有大块新资源进缓存，说明是首次加载/上传
+local lastCacheBytes=nil
 function M.Context(app)
     local trial=app and app.trial
     local flow=app and app.loadingFlow
@@ -223,6 +237,8 @@ function M.Context(app)
     local warmup=flow and flow.combatWarmup
     local sceneWarmup=flow and flow.renderWarmup
     local gc=CollectionCycle.State()
+    local cacheBytes=cache:GetTotalMemoryUse()
+    local cacheDelta=lastCacheBytes and cacheBytes-lastCacheBytes or 0;lastCacheBytes=cacheBytes
     return {
         trialId=trial and tostring(trial),mode=app and app.mode,map=trial and trial.map and trial.map.id,
         story=story and story.level and story.level.id,storyStep=rules and rules.index,storyPhase=rules and rules.phase,
@@ -251,8 +267,9 @@ function M.Context(app)
         debris=Length(world and world.debris and world.debris.pieces),
         physicsBodies=bodyCount,physicsBodiesAgeMs=bodyAge,
         batches=renderer:GetNumBatches(),primitives=renderer:GetNumPrimitives(),
-        cacheBytes=cache:GetTotalMemoryUse(),backgroundResources=cache:GetNumBackgroundLoadResources(),
+        cacheBytes=cacheBytes,cacheDeltaBytes=cacheDelta,backgroundResources=cache:GetNumBackgroundLoadResources(),
         luaKiB=collectgarbage('count'),
+        physics=PhysicsStats.last,
     }
 end
 return M
