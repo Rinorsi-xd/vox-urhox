@@ -166,7 +166,7 @@ function M:Hit(hit,damage,direction,impulse,pierce)
         local t=o.ref;local amount=math.min(t.hp,damage);t.hp=t.hp-amount;t.hitAt=self.time
         self.stats.hits=self.stats.hits+1;self.stats.damage=self.stats.damage+amount
         if t.hp<=.001 then
-            t.alive=false;t.respawn=self.time+4;t.native.enabled=false;self.stats.kills=self.stats.kills+1
+            t.alive=false;t.respawn=self.time+4;t.body.setEnabled(false);self.stats.kills=self.stats.kills+1
         end
         self.metrics:Damage(self.time,t,amount,hit.point,not t.alive)
     elseif o.type=="car" then
@@ -188,7 +188,7 @@ function M:Step(dt)
         local d=t.definition
         if d.kind=="moving" then t.node.position=Coord.Vec(d.pos[1],0,d.pos[2]+d.amp*math.sin(self.time*d.speed/d.amp)) end
         local p=t.node.position;t.pos[1],t.pos[2],t.pos[3]=-p.x,p.y+1.6,p.z
-        if not t.alive and self.time>=t.respawn then t.alive=true;t.hp=d.hp;t.native.enabled=true end
+        if not t.alive and self.time>=t.respawn then t.alive=true;t.hp=d.hp;t.body.setEnabled(true) end
     end
     self.space:Step(dt)
     -- Combat bodies are registered as cars, so Space's vehicle-only callback
@@ -204,7 +204,7 @@ end
 function M:GroundAt(x,z) return 0 end
 function M:Reset()
     for _,t in ipairs(self.targets) do
-        t.alive=true;t.hp=t.definition.hp;t.native.enabled=true;t.hitAt=-9;t.fall=0
+        t.alive=true;t.hp=t.definition.hp;t.body.setEnabled(true);t.hitAt=-9;t.fall=0
     end
     for _,c in ipairs(self.cones) do
         c.body.setTranslation({x=-c.home.x,y=c.home.y,z=c.home.z})

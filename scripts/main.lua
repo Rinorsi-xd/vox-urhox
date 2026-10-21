@@ -92,6 +92,7 @@ function Stop()
     _G.VOX_APP_BOOTSTRAP=nil
 end
 function HandleViewsRendered()
+    if performance then performance:Phase('rendered') end
     if app and app.loadingFlow and renderer:GetViewport(0) then app.loadingFlow:Rendered() end
 end
 function HandleFramePresented()
@@ -104,9 +105,10 @@ function HandleFramePresented()
     if performance and performance.enabled then performance:EndFrame(PerformanceBindings.Context(app)) end
 end
 function HandlePostUpdate(eventType,eventData)
+    if performance then performance:Phase('post') end
     local scope=performance and performance:Begin('main.PostUpdate')
     if app then app:PostUpdate(eventData:GetFloat("TimeStep")) end
-    if performance then performance:End(scope) end
+    if performance then performance:End(scope);performance:Phase('postEnd') end
 end
 ---@param eventType string
 ---@param eventData UpdateEventData
@@ -132,7 +134,7 @@ function HandleUpdate(eventType,eventData)
         if app.debugPanel then app.debugPanel:Update(dt) end
         app:Update(dt)
     end
-    if performance then performance:End(scope) end
+    if performance then performance:End(scope);performance:Phase('update') end
 end
 function HandlePerformanceLog(eventType,eventData)
     if not performance or not performance.enabled then return end

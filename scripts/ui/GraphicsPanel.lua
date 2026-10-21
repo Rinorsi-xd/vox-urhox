@@ -70,6 +70,17 @@ function M.Open(owner,options)
         end
         Row('战斗精度',57):AddChild(scales);natural=natural+57*k
     end
+    -- 手机默认封顶 30 帧；好设备可以手动开 60（更费电、更热）
+    if settings:Supports('frameRate') then
+        local rates=UI.Panel{position='absolute',left=(compact and 122 or 158)*k,right=(compact and 86 or 98)*k,top=(compact and 9 or 11)*k,height=34*k,flexDirection='row',gap=5*k}
+        modal.controls.frameRate={}
+        for _,rate in ipairs({30,60}) do
+            local button=Button{text=rate..' 帧',sourceKind='flat',sourceScale=k,height=34*k,flexGrow=1,flexBasis=0,selected=settings:FrameLimit()==rate,
+                onClick=function() if settings:Set('frameRate',rate) then for id,b in pairs(modal.controls.frameRate) do b.props.selected=id==rate end end end}
+            rates:AddChild(button);modal.controls.frameRate[rate]=button
+        end
+        Row('帧率上限',57):AddChild(rates);natural=natural+57*k
+    end
     for _,spec in ipairs(specs) do
         local key=spec[1]
         local row=Row(spec[2],47,function() return spec[6](settings.data[key]) end)
@@ -80,10 +91,13 @@ function M.Open(owner,options)
             end}
         row:AddChild(slider);modal.controls[key]=slider
     end
-    local ao=Controls.Checkbox{position='absolute',left=(compact and 122 or 158)*k,right=(compact and 86 or 98)*k,top=(compact and 9 or 11)*k,height=22*k,sourceScale=k,
-        checked=settings.data.ao,disabled=not settings:Supports('ao'),
-        onClick=function(self) if settings:Set('ao',not settings.data.ao) then self.props.checked=settings.data.ao end end}
-    Row('环境光遮蔽',45):AddChild(ao);modal.controls.ao=ao
+    -- 移动前向路径（CEMap.xml）本来就没有 SSAO 命令，那里没东西可关，不摆一个永远灰着的勾选框
+    if settings:Supports('ao') then
+        local ao=Controls.Checkbox{position='absolute',left=(compact and 122 or 158)*k,right=(compact and 86 or 98)*k,top=(compact and 9 or 11)*k,height=22*k,sourceScale=k,
+            checked=settings.data.ao,
+            onClick=function(self) if settings:Set('ao',not settings.data.ao) then self.props.checked=settings.data.ao end end}
+        Row('环境光遮蔽',45):AddChild(ao);modal.controls.ao=ao;natural=natural+45*k
+    end
     body:AddChild(rows)
     scroll.props.sourceNaturalHeight=natural;scroll:SetHeight(math.min(natural,h*.86))
     local buttonHeight=(compact and 44 or 40)*k

@@ -1,13 +1,33 @@
 {
   "$schema": "../schemas/project.schema.json",
-  "project_id": "m_01cf",
-  "name": "VoxelCraft",
+  "project_id": "m_kxkf",
   "author": {
-    "id": "local"
+    "id": "1838934907"
   },
   "entry": "main.lua",
-  "version": "1.0.0",
+  "version": "1.0.23",
   "taptap_publish": {
-    "screen_orientation": "landscape"
+    "title": "构装纪元",
+    "description": "",
+    "category": "strategy",
+    "screen_orientation": "landscape",
+    "collection_type": "sce",
+    "trial_note": "",
+    "app_platforms": "1,2",
+    "developer_id": 411438,
+    "app_id": 981703,
+    "miniapp_id": "tapmc6h88fsziiroxd"
+  },
+  "assets": {
+    "icon": "",
+    "screenshots": [],
+    "promotional_image": ""
+  },
+  "metadata": {
+    "updated_at": "2026-10-21T13:13:10.106Z"
+  },
+  "test_qrcode": {
+    "url": "https://tapcode-sce.spark.xd.com/qrcode/m_kxkf_1792588389969.png",
+    "generated_at": "2026-10-21T13:13:10.106Z"
   }
 }

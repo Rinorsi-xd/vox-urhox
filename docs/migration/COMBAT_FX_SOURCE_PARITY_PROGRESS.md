@@ -1,24 +1,8 @@
 # Combat FX Source Parity Progress
 
-Baseline: H5 branch `2026-10-15`, commit `b276064942ae09c0227ec28d4cfda1d5ff006455`.
-Reference snapshot: `.tmp/outgame-source-2026-10-15T12-35-57-243Z`.
+Baseline: H5 branch `2026-10-14`, commit `2b169a9964645f5f346a7158bcb14447f040814a`.
+Reference snapshot: `.tmp/outgame-source-2026-10-14T10-09-50-505Z`.
 This increment continues the existing migration gates; it does not restart G0.
-
-## 2026-10-17: Current Baseline And Reactor Hit Feedback
-
-- The former 10/14 reference has been rechecked against the frozen 10/15 baseline. `weaponFx.js`, `effects.js`, `combatFeedback.js`, `matchView.js` and `matchSession.js` are byte-identical between these two snapshots. This statement applies only to those five files, not all gameplay or the whole repository.
-- `combat-source-golden.cjs` now reads `outgame-baseline.json` and verifies the two executed source-file SHA-256 values. All 18 original direct-method H5/Lua scenarios pass on 10/15; the historical 10/14 path is no longer used by this runner.
-- Confirmed omission: H5 `ConquestMode.hitSpecial/explodeSpecial` call `Reactor.hit()` only when charge theft returns a positive amount. Source `Reactor.update()` decays flash by `dt*4`, mixes the team/exposed warning color toward white, and jitters the entire reactor horizontally by `(random-.5)*flash*.3`. Lua previously stole charge without any reactor hit flash or movement.
-- `BattleObjectives:Hit/Explode` now notify only that reactor after successful theft. `ObjectiveView` retains existing geometry optimizations, normal 10 Hz refresh and conservative culling; only an active hit reactor refreshes each frame until its 250 ms flash expires. The last flash frame restores its undisplaced position. Hidden reactors advance flash without building geometry and refresh on re-entry.
-- Jitter uses a private visual PRNG to preserve gameplay RNG. Amplitude, axis, decay and activation follow source; its random sequence is intentionally not the source browser's per-frame sequence. Exposed warning retains the existing 10 Hz refresh when no hit is active.
-- `check-reactor-feedback.py`: **249 actual-module/source checks, four visual fixtures, 32 activation fixtures and four rejected mutations PASS**. Includes both teams, shield/exposed colors, repeated hit reset, zero charge/damage, blast range, source 60% explosion theft, score depletion, offscreen expiry/re-entry, immediate refresh of only the hit batch and no gameplay RNG consumption. [Bound hashes and results](evidence/reactor-feedback-1015-offline.json).
-- Existing conservative objective-culling regression: **45 checks and four rejected mutations PASS**. No shader depth state or unrelated weapon/kill formulas were changed. This is a functional feedback restoration; no frame-time, rendered-pixel or phone performance improvement is claimed.
-
-### Rendered Acceptance Still Open
-
-Natural route: public 4V4 station conquest, capture A/B/C to drop the red shield, then shoot the crystal ring above the red base with charge remaining. Expect theft plus a brief white flash and small X shake; shooting a shielded/empty reactor must not flash. This route needs natural objective progress and is not a short deterministic proof.
-
-For a bounded rendered check, root can use a dedicated fixture based on `tools/migration/objective-web-native-probe.lua`: one real `Scene`/`Octree`/`Camera`, actual `render.ObjectiveView.New`, `id='conquest'`, no capture points, blue/red base aims `{−6,0,0}`/`{6,0,0}`, both scores 50, camera at `{0,5,−20}` looking at `{0,0,0}`. Render an idle second, call `view:HitReactor('red')` once, retain real Update dt for 0.3 seconds, and capture at 0/0.05/0.15/0.3 seconds. Repeat with red shield down and with the camera turned away/back. This is explicitly a rendering fixture, not natural combat or a performance benchmark. The production hit/explosion gates are covered offline above; actual public combat, audible kill feedback and sustained Snapdragon 845/TapTap remain unaccepted.
 
 ## Implemented And Checked Offline
 

@@ -1,9 +1,5 @@
 # G2 装配终端排版候选
 
-## 2026-10-17 详情切换滚动接续
-
-本报告原“源保留详情滚动、目标切换回顶部”的明确缺口已补生产候选：仅 `InventoryPanel:Detail` 保留位置，`InventoryDetailScroll` 在内容缩短后夹回实际新范围。实际源18场景/目标120检查及3负控PASS，受影响139/108/5867回归PASS；旧生产32失败证据保留。公开PC/20:9入口工具已准备，真实Web仍PENDING，不以离线断言关闭最终画面。详 `G2_INVENTORY_DETAIL_RETENTION_2026_10_17.md`；字体/窄列断行残差继续OPEN。
-
 ## 接续位置
 
 - 从 `CURRENT_EXECUTION.md` 和 `G2_INVENTORY_DETAIL_2026_10_15.md` 接续，不重开 G0。

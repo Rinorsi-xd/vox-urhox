@@ -3,12 +3,17 @@
 local Config=require 'Config'
 local V=require 'core.Math3'
 local Coord=require 'core.Coord'
+local PhysicsStats=require 'diagnostics.PhysicsStats'
 local M={}
 local function Vec(a) return Coord.Vec(a[1],a[2],a[3]) end
 function M.Install(v)
     v.staticContacts={};v.native.collisionEventMode=COLLISION_ALWAYS
     local receiver=v.node:CreateScriptObject('LuaScriptObject')
     receiver:SubscribeToEvent(v.node,'NodeCollision',function(_,_,data)
+        local scope <close> = PhysicsStats.Scope('obstacleSlide.Contacts')
+        -- Only Prepare's next belly check or this step's correction consumes
+        -- these contacts. Idle/excluded vehicles need no buffer decoding.
+        if not v.slideBefore and not v.slideStep then return end
         local other=data['OtherBody']:GetPtr('RigidBody')
         if not other or other.mass~=0 or other.kinematic or other.trigger then return end
         local buffer=data['Contacts']:GetBuffer()

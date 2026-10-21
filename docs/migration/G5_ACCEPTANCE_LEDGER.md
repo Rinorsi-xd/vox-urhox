@@ -1,33 +1,5 @@
 # G5 逐项验收接续表
 
-## 10/17 c074-h：局内限量库存与公开结算返厅窄链通过
-
-`G5_ENDLESS_EDIT_STOCK_2026_10_17.md` 最新小节：root实际Web h **PASS/CLOSED/exit0，Runtime/HTTP errors均0**，resumed/returned图已实看。独立只读重建3,772分包/350完整状态，长度/checksum/唯一性全过，19个报告状态与原始日志逐一严格相等；较早辅助OUTGAME_STATE半截JSON1条保留。三个工具SHA与h前冻结和实际报告一致。
-
-真实输入完成支座78→79、激光79→80与库存1→0；禁用卡片点击/双击/拖拽/键盘拒绝；实际Ctrl+Z/Y各一次有效派发，库存0→1→0；精确laser1拆除归还、公开reset恢复原78件蓝图。14个编辑状态世界/局内时钟均16.86666666666699，出发后17.733333333333608，同波1命3。实际Escape→暂停/指针释放→背景关闭且仍释放→公开结束本局over→回主页→可见已加载机库“出战”全链通过。旧g整体FAIL原样保留。
-
-仅关闭c074冻结的限量库存/改装暂停恢复/公开结束返厅子项。QA PageDown受控调用SelectEndless、F2清已生成敌人、F3回基地边界不变；不签自然整波、公开模式入口、全G5、真实账号/云刷新、后续4a3a构建或TapTap骁龙845持续性能。独立证据 `evidence/endless-stock-web-c074-h-independent.json`；本审计未启动硬件、未改生产或CURRENT_EXECUTION。
-
-## 10/17 冻结6f：恢复无尽补给公开鼠标闭环
-
-`G5_RESTORED_SUPPLY_INPUT_2026_10_17.md` 实际6f/QA4527/PC1600x900 **PASS13/运行错误0/page及browser CLOSED**：生产倒计时+出兵→既有QA F2波清三卡存档→公开返厅/继续上次进度→Esc/继续触发真实指针锁定并13.31ms后释放→设置不重开、真实鼠标领取→再返厅恢复不重复出三卡。两张关键截图已实看；runner exit0，专用4527已停、硬件已释放。首轮工具FAIL（空Lua widgets编码{}导致QA.some TypeError、游戏错误0）原样保留，窄修QA后同包通过，无第三轮。仅关闭恢复补给鼠标交互子项，不代签全G5、云账号/刷新恢复、自然波清、20:9真机或持续性能。原30源/318断言/4负控回归PASS。
-
-## 10/17 新候选：恢复无尽补给时释放驾驶输入
-
-`G5_RESTORED_SUPPLY_INPUT_2026_10_17.md`：对照冻结10/15 H5实际update，修复存档直接恢复rest不经过waveClear，导致已捕获/待捕获指针未释放、补给点击被驾驶接管的漏接。仅EndlessSession.Update补rest有补给时一次Pause；真实TrialSession.Pause/DrivePointer.Release验证不弹设置页、不改run数据。修前实际FAIL，修后30源场景318断言/4负控PASS，checkpoint50/cloud61/结构216/natural221回归PASS。生产SHA已冻结交root，等待新包实际Web输入；不代签账号或性能。旧edit-enter工具因既有hoist后缺app.ResourceGate适配而在测试前失败，未计PASS；本批未改Edit。
-
-## 10/17 b88e 后候选：G5 漏接结构回复
-
-`G5_STRUCTURE_REGEN_2026_10_17.md`：冻结H5每车实际unit.step调用_regenStructure，Lua打捞/无尽直接vehicle.Step漏调。仅salvage/Run与app/EndlessSession各补一次实际RegenerateStructure，位置为运动后、武器前；不改回血/长件/伤害或共享CarUnit。修前实际FAIL保留，修后54源场景216检查/6负控PASS，death6136/natural221/result-return179回归PASS。两文件SHA已冻结，等待新统一包实际引擎验收；下述b88e公开返厅PASS不能代签此新增候选，不能算性能优化。
-
-## 10/17 b88e 返厅公开输入已闭环
-
-`G5_WEB_RETURN_READY_2026_10_17.md`最新段：QA4516同b88e实际`--return-only` PASS/11项/运行与probe错误0/CLOSED。真实5.314秒驾驶开火→T放弃→大厅结算→原ACK→整备/车库/整备鼠标点击均通过；旧trial七项释放true，选车/经济/大厅generation不因ACK改变。真实PERF的同owner root识别成功，未知overlay负控仍拒绝；原3aca FAIL保留。两张结算/返厅图已实看，4516服务与浏览器均关闭，用户4514不动。仅此返厅子项关闭：本轮独立本地validation context且生产源测试库存testFill999，不签真实账号/限量经济、自然撤离/死亡、长打捞OOM、像素1:1或845持续性能。
-
-## 10/17 3aca 返厅已实测，QA owner 修复待复测
-
-`G5_WEB_RETURN_READY_2026_10_17.md`：生产3aca已含结算返厅顺序修复，旧包不可代签。父任务4512实际`--return-only`结果保留FAIL/8项通过/错误0/CLOSED：原T放弃和幂等经济通过、结算已在实际大厅出现、旧trial七项释放通过；确认结算后仅剩右上PERF。失败因QA漏识别main局部performancePanel.root，已仅按实际app/root引用窄修owner映射，不按Panel/PERF文本放行，不改生产。返回合同48、真实observer/Debug/DialogHost16、生命周期179/7负控、四冻结资源/10负控离线PASS；新observer下真实车库/整备鼠标复测待跑，不能凭QA修复直接签收。自然成功撤离、死亡/超时、真实账号、OOM及845长期性能继续OPEN。
-
 ## 10/16 数量输入与仓库检视候选已冻结
 
 `G5_QUANTITY_INSPECT_2026_10_16.md`：L05补真实TextField数量输入、输入框滚轮、长按重复/加速、Enter提交不误出发、检视售卖和右键卖一件。实际冻结H5与生产模块对照184项/23场景/6负控通过，关联loadout/departure/cue/action检查通过。尚不属于8b6203a3优化验收包；新统一包真实Web输入与画面正在准备，账户、自然搜撤/无尽和真机缺口保持OPEN。

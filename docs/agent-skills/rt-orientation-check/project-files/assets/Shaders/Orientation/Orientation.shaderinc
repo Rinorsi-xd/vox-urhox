@@ -1,0 +1,25 @@
+// RT orientation helpers (render.OrientationMap). Bind with OrientationMap.Bind(material, needSentinel).
+// Every helper returns 0 (do not flip) when its input is missing or not painted yet.
+uniform sampler2D orient_map : filter_nearest, repeat_disable;      // 8x8 NanoVG map: left NanoVG reference, right displayed RT corners
+uniform sampler2D orient_sentinel : filter_nearest, repeat_disable; // 8x8 camera RT: red top half in render space
+uniform float orient_enabled = 0.0;
+// Camera RT shown through nvgCreateVideo/nvgImagePattern is upside down.
+// Both columns flip together if this map itself samples reversed, so the comparison holds.
+float orient_rt_shown_flip() {
+    vec4 l = texture(orient_map, vec2(0.1875, 0.1875)), r = texture(orient_map, vec2(0.8125, 0.1875));
+    return orient_enabled * step(0.5, l.a) * step(0.5, r.a) * step(0.5, abs(l.r - r.r));
+}
+// Camera RT sampled with texture() returns rows reversed.
+float orient_rt_sampled_flip() {
+    vec4 s = texture(orient_sentinel, vec2(0.5, 0.25));
+    return orient_enabled * step(0.5, s.a) * step(s.r, s.b);
+}
+// NanoVG RT sampled with texture() is upside down (its left column is painted red on top).
+float orient_nvg_sampled_flip() {
+    vec4 o = texture(orient_map, vec2(0.1875, 0.1875));
+    return orient_enabled * step(0.5, o.a) * step(o.r, o.b);
+}
+// Flip a v=0-top UV vertically when flip is 1.
+vec2 orient_apply(vec2 uv, float flip) {
+    return vec2(uv.x, mix(uv.y, 1.0 - uv.y, flip));
+}
