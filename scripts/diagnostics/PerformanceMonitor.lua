@@ -1,6 +1,12 @@
 -- Diagnostic wall timings, not thread CPU or GPU timestamps. No gameplay changes.
 local M={};M.__index=M
 local LIMIT=80
+-- 日志限流：手机低帧时几乎每帧都算慢帧，完整明细（约 28 KB/条）几十秒就写满 5 MB 反馈日志。
+-- 尖峰帧（≥SPIKE_MS）每 SPIKE_GAP 毫秒最多一条，普通慢帧每 SLOW_GAP 毫秒最多一条；被跳过的计数写进每秒样本。
+local SPIKE_MS=150
+local SPIKE_GAP=250
+local SLOW_GAP=2000
+local DETAIL_STAGES=24
 local scopeMetatable={__close=function(token,err)
     if err then
         local m=token.monitor;m.errors=m.errors or {}
@@ -24,6 +30,8 @@ function M:init(options)
     self.stages={};self.stageOrder={};self.stacks=setmetatable({},{__mode='k'});self.tokenOrder=0
     self.wrapped=setmetatable({},{__mode='k'});self.restores=setmetatable({},{__mode='k'})
     self.ring={};self.window={};self.sampleDrops=0;self.slowFrames=0;self.discardedAsyncSpans=0
+    self.windowStages={};self.steadyStages={};self.steadyFrames=0;self.suppressedSlow=0;self.suppressedSpikes=0
+    self.lastSlowEmit=nil;self.lastSpikeEmit=nil
     self.startedAt=self.clock();self.lastSample=self.startedAt;self.lastFlush=self.startedAt
     self.maxMs=0;self.p95Ms=0;self.lastEvent='';self.stepsTotal=0
     self.sink=options.sink;self.noFile=options.noFile==true;self.segment=0;self.fileBytes=0
@@ -134,6 +142,16 @@ function M:StageRows()
     table.sort(rows,function(a,b) return a.selfMs>b.selfMs end)
     return rows
 end
+function M:AggregateRows(agg)
+    local rows={}
+    for id,a in pairs(agg) do
+        local stat=self.stageOrder[id]
+        if stat then rows[#rows+1]={name=stat.name,ms=a[1],selfMs=a[2],calls=a[3],maxMs=a[4]} end
+    end
+    table.sort(rows,function(x,y) return x.selfMs>y.selfMs end)
+    for i=#rows,41,-1 do rows[i]=nil end
+    return rows
+end
 function M:StageNames()
     local names={}
     for id,stat in ipairs(self.stageOrder) do names[id]=stat.name end
@@ -143,6 +161,10 @@ function M:Recent()
     local rows={}
     for i=math.max(1,#self.ring-14),#self.ring do rows[#rows+1]=self.ring[i] end
     return rows
+end
+local function Accumulate(agg,id,stat)
+    local a=agg[id];if not a then a={0,0,0,0};agg[id]=a end
+    a[1]=a[1]+stat.ms;a[2]=a[2]+stat.selfMs;a[3]=a[3]+stat.calls;if stat.maxMs>a[4] then a[4]=stat.maxMs end
 end
 -- 场景更新 = PostUpdate 开始 - Update 结束；3D 渲染 = 视图画完 - PostUpdate 结束；UI+提交 = 帧结束 - 视图画完
 -- （UI+提交里含引擎帧率上限的等待；帧时间高于上限时才代表真实开销）
@@ -163,26 +185,34 @@ function M:Finalize(now,incomplete)
     self.maxMs=math.max(self.maxMs,p.frameMs)
     local rows=nil ---@type table|nil
     local top=nil ---@type table|nil
-    local stageTimes={}
+    -- 每秒样本只带聚合后的阶段耗时（全部帧 + 去掉尖峰帧的“平时”），不再逐帧带阶段数组
+    local steady=p.frameMs<SPIKE_MS
+    if steady then self.steadyFrames=self.steadyFrames+1 end
     for id,stat in ipairs(self.stageOrder) do
         if stat.calls>0 then
             if not top or stat.selfMs>top.selfMs then top=stat end
-            -- One numeric array per frame; names are shared by the sample dictionary.
-            local offset=#stageTimes
-            stageTimes[offset+1]=id;stageTimes[offset+2]=stat.ms;stageTimes[offset+3]=stat.selfMs
-            stageTimes[offset+4]=stat.calls;stageTimes[offset+5]=stat.maxMs
+            Accumulate(self.windowStages,id,stat)
+            if steady then Accumulate(self.steadyStages,id,stat) end
         end
     end
     local compact={frame=p.frame,frameMs=p.frameMs,wallMs=p.wallMs,scriptMs=p.scriptMs,steps=p.steps,
         sceneMs=p.sceneMs,renderMs=p.renderMs,presentMs=p.presentMs,
-        topStage=top and top.name or '',topMs=top and top.selfMs or 0,luaKiB=p.context.luaKiB,stageTimes=stageTimes,
+        topStage=top and top.name or '',topMs=top and top.selfMs or 0,luaKiB=p.context.luaKiB,
         context={mode=p.context.mode,map=p.context.map,story=p.context.story,storyStep=p.context.storyStep,
             matchState=p.context.matchState,loading=p.context.loading,loadingPhase=p.context.loadingPhase}}
     if p.frameMs>self.threshold or p.wallMs>self.threshold then
-        rows=self:StageRows()
         self.slowFrames=self.slowFrames+1;self.lastEvent='frame '..p.frame..' / '..string.format('%.1f ms',p.frameMs)
-        p.type='slow_frame';p.stages=rows;p.recent=self:Recent();p.discardedAsyncSpans=self.discardedAsyncSpans
-        self:Emit(p)
+        local spike=p.frameMs>=SPIKE_MS
+        local last=spike and self.lastSpikeEmit or self.lastSlowEmit
+        if last==nil or Delta(now,last)>=(spike and SPIKE_GAP or SLOW_GAP) then
+            if spike then self.lastSpikeEmit=now else self.lastSlowEmit=now end
+            rows=self:StageRows()
+            local detail={};for i=1,math.min(DETAIL_STAGES,#rows) do detail[i]=rows[i] end
+            local spans={};for i=1,math.min(16,#p.longSpans) do spans[i]=p.longSpans[i] end
+            p.type='slow_frame';p.spike=spike or nil;p.stages=detail;p.longSpans=spans;p.recent=self:Recent();p.discardedAsyncSpans=self.discardedAsyncSpans
+            self:Emit(p)
+        elseif spike then self.suppressedSpikes=self.suppressedSpikes+1
+        else self.suppressedSlow=self.suppressedSlow+1 end
     elseif p.errors and #p.errors>0 then
         rows=self:StageRows()
         p.type='error_frame';p.stages=rows;self:Emit(p)
@@ -199,12 +229,15 @@ function M:Finalize(now,incomplete)
         for _,row in ipairs(self.window) do values[#values+1]=row.frameMs;total=total+row.frameMs end
         table.sort(values);self.p95Ms=Percentile(values,.95);self.lastSnapshot.p95Ms=self.p95Ms
         self:Emit({type='sample',frame=p.frame,frameMs=p.frameMs,wallMs=p.wallMs,scriptMs=p.scriptMs,
-            context=p.context,stages=rows or self:StageRows(),frameSamples=self.window,sampleDrops=self.sampleDrops,
-            stageNames=self:StageNames(),
+            context=p.context,frameSamples=self.window,sampleDrops=self.sampleDrops,
+            -- 本秒内各阶段合计（ms/selfMs/calls 为总和，maxMs 为单次最大）；steady 只算 <SPIKE_MS 的帧
+            stages=self:AggregateRows(self.windowStages),steadyStages=self:AggregateRows(self.steadyStages),steadyFrames=self.steadyFrames,
             frameStats={count=#values,meanMs=#values>0 and total/#values or 0,p50Ms=Percentile(values,.5),
                 p95Ms=self.p95Ms,p99Ms=Percentile(values,.99),maxMs=values[#values] or 0},
-            slowFrames=self.slowFrames,monitorMs=self.monitorMs or 0})
+            slowFrames=self.slowFrames,suppressedSlow=self.suppressedSlow,suppressedSpikes=self.suppressedSpikes,
+            monitorMs=self.monitorMs or 0})
         self.window={};self.sampleDrops=0;self.lastSample=now
+        self.windowStages={};self.steadyStages={};self.steadyFrames=0;self.suppressedSlow=0;self.suppressedSpikes=0
     end
     if self.file and Delta(now,self.lastFlush)>=1000 then self.file:Flush();self.lastFlush=now end
 end
@@ -245,7 +278,7 @@ function M:Dispose()
     if self.closed then return end
     if not self.enabled then self.closed=true;return end
     self.recording=false;self:Finalize(self.clock(),true)
-    if #self.window>0 then self:Emit({type='sample_tail',frameSamples=self.window,sampleDrops=self.sampleDrops,stageNames=self:StageNames()}) end
+    if #self.window>0 then self:Emit({type='sample_tail',frameSamples=self.window,sampleDrops=self.sampleDrops,stages=self:AggregateRows(self.windowStages)}) end
     self:Emit({type='session_end',frame=self.frame,slowFrames=self.slowFrames,fileError=self.fileError})
     self.enabled=false;self.closed=true
     for object,entries in pairs(self.restores) do
