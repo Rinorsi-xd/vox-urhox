@@ -17,11 +17,13 @@ function M.Defaults() return {v=2,quality=Quality.current.name=='mobile' and 'me
 function M.WantsFxaa(quality)
     return Quality.current.fxaa==true and quality~='low' and graphics:GetMultiSample()<=1
 end
-function M.Valid(data)
+---allowLegacyScale：老存档里还在用 low/medium/high 倍率档，只有「读进来准备迁移」才放行
+function M.Valid(data,allowLegacyScale)
     if type(data)~='table' or data.v~=2 or type(data.ao)~='boolean' then return false end
     if data.quality~='high' and data.quality~='medium' and data.quality~='low' then return false end
-    -- 手机战斗渲染精度：可选字段，老存档没有时按默认档
-    if data.renderScale~=nil and not (MobileSceneScale.levels[data.renderScale] or data.renderScale=='native') then return false end
+    -- 手机战斗分辨率：可选字段，老存档没有时按默认档
+    if data.renderScale~=nil and not (MobileSceneScale.levels[data.renderScale] or data.renderScale=='native'
+        or (allowLegacyScale and MobileSceneScale.legacy[data.renderScale])) then return false end
     -- 手机帧率上限：可选字段，没有时按画质档的默认上限（手机 30）
     if data.frameRate~=nil and data.frameRate~=30 and data.frameRate~=60 then return false end
     for k,r in pairs(ranges) do local n=data[k];if type(n)~='number' or n~=n or n<r[1] or n>r[2] then return false end end
@@ -35,12 +37,18 @@ local function Legacy(data)
     end
     return true
 end
-function M.ValidSaved(data) return M.Valid(data) or Legacy(data) end
+function M.ValidSaved(data) return M.Valid(data,true) or Legacy(data) end
 function M.New(app)
     Viewports.Start()
-    local saved=not app.isValidation and app.store:Read('graphics',function(d) return M.Valid(d) or Legacy(d) end) or nil
+    local saved=not app.isValidation and app.store:Read('graphics',function(d) return M.Valid(d,true) or Legacy(d) end) or nil
     local data=saved or M.Defaults();local migrate=saved and saved.v==1 or false
     if migrate then data=M.Defaults();data.bloom=saved.bloom;data.vignette=saved.vignette end
+    -- 旧倍率档（low/medium/high）换成绝对像素目标，不能就这样往外写
+    if saved and MobileSceneScale.legacy[data.renderScale] then
+        local copy={};for k,v in pairs(data) do copy[k]=v end
+        copy.renderScale=MobileSceneScale.default;data=copy;migrate=true
+    end
+    if migrate then print('[GraphicsSettings] migrated renderScale -> '..tostring(data.renderScale)) end
     return setmetatable({app=app,data=data,pending=migrate,delay=0,error=''},M)
 end
 function M:Supports(key)

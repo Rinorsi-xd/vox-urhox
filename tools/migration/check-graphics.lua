@@ -29,7 +29,12 @@ V.atFrame(55,function()
     zone=app.scene:GetComponent('Zone',true);local s=app.graphicsSettings
     V.assert(zone:GetAutoExposureEnabled() and zone:GetAttribute('Auto Exposure Plus Enable'):GetBool(),'fixed native exposure active')
     V.assert(not s:Set('bloom',0/0) and not s:Set('fps',120) and not s:Set('unknown',1),'invalid or removed options do not mutate settings')
-    for _,key in ipairs({'quality','mist','grain','ao'}) do V.assert(not s:Supports(key) and not s:Set(key,0),'unverified effect cannot pretend to apply: '..key) end
+    for _,key in ipairs({'quality','mist','grain'}) do V.assert(not s:Supports(key) and not s:Set(key,0),'unverified effect cannot pretend to apply: '..key) end
+    -- 环境光遮蔽现在是真开关：前向 AO 就是渲染路径里的 compute-ssao 命令，删掉即关闭
+    V.assert(s:Supports('ao') and s.data.ao,'forward path exposes the SSAO switch')
+    local commands=renderer:GetDefaultRenderPath():GetNumCommands()
+    V.assert(s:Set('ao',false) and renderer:GetDefaultRenderPath():GetNumCommands()==commands-1,'disabling AO removes exactly the compute-ssao command')
+    V.assert(s:Set('ao',true) and renderer:GetDefaultRenderPath():GetNumCommands()==commands,'enabling AO restores the base render path')
 end)
 V.atFrame(74,function()
     Shot('1920');local box=panel.modalLayout_

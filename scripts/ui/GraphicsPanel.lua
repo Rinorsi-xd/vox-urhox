@@ -58,17 +58,17 @@ function M.Open(owner,options)
         choices:AddChild(button);modal.controls.quality[key]=button
     end
     Row('画质',57):AddChild(choices)
-    -- 手机端：战斗时 3D 画面的渲染精度（界面文字始终原生清晰）；低 / 中 / 高 / 原生
+    -- 手机端：战斗时 3D 画面的渲染分辨率（界面文字始终原生清晰）；720P / 1080P / 原生
     if settings:Supports('renderScale') then
         local scales=UI.Panel{position='absolute',left=(compact and 122 or 158)*k,right=(compact and 86 or 98)*k,top=(compact and 9 or 11)*k,height=34*k,flexDirection='row',gap=5*k}
         modal.controls.renderScale={}
-        for _,spec in ipairs({{'low','低'},{'medium','中'},{'high','高'},{'native','原生'}}) do
+        for _,spec in ipairs({{'720p','720P'},{'1080p','1080P'},{'native','原生'}}) do
             local key=spec[1]
             local button=Button{text=spec[2],sourceKind='flat',sourceScale=k,height=34*k,flexGrow=1,flexBasis=0,selected=settings:RenderScale()==key,
                 onClick=function() if settings:Set('renderScale',key) then for id,b in pairs(modal.controls.renderScale) do b.props.selected=id==key end end end}
             scales:AddChild(button);modal.controls.renderScale[key]=button
         end
-        Row('战斗精度',57):AddChild(scales);natural=natural+57*k
+        Row('战斗分辨率',57):AddChild(scales);natural=natural+57*k
     end
     -- 手机默认封顶 30 帧；好设备可以手动开 60（更费电、更热）
     if settings:Supports('frameRate') then

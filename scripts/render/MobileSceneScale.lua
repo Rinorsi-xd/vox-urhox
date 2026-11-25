@@ -1,6 +1,8 @@
--- 手机端战斗场景降分辨率渲染：3D 场景按「CSS 像素 × 倍率」画进离屏目标，再拉伸到屏幕；
--- 界面（NanoVG）仍按原生分辨率绘制，字和按钮不糊。手机 WebGL 的画面几乎完全受像素填充率限制，
--- 渲染像素数直接决定 GPU 耗时。只由 GraphicsSettings 在触屏战斗场景里创建。
+-- 手机端战斗场景降分辨率渲染：3D 场景画进离屏目标再拉伸到屏幕，界面（NanoVG）仍按
+-- 原生分辨率绘制，字和按钮不糊。手机 WebGL 的画面几乎完全受像素填充率限制，渲染像素数
+-- 直接决定 GPU 耗时。只由 GraphicsSettings 在触屏战斗场景里创建。
+-- 档位是绝对像素目标（720P / 1080P），不跟随 dpr 走：同一档在不同手机上得到同样的渲染
+-- 分辨率，低端 dpr=1 的机器也真的会降。
 local Graph=require 'render.FilterGraph'
 local PortraitCheck=require 'render.PortraitCheck'
 ---@class MobileSceneScale
@@ -9,18 +11,22 @@ local PortraitCheck=require 'render.PortraitCheck'
 ---@field width integer
 ---@field height integer
 local M={};M.__index=M
--- 相对 CSS 像素的倍率；native 表示不缩放（不创建本对象）。
-M.levels={low=1,medium=1.25,high=1.6}
-M.order={'low','medium','high','native'}
-M.default='medium'
+-- 目标渲染高度与宽度上限（横屏 720P = 1280x720，1080P = 1920x1080）。宽高比大于 16:9 的
+-- 屏幕不会因为高度达标就把宽度撑回去，所以高和宽各夹一次。native 表示不缩放（不创建本对象）。
+M.levels={['720p']={height=720,maxWidth=1280},['1080p']={height=1080,maxWidth=1920}}
+M.order={'720p','1080p','native'}
+M.default='720p'
+-- 旧存档里的旧倍率档，读出来统一归到 1080P
+M.legacy={low=true,medium=true,high=true}
 local shader='Shaders/BLGL/UI/SceneUpscale.shader'
 function M.Size(level)
     local pw,ph=math.max(1,graphics:GetWidth()),math.max(1,graphics:GetHeight())
-    local k=M.levels[level] or M.levels[M.default]
-    local scale=math.min(1,k/math.max(1,graphics:GetDPR()))
+    local spec=M.levels[level]
+    if not spec then return pw,ph,1 end
+    local scale=math.min(1,spec.height/ph,spec.maxWidth/pw)
     return math.max(1,math.floor(pw*scale+.5)),math.max(1,math.floor(ph*scale+.5)),scale
 end
---- 该档位在当前屏幕上是否真的缩小了（DPR 不高的设备上可能等于原生）。
+--- 该档位在当前屏幕上是否真的缩小了（屏幕本来就比目标小时不缩）。
 function M.Reduces(level)
     if not M.levels[level] then return false end
     local _,_,scale=M.Size(level);return scale<.999
